@@ -11,6 +11,7 @@ For further reference, please consider the following sections:
 * [Eureka Discovery Client](https://docs.spring.io/spring-cloud-netflix/reference/spring-cloud-netflix.html#_service_discovery_eureka_clients)
 * [Spring Data JPA](https://docs.spring.io/spring-boot/4.0.2/reference/data/sql.html#data.sql.jpa-and-spring-data)
 * [Rest Repositories](https://docs.spring.io/spring-boot/4.0.2/how-to/data-access.html#howto.data-access.exposing-spring-data-repositories-as-rest)
+* [Spring Boot DevTools](https://docs.spring.io/spring-boot/4.0.2/reference/using/devtools.html)
 * [Spring Web](https://docs.spring.io/spring-boot/4.0.2/reference/web/servlet.html)
 
 ### Guides
@@ -23,6 +24,7 @@ The following guides illustrate how to use some features concretely:
 * [Accessing JPA Data with REST](https://spring.io/guides/gs/accessing-data-rest/)
 * [Accessing Neo4j Data with REST](https://spring.io/guides/gs/accessing-neo4j-data-rest/)
 * [Accessing MongoDB Data with REST](https://spring.io/guides/gs/accessing-mongodb-data-rest/)
+* [Accessing data with MySQL](https://spring.io/guides/gs/accessing-data-mysql/)
 * [Building a RESTful Web Service](https://spring.io/guides/gs/rest-service/)
 * [Serving Web Content with Spring MVC](https://spring.io/guides/gs/serving-web-content/)
 * [Building REST services with Spring](https://spring.io/guides/tutorials/rest/)

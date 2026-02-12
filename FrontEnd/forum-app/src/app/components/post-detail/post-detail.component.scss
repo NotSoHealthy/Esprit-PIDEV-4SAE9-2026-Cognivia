@@ -1,0 +1,32 @@
+.container {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.post-card {
+    margin-bottom: 30px;
+}
+
+.comments-section {
+    background: #f5f5f5;
+    padding: 20px;
+    border-radius: 4px;
+}
+
+.comment-item {
+    border-bottom: 1px solid #ddd;
+    padding: 10px 0;
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.add-comment {
+    margin-top: 20px;
+}
+
+.full-width {
+    width: 100%;
+}

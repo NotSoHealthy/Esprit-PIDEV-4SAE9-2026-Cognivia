@@ -1,0 +1,37 @@
+<div class="container" *ngIf="post">
+    <mat-card class="post-card">
+        <mat-card-header>
+            <mat-card-title>{{ post.title }}</mat-card-title>
+            <mat-card-subtitle>{{ post.createdAt | date:'medium' }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+            <p>{{ post.content }}</p>
+        </mat-card-content>
+        <mat-card-actions>
+            <button mat-button (click)="like()"><mat-icon>thumb_up</mat-icon> Like</button>
+            <button mat-button (click)="dislike()"><mat-icon>thumb_down</mat-icon> Dislike</button>
+            <button mat-button color="warn" (click)="deletePost()">Delete Post</button>
+        </mat-card-actions>
+    </mat-card>
+
+    <h3>Comments</h3>
+    <div class="comments-section">
+        <div *ngFor="let comment of comments" class="comment-item">
+            <p>{{ comment.content }}</p>
+            <small>{{ comment.createdAt | date:'short' }}</small>
+        </div>
+
+        <div *ngIf="comments.length === 0">
+            <p>No comments yet.</p>
+        </div>
+
+        <div class="add-comment">
+            <mat-form-field appearance="fill" class="full-width">
+                <mat-label>Add a comment</mat-label>
+                <textarea matInput [(ngModel)]="newCommentContent" rows="3"></textarea>
+            </mat-form-field>
+            <button mat-raised-button color="primary" (click)="addComment()" [disabled]="!newCommentContent.trim()">Post
+                Comment</button>
+        </div>
+    </div>
+</div>
