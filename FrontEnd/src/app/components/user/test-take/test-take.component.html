@@ -1,0 +1,40 @@
+<div class="user-container">
+    <div *ngIf="test" class="questionnaire-card glass">
+        <div class="progress-bar">
+            <div class="progress" [style.width.%]="(currentQuestionIndex + 1) / test.questions.length * 100"></div>
+        </div>
+
+        <div class="q-header">
+            <h2>{{ test.title }}</h2>
+            <span>Question {{ currentQuestionIndex + 1 }} of {{ test.questions.length }}</span>
+        </div>
+
+        <div class="q-body">
+            <h3>{{ test.questions[currentQuestionIndex].questionText }}</h3>
+
+            <div *ngIf="test.questions[currentQuestionIndex].questionType === 'SIMPLE'" class="input-group">
+                <textarea [(ngModel)]="answers[currentQuestionIndex].answerText"
+                    placeholder="Your answer..."></textarea>
+            </div>
+
+            <div *ngIf="test.questions[currentQuestionIndex].questionType === 'MULTIPLE_CHOICE'" class="options-group">
+                <div *ngFor="let opt of test.questions[currentQuestionIndex].options" class="option-card"
+                    [class.selected]="answers[currentQuestionIndex].selectedOptionId === opt.id"
+                    (click)="answers[currentQuestionIndex].selectedOptionId = opt.id">
+                    {{ opt.optionText }}
+                </div>
+            </div>
+        </div>
+
+        <div class="q-footer">
+            <button class="btn btn-outline" (click)="prevQuestion()"
+                [disabled]="currentQuestionIndex === 0">Previous</button>
+
+            <button *ngIf="currentQuestionIndex < test.questions.length - 1" class="btn btn-primary"
+                (click)="nextQuestion()">Next</button>
+
+            <button *ngIf="currentQuestionIndex === test.questions.length - 1" class="btn btn-success"
+                (click)="submitTest()">Submit Test</button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,62 @@
+<nav class="glass nav-header">
+  <div class="nav-content">
+    <div class="logo">NotSoHealthy <span>Tests</span></div>
+    <div class="nav-links">
+      <a routerLink="/admin/tests" routerLinkActive="active">Admin Dashboard</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <router-outlet></router-outlet>
+</main>
+
+<style>
+  .nav-header {
+    margin: 1rem;
+    padding: 1rem 2rem;
+    position: sticky;
+    top: 1rem;
+    z-index: 100;
+  }
+
+  .nav-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: white;
+  }
+
+  .logo span {
+    color: var(--primary-color);
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+  }
+
+  .nav-links a {
+    text-decoration: none;
+    color: var(--text-muted);
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+
+  .nav-links a.active,
+  .nav-links a:hover {
+    color: white;
+  }
+
+  main {
+    padding-bottom: 5rem;
+  }
+</style>

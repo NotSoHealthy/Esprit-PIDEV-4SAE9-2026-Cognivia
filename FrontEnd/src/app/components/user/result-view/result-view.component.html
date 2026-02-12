@@ -1,0 +1,21 @@
+<div class="user-container">
+    <div *ngIf="assignment" class="result-card glass">
+        <h2>Test Results</h2>
+        <div class="result-summary">
+            <div *ngFor="let result of assignment?.results" class="result-item">
+                <div class="result-info">
+                    <span class="date">{{ result.takenAt | date:'medium' }}</span>
+                    <span class="score" [class.high]="(result.score || 0) > 70">
+                        Score: {{ result.score }}%
+                    </span>
+                </div>
+                <div class="result-details">
+                    Time taken: {{ ((result.responseTime || 0) / 1000) | number:'1.0-1' }}s
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <button class="btn btn-primary" [routerLink]="['/']">Back to Home</button>
+        </div>
+    </div>
+</div>

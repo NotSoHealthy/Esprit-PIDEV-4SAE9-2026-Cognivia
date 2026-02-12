@@ -1,0 +1,20 @@
+<div class="admin-container">
+  <div class="header">
+    <h1>Cognitive Tests Management</h1>
+    <button class="btn btn-primary" [routerLink]="['/admin/tests/new']">Create New Test</button>
+  </div>
+
+  <div class="test-grid">
+    <div *ngFor="let test of tests" class="test-card glass">
+      <h3>{{ test.title }}</h3>
+      <p>{{ test.description }}</p>
+      <div class="card-footer">
+        <span>Questions: {{ test.questions.length }}</span>
+        <div class="actions">
+          <button class="btn btn-icon" [routerLink]="['/admin/tests/edit', test.id]">✎</button>
+          <button class="btn btn-icon danger">🗑</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

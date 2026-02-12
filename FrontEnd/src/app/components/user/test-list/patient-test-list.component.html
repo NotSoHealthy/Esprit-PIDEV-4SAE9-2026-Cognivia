@@ -1,0 +1,23 @@
+<div class="user-container">
+    <div class="header">
+        <h1>Available Cognitive Assessments</h1>
+        <p class="subtitle">Select a test to begin your assessment</p>
+    </div>
+
+    <div class="test-grid">
+        <div *ngFor="let test of tests" class="test-card glass">
+            <div class="card-content">
+                <h3>{{ test.title }}</h3>
+                <p>{{ test.description }}</p>
+            </div>
+            <div class="card-footer">
+                <span class="info">{{ test.questions?.length || 0 }} Questions</span>
+                <button class="btn btn-primary" [routerLink]="['/user/tests/take', test.id]">Start Assessment</button>
+            </div>
+        </div>
+    </div>
+
+    <div *ngIf="tests.length === 0" class="empty-state glass">
+        <p>No tests available at the moment. Please check back later.</p>
+    </div>
+</div>

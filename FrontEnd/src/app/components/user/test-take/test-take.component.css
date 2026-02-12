@@ -1,0 +1,90 @@
+.user-container {
+    padding: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+}
+
+.questionnaire-card {
+    width: 100%;
+    max-width: 800px;
+    padding: 2rem;
+}
+
+.progress-bar {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.progress {
+    height: 100%;
+    background: linear-gradient(90deg, #4f46e5, #0ea5e9);
+    transition: width 0.3s ease;
+}
+
+.q-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 1rem;
+}
+
+.q-body {
+    min-height: 200px;
+    margin-bottom: 2rem;
+}
+
+.options-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.option-card {
+    padding: 1rem 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.option-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.option-card.selected {
+    background: rgba(79, 70, 229, 0.2);
+    border-color: #4f46e5;
+    box-shadow: 0 0 15px rgba(79, 70, 229, 0.3);
+}
+
+textarea {
+    width: 100%;
+    min-height: 150px;
+    background: rgba(0, 0, 0, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.q-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+}
+
+.btn-success {
+    background: #10b981;
+    color: white;
+}
