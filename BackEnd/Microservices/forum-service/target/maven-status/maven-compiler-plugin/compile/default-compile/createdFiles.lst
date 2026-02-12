@@ -1,0 +1,5 @@
+org\example\forumservice\Entity\Post$PostBuilder.class
+org\example\forumservice\Entity\Reaction$ReactionBuilder.class
+org\example\forumservice\Services\PostService.class
+org\example\forumservice\Entity\Comment$CommentBuilder.class
+org\example\forumservice\RestController\PostController.class
