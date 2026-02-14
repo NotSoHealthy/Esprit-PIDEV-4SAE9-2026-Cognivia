@@ -26,4 +26,13 @@ export class TestListComponent implements OnInit {
             error: (err) => console.error('Error loading tests', err)
         });
     }
+
+    deleteTest(id: number | undefined): void {
+        if (id && confirm('Are you sure you want to delete this test?')) {
+            this.testService.deleteTest(id).subscribe({
+                next: () => this.loadTests(),
+                error: (err) => console.error('Error deleting test', err)
+            });
+        }
+    }
 }

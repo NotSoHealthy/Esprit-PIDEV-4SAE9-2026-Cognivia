@@ -49,7 +49,7 @@ export class TestTakeComponent implements OnInit {
             this.answers = test.questions.map(q => ({
                 question: { id: q.id },
                 answerText: '',
-                selectedOption: null
+                selectedOptionId: null
             }));
         });
     }
@@ -67,18 +67,25 @@ export class TestTakeComponent implements OnInit {
     }
 
     submitTest(): void {
+        // Transform answers: convert flat selectedOptionId to nested selectedOption object for backend
+        const mappedAnswers = this.answers.map(a => ({
+            question: { id: a.question.id },
+            answerText: a.answerText || null,
+            selectedOption: a.selectedOptionId ? { id: a.selectedOptionId } : null
+        }));
+
         const result: TestResult = {
             responseTime: Date.now() - this.startTime,
-            answers: this.answers
+            answers: mappedAnswers
         };
 
         if (this.assignmentId) {
-            this.resultService.submitResult(this.assignmentId, result).subscribe(() => {
-                this.router.navigate(['/results']);
+            this.resultService.submitResult(this.assignmentId, result).subscribe((savedResult) => {
+                this.router.navigate(['/results', savedResult.id]);
             });
         } else if (this.testId) {
-            this.resultService.submitDirectResult(this.testId, result).subscribe(() => {
-                this.router.navigate(['/user/tests']);
+            this.resultService.submitDirectResult(this.testId, result).subscribe((savedResult) => {
+                this.router.navigate(['/results', savedResult.id]);
             });
         }
     }

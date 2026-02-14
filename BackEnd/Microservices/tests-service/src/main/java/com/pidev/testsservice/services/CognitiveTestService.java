@@ -32,7 +32,12 @@ public class CognitiveTestService {
 
     public CognitiveTest createTest(CognitiveTest test) {
         if (test.getQuestions() != null) {
-            test.getQuestions().forEach(q -> q.setTest(test));
+            test.getQuestions().forEach(q -> {
+                q.setTest(test);
+                if (q.getOptions() != null) {
+                    q.getOptions().forEach(opt -> opt.setQuestion(q));
+                }
+            });
         }
         return cognitiveTestRepository.save(test);
     }
@@ -41,6 +46,9 @@ public class CognitiveTestService {
     public CognitiveTest addQuestionToTest(Long testId, TestQuestion question) {
         CognitiveTest test = getTestById(testId);
         question.setTest(test);
+        if (question.getOptions() != null) {
+            question.getOptions().forEach(opt -> opt.setQuestion(question));
+        }
         test.getQuestions().add(question);
         return cognitiveTestRepository.save(test);
     }
@@ -51,21 +59,26 @@ public class CognitiveTestService {
         existingTest.setTitle(testUpdates.getTitle());
         existingTest.setDescription(testUpdates.getDescription());
 
-        // Clear existing questions to avoid orphans or handle updates properly
-        // In a real scenario, we might want to reconcile them, but for simplicity here
-        // we re-set
         if (testUpdates.getQuestions() != null) {
             // Remove old questions back-references
             existingTest.getQuestions().forEach(q -> q.setTest(null));
             existingTest.getQuestions().clear();
 
-            // Add new/updated questions
+            // Add new/updated questions with proper back-references
             testUpdates.getQuestions().forEach(q -> {
                 q.setTest(existingTest);
+                if (q.getOptions() != null) {
+                    q.getOptions().forEach(opt -> opt.setQuestion(q));
+                }
                 existingTest.getQuestions().add(q);
             });
         }
 
         return cognitiveTestRepository.save(existingTest);
+    }
+
+    @Transactional
+    public void deleteTest(Long id) {
+        cognitiveTestRepository.deleteById(id);
     }
 }

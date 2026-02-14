@@ -1,6 +1,7 @@
 package com.pidev.testsservice.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
@@ -23,6 +24,7 @@ public class TestResult {
 
     private Long responseTime; // in milliseconds
     private Double score;
+    private Long patientId;
 
     @ManyToOne
     @JoinColumn(name = "assignment_id")
@@ -31,6 +33,7 @@ public class TestResult {
 
     @ManyToOne
     @JoinColumn(name = "test_id")
+    @JsonIgnoreProperties({ "questions" })
     private CognitiveTest test;
 
     @OneToMany(mappedBy = "result", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -75,6 +78,14 @@ public class TestResult {
 
     public void setAssignment(TestAssignment assignment) {
         this.assignment = assignment;
+    }
+
+    public Long getPatientId() {
+        return patientId;
+    }
+
+    public void setPatientId(Long patientId) {
+        this.patientId = patientId;
     }
 
     public CognitiveTest getTest() {

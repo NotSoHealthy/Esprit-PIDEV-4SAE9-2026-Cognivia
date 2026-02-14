@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/tests")
+@RequestMapping("/tests")
 public class CognitiveTestController {
 
     private final CognitiveTestService cognitiveTestService;
@@ -41,5 +41,11 @@ public class CognitiveTestController {
     @PostMapping("/{id}/questions")
     public CognitiveTest addQuestionToTest(@PathVariable Long id, @RequestBody TestQuestion question) {
         return cognitiveTestService.addQuestionToTest(id, question);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTest(@PathVariable Long id) {
+        cognitiveTestService.deleteTest(id);
+        return ResponseEntity.noContent().build();
     }
 }

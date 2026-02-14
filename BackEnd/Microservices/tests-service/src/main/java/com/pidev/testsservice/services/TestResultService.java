@@ -32,6 +32,11 @@ public class TestResultService {
         return testResultRepository.findAll();
     }
 
+    public TestResult getResultById(Long id) {
+        return testResultRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Result not found with id: " + id));
+    }
+
     @Transactional
     public TestResult submitResult(Long assignmentId, TestResult result) {
         TestAssignment assignment = testAssignmentRepository.findById(assignmentId)
@@ -109,5 +114,53 @@ public class TestResultService {
 
         double score = ((double) correctCount / answers.size()) * 100.0;
         result.setScore(score);
+
+        // Generate and save Risk Score (Fire and forget or sync)
+        try {
+            generateAndSaveRisk(result, score);
+        } catch (Exception e) {
+            System.err.println("Failed to generate risk: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void generateAndSaveRisk(TestResult result, double score) {
+        String riskLevel;
+        double riskValue = 100.0 - score; // Risk is inverse of score (high score = low risk)
+
+        if (score > 80) {
+            riskLevel = "LOW";
+        } else if (score >= 50) {
+            riskLevel = "MEDIUM";
+        } else {
+            riskLevel = "HIGH";
+        }
+
+        // We need a patientId. If TestResult doesn't have it, we might defaults or
+        // skip.
+        // Assuming TestResult has patientId or we get it from Assignment -> User
+        Long patientId = result.getPatientId();
+        if (patientId == null) {
+            // Default to 1L for demo purposes if no patient attached (direct test)
+            patientId = 1L;
+        }
+
+        if (patientId == null)
+            return;
+
+        // Create payload
+        java.util.Map<String, Object> riskPayload = new java.util.HashMap<>();
+        riskPayload.put("patientId", patientId);
+        riskPayload.put("riskValue", riskValue);
+        riskPayload.put("riskLevel", riskLevel);
+
+        // Call Risk Service
+        String riskServiceUrl = "http://localhost:8082/risk";
+        org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+        restTemplate.postForEntity(riskServiceUrl, riskPayload, Object.class);
+    }
+
+    public List<TestResult> getResultsByPatientId(Long patientId) {
+        return testResultRepository.findByPatientId(patientId);
     }
 }

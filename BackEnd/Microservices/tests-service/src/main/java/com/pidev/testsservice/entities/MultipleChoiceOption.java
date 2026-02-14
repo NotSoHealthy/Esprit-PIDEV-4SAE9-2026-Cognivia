@@ -1,6 +1,7 @@
 package com.pidev.testsservice.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 @Entity
@@ -14,6 +15,8 @@ public class MultipleChoiceOption {
     private Long id;
 
     private String optionText;
+
+    @JsonProperty("isCorrect")
     private boolean isCorrect;
 
     @ManyToOne

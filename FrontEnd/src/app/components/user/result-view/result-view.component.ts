@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
-import { TestAssignmentService } from '../../../services/assignment.service';
-import { TestAssignment } from '../../../models/test-assignment.model';
+import { TestResultService } from '../../../services/result.service';
+import { TestResult } from '../../../models/test-result.model';
 
 @Component({
     selector: 'app-result-view',
@@ -12,23 +12,30 @@ import { TestAssignment } from '../../../models/test-assignment.model';
     styleUrls: ['./result-view.component.css']
 })
 export class ResultViewComponent implements OnInit {
-    assignment?: TestAssignment;
+    result?: TestResult;
 
     constructor(
         private route: ActivatedRoute,
-        private assignmentService: TestAssignmentService
+        private resultService: TestResultService
     ) { }
 
     ngOnInit(): void {
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
-            this.loadAssignment(+id);
+            this.loadResult(+id);
         }
     }
 
-    loadAssignment(id: number): void {
-        this.assignmentService.getAssignmentById(id).subscribe(data => {
-            this.assignment = data;
+    loadResult(id: number): void {
+        this.resultService.getResultById(id).subscribe(data => {
+            this.result = data;
         });
+    }
+
+    getScoreClass(): string {
+        if (!this.result?.score) return '';
+        if (this.result.score >= 70) return 'score-high';
+        if (this.result.score >= 40) return 'score-medium';
+        return 'score-low';
     }
 }

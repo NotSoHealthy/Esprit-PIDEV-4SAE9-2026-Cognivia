@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/results")
+@RequestMapping("/results")
 public class TestResultController {
 
     private final TestResultService testResultService;
@@ -29,5 +29,10 @@ public class TestResultController {
     @GetMapping
     public List<TestResult> getAllResults() {
         return testResultService.getAllResults();
+    }
+
+    @GetMapping("/{id}")
+    public TestResult getResultById(@PathVariable Long id) {
+        return testResultService.getResultById(id);
     }
 }

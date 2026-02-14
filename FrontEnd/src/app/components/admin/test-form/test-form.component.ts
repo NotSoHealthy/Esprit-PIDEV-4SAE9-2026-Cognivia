@@ -103,6 +103,19 @@ export class TestFormComponent implements OnInit {
 
     onSubmit(): void {
         if (this.testForm.valid) {
+            // Validate that each MULTIPLE_CHOICE question has at least one correct option
+            const questions = this.testForm.value.questions || [];
+            for (let i = 0; i < questions.length; i++) {
+                const q = questions[i];
+                if (q.questionType === QuestionType.MULTIPLE_CHOICE) {
+                    const hasCorrect = (q.options || []).some((opt: any) => opt.isCorrect);
+                    if (!hasCorrect) {
+                        alert(`Question #${i + 1} is multiple choice but has no correct option marked. Please mark at least one option as correct.`);
+                        return;
+                    }
+                }
+            }
+
             const testData: CognitiveTest = this.testForm.value;
             if (this.isEditMode && this.testId) {
                 this.testService.updateTest(this.testId, testData).subscribe(() => {

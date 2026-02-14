@@ -32,4 +32,8 @@ export class CognitiveTestService {
     addQuestionToTest(id: number, question: TestQuestion): Observable<CognitiveTest> {
         return this.http.post<CognitiveTest>(`${this.apiUrl}/${id}/questions`, question);
     }
+
+    deleteTest(id: number): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    }
 }

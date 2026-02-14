@@ -11,8 +11,8 @@
       <div class="card-footer">
         <span>Questions: {{ test.questions.length }}</span>
         <div class="actions">
-          <button class="btn btn-icon" [routerLink]="['/admin/tests/edit', test.id]">✎</button>
-          <button class="btn btn-icon danger">🗑</button>
+          <button class="btn btn-icon" [routerLink]="['/admin/tests/edit', test.id]" title="Edit Test">✎</button>
+          <button class="btn btn-icon danger" (click)="deleteTest(test.id)" title="Delete Test">🗑</button>
         </div>
       </div>
     </div>

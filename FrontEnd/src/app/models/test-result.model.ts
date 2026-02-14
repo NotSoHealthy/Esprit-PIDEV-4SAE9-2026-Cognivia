@@ -5,5 +5,6 @@ export interface TestResult {
     takenAt?: string | Date;
     responseTime?: number;
     score?: number;
-    answers: TestAnswer[];
+    patientId?: number;
+    answers: TestAnswer[] | any[];
 }

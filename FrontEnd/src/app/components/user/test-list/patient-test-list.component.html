@@ -11,7 +11,7 @@
                 <p>{{ test.description }}</p>
             </div>
             <div class="card-footer">
-                <span class="info">{{ test.questions?.length || 0 }} Questions</span>
+                <span class="info">{{ test.questions.length || 0 }} Questions</span>
                 <button class="btn btn-primary" [routerLink]="['/user/tests/take', test.id]">Start Assessment</button>
             </div>
         </div>

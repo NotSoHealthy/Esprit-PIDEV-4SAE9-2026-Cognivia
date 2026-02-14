@@ -19,4 +19,8 @@ export class TestResultService {
     submitDirectResult(testId: number, result: TestResult): Observable<TestResult> {
         return this.http.post<TestResult>(`${this.apiUrl}/test/${testId}`, result);
     }
+
+    getResultById(id: number): Observable<TestResult> {
+        return this.http.get<TestResult>(`${this.apiUrl}/${id}`);
+    }
 }
