@@ -1,0 +1,17 @@
+.home {
+  max-width: 720px;
+  margin: 1rem auto;
+  padding: 1rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+button {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+}

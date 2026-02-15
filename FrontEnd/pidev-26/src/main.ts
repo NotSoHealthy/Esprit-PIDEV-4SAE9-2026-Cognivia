@@ -1,6 +1,19 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
-import { AppComponent } from './app/app.component';
+import { App } from './app/app';
+import { KeycloakService } from './app/core/auth/keycloak.service';
+import { APP_INITIALIZER, Provider } from '@angular/core';
 
-bootstrapApplication(AppComponent, appConfig)
-  .catch((err) => console.error(err));
+const keycloakProviders: Provider[] = [
+  {
+    provide: APP_INITIALIZER,
+    deps: [KeycloakService],
+    useFactory: (keycloak: KeycloakService) => () => keycloak.init(),
+    multi: true,
+  },
+];
+
+bootstrapApplication(App, {
+  ...appConfig,
+  providers: [...appConfig.providers!, ...keycloakProviders],
+}).catch((err) => console.error(err));
