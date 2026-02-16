@@ -1,6 +1,36 @@
-<div class="app-layout">
-    <main class="app-layout__main">
-        <p>layout</p>
-        <router-outlet></router-outlet>
-    </main>
+<div class="min-h-screen flex flex-col gap-6">
+    <header class="flex items-center justify-between px-4 pt-4">
+        <span class="flex items-center gap-10">
+            <img src="/logo.svg" class="bg-white p-4.5 rounded-full">
+            <p class="font-bold text-xl tracking-wide">{{ currentRouteLabel }}</p>
+        </span>
+
+        <div class="flex items-center gap-3">
+            <span>Account:</span>
+            <span class="font-medium">{{ username }}</span>
+
+            <button *ngIf="isLoggedIn" type="button" class="underline" (click)="logout()">
+                Sign out
+            </button>
+            <a *ngIf="!isLoggedIn" class="underline" routerLink="/login">Sign in</a>
+        </div>
+    </header>
+
+    <div class="flex flex-1 min-h-0">
+        <aside class="w-60 shrink-0 px-4 py-3">
+            <nav class="flex flex-col gap-2 bg-[#F2F6FE] rounded-full w-fit p-2">
+                <ng-container *ngFor="let route of routes">
+                    <span *ngIf="userRole && route.roles.includes(userRole)" class="text-[#4D5CAB] hover:text-white">
+                        <nz-icon [routerLink]="route.link" routerLinkActive="!bg-[#4D5CAB] !text-white"
+                            [routerLinkActiveOptions]="{ exact: true }" [nzType]="route.icon" nzTheme="outline"
+                            class="w-fit text-[30px] bg-white p-3 rounded-full hover:bg-[#4D5CAB] transition-colors duration-200" />
+                    </span>
+                </ng-container>
+            </nav>
+        </aside>
+
+        <main class="flex-1 min-w-0 p-4 overflow-auto">
+            <router-outlet></router-outlet>
+        </main>
+    </div>
 </div>

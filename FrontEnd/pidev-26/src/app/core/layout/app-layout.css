@@ -1,9 +1,9 @@
-.app-layout {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+/* Make nz-icon inherit text color from its parent (e.g. Tailwind text-* classes). */
+:host ::ng-deep nz-icon,
+:host ::ng-deep nz-icon .anticon {
+  color: inherit !important;
 }
 
-.app-layout__main {
-  flex: 1;
+:host ::ng-deep nz-icon svg {
+  fill: currentColor !important;
 }
