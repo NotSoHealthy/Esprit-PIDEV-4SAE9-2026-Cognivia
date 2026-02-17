@@ -4,10 +4,9 @@ import { RiskScoreService } from '../../../services/risk.service';
 import { RiskScore } from '../../../models/risk-score.model';
 
 @Component({
-  selector: 'app-risk-list',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
+    selector: 'app-risk-list',
+    imports: [CommonModule],
+    template: `
     <div class="user-container">
       <div class="header">
         <h1>My Risk Assessment History</h1>
@@ -27,7 +26,7 @@ import { RiskScore } from '../../../models/risk-score.model';
       </div>
     </div>
   `,
-  styles: [`
+    styles: [`
     .risk-header {
       display: flex;
       justify-content: space-between;

@@ -6,7 +6,6 @@ import { CognitiveTest } from '../../../models/cognitive-test.model';
 
 @Component({
     selector: 'app-patient-test-list',
-    standalone: true,
     imports: [CommonModule, RouterModule],
     templateUrl: './patient-test-list.component.html',
     styleUrls: ['./patient-test-list.component.css']

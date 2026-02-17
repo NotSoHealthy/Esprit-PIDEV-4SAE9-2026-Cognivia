@@ -2,11 +2,10 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-role-selection',
-  standalone: true,
-  imports: [],
-  templateUrl: './role-selection.component.html',
-  styleUrl: './role-selection.component.css'
+    selector: 'app-role-selection',
+    imports: [],
+    templateUrl: './role-selection.component.html',
+    styleUrl: './role-selection.component.css'
 })
 export class RoleSelectionComponent {
   constructor(private router: Router) { }

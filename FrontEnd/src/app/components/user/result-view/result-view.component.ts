@@ -6,7 +6,6 @@ import { TestResult } from '../../../models/test-result.model';
 
 @Component({
     selector: 'app-result-view',
-    standalone: true,
     imports: [CommonModule, RouterModule],
     templateUrl: './result-view.component.html',
     styleUrls: ['./result-view.component.css']

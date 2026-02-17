@@ -10,7 +10,6 @@ import { QuestionType } from '../../../models/question-type.enum';
 
 @Component({
     selector: 'app-test-take',
-    standalone: true,
     imports: [CommonModule, FormsModule],
     templateUrl: './test-take.component.html',
     styleUrls: ['./test-take.component.css']

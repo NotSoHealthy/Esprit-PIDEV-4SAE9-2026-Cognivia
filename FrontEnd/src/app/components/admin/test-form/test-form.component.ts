@@ -8,7 +8,6 @@ import { QuestionType } from '../../../models/question-type.enum';
 
 @Component({
     selector: 'app-test-form',
-    standalone: true,
     imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
     templateUrl: './test-form.component.html',
     styleUrls: ['./test-form.component.css']
