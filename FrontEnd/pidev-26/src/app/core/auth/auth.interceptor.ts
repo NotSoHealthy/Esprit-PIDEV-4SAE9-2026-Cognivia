@@ -7,7 +7,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const keycloak = inject(KeycloakService);
 
   // Only attach token to your backend URLs (important!)
-  const isApiCall = req.url.startsWith('http://localhost:8081') || req.url.startsWith('/api');
+  const isApiCall = req.url.startsWith('http://localhost:8080') || req.url.startsWith('/api');
   if (!isApiCall) return next(req);
 
   if (!keycloak.isLoggedIn()) return next(req);

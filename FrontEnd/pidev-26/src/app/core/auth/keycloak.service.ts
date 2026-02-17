@@ -7,7 +7,7 @@ export class KeycloakService {
 
   constructor() {
     this.keycloak = new Keycloak({
-      url: 'http://localhost:8080',
+      url: 'http://localhost:8180',
       realm: 'pidev',
       clientId: 'pidev-frontend',
     });
