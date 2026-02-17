@@ -1,6 +1,6 @@
-package com.pidev.care.repositories;
+package com.pidev.monitoring.repositories;
 
-import com.pidev.care.entities.VisitReport;
+import com.pidev.monitoring.entities.VisitReport;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

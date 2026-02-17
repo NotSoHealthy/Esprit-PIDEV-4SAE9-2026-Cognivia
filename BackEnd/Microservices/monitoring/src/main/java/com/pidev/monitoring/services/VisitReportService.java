@@ -1,7 +1,7 @@
-package com.pidev.care.services;
+package com.pidev.monitoring.services;
 
-import com.pidev.care.entities.VisitReport;
-import com.pidev.care.repositories.VisitReportRepository;
+import com.pidev.monitoring.entities.VisitReport;
+import com.pidev.monitoring.repositories.VisitReportRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 

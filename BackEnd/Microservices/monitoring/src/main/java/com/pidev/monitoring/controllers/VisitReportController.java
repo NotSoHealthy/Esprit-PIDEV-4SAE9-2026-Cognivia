@@ -1,7 +1,7 @@
-package com.pidev.care.controllers;
+package com.pidev.monitoring.controllers;
 
-import com.pidev.care.entities.VisitReport;
-import com.pidev.care.services.VisitReportService;
+import com.pidev.monitoring.entities.VisitReport;
+import com.pidev.monitoring.services.VisitReportService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

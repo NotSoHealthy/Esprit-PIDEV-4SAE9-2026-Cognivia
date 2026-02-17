@@ -1,4 +1,4 @@
-package com.pidev.care.entities;
+package com.pidev.monitoring.entities;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 @Entity
@@ -13,15 +14,15 @@ import java.time.Instant;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class VisitReport {
+public class JournalEntry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     private Long id;
+    private String title;
     private String content;
     private Instant createdAt;
     private Instant updatedAt;
-    @OneToOne(mappedBy = "visitReport")
-    private Visit visit;
+    private Long patientId;
 
     @PrePersist
     public void prePersist() {
@@ -33,5 +34,5 @@ public class VisitReport {
     @PreUpdate
     public void preUpdate() {
         updatedAt = Instant.now();
-    }
+        }
 }
