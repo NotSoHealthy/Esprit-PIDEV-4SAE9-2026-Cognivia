@@ -1,0 +1,23 @@
+<div class="login">
+    <h2>Auth test</h2>
+
+    <p class="status">
+        Status:
+        <strong>{{ isLoggedIn() ? 'Logged in' : 'Logged out' }}</strong>
+    </p>
+
+    <div class="actions">
+        <button type="button" (click)="login()" [disabled]="isLoggedIn()">Login</button>
+        <button type="button" (click)="logout()" [disabled]="!isLoggedIn()">Logout</button>
+        <button type="button" (click)="refreshToken()" [disabled]="!isLoggedIn()">Get token</button>
+    </div>
+
+    <div class="info" *ngIf="isLoggedIn()">
+        <div><strong>User:</strong> {{ username() ?? '(unknown)' }}</div>
+        <div><strong>Roles:</strong> {{ roles().length ? roles().join(', ') : '(none)' }}</div>
+    </div>
+
+    <p class="error" *ngIf="tokenError()">{{ tokenError() }}</p>
+
+    <pre class="token" *ngIf="token()">{{ token() }}</pre>
+</div>
