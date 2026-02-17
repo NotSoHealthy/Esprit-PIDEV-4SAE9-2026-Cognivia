@@ -13,19 +13,23 @@ import { RiskScore } from '../../../models/risk-score.model';
         <p class="subtitle">Track your cognitive health risk levels over time</p>
       </div>
       <div class="test-grid">
-        <div *ngFor="let risk of risks" class="test-card glass">
-          <div class="risk-header">
-            <h3>Risk Value: {{risk.riskValue}}</h3>
-            <span class="badge" [ngClass]="getRiskClass(risk.riskLevel)">{{risk.riskLevel}}</span>
+        @for (risk of risks; track risk) {
+          <div class="test-card glass">
+            <div class="risk-header">
+              <h3>Risk Value: {{risk.riskValue}}</h3>
+              <span class="badge" [ngClass]="getRiskClass(risk.riskLevel)">{{risk.riskLevel}}</span>
+            </div>
+            <p class="date">Generated: {{risk.generatedAt | date:'medium'}}</p>
           </div>
-          <p class="date">Generated: {{risk.generatedAt | date:'medium'}}</p>
-        </div>
-        <div *ngIf="risks.length === 0" class="empty-state glass">
-          <p>No risk assessments found. Take a test to generate your first risk assessment.</p>
-        </div>
+        }
+        @if (risks.length === 0) {
+          <div class="empty-state glass">
+            <p>No risk assessments found. Take a test to generate your first risk assessment.</p>
+          </div>
+        }
       </div>
     </div>
-  `,
+    `,
     styles: [`
     .risk-header {
       display: flex;

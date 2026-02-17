@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterModule } from '@angular/router';
 import { CognitiveTestService } from '../../../services/test.service';
 import { CognitiveTest } from '../../../models/cognitive-test.model';
 
 @Component({
     selector: 'app-test-list',
-    imports: [CommonModule, RouterModule],
+    imports: [RouterModule],
     templateUrl: './test-list.component.html',
     styleUrls: ['./test-list.component.css']
 })

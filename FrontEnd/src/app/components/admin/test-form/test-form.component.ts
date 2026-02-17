@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { CognitiveTestService } from '../../../services/test.service';
@@ -8,7 +8,7 @@ import { QuestionType } from '../../../models/question-type.enum';
 
 @Component({
     selector: 'app-test-form',
-    imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
+    imports: [FormsModule, ReactiveFormsModule, RouterModule],
     templateUrl: './test-form.component.html',
     styleUrls: ['./test-form.component.css']
 })

@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
 @Component({
     selector: 'app-root',
-    imports: [CommonModule, RouterModule],
+    imports: [RouterModule],
     templateUrl: './app.component.html',
     styleUrl: './app.component.css'
 })

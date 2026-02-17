@@ -5,16 +5,18 @@
   </div>
 
   <div class="test-grid">
-    <div *ngFor="let test of tests" class="test-card glass">
-      <h3>{{ test.title }}</h3>
-      <p>{{ test.description }}</p>
-      <div class="card-footer">
-        <span>Questions: {{ test.questions.length }}</span>
-        <div class="actions">
-          <button class="btn btn-icon" [routerLink]="['/admin/tests/edit', test.id]" title="Edit Test">✎</button>
-          <button class="btn btn-icon danger" (click)="deleteTest(test.id)" title="Delete Test">🗑</button>
+    @for (test of tests; track test) {
+      <div class="test-card glass">
+        <h3>{{ test.title }}</h3>
+        <p>{{ test.description }}</p>
+        <div class="card-footer">
+          <span>Questions: {{ test.questions.length }}</span>
+          <div class="actions">
+            <button class="btn btn-icon" [routerLink]="['/admin/tests/edit', test.id]" title="Edit Test">✎</button>
+            <button class="btn btn-icon danger" (click)="deleteTest(test.id)" title="Delete Test">🗑</button>
+          </div>
         </div>
       </div>
-    </div>
+    }
   </div>
 </div>
