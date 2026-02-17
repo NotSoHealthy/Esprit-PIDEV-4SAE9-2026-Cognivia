@@ -1,10 +1,10 @@
-package com.pidev.patientmanagement;
+package com.pidev.care;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class PatientManagementApplicationTests {
+class CareApplicationTests {
 
     @Test
     void contextLoads() {
