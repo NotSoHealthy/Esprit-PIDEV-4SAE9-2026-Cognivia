@@ -22,6 +22,10 @@ public class VisitReportController {
     public VisitReport getVisitReportById(@PathVariable Long id) {
         return visitReportService.getById(id);
     }
+    @GetMapping(params = "visitId")
+    public List<VisitReport> getVisitReportsByVisitId(@RequestParam Long visitId) {
+        return visitReportService.getByVisitId(visitId);
+    }
 
     @PostMapping
     public VisitReport createVisitReport(@RequestBody VisitReport visitReport) {
