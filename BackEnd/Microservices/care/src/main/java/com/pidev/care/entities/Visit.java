@@ -19,7 +19,6 @@ public class Visit {
     private Long id;
     private VisitStatus status;
     private Instant createdAt;
-    private Long visitReportId;
     @ManyToOne
     private Caregiver caregiver;
     @ManyToOne

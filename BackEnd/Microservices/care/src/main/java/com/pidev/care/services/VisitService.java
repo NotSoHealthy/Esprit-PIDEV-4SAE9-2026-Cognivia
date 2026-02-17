@@ -35,7 +35,6 @@ public class VisitService implements IService<Visit> {
         }
 
         existing.setStatus(entity.getStatus());
-        existing.setVisitReport(entity.getVisitReport());
         existing.setCaregiver(entity.getCaregiver());
         existing.setPatient(entity.getPatient());
 
