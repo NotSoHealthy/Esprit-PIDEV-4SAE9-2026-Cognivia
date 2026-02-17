@@ -23,4 +23,11 @@ public class PatientDoctorAssignment {
     private Doctor doctor;
     @ManyToOne
     private Patient patient;
+
+    @PrePersist
+    public void prePersist() {
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
+    }
 }

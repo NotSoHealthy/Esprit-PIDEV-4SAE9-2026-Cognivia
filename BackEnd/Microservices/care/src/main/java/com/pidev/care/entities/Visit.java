@@ -22,7 +22,14 @@ public class Visit {
     @OneToOne
     private VisitReport visitReport;
     @ManyToOne
-    private CareGiver careGiver;
+    private Caregiver caregiver;
     @ManyToOne
     private Patient patient;
+
+    @PrePersist
+    public void prePersist() {
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
+    }
 }

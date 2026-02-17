@@ -14,16 +14,16 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CareGiver {
+public class Caregiver {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     private Long id;
     private UUID userId;
     private String firstName;
     private String lastName;
-    private CareGiverType type;
+    private CaregiverType type;
     @ManyToMany
     private List<Patient> patientList;
-    @OneToMany(mappedBy = "careGiver")
+    @OneToMany(mappedBy = "caregiver")
     private List<Visit> visitList;
 }
