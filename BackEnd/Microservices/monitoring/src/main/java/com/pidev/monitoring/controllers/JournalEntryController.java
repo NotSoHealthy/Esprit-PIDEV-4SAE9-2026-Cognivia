@@ -23,9 +23,9 @@ public class JournalEntryController {
         return journalEntryService.getById(id);
     }
 
-    @GetMapping
-    public List<JournalEntry> getJournalEntriesByPatientId(@RequestParam Long caregiverId) {
-        return journalEntryService.getByPatientId(caregiverId);
+    @GetMapping(params = "patientId")
+    public List<JournalEntry> getJournalEntriesByPatientId(@RequestParam Long patientId) {
+        return journalEntryService.getByPatientId(patientId);
     }
 
     @PostMapping
