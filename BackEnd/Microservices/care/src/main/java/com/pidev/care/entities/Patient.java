@@ -28,7 +28,7 @@ public class Patient {
     @ManyToMany
     private List<EmergencyContact> emergencyContactList;
     @ManyToMany(mappedBy = "patientList")
-    private List<CareGiver> careGiverList;
+    private List<Caregiver> caregiverList;
     @OneToMany(mappedBy = "patient")
     private List<Visit> visits;
     @OneToMany(mappedBy = "patient")

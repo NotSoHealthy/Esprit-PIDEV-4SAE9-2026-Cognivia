@@ -1,6 +1,6 @@
 package com.pidev.care.entities;
 
-public enum CareGiverType {
+public enum CaregiverType {
     FAMILY,
     PROFESSIONAL
 }

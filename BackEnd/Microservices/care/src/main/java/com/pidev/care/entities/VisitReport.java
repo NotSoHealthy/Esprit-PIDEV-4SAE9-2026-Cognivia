@@ -22,4 +22,16 @@ public class VisitReport {
     private Instant updatedAt;
     @OneToOne(mappedBy = "visitReport")
     private Visit visit;
+
+    @PrePersist
+    public void prePersist() {
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = Instant.now();
+    }
 }
