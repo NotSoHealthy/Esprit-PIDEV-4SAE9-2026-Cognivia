@@ -7,7 +7,8 @@
 - Patient Management (patients, doctors, caregivers, schedules, tasks, check ins, location, prescriptions)
 - Forum (posts, comments, reactions)
 - Pharmacy (pharmacies, stock)
-- Monitoring (tests, games, reports, journal)
+- Monitoring (tests, reports, journal)
+- games
 - Logging?
 
 ## **Modules**
