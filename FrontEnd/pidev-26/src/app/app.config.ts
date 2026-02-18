@@ -14,6 +14,14 @@ import {
   BellOutline,
   UpOutline,
   DownOutline,
+  FormOutline,
+  HistoryOutline,
+  PlusOutline,
+  AlertOutline,
+  CheckCircleOutline,
+  InfoCircleOutline,
+  RightOutline,
+  ToolOutline,
 } from '@ant-design/icons-angular/icons';
 
 export const appConfig: ApplicationConfig = {
@@ -32,6 +40,14 @@ export const appConfig: ApplicationConfig = {
       BellOutline,
       UpOutline,
       DownOutline,
+      FormOutline,
+      HistoryOutline,
+      PlusOutline,
+      AlertOutline,
+      CheckCircleOutline,
+      InfoCircleOutline,
+      RightOutline,
+      ToolOutline,
     ]),
   ],
 };

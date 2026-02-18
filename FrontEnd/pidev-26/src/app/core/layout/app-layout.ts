@@ -55,6 +55,24 @@ export class AppLayout implements OnInit {
       icon: 'user',
       roles: ['ROLE_DOCTOR', 'ROLE_ADMIN'],
     },
+    {
+      link: '/admin/tests',
+      label: 'Tests',
+      icon: 'form',
+      roles: ['ROLE_DOCTOR', 'ROLE_ADMIN'],
+    },
+    {
+      link: '/user/tests',
+      label: 'Tests',
+      icon: 'form',
+      roles: ['ROLE_PATIENT'],
+    },
+    {
+      link: '/user/risks',
+      label: 'Risks',
+      icon: 'history',
+      roles: ['ROLE_PATIENT'],
+    },
   ];
   currentRouteLabel = '';
   ngOnInit(): void {
@@ -62,7 +80,7 @@ export class AppLayout implements OnInit {
 
     this.router.events
       .pipe(
-        filter((event) => event instanceof NavigationEnd),
+        filter((event: any) => event instanceof NavigationEnd),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => this.updateCurrentRouteLabel());
