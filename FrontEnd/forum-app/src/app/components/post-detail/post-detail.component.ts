@@ -7,10 +7,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ForumService } from '../../services/forum.service';
 import { Post } from '../../models/post.model';
 import { Comment } from '../../models/comment.model';
 import { Reaction, ReactionType } from '../../models/reaction.model';
+
+import { KeycloakService } from '../../core/auth/keycloak.service';
 
 @Component({
   selector: 'app-post-detail',
@@ -23,7 +27,9 @@ import { Reaction, ReactionType } from '../../models/reaction.model';
     MatFormFieldModule,
     MatInputModule,
     FormsModule,
-    RouterLink // Added RouterLink to imports array
+    RouterLink,
+    MatDividerModule,
+    MatTooltipModule
   ],
   templateUrl: './post-detail.component.html',
   styleUrl: './post-detail.component.scss'
@@ -31,21 +37,22 @@ import { Reaction, ReactionType } from '../../models/reaction.model';
 export class PostDetailComponent implements OnInit {
   post: Post | null = null;
   comments: Comment[] = [];
-  reactions: Reaction[] = [];
   newCommentContent: string = '';
+  currentUserId: string = '';
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private forumService: ForumService
+    private forumService: ForumService,
+    private keycloakService: KeycloakService
   ) { }
 
   ngOnInit(): void {
+    this.currentUserId = this.keycloakService.getUserId() || '';
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (id) {
       this.loadPost(id);
       this.loadComments(id);
-      this.loadReactions(id);
     }
   }
 
@@ -60,13 +67,6 @@ export class PostDetailComponent implements OnInit {
     this.forumService.getCommentsByPostId(postId).subscribe({
       next: (data) => this.comments = data,
       error: (e) => console.error('Error fetching comments', e)
-    });
-  }
-
-  loadReactions(postId: number): void {
-    this.forumService.getReactionsByPostId(postId).subscribe({
-      next: (data) => this.reactions = data,
-      error: (e) => console.error('Error fetching reactions', e)
     });
   }
 
@@ -87,19 +87,35 @@ export class PostDetailComponent implements OnInit {
     });
   }
 
-  react(type: ReactionType): void { // Fixed: using ReactionType enum directly from import
+  editComment(comment: Comment): void {
+    const newContent = prompt('Edit your comment:', comment.content);
+    if (newContent !== null && newContent.trim() !== '') {
+      const updatedComment = { ...comment, content: newContent };
+      this.forumService.updateComment(this.post!.id, comment.id, updatedComment).subscribe({
+        next: (data) => {
+          const index = this.comments.findIndex(c => c.id === comment.id);
+          if (index !== -1) {
+            this.comments[index] = data;
+          }
+        },
+        error: (e) => console.error('Error updating comment', e)
+      });
+    }
+  }
+
+  deleteComment(commentId: number): void {
+    if (confirm('Are you sure you want to delete this comment?')) {
+      this.forumService.deleteComment(this.post!.id, commentId).subscribe({
+        next: () => {
+          this.comments = this.comments.filter(c => c.id !== commentId);
+        },
+        error: (e) => console.error('Error deleting comment', e)
+      });
+    }
+  }
+
+  react(type: ReactionType): void {
     if (!this.post) return;
-
-    // Use string values "LIKE" and "DISLIKE" matching the enum if needed
-    // But since type is ReactionType, we can pass it directly.
-    // However, the template will pass string 'LIKE' or 'DISLIKE'.
-    // Typescript might complain if I don't cast or use enum in template.
-    // I will use string in template and cast.
-
-    // Actually, let's fix the parameter type in the method signature to be consistent.
-    // I'll use ReactionType in signature. In template I'll use 'LIKE' which is assignable?
-    // No, template strings are just strings.
-    // I will use property on component to expose Enum to template or just use string.
 
     const reaction: Reaction = {
       id: 0,
@@ -107,18 +123,14 @@ export class PostDetailComponent implements OnInit {
     };
 
     this.forumService.addReaction(this.post.id, reaction).subscribe({
-      next: (r) => {
-        this.reactions.push(r);
+      next: () => {
+        // Refresh post to get updated counts
+        this.loadPost(this.post!.id);
       },
       error: (e) => console.error('Error adding reaction', e)
     });
   }
 
-  // Helper for template to use Enum keys
-  // I will just use string literal types in the template for simplicity
-  // and method will accept ReactionType.
-
-  // Actually, simpler:
   like(): void { this.react(ReactionType.LIKE); }
   dislike(): void { this.react(ReactionType.DISLIKE); }
 

@@ -1,0 +1,65 @@
+<div class="post-list-container">
+    <div nz-row nzJustify="space-between" nzAlign="middle" class="page-header">
+        <div nz-col>
+            <h1 class="gradient-title">Community Forum</h1>
+            <p class="subtitle">Join the discussion, share your ideas, and grow together.</p>
+        </div>
+        <div nz-col>
+            <button nz-button nzType="primary" nzSize="large" nzShape="round" routerLink="/posts/new"
+                class="create-btn">
+                <span nz-icon nzType="plus"></span>
+                Create Post
+            </button>
+        </div>
+    </div>
+
+    <div nz-row [nzGutter]="[24, 24]" class="post-grid">
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" *ngFor="let post of posts">
+            <nz-card [nzBordered]="false" class="elegant-card hover-card" [routerLink]="['/posts', post.id]">
+                <div class="card-header">
+                    <nz-avatar [nzSize]="40" nzIcon="user" class="user-avatar"></nz-avatar>
+                    <div class="header-text">
+                        <div class="post-title">{{ post.title }}</div>
+                        <div class="post-date text-secondary">{{ post.createdAt | date:'mediumDate' }}</div>
+                    </div>
+                </div>
+
+                <div class="post-preview">
+                    <p>{{ post.content | slice:0:150 }}{{ post.content.length > 150 ? '...' : '' }}</p>
+                </div>
+
+                <div class="post-footer">
+                    <div class="stats">
+                        <span class="stat-item">
+                            <span nz-icon nzType="like" nzTheme="outline"></span>
+                            {{ post.likeCount || 0 }}
+                        </span>
+                        <span class="stat-item">
+                            <span nz-icon nzType="dislike" nzTheme="outline"></span>
+                            {{ post.dislikeCount || 0 }}
+                        </span>
+                        <span class="stat-item">
+                            <span nz-icon nzType="message" nzTheme="outline"></span>
+                            {{ (post.comments?.length) || 0 }}
+                        </span>
+                    </div>
+                    <div class="read-more">
+                        <span>Read More</span>
+                        <span nz-icon nzType="arrow-right"></span>
+                    </div>
+                </div>
+            </nz-card>
+        </div>
+
+        <div nz-col [nzSpan]="24" *ngIf="posts.length === 0" class="empty-container">
+            <nz-empty [nzNotFoundContent]="contentTpl" [nzNotFoundFooter]="footerTpl">
+                <ng-template #contentTpl>
+                    <span class="empty-text">No posts yet. Be the first to start a conversation!</span>
+                </ng-template>
+                <ng-template #footerTpl>
+                    <button nz-button nzType="primary" routerLink="/posts/new">Create First Post</button>
+                </ng-template>
+            </nz-empty>
+        </div>
+    </div>
+</div>

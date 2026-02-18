@@ -3,7 +3,6 @@ package org.example.forumservice.entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -15,6 +14,8 @@ public class Comment {
 
     @Column(columnDefinition = "TEXT")
     private String content;
+
+    private String userId;
 
     private LocalDateTime createdAt;
 
@@ -28,9 +29,11 @@ public class Comment {
     public Comment() {
     }
 
-    public Comment(Long id, String content, LocalDateTime createdAt, LocalDateTime updatedAt, Post post) {
+    public Comment(Long id, String content, String userId, LocalDateTime createdAt, LocalDateTime updatedAt,
+            Post post) {
         this.id = id;
         this.content = content;
+        this.userId = userId;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.post = post;
@@ -50,6 +53,14 @@ public class Comment {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public LocalDateTime getCreatedAt() {

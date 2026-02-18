@@ -1,5 +1,3 @@
-import { Post } from './post.model';
-
 export interface Comment {
     id: number;
     content: string;

@@ -29,10 +29,26 @@ public class ReactionServiceImpl implements ReactionService {
     public Reaction addReaction(Long postId, Reaction reaction) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found with id: " + postId));
-        reaction.setPost(post);
-        // Ensure the ID is null so that Hibernate treats it as a new entity
-        reaction.setId(null);
-        return reactionRepository.save(reaction);
+
+        // Find existing reaction by this user on this post
+        return reactionRepository.findByPostIdAndUserId(postId, reaction.getUserId())
+                .map(existingReaction -> {
+                    if (existingReaction.getType() == reaction.getType()) {
+                        // Same type -> toggle (remove)
+                        reactionRepository.delete(existingReaction);
+                        return null; // Signal that it was deleted
+                    } else {
+                        // Different type -> swap
+                        existingReaction.setType(reaction.getType());
+                        return reactionRepository.save(existingReaction);
+                    }
+                })
+                .orElseGet(() -> {
+                    // New reaction
+                    reaction.setPost(post);
+                    reaction.setId(null);
+                    return reactionRepository.save(reaction);
+                });
     }
 
     @Override

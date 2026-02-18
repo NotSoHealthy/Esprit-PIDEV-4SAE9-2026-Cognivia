@@ -8,4 +8,5 @@ export interface Reaction {
   type: ReactionType;
   createdAt?: string;
   postId?: number;
+  userId?: string;
 }

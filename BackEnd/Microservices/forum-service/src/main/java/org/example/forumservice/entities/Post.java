@@ -2,7 +2,6 @@ package org.example.forumservice.entities;
 
 import jakarta.persistence.*;
 
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,13 +28,23 @@ public class Post {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Reaction> reactions = new ArrayList<>();
 
+    private String userId;
+
+    @Transient
+    private long likeCount;
+
+    @Transient
+    private long dislikeCount;
+
     public Post() {
     }
 
-    public Post(Long id, String title, String content, LocalDateTime createdAt, LocalDateTime updatedAt, List<Comment> comments, List<Reaction> reactions) {
+    public Post(Long id, String title, String content, String userId, LocalDateTime createdAt, LocalDateTime updatedAt,
+            List<Comment> comments, List<Reaction> reactions) {
         this.id = id;
         this.title = title;
         this.content = content;
+        this.userId = userId;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.comments = comments;
@@ -64,6 +73,30 @@ public class Post {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public long getLikeCount() {
+        return likeCount;
+    }
+
+    public void setLikeCount(long likeCount) {
+        this.likeCount = likeCount;
+    }
+
+    public long getDislikeCount() {
+        return dislikeCount;
+    }
+
+    public void setDislikeCount(long dislikeCount) {
+        this.dislikeCount = dislikeCount;
     }
 
     public LocalDateTime getCreatedAt() {

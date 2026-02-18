@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import Keycloak from 'keycloak-js';
 
 @Injectable({ providedIn: 'root' })
@@ -7,7 +7,7 @@ export class KeycloakService {
   private readonly unverifiedAlertKey = 'pidev.auth.alert.unverified';
   private readonly unverifiedLogoutAttemptAtKey = 'pidev.auth.unverified.logout.at';
 
-  constructor() {
+  constructor(private readonly ngZone: NgZone) {
     this.keycloak = new Keycloak({
       url: 'http://localhost:8180',
       realm: 'pidev',
@@ -16,10 +16,12 @@ export class KeycloakService {
   }
 
   async init(): Promise<boolean> {
-    const authenticated = await this.keycloak.init({
-      onLoad: 'check-sso', // or 'login-required'
-      pkceMethod: 'S256',
-      checkLoginIframe: false, // simpler for dev
+    const authenticated = await this.ngZone.run(async () => {
+      return await this.keycloak.init({
+        onLoad: 'check-sso', // or 'login-required'
+        pkceMethod: 'S256',
+        checkLoginIframe: false, // simpler for dev
+      });
     });
 
     if (authenticated && this.hasRealmRole('ROLE_UNVERIFIED')) {
@@ -75,7 +77,9 @@ export class KeycloakService {
   }
 
   async updateToken(minValiditySeconds = 30): Promise<void> {
-    await this.keycloak.updateToken(minValiditySeconds);
+    await this.ngZone.run(async () => {
+      await this.keycloak.updateToken(minValiditySeconds);
+    });
   }
 
   getUserId(): string | undefined {

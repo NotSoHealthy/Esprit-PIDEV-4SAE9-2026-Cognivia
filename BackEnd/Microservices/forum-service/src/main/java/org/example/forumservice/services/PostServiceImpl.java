@@ -11,20 +11,34 @@ import java.util.List;
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
+    private final org.example.forumservice.repositories.ReactionRepository reactionRepository;
 
-    public PostServiceImpl(PostRepository postRepository) {
+    public PostServiceImpl(PostRepository postRepository,
+            org.example.forumservice.repositories.ReactionRepository reactionRepository) {
         this.postRepository = postRepository;
+        this.reactionRepository = reactionRepository;
     }
 
     @Override
     public List<Post> getAllPosts() {
-        return postRepository.findAll();
+        List<Post> posts = postRepository.findAll();
+        posts.forEach(this::populateCounts);
+        return posts;
     }
 
     @Override
     public Post getPostById(Long id) {
-        return postRepository.findById(id)
+        Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
+        populateCounts(post);
+        return post;
+    }
+
+    private void populateCounts(Post post) {
+        post.setLikeCount(reactionRepository.countByPostIdAndType(post.getId(),
+                org.example.forumservice.entities.ReactionType.LIKE));
+        post.setDislikeCount(reactionRepository.countByPostIdAndType(post.getId(),
+                org.example.forumservice.entities.ReactionType.DISLIKE));
     }
 
     @Override

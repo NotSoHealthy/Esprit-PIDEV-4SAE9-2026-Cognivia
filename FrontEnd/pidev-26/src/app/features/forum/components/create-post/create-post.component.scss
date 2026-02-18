@@ -1,0 +1,53 @@
+.create-post-container {
+    max-width: 700px;
+    margin: 3rem auto;
+    padding: 0 1.5rem;
+}
+
+.elegant-card {
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+}
+
+.gradient-text {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(45deg, #1890ff, #722ed1);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+    font-size: 1rem;
+    margin-bottom: 2.5rem;
+}
+
+nz-form-item {
+    margin-bottom: 1.5rem;
+}
+
+nz-form-label {
+    font-weight: 600;
+    color: #262626;
+}
+
+.actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #f0f0f0;
+
+    button {
+        height: 44px;
+        padding: 0 24px;
+        font-weight: 600;
+    }
+}
+
+.text-secondary {
+    color: #8c8c8c;
+}

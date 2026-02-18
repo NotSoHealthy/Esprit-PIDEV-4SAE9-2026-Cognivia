@@ -1,0 +1,61 @@
+import { Component, ChangeDetectorRef, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { ForumService } from '../../services/forum.service';
+import { Post } from '../../models/post.model';
+
+@Component({
+    selector: 'app-create-post',
+    standalone: true,
+    imports: [
+        CommonModule,
+        FormsModule,
+        RouterLink,
+        NzFormModule,
+        NzInputModule,
+        NzButtonModule,
+        NzCardModule
+    ],
+    templateUrl: './create-post.component.html',
+    styleUrl: './create-post.component.scss'
+})
+export class CreatePostComponent {
+    post: Post = {
+        id: 0,
+        title: '',
+        content: ''
+    };
+
+    submitting = false;
+
+    private forumService = inject(ForumService);
+    private router = inject(Router);
+    private message = inject(NzMessageService);
+    private cdr = inject(ChangeDetectorRef);
+
+    constructor() { }
+
+    createPost(): void {
+        if (!this.post.title || !this.post.content) return;
+
+        this.submitting = true;
+        this.forumService.createPost(this.post).subscribe({
+            next: () => {
+                this.message.success('Post created successfully!');
+                this.router.navigate(['/posts']);
+            },
+            error: (e: any) => {
+                this.submitting = false;
+                this.cdr.detectChanges();
+                console.error('Error creating post', e);
+                this.message.error('Failed to create post. Please try again.');
+            }
+        });
+    }
+}

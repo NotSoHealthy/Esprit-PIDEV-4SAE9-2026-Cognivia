@@ -1,5 +1,5 @@
 import { HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
+import { inject, NgZone } from '@angular/core';
 import { KeycloakService } from './keycloak.service';
 import { API_BASE_URL } from '../api/api.tokens';
 import { catchError, from, mergeMap } from 'rxjs';
@@ -7,6 +7,7 @@ import { catchError, from, mergeMap } from 'rxjs';
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const keycloak = inject(KeycloakService);
   const apiBaseUrl = inject(API_BASE_URL);
+  const ngZone = inject(NgZone);
 
   // Only attach token to your backend URLs (important!)
   const isApiCall = req.url.startsWith(apiBaseUrl) || req.url.startsWith('/api');
@@ -14,7 +15,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   if (!keycloak.isLoggedIn()) return next(req);
 
-  return from(keycloak.updateToken(30).then(() => keycloak.getToken())).pipe(
+  return from(ngZone.run(() => keycloak.updateToken(30).then(() => keycloak.getToken()))).pipe(
     mergeMap((token) => {
       const authReq = req.clone({
         setHeaders: { Authorization: `Bearer ${token}` },

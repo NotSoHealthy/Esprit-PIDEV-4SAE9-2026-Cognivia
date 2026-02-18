@@ -1,0 +1,35 @@
+<div class="create-post-container">
+    <nz-card [nzBordered]="false" class="elegant-card">
+        <h2 class="gradient-text">Create New Post</h2>
+        <p class="subtitle text-secondary">Start a new conversation in our community.</p>
+
+        <form nz-form nzLayout="vertical" (ngSubmit)="createPost()">
+            <nz-form-item>
+                <nz-form-label [nzRequired]="true">Title</nz-form-label>
+                <nz-form-control nzErrorTip="Please enter a title!">
+                    <input nz-input [(ngModel)]="post.title" name="title"
+                        placeholder="Give your post a descriptive title" required />
+                </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item>
+                <nz-form-label [nzRequired]="true">Content</nz-form-label>
+                <nz-form-control nzErrorTip="Please enter some content!">
+                    <textarea nz-input [(ngModel)]="post.content" name="content"
+                        [nzAutosize]="{ minRows: 6, maxRows: 12 }" placeholder="What's on your mind?"
+                        required></textarea>
+                </nz-form-control>
+            </nz-form-item>
+
+            <div class="actions">
+                <button nz-button nzType="primary" nzSize="large" type="submit" [nzLoading]="submitting"
+                    [disabled]="!post.title || !post.content">
+                    Create Post
+                </button>
+                <button nz-button nzType="default" nzSize="large" type="button" routerLink="/posts">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </nz-card>
+</div>

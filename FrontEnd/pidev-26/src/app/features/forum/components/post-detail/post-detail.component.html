@@ -1,0 +1,93 @@
+<div class="post-detail-container" *ngIf="post">
+    <!-- Post Card -->
+    <nz-card [nzBordered]="false" class="elegant-card post-card">
+        <div class="card-header">
+            <nz-avatar [nzSize]="48" nzIcon="user" class="user-avatar"></nz-avatar>
+            <div class="header-text">
+                <h1 class="post-title">{{ post.title }}</h1>
+                <div class="post-meta text-secondary">
+                    <span class="date">{{ post.createdAt | date:'longDate' }}</span>
+                    <span class="dot">•</span>
+                    <span class="user-id">Posted by: {{ post.userId || 'Anonymous' }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="post-body">
+            <p>{{ post.content }}</p>
+        </div>
+
+        <nz-divider></nz-divider>
+
+        <div class="post-actions">
+            <div class="reaction-group">
+                <button nz-button nzType="text" class="action-btn like-btn" (click)="like()" nz-tooltip
+                    nzTooltipTitle="Like this post">
+                    <span nz-icon nzType="like" [nzTheme]="'outline'"></span>
+                    <span class="count">{{ post.likeCount || 0 }}</span>
+                </button>
+                <button nz-button nzType="text" class="action-btn dislike-btn" (click)="dislike()" nz-tooltip
+                    nzTooltipTitle="Dislike this post">
+                    <span nz-icon nzType="dislike" [nzTheme]="'outline'"></span>
+                    <span class="count">{{ post.dislikeCount || 0 }}</span>
+                </button>
+            </div>
+            <div class="spacer"></div>
+            <button nz-button nzType="text" nzDanger *ngIf="post.userId === currentUserId" (click)="deletePost()"
+                nz-tooltip nzTooltipTitle="Delete Post">
+                <span nz-icon nzType="delete"></span>
+            </button>
+        </div>
+    </nz-card>
+
+    <!-- Comments Section -->
+    <div class="comments-section">
+        <div class="section-header">
+            <h3 class="gradient-text">Comments ({{ comments.length }})</h3>
+        </div>
+
+        <!-- Add Comment -->
+        <div class="add-comment-box">
+            <nz-form-item>
+                <nz-form-control>
+                    <textarea nz-input [(ngModel)]="newCommentContent" [nzAutosize]="{ minRows: 3, maxRows: 6 }"
+                        placeholder="Share your thoughts..."></textarea>
+                </nz-form-control>
+            </nz-form-item>
+            <div class="add-comment-actions">
+                <button nz-button nzType="primary" (click)="addComment()" [disabled]="!newCommentContent.trim()">
+                    Post Comment
+                </button>
+            </div>
+        </div>
+
+        <!-- Comment List -->
+        <div class="comment-list">
+            <div *ngFor="let comment of comments" class="comment-card">
+                <div class="comment-header">
+                    <div class="comment-user-info">
+                        <span class="comment-user">{{ comment.userId === currentUserId ? 'You' : (comment.userId ||
+                            'Anonymous') }}</span>
+                        <span class="comment-date text-secondary">{{ comment.createdAt | date:'short' }}</span>
+                    </div>
+                </div>
+                <div class="comment-content">
+                    <p>{{ comment.content }}</p>
+                </div>
+                <div class="comment-footer" *ngIf="comment.userId === currentUserId">
+                    <button nz-button nzType="text" nzSize="small" (click)="editComment(comment)">
+                        <span nz-icon nzType="edit"></span> Edit
+                    </button>
+                    <button nz-button nzType="text" nzDanger nzSize="small" (click)="deleteComment(comment.id)">
+                        <span nz-icon nzType="delete"></span> Delete
+                    </button>
+                </div>
+            </div>
+
+            <div *ngIf="comments.length === 0" class="empty-comments">
+                <span nz-icon nzType="message" style="font-size: 48px; color: #d9d9d9;"></span>
+                <p>No comments yet. Be the first to join the conversation!</p>
+            </div>
+        </div>
+    </div>
+</div>
