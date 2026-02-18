@@ -22,6 +22,7 @@ public class Caregiver {
     private UUID userId;
     private String firstName;
     private String lastName;
+    @Enumerated(EnumType.STRING)
     private CaregiverType type;
     @ManyToMany
     private List<Patient> patientList;

@@ -45,4 +45,8 @@ public class PatientDoctorAssignmentService implements IService<PatientDoctorAss
     public void delete(Long id) {
         patientDoctorAssignmentRepository.deleteById(id);
     }
+
+    public List<PatientDoctorAssignment> getByDoctorId(Long doctorId) {
+        return patientDoctorAssignmentRepository.findByDoctorId(doctorId);
+    }
 }

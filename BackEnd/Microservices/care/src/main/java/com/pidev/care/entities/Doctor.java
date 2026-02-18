@@ -25,8 +25,6 @@ public class Doctor {
     private String specialty;
     private String licenseNumber;
     @OneToMany
-    private List<Visit> visits;
-    @OneToMany
     private List<Note> notes;
     @OneToMany(mappedBy = "doctor")
     private List<PatientDoctorAssignment> patientDoctorAssignments;

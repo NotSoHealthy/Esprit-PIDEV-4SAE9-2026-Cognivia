@@ -6,14 +6,22 @@ import { APP_INITIALIZER, Provider } from '@angular/core';
 import { en_US, provideNzI18n } from 'ng-zorro-antd/i18n';
 import { registerLocaleData } from '@angular/common';
 import en from '@angular/common/locales/en';
+import { CurrentUserService } from './app/core/user/current-user.service';
 
 registerLocaleData(en);
 
 const keycloakProviders: Provider[] = [
   {
     provide: APP_INITIALIZER,
-    deps: [KeycloakService],
-    useFactory: (keycloak: KeycloakService) => () => keycloak.init(),
+    deps: [KeycloakService, CurrentUserService],
+    useFactory: (keycloak: KeycloakService, currentUser: CurrentUserService) => async () => {
+      const authenticated = await keycloak.init();
+      if (authenticated && keycloak.isLoggedIn()) {
+        await currentUser.loadFromApi(keycloak.getUserRole(), keycloak.getUserId());
+      } else {
+        currentUser.clear();
+      }
+    },
     multi: true,
   },
 ];
