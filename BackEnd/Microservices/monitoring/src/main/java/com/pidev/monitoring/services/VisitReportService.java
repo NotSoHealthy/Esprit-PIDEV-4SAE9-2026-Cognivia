@@ -43,4 +43,8 @@ public class VisitReportService implements IService<VisitReport> {
     public void delete(Long id) {
         visitReportRepository.deleteById(id);
     }
+
+    public List<VisitReport> getByVisitId(Long visitId) {
+        return visitReportRepository.findByVisitId(visitId);
+    }
 }

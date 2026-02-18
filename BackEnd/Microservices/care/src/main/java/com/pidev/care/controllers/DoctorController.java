@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/doctor")
@@ -23,8 +24,19 @@ public class DoctorController {
         return doctorService.getById(id);
     }
 
+    @GetMapping("/user/{userId}")
+    public Doctor getDoctorByUserId(@PathVariable UUID userId) {
+        return doctorService.getByUserId(userId);
+    }
+
     @PostMapping
     public Doctor createDoctor(@RequestBody Doctor doctor) {
+        return doctorService.create(doctor);
+    }
+
+    @PostMapping("/register/{userId}")
+    public Doctor registerDoctor(@PathVariable UUID userId, @RequestBody Doctor doctor) {
+        doctor.setUserId(userId);
         return doctorService.create(doctor);
     }
 

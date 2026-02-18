@@ -1,0 +1,11 @@
+@switch (userRole) {
+  @case ('ROLE_PATIENT') {
+    <app-profile-patient *ngIf="userRole === 'ROLE_PATIENT'"></app-profile-patient>
+  }
+  @case ('ROLE_DOCTOR') {
+    <app-profile-doctor *ngIf="userRole === 'ROLE_DOCTOR'"></app-profile-doctor>
+  }
+  @case ('ROLE_CAREGIVER') {
+    <app-profile-caregiver *ngIf="userRole === 'ROLE_CAREGIVER'"></app-profile-caregiver>
+  }
+}

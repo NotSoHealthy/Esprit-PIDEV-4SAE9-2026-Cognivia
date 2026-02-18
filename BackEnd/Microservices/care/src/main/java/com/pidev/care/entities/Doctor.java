@@ -18,10 +18,11 @@ public class Doctor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     private Long id;
+    @Column(unique = true)
     private UUID userId;
     private String firstName;
     private String lastName;
-    private String specialization;
+    private String specialty;
     private String licenseNumber;
     @OneToMany
     private List<Visit> visits;

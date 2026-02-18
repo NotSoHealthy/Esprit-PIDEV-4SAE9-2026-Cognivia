@@ -1,15 +1,26 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { KeycloakService } from '../../core/auth/keycloak.service';
+import { NzAlertModule } from 'ng-zorro-antd/alert';
 
 @Component({
   selector: 'app-home',
-  imports: [CommonModule],
+  imports: [CommonModule, NzAlertModule],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
-export class Home {
+export class Home implements OnInit {
   private readonly keycloak = inject(KeycloakService);
+  alertMessage: string | null = null;
+
+  ngOnInit(): void {
+    this.alertMessage = this.keycloak.getUnverifiedAlertMessage();
+  }
+
+  clearAlert(): void {
+    this.keycloak.clearUnverifiedAlertMessage();
+    this.alertMessage = null;
+  }
 
   isLoggedIn(): boolean {
     return this.keycloak.isLoggedIn();

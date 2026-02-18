@@ -56,6 +56,8 @@ export class AppLayout implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => this.updateCurrentRouteLabel());
+
+    console.log('User Roles:', this.keycloak.getUserRole());
   }
 
   private updateCurrentRouteLabel(): void {
@@ -69,10 +71,6 @@ export class AppLayout implements OnInit {
     if (!firstSegment) return '';
     return firstSegment.charAt(0).toUpperCase() + firstSegment.slice(1);
   }
-  get userRole(): string | undefined {
-    const roles = this.keycloak.getRealmRoles();
-    return roles[0] || undefined;
-  }
 
   get isLoggedIn(): boolean {
     return this.keycloak.isLoggedIn();
@@ -84,5 +82,9 @@ export class AppLayout implements OnInit {
 
   async logout(): Promise<void> {
     await this.keycloak.logout(window.location.origin);
+  }
+
+  get userRole(): string | undefined {
+    return this.keycloak.getUserRole();
   }
 }

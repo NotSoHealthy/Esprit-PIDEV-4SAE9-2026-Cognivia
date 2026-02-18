@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/caregiver")
@@ -23,8 +24,17 @@ public class CaregiverController {
         return careGiverService.getById(id);
     }
 
+    @GetMapping("/user/{userId}")
+    public Caregiver getCaregiverByUserId(@PathVariable UUID userId) {
+        return careGiverService.getByUserId(userId);
+    }
+
     @PostMapping
-    public Caregiver createCaregiver(@RequestBody Caregiver careGiver) {
+    public Caregiver createCaregiver(@RequestBody Caregiver careGiver) {return careGiverService.create(careGiver);}
+
+    @PostMapping("/register/{userId}")
+    public Caregiver registerCaregiver(@PathVariable UUID userId, @RequestBody Caregiver careGiver) {
+        careGiver.setUserId(userId);
         return careGiverService.create(careGiver);
     }
 
@@ -34,7 +44,5 @@ public class CaregiverController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteCaregiver(@PathVariable Long id) {
-        careGiverService.delete(id);
-    }
+    public void deleteCaregiver(@PathVariable Long id) {careGiverService.delete(id);}
 }
