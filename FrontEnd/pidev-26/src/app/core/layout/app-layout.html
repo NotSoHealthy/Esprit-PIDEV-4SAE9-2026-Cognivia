@@ -1,51 +1,65 @@
 <div class="min-h-screen flex flex-col gap-6">
-    <header class="flex items-center justify-between px-4 pt-4">
-        <span class="flex items-center gap-10">
-            <img src="/logo.svg" class="bg-white p-4.5 rounded-full">
-            <p class="font-bold text-xl tracking-wide">{{ currentRouteLabel }}</p>
-        </span>
-        <div class="flex items-center gap-5">
-            <nz-icon nzType="bell" nzTheme="outline" class="text-2xl" />
-            <a nz-dropdown nzTrigger="click" [nzDropdownMenu]="menu" nzPlacement="bottomCenter" class="text-black!">
-                <div class="flex rounded-full bg-[#F2F6FE] p-2 gap-2 items-center drop-shadow-sm">
-                    <span class="rounded-full aspect-square w-8 bg-[#B4BEF0] text-center content-center
-                    font-bold text-[#4D5CAB] drop-shadow-xs">
-                        {{ username.charAt(0).toUpperCase() }}
-                    </span>
-                    <p class="ml-2 content-center font-semibold">{{ username }}</p>
-                    <span class="flex flex-col">
-                        <nz-icon nzType="up" nzTheme="outline" />
-                        <nz-icon nzType="down" nzTheme="outline" />
-                    </span>
-                </div>
-            </a>
-            <nz-dropdown-menu #menu="nzDropdownMenu">
-                <ul nz-menu class="min-w-48">
-                    <li nz-menu-item>Profile</li>
-                    <li nz-menu-item>Settings</li>
-                    <li nz-menu-divider></li>
-                    <li nz-menu-item (click)="logout()">Sign out</li>
-                </ul>
-            </nz-dropdown-menu>
+  <header class="flex items-center justify-between px-4 pt-4">
+    <span class="flex items-center gap-10">
+      <img src="/logo.svg" class="bg-white p-4.5 rounded-full" />
+      <p class="font-bold text-xl tracking-wide">{{ currentRouteLabel }}</p>
+    </span>
+    <div class="flex items-center gap-5">
+      <nz-icon nzType="bell" nzTheme="outline" class="text-2xl" />
+      <a
+        nz-dropdown
+        nzTrigger="click"
+        [nzDropdownMenu]="menu"
+        nzPlacement="bottomCenter"
+        class="text-black!"
+      >
+        <div class="flex rounded-full bg-[#F2F6FE] p-2 gap-2 items-center drop-shadow-sm">
+          <span
+            class="rounded-full aspect-square w-8 bg-[#B4BEF0] text-center content-center font-bold text-[#4D5CAB] drop-shadow-xs"
+          >
+            {{ username.charAt(0).toUpperCase() }}
+          </span>
+          <p class="ml-2 content-center font-semibold">{{ username }}</p>
+          <span class="flex flex-col">
+            <nz-icon nzType="up" nzTheme="outline" />
+            <nz-icon nzType="down" nzTheme="outline" />
+          </span>
         </div>
-    </header>
-
-    <div class="flex flex-1 min-h-0">
-        <aside class="w-60 shrink-0 px-4 py-3">
-            <nav class="flex flex-col gap-2 bg-[#F2F6FE] rounded-full w-fit p-2">
-                <ng-container *ngFor="let route of routes">
-                    <span *ngIf="userRole && route.roles.includes(userRole)"
-                        class="rounded-full text-[#4D5CAB] hover:text-white">
-                        <nz-icon [routerLink]="route.link" routerLinkActive="!bg-[#4D5CAB] !text-white"
-                            [routerLinkActiveOptions]="{ exact: true }" [nzType]="route.icon" nzTheme="outline"
-                            class="w-fit text-[30px] bg-white p-3 rounded-full hover:bg-[#4D5CAB] transition-colors duration-200" />
-                    </span>
-                </ng-container>
-            </nav>
-        </aside>
-
-        <main class="flex-1 min-w-0 p-4 overflow-auto">
-            <router-outlet></router-outlet>
-        </main>
+      </a>
+      <nz-dropdown-menu #menu="nzDropdownMenu">
+        <ul nz-menu class="min-w-48">
+          <li nz-menu-item routerLink="/profile">Profile</li>
+          <li nz-menu-item>Settings</li>
+          <li nz-menu-divider></li>
+          <li nz-menu-item (click)="logout()">Sign out</li>
+        </ul>
+      </nz-dropdown-menu>
     </div>
+  </header>
+
+  <div class="flex flex-1 min-h-0">
+    <aside class="w-fit shrink-0 px-4 py-3">
+      <nav class="flex flex-col gap-2 bg-[#F2F6FE] rounded-full w-fit p-2">
+        <ng-container *ngFor="let route of routes">
+          <span
+            *ngIf="userRole && route.roles.includes(userRole)"
+            class="rounded-full text-[#4D5CAB] hover:text-white"
+          >
+            <nz-icon
+              [routerLink]="route.link"
+              routerLinkActive="!bg-[#4D5CAB] !text-white"
+              [routerLinkActiveOptions]="{ exact: true }"
+              [nzType]="route.icon"
+              nzTheme="outline"
+              class="w-fit text-[30px] bg-white p-3 rounded-full hover:bg-[#4D5CAB] transition-colors duration-200"
+            />
+          </span>
+        </ng-container>
+      </nav>
+    </aside>
+
+    <main class="flex-1 min-w-0 p-4 overflow-auto">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
 </div>

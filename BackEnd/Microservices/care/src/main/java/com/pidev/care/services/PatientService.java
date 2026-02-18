@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -46,5 +47,19 @@ public class PatientService implements IService<Patient> {
     @Override
     public void delete(Long id) {
         patientRepository.deleteById(id);
+    }
+
+    public Patient getByUserId(UUID userId) {
+        return patientRepository.findByUserId(userId)
+            .map(patient -> {
+                Patient result = new Patient();
+                result.setId(patient.getId());
+                result.setUserId(patient.getUserId());
+                result.setFirstName(patient.getFirstName());
+                result.setLastName(patient.getLastName());
+                result.setDateOfBirth(patient.getDateOfBirth());
+                return result;
+            })
+            .orElse(null);
     }
 }
