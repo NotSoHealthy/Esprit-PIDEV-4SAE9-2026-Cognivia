@@ -7,6 +7,7 @@ set "EUREKA_DIR=eureka"
 set "GATEWAY_DIR=gateway"
 set "CARE_DIR=Microservices\care"
 set "MON_DIR=Microservices\monitoring"
+set "SEQ_DIR=Microservices\SurveillanceAndEquipment"
 REM ----------------------------------------------------
 
 where wt >nul 2>nul
@@ -21,6 +22,7 @@ if not exist "%CD%\%EUREKA_DIR%\" (echo [ERROR] Missing: %CD%\%EUREKA_DIR% & pau
 if not exist "%CD%\%GATEWAY_DIR%\" (echo [ERROR] Missing: %CD%\%GATEWAY_DIR% & pause & exit /b 1)
 if not exist "%CD%\%CARE_DIR%\" (echo [ERROR] Missing: %CD%\%CARE_DIR% & pause & exit /b 1)
 if not exist "%CD%\%MON_DIR%\" (echo [ERROR] Missing: %CD%\%MON_DIR% & pause & exit /b 1)
+if not exist "%CD%\%SEQ_DIR%\" (echo [ERROR] Missing: %CD%\%SEQ_DIR% & pause & exit /b 1)
 
 REM Create runner scripts in a stable folder next to this .bat (not TEMP)
 set "RUNDIR=%CD%\run-tabs"
@@ -30,13 +32,15 @@ call :writeRunner "%RUNDIR%\eureka.cmd" "eureka" "%CD%\%EUREKA_DIR%" 0
 call :writeRunner "%RUNDIR%\gateway.cmd" "gateway" "%CD%\%GATEWAY_DIR%" 5
 call :writeRunner "%RUNDIR%\care.cmd" "care" "%CD%\%CARE_DIR%" 7
 call :writeRunner "%RUNDIR%\monitoring.cmd" "monitoring" "%CD%\%MON_DIR%" 7
+call :writeRunner "%RUNDIR%\SurveillanceAndEquipment.cmd" "SurveillanceAndEquipment" "%CD%\%SEQ_DIR%" 7
 
 REM Start ONE Windows Terminal window with tabs
 wt -w 0 ^
   new-tab --title "eureka"       cmd /k "%RUNDIR%\eureka.cmd" ^
   ; new-tab --title "gateway"    cmd /k "%RUNDIR%\gateway.cmd" ^
   ; new-tab --title "care"       cmd /k "%RUNDIR%\care.cmd" ^
-  ; new-tab --title "monitoring" cmd /k "%RUNDIR%\monitoring.cmd"
+  ; new-tab --title "monitoring" cmd /k "%RUNDIR%\monitoring.cmd" ^
+  ; new-tab --title "SurveillanceAndEquipment" cmd /k "%RUNDIR%\SurveillanceAndEquipment.cmd"
 
 exit /b 0
 
