@@ -4,41 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bbce8225-ee6a-4c74-b04e-5b672e20d428" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/src/main/java/org/example/forumservice/entities/Comment.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/src/main/java/org/example/forumservice/entities/Comment.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/src/main/java/org/example/forumservice/entities/Post.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/src/main/java/org/example/forumservice/entities/Post.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/src/main/java/org/example/forumservice/entities/Reaction.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/src/main/java/org/example/forumservice/entities/Reaction.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/src/main/java/org/example/forumservice/repositories/ReactionRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/src/main/java/org/example/forumservice/repositories/ReactionRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/src/main/java/org/example/forumservice/services/PostServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/src/main/java/org/example/forumservice/services/PostServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/src/main/java/org/example/forumservice/services/ReactionServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/src/main/java/org/example/forumservice/services/ReactionServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BackEnd/docker/keycloak/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/docker/keycloak/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BackEnd/docker/keycloak/realm-export.json" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/docker/keycloak/realm-export.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BackEnd/gateway/src/main/java/com/pidev/gateway/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/gateway/src/main/java/com/pidev/gateway/config/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FrontEnd/forum-app/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/forum-app/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FrontEnd/forum-app/src/app/components/post-detail/post-detail.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/forum-app/src/app/components/post-detail/post-detail.component.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FrontEnd/forum-app/src/app/components/post-detail/post-detail.component.scss" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/forum-app/src/app/components/post-detail/post-detail.component.scss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FrontEnd/forum-app/src/app/components/post-detail/post-detail.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/forum-app/src/app/components/post-detail/post-detail.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FrontEnd/forum-app/src/app/components/post-list/post-list.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/forum-app/src/app/components/post-list/post-list.component.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FrontEnd/forum-app/src/app/components/post-list/post-list.component.scss" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/forum-app/src/app/components/post-list/post-list.component.scss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FrontEnd/forum-app/src/app/models/comment.model.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/forum-app/src/app/models/comment.model.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FrontEnd/forum-app/src/app/models/post.model.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/forum-app/src/app/models/post.model.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FrontEnd/forum-app/src/app/models/reaction.model.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/forum-app/src/app/models/reaction.model.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FrontEnd/forum-app/src/app/services/forum.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/forum-app/src/app/services/forum.service.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/angular.json" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/angular.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/app.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/app.config.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/app.routes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/app.routes.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/core/auth/auth.guard.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/core/auth/auth.guard.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/core/auth/auth.interceptor.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/core/auth/auth.interceptor.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/core/auth/keycloak.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/core/auth/keycloak.service.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/core/layout/app-layout.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/core/layout/app-layout.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/home/home.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/home/home.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Microservices.lnk" beforeDir="false" />
-    </list>
+    <list default="true" id="bbce8225-ee6a-4c74-b04e-5b672e20d428" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -47,10 +13,10 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "customColor": "",
-  "associatedIndex": 7
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 7
+}</component>
   <component name="ProjectId" id="39r2yKDhm0xos5xL5SOdQXfy1aR" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -61,6 +27,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "forum",
     "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/yahya/Desktop/PIDEV-26",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -121,6 +88,7 @@
       <option name="presentableId" value="Default" />
       <updated>1771440121761</updated>
       <workItem from="1771440122859" duration="714000" />
+      <workItem from="1771486819355" duration="510000" />
     </task>
     <servers />
   </component>

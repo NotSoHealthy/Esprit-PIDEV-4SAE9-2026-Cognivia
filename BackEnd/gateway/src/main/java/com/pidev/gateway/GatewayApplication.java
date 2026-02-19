@@ -39,6 +39,9 @@ public class GatewayApplication {
                         r->r.path("/monitoring/**")
                                 .filters(f -> f.stripPrefix(1))
                                 .uri("lb://monitoring"))
+                .route("posts",
+                        r->r.path("/posts/**")
+                                .uri("lb://forum-service"))
                 .build();
     }
 }

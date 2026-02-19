@@ -77,7 +77,7 @@ export class PostDetailComponent implements OnInit {
         this.forumService.getCommentsByPostId(postId).subscribe({
             next: (data: Comment[]) => {
                 this.ngZone.run(() => {
-                    this.comments = data;
+                    this.comments = data || [];
                     this.cdr.detectChanges();
                 });
             },
@@ -106,7 +106,7 @@ export class PostDetailComponent implements OnInit {
     }
 
     editComment(comment: Comment): void {
-        const newContent = prompt('Edit your comment:', comment.content);
+        const newContent = prompt('Edit your comment:', comment?.content || '');
         if (newContent !== null && newContent.trim() !== '') {
             const updatedComment = { ...comment, content: newContent };
             this.forumService.updateComment(this.post!.id, comment.id, updatedComment).subscribe({

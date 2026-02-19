@@ -41,7 +41,7 @@ export class PostListComponent implements OnInit {
     loadPosts(): void {
         this.forumService.getAllPosts().subscribe({
             next: (data: Post[]) => {
-                this.posts = data;
+                this.posts = data || [];
                 this.cdr.detectChanges();
             },
             error: (e: any) => console.error('Error fetching posts', e)

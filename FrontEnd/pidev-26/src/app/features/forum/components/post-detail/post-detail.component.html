@@ -4,17 +4,17 @@
         <div class="card-header">
             <nz-avatar [nzSize]="48" nzIcon="user" class="user-avatar"></nz-avatar>
             <div class="header-text">
-                <h1 class="post-title">{{ post.title }}</h1>
+                <h1 class="post-title">{{ post?.title || 'Untitled' }}</h1>
                 <div class="post-meta text-secondary">
-                    <span class="date">{{ post.createdAt | date:'longDate' }}</span>
+                    <span class="date">{{ post?.createdAt | date:'longDate' }}</span>
                     <span class="dot">•</span>
-                    <span class="user-id">Posted by: {{ post.userId || 'Anonymous' }}</span>
+                    <span class="user-id">Posted by: {{ post?.userId || 'Anonymous' }}</span>
                 </div>
             </div>
         </div>
 
         <div class="post-body">
-            <p>{{ post.content }}</p>
+            <p>{{ post?.content || '' }}</p>
         </div>
 
         <nz-divider></nz-divider>
@@ -24,12 +24,12 @@
                 <button nz-button nzType="text" class="action-btn like-btn" (click)="like()" nz-tooltip
                     nzTooltipTitle="Like this post">
                     <span nz-icon nzType="like" [nzTheme]="'outline'"></span>
-                    <span class="count">{{ post.likeCount || 0 }}</span>
+                    <span class="count">{{ post?.likeCount || 0 }}</span>
                 </button>
                 <button nz-button nzType="text" class="action-btn dislike-btn" (click)="dislike()" nz-tooltip
                     nzTooltipTitle="Dislike this post">
                     <span nz-icon nzType="dislike" [nzTheme]="'outline'"></span>
-                    <span class="count">{{ post.dislikeCount || 0 }}</span>
+                    <span class="count">{{ post?.dislikeCount || 0 }}</span>
                 </button>
             </div>
             <div class="spacer"></div>
@@ -43,7 +43,7 @@
     <!-- Comments Section -->
     <div class="comments-section">
         <div class="section-header">
-            <h3 class="gradient-text">Comments ({{ comments.length }})</h3>
+            <h3 class="gradient-text">Comments ({{ comments?.length || 0 }})</h3>
         </div>
 
         <!-- Add Comment -->
@@ -84,7 +84,7 @@
                 </div>
             </div>
 
-            <div *ngIf="comments.length === 0" class="empty-comments">
+            <div *ngIf="!comments || comments.length === 0" class="empty-comments">
                 <span nz-icon nzType="message" style="font-size: 48px; color: #d9d9d9;"></span>
                 <p>No comments yet. Be the first to join the conversation!</p>
             </div>

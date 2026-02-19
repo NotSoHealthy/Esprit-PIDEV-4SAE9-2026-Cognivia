@@ -10,7 +10,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const ngZone = inject(NgZone);
 
   // Only attach token to your backend URLs (important!)
-  const isApiCall = req.url.startsWith(apiBaseUrl) || req.url.startsWith('/api');
+  const isApiCall = req.url.startsWith(apiBaseUrl) || req.url.startsWith('/api') || req.url.includes(':8085/');
   if (!isApiCall) return next(req);
 
   if (!keycloak.isLoggedIn()) return next(req);

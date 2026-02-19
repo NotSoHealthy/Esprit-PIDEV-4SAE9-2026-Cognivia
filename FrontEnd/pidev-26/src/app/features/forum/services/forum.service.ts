@@ -12,7 +12,7 @@ import { KeycloakService } from '../../../core/auth/keycloak.service';
 })
 export class ForumService {
 
-    private apiUrl = 'http://localhost:8085/api/posts';
+    private apiUrl = 'http://localhost:8085/posts';
 
     constructor(private http: HttpClient, private keycloakService: KeycloakService) { }
 
@@ -67,6 +67,6 @@ export class ForumService {
     }
 
     deleteReaction(postId: number, reactionId: number): Observable<void> {
-        return this.http.delete<void>(`http://localhost:8085/api/posts/reactions/${reactionId}`);
+        return this.http.delete<void>(`http://localhost:8085/posts/reactions/${reactionId}`);
     }
 }

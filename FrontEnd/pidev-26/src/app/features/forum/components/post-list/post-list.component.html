@@ -19,28 +19,29 @@
                 <div class="card-header">
                     <nz-avatar [nzSize]="40" nzIcon="user" class="user-avatar"></nz-avatar>
                     <div class="header-text">
-                        <div class="post-title">{{ post.title }}</div>
-                        <div class="post-date text-secondary">{{ post.createdAt | date:'mediumDate' }}</div>
+                        <div class="post-title">{{ post?.title || 'Untitled' }}</div>
+                        <div class="post-date text-secondary">{{ post?.createdAt | date:'mediumDate' }}</div>
                     </div>
                 </div>
 
                 <div class="post-preview">
-                    <p>{{ post.content | slice:0:150 }}{{ post.content.length > 150 ? '...' : '' }}</p>
+                    <p>{{ (post?.content || '') | slice:0:150 }}{{ (post?.content?.length || 0) > 150 ? '...' : '' }}
+                    </p>
                 </div>
 
                 <div class="post-footer">
                     <div class="stats">
                         <span class="stat-item">
                             <span nz-icon nzType="like" nzTheme="outline"></span>
-                            {{ post.likeCount || 0 }}
+                            {{ post?.likeCount || 0 }}
                         </span>
                         <span class="stat-item">
                             <span nz-icon nzType="dislike" nzTheme="outline"></span>
-                            {{ post.dislikeCount || 0 }}
+                            {{ post?.dislikeCount || 0 }}
                         </span>
                         <span class="stat-item">
                             <span nz-icon nzType="message" nzTheme="outline"></span>
-                            {{ (post.comments?.length) || 0 }}
+                            {{ (post?.comments?.length) || 0 }}
                         </span>
                     </div>
                     <div class="read-more">
@@ -51,7 +52,7 @@
             </nz-card>
         </div>
 
-        <div nz-col [nzSpan]="24" *ngIf="posts.length === 0" class="empty-container">
+        <div nz-col [nzSpan]="24" *ngIf="!posts || posts.length === 0" class="empty-container">
             <nz-empty [nzNotFoundContent]="contentTpl" [nzNotFoundFooter]="footerTpl">
                 <ng-template #contentTpl>
                     <span class="empty-text">No posts yet. Be the first to start a conversation!</span>
