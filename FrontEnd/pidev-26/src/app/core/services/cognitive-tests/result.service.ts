@@ -8,7 +8,7 @@ import { API_BASE_URL } from '../../constants/cognitive-tests/api.constants';
     providedIn: 'root'
 })
 export class TestResultService {
-    private apiUrl = `${API_BASE_URL}/results`;
+    private apiUrl = `${API_BASE_URL}/monitoring/results`;
 
     constructor(private http: HttpClient) { }
 

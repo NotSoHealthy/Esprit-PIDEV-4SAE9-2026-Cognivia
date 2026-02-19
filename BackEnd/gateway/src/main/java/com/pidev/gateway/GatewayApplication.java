@@ -23,7 +23,6 @@ public class GatewayApplication {
                                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                                 .authorizeExchange(exchanges -> exchanges
                                                 .pathMatchers("/auth/**").permitAll()
-                                                .pathMatchers("/monitoring/**").permitAll()
                                                 .pathMatchers("/admin/**").hasRole("ADMIN")
                                                 .anyExchange().authenticated())
                                 .oauth2ResourceServer(oauth -> oauth.jwt())
