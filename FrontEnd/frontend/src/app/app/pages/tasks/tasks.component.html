@@ -1,0 +1,104 @@
+<div class="page">
+  <div class="header">
+    <div>
+      <h2>Patient Tasks</h2>
+      <p class="subtitle">Create, track and manage tasks for your patient.</p>
+    </div>
+
+    <div class="badge">
+      <span class="dot"></span>
+      {{ tasks.length }} tasks
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Create a task</h3>
+
+    <div class="form">
+      <div class="field">
+        <label>Task</label>
+        <input [(ngModel)]="form.task" placeholder="e.g. Take Donepezil 10mg" />
+      </div>
+
+      <div class="field">
+        <label>Type</label>
+        <select [(ngModel)]="form.taskType">
+          <option value="MEDICATION">Medication</option>
+          <option value="EXERCISE">Exercise</option>
+          <option value="HYGIENE">Hygiene</option>
+          <option value="MEAL">Meal</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Due at</label>
+        <input [(ngModel)]="form.dueAt" placeholder="2026-02-14T08:00:00" />
+        <small>Format: yyyy-MM-ddTHH:mm:ss</small>
+      </div>
+
+      <button class="btn primary" (click)="create()">
+        + Create
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>Tasks list</h3>
+      <button class="btn ghost" (click)="load()">Refresh</button>
+    </div>
+
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>Task</th>
+          <th>Type</th>
+          <th>Done</th>
+          <th class="actions">Actions</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr *ngFor="let t of tasks">
+          <td class="mono">#{{ t.id }}</td>
+
+          <td>
+            <div class="task-title">{{ t.task }}</div>
+            <div class="meta">
+              Patient: <span class="mono">{{ t.patientId }}</span> ·
+              User: <span class="mono">{{ t.userId }}</span>
+            </div>
+          </td>
+
+          <td>
+            <span class="pill">{{ t.taskType }}</span>
+          </td>
+
+          <td>
+            <span class="status" [class.done]="t.isDone">
+              {{ t.isDone ? 'DONE' : 'PENDING' }}
+            </span>
+          </td>
+
+          <td class="actions">
+            <button class="btn small" (click)="toggleDone(t)">
+              {{ t.isDone ? 'Mark Pending' : 'Mark Done' }}
+            </button>
+            <button class="btn small danger" (click)="remove(t.id!)">
+              Delete
+            </button>
+          </td>
+        </tr>
+
+        <tr *ngIf="tasks.length === 0">
+          <td colspan="5" class="empty">
+            No tasks yet. Create your first task above.
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
