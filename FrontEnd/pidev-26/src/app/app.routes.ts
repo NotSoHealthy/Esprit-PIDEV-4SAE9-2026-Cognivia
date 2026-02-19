@@ -24,12 +24,10 @@ export const routes: Routes = [
       },
       {
         path: 'patient-management',
-        title: 'Patient Management',
+        title: 'Patients',
         canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
-        loadComponent: () =>
-          import('./features/doctor/patient-management/patient-management').then(
-            (m) => m.PatientManagement,
-          ),
+        loadChildren: () =>
+          import('./features/patient-management/patient-list.route').then((m) => m.routes),
       },
     ],
   },

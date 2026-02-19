@@ -1,0 +1,31 @@
+<div class="bg-linear-gradient-to-r from-[#4D5CAB] to-[#6C8CD5] rounded-3xl">
+  @if (isLoading) {
+    <div class="rounded-2xl bg-[#F2F6FE] p-4 text-[#4D5CAB]">Loading patients...</div>
+  } @else if (errorMessage) {
+    <div class="rounded-2xl bg-[#F2F6FE] p-4 text-[#4D5CAB]">
+      {{ errorMessage }}
+    </div>
+  } @else if (!patients.length) {
+    <div class="rounded-2xl bg-[#F2F6FE] p-4 text-[#4D5CAB]">No patients found.</div>
+  } @else {
+    @for (patient of patients; track $index) {
+      <div
+        class="flex gap-4 rounded-2xl bg-[#F2F6FE] p-4 mb-4 items-center max-w-2xl"
+        [routerLink]="['/patient-management', patient.id]"
+        [state]="{ patient: patient }"
+      >
+        <div
+          class="rounded-full aspect-square w-14 bg-[#B4BEF0] text-lg text-center content-center font-bold text-[#4D5CAB] drop-shadow-xs"
+        >
+          {{ patient.firstName[0] }}{{ patient.lastName[0] }}
+        </div>
+        <div>
+          <p class="text-black text-lg font-semibold">
+            {{ patient.firstName }} {{ patient.lastName }}
+          </p>
+          <p class="opacity-65">{{ formatDobWithAge(patient.dateOfBirth) }}</p>
+        </div>
+      </div>
+    }
+  }
+</div>

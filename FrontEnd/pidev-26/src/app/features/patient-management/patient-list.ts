@@ -6,13 +6,15 @@ import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { API_BASE_URL } from '../../../core/api/api.tokens';
-import { CurrentUserService } from '../../../core/user/current-user.service';
+import { API_BASE_URL } from '../../core/api/api.tokens';
+import { CurrentUserService } from '../../core/user/current-user.service';
+import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
 type PatientSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'EXTREME';
 
 @Component({
-  selector: 'app-patient-management',
+  selector: 'app-patient-list',
   imports: [
     NzCollapseModule,
     NzTagModule,
@@ -20,11 +22,12 @@ type PatientSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'EXTREME';
     NzButtonModule,
     NzIconModule,
     FormsModule,
+    RouterModule,
   ],
-  templateUrl: './patient-management.html',
-  styleUrl: './patient-management.css',
+  templateUrl: './patient-list.html',
+  styleUrl: './patient-list.css',
 })
-export class PatientManagement implements OnInit {
+export class PatientList implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly apiBaseUrl = inject(API_BASE_URL);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -246,6 +249,44 @@ export class PatientManagement implements OnInit {
     } catch {
       return d.toLocaleString();
     }
+  }
+
+  formatDobWithAge(dateOfBirth: unknown): string {
+    const dob = this.toDate(dateOfBirth);
+    if (!dob) return typeof dateOfBirth === 'string' ? dateOfBirth : '-';
+
+    const age = this.getAgeYears(dob);
+
+    let formattedDob = '';
+    try {
+      formattedDob = new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: '2-digit',
+        year: 'numeric',
+      }).format(dob);
+    } catch {
+      formattedDob = dob.toLocaleDateString('en-US', {
+        month: 'short',
+        day: '2-digit',
+        year: 'numeric',
+      });
+    }
+
+    if (age === null) return formattedDob;
+    return `${formattedDob} (${age} y.o.)`;
+  }
+
+  private getAgeYears(dob: Date): number | null {
+    if (isNaN(dob.getTime())) return null;
+
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const monthDelta = today.getMonth() - dob.getMonth();
+    if (monthDelta < 0 || (monthDelta === 0 && today.getDate() < dob.getDate())) {
+      age -= 1;
+    }
+
+    return age;
   }
 
   getAge(dateOfBirth: unknown): string {

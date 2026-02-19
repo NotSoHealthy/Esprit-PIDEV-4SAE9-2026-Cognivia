@@ -48,7 +48,6 @@
             <nz-icon
               [routerLink]="route.link"
               routerLinkActive="!bg-[#4D5CAB] !text-white"
-              [routerLinkActiveOptions]="{ exact: true }"
               [nzType]="route.icon"
               nzTheme="outline"
               class="w-fit text-[30px] bg-white p-3 rounded-full hover:bg-[#4D5CAB] transition-colors duration-200"
@@ -58,7 +57,7 @@
       </nav>
     </aside>
 
-    <main class="flex-1 min-w-0 p-4 overflow-auto">
+    <main class="flex-1 min-w-0 p-4 pr-8 overflow-auto">
       <router-outlet></router-outlet>
     </main>
   </div>
