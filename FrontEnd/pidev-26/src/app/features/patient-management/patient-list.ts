@@ -9,7 +9,11 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { API_BASE_URL } from '../../core/api/api.tokens';
 import { CurrentUserService } from '../../core/user/current-user.service';
 import { RouterModule } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { NzTableModule } from 'ng-zorro-antd/table';
+import { NzDividerModule } from 'ng-zorro-antd/divider';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { compareText, getAgeYears, normalizeSearch } from '../../shared/utils';
+import { getSeverityColor, getSeverityRank } from '../../shared/utils/patient.utils';
 
 type PatientSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'EXTREME';
 
@@ -23,6 +27,9 @@ type PatientSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'EXTREME';
     NzIconModule,
     FormsModule,
     RouterModule,
+    NzTableModule,
+    NzDividerModule,
+    NzInputModule,
   ],
   templateUrl: './patient-list.html',
   styleUrl: './patient-list.css',
@@ -32,10 +39,25 @@ export class PatientList implements OnInit {
   private readonly apiBaseUrl = inject(API_BASE_URL);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly currentUser = inject(CurrentUserService);
+
+  protected readonly getAgeYears = getAgeYears;
+  protected readonly normalizeSearch = normalizeSearch;
+  protected readonly compareText = compareText;
+  protected readonly getSeverityRank = getSeverityRank;
+  protected readonly getSeverityColor = getSeverityColor;
+
   patients: any[] = [];
   isLoading = false;
   errorMessage: string | null = null;
+
+  searchValue = '';
+
   readonly severityOptions: PatientSeverity[] = ['LOW', 'MEDIUM', 'HIGH', 'EXTREME'];
+  readonly severityFilters = this.severityOptions.map((severity) => ({
+    text: severity,
+    value: severity,
+  }));
+
   readonly isUpdatingSeverityByPatientId: Record<string, boolean> = {};
 
   readonly visitsByPatientId: Record<string, any[]> = {};
@@ -71,6 +93,42 @@ export class PatientList implements OnInit {
     this.fetchPatients();
   }
 
+  resetSearch(): void {
+    this.searchValue = '';
+  }
+
+  get searchedPatients(): any[] {
+    const q = this.normalizeSearch(this.searchValue);
+    if (!q) return this.patients;
+
+    return this.patients.filter((patient) => {
+      const firstName = this.normalizeSearch(patient?.firstName);
+      const lastName = this.normalizeSearch(patient?.lastName);
+      const userId = this.normalizeSearch(patient?.userId);
+      const severity = this.normalizeSearch(patient?.severity);
+      return (
+        firstName.includes(q) || lastName.includes(q) || userId.includes(q) || severity.includes(q)
+      );
+    });
+  }
+
+  readonly sortFirstName = (a: any, b: any): number => this.compareText(a?.firstName, b?.firstName);
+
+  readonly sortLastName = (a: any, b: any): number => this.compareText(a?.lastName, b?.lastName);
+
+  readonly sortAge = (a: any, b: any): number => this.getAgeValue(a) - this.getAgeValue(b);
+
+  readonly sortSeverity = (a: any, b: any): number =>
+    this.getSeverityRank(a) - this.getSeverityRank(b);
+
+  readonly severityFilterFn = (value: any[] | any, item: any): boolean => {
+    const selected = Array.isArray(value) ? value : value ? [value] : [];
+    if (selected.length === 0) return true;
+
+    const severity = item?.severity;
+    return severity !== null && selected.includes(severity);
+  };
+
   fetchPatients(): void {
     this.isLoading = true;
     this.errorMessage = null;
@@ -104,20 +162,6 @@ export class PatientList implements OnInit {
         this.cdr.detectChanges();
       },
     });
-  }
-
-  getSeverity(patient: any): PatientSeverity | null {
-    const raw = patient?.severity ?? patient?.severityLevel ?? patient?.severityStatus;
-    if (raw === 'LOW' || raw === 'MEDIUM' || raw === 'HIGH' || raw === 'EXTREME') return raw;
-    return null;
-  }
-
-  getSeverityColor(severity: PatientSeverity | null): string {
-    if (!severity) return 'default';
-    if (severity === 'LOW') return 'success';
-    if (severity === 'MEDIUM') return 'warning';
-    if (severity === 'HIGH') return 'error';
-    return 'purple';
   }
 
   updateSeverity(patient: any, severity: PatientSeverity): void {
@@ -276,33 +320,6 @@ export class PatientList implements OnInit {
     return `${formattedDob} (${age} y.o.)`;
   }
 
-  private getAgeYears(dob: Date): number | null {
-    if (isNaN(dob.getTime())) return null;
-
-    const today = new Date();
-    let age = today.getFullYear() - dob.getFullYear();
-    const monthDelta = today.getMonth() - dob.getMonth();
-    if (monthDelta < 0 || (monthDelta === 0 && today.getDate() < dob.getDate())) {
-      age -= 1;
-    }
-
-    return age;
-  }
-
-  getAge(dateOfBirth: unknown): string {
-    const dob = this.toDate(dateOfBirth);
-    if (!dob) return '-';
-
-    const today = new Date();
-    let age = today.getFullYear() - dob.getFullYear();
-    const monthDelta = today.getMonth() - dob.getMonth();
-    if (monthDelta < 0 || (monthDelta === 0 && today.getDate() < dob.getDate())) {
-      age -= 1;
-    }
-
-    return `${age} years`;
-  }
-
   private toDate(value: unknown): Date | null {
     if (!value) return null;
     if (value instanceof Date) return isNaN(value.getTime()) ? null : value;
@@ -313,5 +330,13 @@ export class PatientList implements OnInit {
     }
 
     return null;
+  }
+
+  private getAgeValue(patient: any): number {
+    const dob = this.toDate(patient?.dateOfBirth);
+    if (!dob) return Number.POSITIVE_INFINITY;
+    const age = this.getAgeYears(dob);
+    if (age === null) return Number.POSITIVE_INFINITY;
+    return age;
   }
 }
