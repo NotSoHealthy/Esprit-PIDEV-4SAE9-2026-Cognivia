@@ -4,10 +4,11 @@
 
 - KeyCloak
 - Messaging + notifications (notifications, alerts, email, sms)
-- Patient Management (patients, doctors, caregivers, schedules, tasks, check ins, location, prescriptions)
+- Care (patients, doctors, caregivers, schedules, tasks, check ins, location, prescriptions)
 - Forum (posts, comments, reactions)
 - Pharmacy (pharmacies, stock)
-- Monitoring (tests, games, reports, journal)
+- Monitoring (tests, reports, journal)
+- Games
 - Logging?
 
 ## **Modules**
