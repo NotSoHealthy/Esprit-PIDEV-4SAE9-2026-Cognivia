@@ -30,11 +30,35 @@ public class Post {
 
     private String userId;
 
+    private String username;
+
+    private boolean banned;
+
+    private String category;
+
+    @Transient
+    private boolean pinned;
+
     @Transient
     private long likeCount;
 
     @Transient
     private long dislikeCount;
+
+    @Transient
+    private long loveCount;
+
+    @Transient
+    private long hahaCount;
+
+    @Transient
+    private long wowCount;
+
+    @Transient
+    private long sadCount;
+
+    @Transient
+    private long angryCount;
 
     public Post() {
     }
@@ -83,6 +107,38 @@ public class Post {
         this.userId = userId;
     }
 
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public boolean isBanned() {
+        return banned;
+    }
+
+    public void setBanned(boolean banned) {
+        this.banned = banned;
+    }
+
+    public boolean isPinned() {
+        return pinned;
+    }
+
+    public void setPinned(boolean pinned) {
+        this.pinned = pinned;
+    }
+
     public long getLikeCount() {
         return likeCount;
     }
@@ -97,6 +153,46 @@ public class Post {
 
     public void setDislikeCount(long dislikeCount) {
         this.dislikeCount = dislikeCount;
+    }
+
+    public long getLoveCount() {
+        return loveCount;
+    }
+
+    public void setLoveCount(long loveCount) {
+        this.loveCount = loveCount;
+    }
+
+    public long getHahaCount() {
+        return hahaCount;
+    }
+
+    public void setHahaCount(long hahaCount) {
+        this.hahaCount = hahaCount;
+    }
+
+    public long getWowCount() {
+        return wowCount;
+    }
+
+    public void setWowCount(long wowCount) {
+        this.wowCount = wowCount;
+    }
+
+    public long getSadCount() {
+        return sadCount;
+    }
+
+    public void setSadCount(long sadCount) {
+        this.sadCount = sadCount;
+    }
+
+    public long getAngryCount() {
+        return angryCount;
+    }
+
+    public void setAngryCount(long angryCount) {
+        this.angryCount = angryCount;
     }
 
     public LocalDateTime getCreatedAt() {

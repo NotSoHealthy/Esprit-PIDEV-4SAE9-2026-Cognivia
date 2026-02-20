@@ -6,10 +6,12 @@ export interface Post {
     title: string;
     content: string;
     userId?: string;
+    username?: string;
     createdAt?: string;
     updatedAt?: string;
     comments?: Comment[];
     reactions?: Reaction[];
     likeCount?: number;
     dislikeCount?: number;
+    pinned?: boolean;
 }

@@ -2,5 +2,10 @@ package org.example.forumservice.entities;
 
 public enum ReactionType {
     LIKE,
-    DISLIKE
+    DISLIKE,
+    LOVE,
+    HAHA,
+    WOW,
+    SAD,
+    ANGRY
 }

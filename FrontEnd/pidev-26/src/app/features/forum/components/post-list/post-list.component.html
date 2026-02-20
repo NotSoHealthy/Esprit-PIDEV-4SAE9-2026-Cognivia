@@ -1,66 +1,189 @@
-<div class="post-list-container">
-    <div nz-row nzJustify="space-between" nzAlign="middle" class="page-header">
-        <div nz-col>
-            <h1 class="gradient-title">Community Forum</h1>
-            <p class="subtitle">Join the discussion, share your ideas, and grow together.</p>
-        </div>
-        <div nz-col>
-            <button nz-button nzType="primary" nzSize="large" nzShape="round" routerLink="/posts/new"
-                class="create-btn">
-                <span nz-icon nzType="plus"></span>
-                Create Post
+<div class="forum-page">
+    <div class="forum-container">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <h1 class="hero-title">Healthcare Forum</h1>
+            <p class="hero-subtitle">Where caregivers and medical professionals connect</p>
+            <button nz-button nzType="primary" nzSize="large" nzBlock class="cta-button" routerLink="/posts/new">
+                <span nz-icon nzType="plus"></span> Start a Discussion
             </button>
-        </div>
-    </div>
+        </section>
 
-    <div nz-row [nzGutter]="[24, 24]" class="post-grid">
-        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" *ngFor="let post of posts">
-            <nz-card [nzBordered]="false" class="elegant-card hover-card" [routerLink]="['/posts', post.id]">
-                <div class="card-header">
-                    <nz-avatar [nzSize]="40" nzIcon="user" class="user-avatar"></nz-avatar>
-                    <div class="header-text">
-                        <div class="post-title">{{ post?.title || 'Untitled' }}</div>
-                        <div class="post-date text-secondary">{{ post?.createdAt | date:'mediumDate' }}</div>
-                    </div>
-                </div>
-
-                <div class="post-preview">
-                    <p>{{ (post?.content || '') | slice:0:150 }}{{ (post?.content?.length || 0) > 150 ? '...' : '' }}
-                    </p>
-                </div>
-
-                <div class="post-footer">
-                    <div class="stats">
-                        <span class="stat-item">
-                            <span nz-icon nzType="like" nzTheme="outline"></span>
-                            {{ post?.likeCount || 0 }}
-                        </span>
-                        <span class="stat-item">
-                            <span nz-icon nzType="dislike" nzTheme="outline"></span>
-                            {{ post?.dislikeCount || 0 }}
-                        </span>
-                        <span class="stat-item">
-                            <span nz-icon nzType="message" nzTheme="outline"></span>
-                            {{ (post?.comments?.length) || 0 }}
-                        </span>
-                    </div>
-                    <div class="read-more">
-                        <span>Read More</span>
-                        <span nz-icon nzType="arrow-right"></span>
-                    </div>
-                </div>
-            </nz-card>
+        <!-- Category Filter Chips -->
+        <div class="category-filters">
+            <span *ngFor="let cat of categories" class="category-chip" [class.active]="selectedCategory === cat.key"
+                (click)="selectCategory(cat.key)">
+                <span class="chip-icon">{{ cat.icon }}</span>
+                {{ cat.label }}
+            </span>
         </div>
 
-        <div nz-col [nzSpan]="24" *ngIf="!posts || posts.length === 0" class="empty-container">
-            <nz-empty [nzNotFoundContent]="contentTpl" [nzNotFoundFooter]="footerTpl">
-                <ng-template #contentTpl>
-                    <span class="empty-text">No posts yet. Be the first to start a conversation!</span>
-                </ng-template>
-                <ng-template #footerTpl>
-                    <button nz-button nzType="primary" routerLink="/posts/new">Create First Post</button>
-                </ng-template>
-            </nz-empty>
+        <!-- Two Column Layout -->
+        <div class="content-grid">
+            <!-- Posts Column -->
+            <div class="posts-column">
+                <div *ngFor="let post of filteredPosts" class="post-card" [class.pinned]="post.pinned"
+                    [routerLink]="['/posts', post.id]">
+                    <div class="post-card-accent" [class.pinned-accent]="post.pinned"></div>
+                    <div class="post-card-body">
+                        <!-- Top Metadata Row (Reddit style) -->
+                        <div class="post-card-header">
+                            <span class="meta-author">
+                                {{ post.username || post.userId || 'Anonymous' }}
+                                <span *ngIf="isDoctor(post)" class="verified-badge" nz-tooltip
+                                    nzTooltipTitle="Verified Doctor">
+                                    <span nz-icon nzType="check-circle" nzTheme="fill"></span>
+                                </span>
+                            </span>
+                            <span class="meta-dot">·</span>
+                            <span class="post-time">{{ post.createdAt | timeAgo }}</span>
+                            <span class="meta-dot">·</span>
+                            <span class="post-category-tag">
+                                {{ getCategoryIcon(post.category) }} {{ getCategoryLabel(post.category) }}
+                            </span>
+                            <span *ngIf="post.pinned" class="pin-badge">
+                                <span nz-icon nzType="pushpin" nzTheme="fill"></span> Pinned
+                            </span>
+
+                            <div class="header-actions" style="margin-left: auto;">
+                                <a nz-dropdown [nzDropdownMenu]="menu" nzTrigger="click"
+                                    (click)="$event.stopPropagation()">
+                                    <span nz-icon nzType="more" class="more-icon"></span>
+                                </a>
+                                <nz-dropdown-menu #menu="nzDropdownMenu">
+                                    <ul nz-menu>
+                                        <li *ngIf="post.userId !== currentUserId" nz-menu-item nzDanger
+                                            (click)="reportPost(post, $event)">
+                                            <span nz-icon nzType="warning" class="mr-2"></span> Report Post
+                                        </li>
+                                    </ul>
+                                </nz-dropdown-menu>
+                            </div>
+                        </div>
+
+                        <!-- Title Row -->
+                        <div class="post-title-row">
+                            <span class="post-card-title">{{ post.title }}</span>
+                            <button nz-button nzType="text" nzSize="small" class="pin-btn" [class.active]="post.pinned"
+                                nz-tooltip [nzTooltipTitle]="post.pinned ? 'Unpin post' : 'Pin post'"
+                                (click)="togglePin(post, $event)">
+                                <span nz-icon nzType="pushpin" [nzTheme]="post.pinned ? 'fill' : 'outline'"></span>
+                            </button>
+                        </div>
+
+                        <!-- Content Snippet -->
+                        <div class="post-card-content" [innerHTML]="post.content | highlightMention">
+                        </div>
+                        <a *ngIf="shouldShowReadMore(post.content)" [routerLink]="['/posts', post.id]"
+                            class="read-more-link" (click)="$event.stopPropagation()">Read more...</a>
+
+                        <!-- Footer Actions Row -->
+                        <div class="post-card-footer">
+                            <div class="footer-actions-left">
+                                <span class="meta-item">
+                                    <span nz-icon nzType="message" nzTheme="outline"></span>
+                                    {{ post.comments?.length || 0 }}
+                                </span>
+                                <span class="meta-divider"></span>
+                                <span class="action-group">
+                                    <div class="reaction-container">
+                                        <button nz-button nzType="text" nzSize="small"
+                                            class="action-btn reaction-main-btn" [class.active]="getUserReaction(post)"
+                                            (click)="like(post, $event)">
+                                            <span nz-icon [nzType]="getReactionIcon(getUserReaction(post))"
+                                                [nzTheme]="getUserReaction(post) ? 'fill' : 'outline'"></span>
+                                            {{ getUserReaction(post) || 'Reaction' }}
+                                        </button>
+
+                                        <!-- Reaction Picker (Facebook style) -->
+                                        <div class="reaction-picker">
+                                            <div class="reaction-option" nz-tooltip nzTooltipTitle="Like"
+                                                (click)="react(post, 'LIKE', $event)">
+                                                <span class="emoji">👍</span>
+                                            </div>
+                                            <div class="reaction-option" nz-tooltip nzTooltipTitle="Dislike"
+                                                (click)="react(post, 'DISLIKE', $event)">
+                                                <span class="emoji">👎</span>
+                                            </div>
+                                            <div class="reaction-option" nz-tooltip nzTooltipTitle="Love"
+                                                (click)="react(post, 'LOVE', $event)">
+                                                <span class="emoji">❤️</span>
+                                            </div>
+                                            <div class="reaction-option" nz-tooltip nzTooltipTitle="Haha"
+                                                (click)="react(post, 'HAHA', $event)">
+                                                <span class="emoji">😂</span>
+                                            </div>
+                                            <div class="reaction-option" nz-tooltip nzTooltipTitle="Wow"
+                                                (click)="react(post, 'WOW', $event)">
+                                                <span class="emoji">😮</span>
+                                            </div>
+                                            <div class="reaction-option" nz-tooltip nzTooltipTitle="Sad"
+                                                (click)="react(post, 'SAD', $event)">
+                                                <span class="emoji">😢</span>
+                                            </div>
+                                            <div class="reaction-option" nz-tooltip nzTooltipTitle="Angry"
+                                                (click)="react(post, 'ANGRY', $event)">
+                                                <span class="emoji">😡</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Facebook Style Reaction Summary -->
+                                    <div class="reaction-summary" *ngIf="getTotalReactions(post) > 0"
+                                        (click)="showReactionDetails(post, $event)">
+                                        <div class="emoji-stack">
+                                            <span class="summary-emoji" *ngIf="post.likeCount">👍</span>
+                                            <span class="summary-emoji" *ngIf="post.dislikeCount">👎</span>
+                                            <span class="summary-emoji" *ngIf="post.loveCount">❤️</span>
+                                            <span class="summary-emoji" *ngIf="post.hahaCount">😂</span>
+                                            <span class="summary-emoji" *ngIf="post.wowCount">😮</span>
+                                            <span class="summary-emoji" *ngIf="post.sadCount">😢</span>
+                                            <span class="summary-emoji" *ngIf="post.angryCount">😡</span>
+                                        </div>
+                                        <span class="total-count">{{ getTotalReactions(post) }}</span>
+                                    </div>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div *ngIf="!filteredPosts || filteredPosts.length === 0" class="empty-state">
+                    <nz-empty [nzNotFoundContent]="emptyTpl">
+                        <ng-template #emptyTpl>
+                            <p class="empty-text">No discussions yet. Be the first to start one!</p>
+                            <button nz-button nzType="primary" routerLink="/posts/new" class="cta-button"
+                                style="width: auto; padding: 0 32px;">
+                                Start a Discussion
+                            </button>
+                        </ng-template>
+                    </nz-empty>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <aside class="sidebar-column">
+                <!-- Active Members Card -->
+                <div class="sidebar-card members-card">
+                    <h3 class="sidebar-card-title">Active Members</h3>
+                    <p class="members-count">{{ posts.length }} active discussions</p>
+                    <button nz-button nzType="primary" nzBlock class="join-btn">
+                        Join Community
+                    </button>
+                </div>
+
+                <!-- Guidelines Card -->
+                <div class="sidebar-card guidelines-card">
+                    <h3 class="sidebar-card-title">Guidelines</h3>
+                    <ul class="guidelines-list">
+                        <li><span class="check-icon">✓</span> Be respectful</li>
+                        <li><span class="check-icon">✓</span> Evidence-based only</li>
+                        <li><span class="check-icon">✓</span> Medical advice disclaimer</li>
+                        <li><span class="check-icon">✓</span> Support one another</li>
+                    </ul>
+                </div>
+            </aside>
         </div>
     </div>
 </div>

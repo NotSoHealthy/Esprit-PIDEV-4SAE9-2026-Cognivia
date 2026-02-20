@@ -18,7 +18,9 @@ export class ForumService {
 
     // Posts
     getAllPosts(): Observable<Post[]> {
-        return this.http.get<Post[]>(this.apiUrl);
+        const userId = this.keycloakService.getUserId();
+        const url = userId ? `${this.apiUrl}?userId=${userId}` : this.apiUrl;
+        return this.http.get<Post[]>(url);
     }
 
     getPostById(id: number): Observable<Post> {
@@ -68,5 +70,16 @@ export class ForumService {
 
     deleteReaction(postId: number, reactionId: number): Observable<void> {
         return this.http.delete<void>(`http://localhost:8085/posts/reactions/${reactionId}`);
+    }
+
+    // Pin
+    togglePin(postId: number): Observable<Post> {
+        const userId = this.keycloakService.getUserId();
+        return this.http.patch<Post>(`${this.apiUrl}/${postId}/pin?userId=${userId}`, {});
+    }
+
+    reportPost(postId: number): Observable<void> {
+        const userId = this.keycloakService.getUserId();
+        return this.http.post<void>(`${this.apiUrl}/${postId}/report?userId=${userId}`, {});
     }
 }

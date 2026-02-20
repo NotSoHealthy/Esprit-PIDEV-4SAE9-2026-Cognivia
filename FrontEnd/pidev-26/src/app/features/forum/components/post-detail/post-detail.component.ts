@@ -1,5 +1,5 @@
-import { Component, OnInit, inject, ChangeDetectorRef, NgZone } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, ChangeDetectorRef, NgZone, ViewChild, TemplateRef } from '@angular/core';
+import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -11,11 +11,19 @@ import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzCommentModule } from 'ng-zorro-antd/comment';
+import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
+import { NzEmptyModule } from 'ng-zorro-antd/empty';
+import { NzTagModule } from 'ng-zorro-antd/tag';
 import { ForumService } from '../../services/forum.service';
 import { Post } from '../../models/post.model';
 import { Comment } from '../../models/comment.model';
 import { Reaction, ReactionType } from '../../models/reaction.model';
 import { KeycloakService } from '../../../../core/auth/keycloak.service';
+import { TimeAgoPipe } from '../../../../shared/pipes/time-ago.pipe';
+import { HighlightMentionPipe } from '../../../../shared/pipes/highlight-mention.pipe';
+import { ReactionDetailsComponent } from '../reaction-details/reaction-details.component';
 
 @Component({
     selector: 'app-post-detail',
@@ -31,22 +39,33 @@ import { KeycloakService } from '../../../../core/auth/keycloak.service';
         NzDividerModule,
         NzTooltipModule,
         NzAvatarModule,
-        NzModalModule
+        NzModalModule,
+        NzCommentModule,
+        NzPopconfirmModule,
+        NzEmptyModule,
+        NzTagModule,
+        TimeAgoPipe,
+        HighlightMentionPipe
     ],
     templateUrl: './post-detail.component.html',
     styleUrl: './post-detail.component.scss'
 })
 export class PostDetailComponent implements OnInit {
+    @ViewChild('editCommentTpl', { static: false }) editCommentTpl?: TemplateRef<any>;
+
     post: Post | null = null;
     comments: Comment[] = [];
     newCommentContent: string = '';
+    tempEditContent: string = '';
     currentUserId: string = '';
 
+    private location = inject(Location);
     private route = inject(ActivatedRoute);
     private router = inject(Router);
     private forumService = inject(ForumService);
     private keycloakService = inject(KeycloakService);
     private modal = inject(NzModalService);
+    private message = inject(NzMessageService);
     private cdr = inject(ChangeDetectorRef);
     private ngZone = inject(NgZone);
 
@@ -59,6 +78,40 @@ export class PostDetailComponent implements OnInit {
             this.loadPost(id);
             this.loadComments(id);
         }
+    }
+
+    getCategoryLabel(key?: string): string {
+        const categories = [
+            { key: 'patient-care', label: 'Patient Care' },
+            { key: 'treatment', label: 'Treatment Options' },
+            { key: 'mental-health', label: 'Mental Health' },
+            { key: 'rehab', label: 'Rehabilitation' },
+            { key: 'general', label: 'General Discussion' }
+        ];
+        const cat = categories.find(c => c.key === key);
+        return cat ? cat.label : 'General';
+    }
+
+    getCategoryIcon(key?: string): string {
+        const categories = [
+            { key: 'patient-care', icon: '🩺' },
+            { key: 'treatment', icon: '💊' },
+            { key: 'mental-health', icon: '🧠' },
+            { key: 'rehab', icon: '🏃' },
+            { key: 'general', icon: '🗺️' }
+        ];
+        const cat = categories.find(c => c.key === key);
+        return cat ? cat.icon : '🗺️';
+    }
+
+    isDoctor(post: Post | null): boolean {
+        if (!post) return false;
+        const username = post.username || post.userId || '';
+        return username.toLowerCase().includes('doctor');
+    }
+
+    goBack(): void {
+        this.location.back();
     }
 
     loadPost(id: number): void {
@@ -90,7 +143,9 @@ export class PostDetailComponent implements OnInit {
 
         const newComment: Comment = {
             id: 0,
-            content: this.newCommentContent
+            content: this.newCommentContent,
+            userId: this.currentUserId,
+            username: this.keycloakService.getUsername()
         };
 
         this.forumService.addComment(this.post.id, newComment).subscribe({
@@ -106,19 +161,49 @@ export class PostDetailComponent implements OnInit {
     }
 
     editComment(comment: Comment): void {
-        const newContent = prompt('Edit your comment:', comment?.content || '');
-        if (newContent !== null && newContent.trim() !== '') {
-            const updatedComment = { ...comment, content: newContent };
-            this.forumService.updateComment(this.post!.id, comment.id, updatedComment).subscribe({
-                next: (data: Comment) => {
+        this.tempEditContent = comment.content;
+        const modal = this.modal.create({
+            nzTitle: 'Edit Your Reply',
+            nzContent: this.editCommentTpl,
+            nzWidth: 600,
+            nzCentered: true,
+            nzFooter: [
+                {
+                    label: 'Discard Changes',
+                    onClick: () => modal.destroy()
+                },
+                {
+                    label: 'Save Changes',
+                    type: 'primary',
+                    onClick: () => {
+                        if (this.tempEditContent && this.tempEditContent.trim() !== '') {
+                            this.saveCommentEdit(comment, this.tempEditContent);
+                            modal.destroy();
+                        }
+                    }
+                }
+            ]
+        });
+    }
+
+    private saveCommentEdit(comment: Comment, newContent: string): void {
+        const updatedComment = { ...comment, content: newContent };
+        this.forumService.updateComment(this.post!.id, comment.id, updatedComment).subscribe({
+            next: (data: Comment) => {
+                this.ngZone.run(() => {
                     const index = this.comments.findIndex(c => c.id === comment.id);
                     if (index !== -1) {
                         this.comments[index] = data;
+                        this.cdr.detectChanges();
                     }
-                },
-                error: (e: any) => console.error('Error updating comment', e)
-            });
-        }
+                    this.message.success('Comment updated');
+                });
+            },
+            error: (e: any) => {
+                console.error('Error updating comment', e);
+                this.message.error('Failed to update comment');
+            }
+        });
     }
 
     deleteComment(commentId: number): void {
@@ -131,7 +216,10 @@ export class PostDetailComponent implements OnInit {
             nzOnOk: () => {
                 this.forumService.deleteComment(this.post!.id, commentId).subscribe({
                     next: () => {
-                        this.comments = this.comments.filter(c => c.id !== commentId);
+                        this.ngZone.run(() => {
+                            this.comments = this.comments.filter(c => c.id !== commentId);
+                            this.cdr.detectChanges();
+                        });
                     },
                     error: (e: any) => console.error('Error deleting comment', e)
                 });
@@ -140,27 +228,72 @@ export class PostDetailComponent implements OnInit {
         });
     }
 
-    react(type: ReactionType): void {
+    react(type: any, event?: Event): void {
         if (!this.post) return;
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
 
-        const reaction: Reaction = {
+        const reaction: Partial<Reaction> = {
             id: 0,
-            type: type
+            type: type,
+            userId: this.currentUserId,
+            username: this.keycloakService.getUsername()
         };
 
-        this.forumService.addReaction(this.post.id, reaction).subscribe({
+        this.forumService.addReaction(this.post.id, reaction as Reaction).subscribe({
             next: () => {
                 this.ngZone.run(() => {
                     this.loadPost(this.post!.id);
-                    this.cdr.detectChanges();
                 });
             },
             error: (e: any) => console.error('Error adding reaction', e)
         });
     }
 
-    like(): void { this.react(ReactionType.LIKE); }
-    dislike(): void { this.react(ReactionType.DISLIKE); }
+    like(event?: Event): void {
+        if (!this.post) return;
+        const currentType = this.getUserReaction(this.post);
+        // If already liked, treat as toggle (could optionally un-react, but current API adds)
+        this.react('LIKE' as ReactionType, event);
+    }
+
+    getReactionIcon(type: string | null): string {
+        switch (type) {
+            case 'LIKE': return 'like';
+            case 'LOVE': return 'heart';
+            case 'HAHA': return 'smile';
+            case 'WOW': return 'info-circle';
+            case 'SAD': return 'frown';
+            case 'ANGRY': return 'warning';
+            case 'DISLIKE': return 'dislike';
+            default: return 'like';
+        }
+    }
+
+    getTotalReactions(post: Post): number {
+        return (post.likeCount || 0) + (post.dislikeCount || 0) + (post.loveCount || 0) +
+            (post.hahaCount || 0) + (post.wowCount || 0) + (post.sadCount || 0) + (post.angryCount || 0);
+    }
+
+    showReactionDetails(post: Post, event: Event): void {
+        event.stopPropagation();
+        event.preventDefault();
+
+        if (!post.reactions || post.reactions.length === 0) return;
+
+        this.modal.create({
+            nzContent: ReactionDetailsComponent,
+            nzData: {
+                reactions: post.reactions
+            },
+            nzFooter: null,
+            nzWidth: 450,
+            nzCentered: true,
+            nzBodyStyle: { padding: '0' }
+        });
+    }
 
     deletePost(): void {
         if (!this.post) return;
@@ -178,5 +311,11 @@ export class PostDetailComponent implements OnInit {
             },
             nzCancelText: 'Cancel'
         });
+    }
+
+    getUserReaction(post: Post | null): ReactionType | null {
+        if (!post || !post.reactions) return null;
+        const reaction = post.reactions.find(r => r.userId === this.currentUserId);
+        return reaction ? reaction.type : null;
     }
 }

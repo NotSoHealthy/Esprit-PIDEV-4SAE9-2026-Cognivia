@@ -1,164 +1,638 @@
-.post-list-container {
+// =============================================
+// Forum Post List — Healthcare Forum Style
+// =============================================
+
+$purple: #5b21b6;
+$purple-light: #7c3aed;
+$purple-bg: #f5f3ff;
+$border-light: #e5e7eb;
+$text-dark: #1f2937;
+$text-secondary: #6b7280;
+$text-muted: #9ca3af;
+$radius-lg: 12px;
+$radius-md: 8px;
+
+.forum-page {
+    min-height: 100vh;
+    background: #f9fafb;
+}
+
+.forum-container {
     max-width: 1100px;
-    margin: 2rem auto;
-    padding: 0 1.5rem;
+    margin: 0 auto;
+    padding: 0 24px 60px;
 }
 
-.page-header {
-    margin-bottom: 3rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+// ----- Hero Section -----
+.hero-section {
+    padding: 48px 0 24px;
+    border-bottom: 1px solid $border-light;
+    margin-bottom: 28px;
 
-    .gradient-title {
-        font-size: 2.5rem;
+    .hero-title {
+        font-size: 2rem;
         font-weight: 800;
-        margin: 0;
-        background: linear-gradient(45deg, #1890ff, #722ed1);
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
+        color: $text-dark;
+        margin: 0 0 4px;
     }
 
-    .subtitle {
-        margin: 0.5rem 0 0;
-        color: #8c8c8c;
-        font-size: 1.1rem;
+    .hero-subtitle {
+        font-size: 1rem;
+        color: $text-secondary;
+        margin: 0 0 20px;
+    }
+
+    .cta-button {
+        width: 100%;
+        height: 48px;
+        font-size: 1rem;
+        font-weight: 700;
+        border-radius: $radius-md;
+        background: $purple;
+        border-color: $purple;
+        box-shadow: none;
+
+        &:hover,
+        &:focus {
+            background: $purple-light;
+            border-color: $purple-light;
+        }
     }
 }
 
-.create-btn {
-    height: 48px;
-    padding: 0 24px;
-    font-weight: 600;
-    box-shadow: 0 4px 14px 0 rgba(24, 144, 255, 0.39);
+// ----- Category Filter Chips -----
+.category-filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
 }
 
-.elegant-card {
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.category-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: 24px;
+    border: 1px solid $border-light;
+    background: white;
+    color: $text-dark;
+    font-size: 0.9rem;
+    font-weight: 500;
     cursor: pointer;
-    height: 100%;
+    transition: all 0.2s ease;
+
+    .chip-icon {
+        font-size: 1rem;
+    }
 
     &:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
-        border: 1px solid #1890ff;
+        border-color: $purple;
+        color: $purple;
     }
 
-    ::ng-deep .ant-card-body {
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
+    &.active {
+        background: $purple;
+        color: white;
+        border-color: $purple;
+        box-shadow: 0 2px 8px rgba($purple, 0.25);
     }
 }
 
-.card-header {
-    padding: 1.5rem;
+// ----- Two Column Layout -----
+.content-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 28px;
+    align-items: start;
+
+    @media (max-width: 900px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+// ----- Post Cards -----
+.posts-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.post-card {
+    display: flex;
+    background: white;
+    border: 1px solid $border-light;
+    border-radius: $radius-md;
+    margin-bottom: 12px;
+    // Removed overflow: hidden to allow reaction picker to pop out
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative; // Ensure z-index works if needed
+
+    &:hover {
+        border-color: #cdd1d6;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+
+        .post-card-title {
+            color: $purple;
+        }
+    }
+
+    &.pinned {
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        border-color: #f59e0b;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+
+        &:hover {
+            box-shadow: 0 4px 16px rgba(245, 158, 11, 0.22);
+        }
+    }
+}
+
+.post-card-accent {
+    width: 4px;
+    min-height: 100%;
+    background: $purple-light;
+    flex-shrink: 0;
+
+    &.pinned-accent {
+        background: linear-gradient(180deg, #f59e0b, #d97706);
+    }
+}
+
+// ----- Pin Badge -----
+.pin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    background: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fcd34d;
+    white-space: nowrap;
+    flex-shrink: 0;
+    letter-spacing: 0.03em;
+
+    .anticon {
+        font-size: 0.7rem;
+    }
+}
+
+// ----- Pin Button -----
+.pin-btn {
+    margin-left: auto;
+    flex-shrink: 0;
+    color: $text-muted !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    padding: 0;
+
+    &:hover {
+        color: #f59e0b !important;
+        background: rgba(245, 158, 11, 0.1) !important;
+    }
+
+    &.active {
+        color: #f59e0b !important;
+
+        &:hover {
+            color: #d97706 !important;
+            background: rgba(245, 158, 11, 0.15) !important;
+        }
+    }
+}
+
+.post-card-body {
+    flex: 1;
+    padding: 32px 36px;
+}
+
+.post-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    font-size: 0.85rem;
+    color: $text-secondary;
+
+    .meta-author {
+        font-weight: 700;
+        color: $text-dark;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        &:hover {
+            color: $purple;
+            text-decoration: underline;
+        }
+
+        .verified-badge {
+            color: #10b981; // Green color
+            font-size: 0.9rem;
+            display: inline-flex;
+            cursor: pointer;
+        }
+    }
+
+    .meta-dot {
+        color: $text-secondary;
+        font-weight: bold;
+    }
+
+    .post-time {
+        color: $text-muted;
+    }
+
+    .post-category-tag {
+        margin-left: 4px;
+        font-size: 0.7rem;
+        padding: 1px 8px;
+    }
+
+    .pin-badge {
+        margin-left: auto;
+    }
+}
+
+.post-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+
+    .post-card-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: $text-dark;
+        transition: color 0.2s;
+        line-height: 1.3;
+        margin: 0;
+        flex: 1;
+    }
+
+    .pin-btn {
+        margin: 0;
+        transform: translateY(-4px);
+    }
+}
+
+.post-category-tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    background: #ecfdf5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+// Replaced by .post-title-row .post-card-title
+// .post-card-title {
+//     font-size: 1rem;
+//     font-weight: 600;
+//     color: $text-dark;
+//     transition: color 0.2s;
+//     line-height: 1.4;
+//     display: block; // Ensure it takes its own line
+//     margin-bottom: 4px;
+// }
+
+.post-card-content {
+    font-size: 1rem;
+    color: $text-secondary;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.read-more-link {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: $purple;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    display: inline-block;
+    margin-bottom: 24px;
+
+    &:hover {
+        color: $purple-light;
+        text-decoration: underline;
+    }
+}
+
+.post-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 16px;
+    border-top: 1px solid #f1f5f9;
+
+    .footer-actions-left {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: $text-secondary;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.meta-divider {
+    width: 1px;
+    height: 14px;
+    background: #e2e8f0;
+}
+
+.action-group {
     display: flex;
     align-items: center;
     gap: 12px;
+}
 
-    .user-avatar {
-        background-color: #1890ff;
-    }
+// ----- Facebook Style Reaction Picker -----
+.reaction-container {
+    position: relative;
+    display: inline-block;
 
-    .header-text {
-        .post-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #262626;
-            line-height: 1.4;
-        }
+    &:hover {
+        z-index: 1000; // Elevation when active
 
-        .post-date {
-            font-size: 0.8rem;
+        .reaction-picker {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0) scale(1);
         }
     }
 }
 
-.post-preview {
-    padding: 0 1.5rem 1.5rem;
-    color: #595959;
-    font-size: 0.95rem;
-    line-height: 1.6;
-    flex-grow: 1;
+.reaction-main-btn {
+    text-transform: capitalize;
+    font-weight: 600 !important;
 
-    p {
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        line-clamp: 3;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
+    &.active {
+        color: $purple !important;
+        background: rgba($purple, 0.08) !important;
     }
 }
 
-.post-footer {
-    padding: 1rem 1.5rem;
-    background: #fafafa;
-    border-top: 1px solid #f0f0f0;
+.reaction-picker {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
     display: flex;
-    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e2e8f0;
+    margin-bottom: 8px;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(10px) scale(0.9);
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 100;
+
+    .reaction-option {
+        cursor: pointer;
+        transition: transform 0.2s;
+        font-size: 1.5rem;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+            transform: scale(1.4);
+        }
+
+        .emoji {
+            user-select: none;
+        }
+    }
+}
+
+// ----- Facebook Style Reaction Summary (Icons + Count) -----
+.reaction-summary {
+    display: flex;
     align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border: 1px solid #f1f5f9;
+    cursor: pointer;
+    transition: all 0.2s ease;
 
-    .stats {
-        display: flex;
-        gap: 1rem;
-        color: #8c8c8c;
+    &:hover {
+        background: #f8fafc;
+        transform: scale(1.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
-    .stat-item {
+    .emoji-stack {
         display: flex;
         align-items: center;
-        gap: 6px;
-        font-size: 0.85rem;
-        font-weight: 500;
 
-        [nz-icon] {
-            font-size: 16px;
+        .summary-emoji {
+            font-size: 0.9rem;
+            margin-right: -4px; // Stack effect
+            border: 2px solid white;
+            border-radius: 50%;
+            background: white;
+            line-height: 1;
+
+            &:last-child {
+                margin-right: 0;
+            }
         }
     }
 
-    .read-more {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        color: #1890ff;
+    .total-count {
+        font-size: 0.8rem;
         font-weight: 600;
-        font-size: 0.9rem;
-        opacity: 0.8;
-        transition: transform 0.2s ease;
-
-        [nz-icon] {
-            font-size: 16px;
-        }
+        color: #64748b;
+        margin-left: 2px;
     }
 }
 
-.hover-card:hover .read-more {
-    transform: translateX(4px);
-    opacity: 1;
-}
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 12px !important;
+    height: 32px !important;
+    border-radius: 20px !important; // Rounded pill style
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    color: #475569 !important;
+    transition: all 0.2s ease !important;
 
-.empty-container {
-    padding: 4rem 0;
-    text-align: center;
+    &:hover {
+        background: #f1f5f9 !important;
+        color: $purple !important;
+    }
 
-    .empty-text {
-        color: #8c8c8c;
+    &.active {
+        color: $purple !important;
+        background: rgba($purple, 0.08) !important;
+    }
+
+    .anticon {
         font-size: 1rem;
     }
 }
 
-.text-secondary {
-    color: #8c8c8c;
+// ----- Sidebar -----
+.sidebar-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: sticky;
+    top: 24px;
 }
 
-@media (max-width: 576px) {
-    .page-header {
-        text-align: center;
-        flex-direction: column;
-        gap: 1.5rem;
+.sidebar-card {
+    background: white;
+    border: 1px solid $border-light;
+    border-radius: $radius-lg;
+    padding: 24px;
+}
+
+.sidebar-card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: $text-dark;
+    margin: 0 0 12px;
+}
+
+// Members Card
+.members-card {
+    .members-count {
+        font-size: 0.95rem;
+        color: $text-secondary;
+        margin: 0 0 18px;
+    }
+
+    .join-btn {
+        height: 44px;
+        font-weight: 700;
+        border-radius: $radius-md;
+        background: $purple;
+        border-color: $purple;
+        font-size: 0.95rem;
+        box-shadow: none;
+
+        &:hover,
+        &:focus {
+            background: $purple-light;
+            border-color: $purple-light;
+        }
+    }
+}
+
+// Guidelines Card
+.guidelines-card {
+    .guidelines-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+
+        li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+            font-size: 0.9rem;
+            color: $text-secondary;
+        }
+
+        .check-icon {
+            color: $purple;
+            font-weight: 700;
+        }
+    }
+}
+
+// ----- Empty State -----
+.empty-state {
+    padding: 64px 32px;
+    background: white;
+    border-radius: $radius-lg;
+    border: 1px solid $border-light;
+    text-align: center;
+
+    .empty-text {
+        color: $text-muted;
+        font-size: 1rem;
+        margin-bottom: 16px;
+    }
+}
+
+// ----- Mobile -----
+@media (max-width: 640px) {
+    .hero-section {
+        padding: 32px 0 20px;
+
+        .hero-title {
+            font-size: 1.5rem;
+        }
+    }
+
+    .post-card-body {
+        padding: 14px 16px;
+    }
+
+    .post-card-meta {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+
+    .more-icon {
+        font-size: 1.25rem;
+        color: #9ca3af;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 50%;
+        transition: all 0.2s;
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            color: #4b5563;
+        }
     }
 }

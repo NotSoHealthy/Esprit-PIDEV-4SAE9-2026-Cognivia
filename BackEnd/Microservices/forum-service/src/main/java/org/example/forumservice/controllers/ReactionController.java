@@ -25,8 +25,14 @@ public class ReactionController {
     }
 
     @PostMapping
-    public ResponseEntity<Reaction> addReaction(@PathVariable Long postId, @RequestBody Reaction reaction) {
-        return new ResponseEntity<>(reactionService.addReaction(postId, reaction), HttpStatus.CREATED);
+    public ResponseEntity<?> addReaction(@PathVariable Long postId, @RequestBody Reaction reaction) {
+        try {
+            return new ResponseEntity<>(reactionService.addReaction(postId, reaction), HttpStatus.CREATED);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error adding reaction: " + e.getMessage());
+        }
     }
 
     @DeleteMapping("/{reactionId}")

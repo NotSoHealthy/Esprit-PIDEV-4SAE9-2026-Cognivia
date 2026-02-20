@@ -17,6 +17,8 @@ public class Comment {
 
     private String userId;
 
+    private String username;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
@@ -61,6 +63,14 @@ public class Comment {
 
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public LocalDateTime getCreatedAt() {

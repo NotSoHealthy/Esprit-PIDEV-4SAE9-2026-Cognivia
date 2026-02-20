@@ -6,10 +6,12 @@ import org.example.forumservice.repositories.PostRepository;
 import org.example.forumservice.repositories.ReactionRepository;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@Transactional
 public class ReactionServiceImpl implements ReactionService {
 
     private final ReactionRepository reactionRepository;
@@ -30,24 +32,35 @@ public class ReactionServiceImpl implements ReactionService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found with id: " + postId));
 
+        String userId = reaction.getUserId();
+        if (userId == null || userId.trim().isEmpty()) {
+            throw new RuntimeException("UserId is required for reaction");
+        }
+        final String finalUserId = userId.trim();
+
         // Find existing reaction by this user on this post
-        return reactionRepository.findByPostIdAndUserId(postId, reaction.getUserId())
-                .map(existingReaction -> {
-                    if (existingReaction.getType() == reaction.getType()) {
-                        // Same type -> toggle (remove)
-                        reactionRepository.delete(existingReaction);
-                        return null; // Signal that it was deleted
+        return reactionRepository.findByPost_IdAndUserId(postId, finalUserId)
+                .map(existing -> {
+                    if (existing.getType() == reaction.getType()) {
+                        // Same type -> toggle off (remove)
+                        reactionRepository.delete(existing);
+                        post.getReactions().remove(existing);
+                        return existing;
                     } else {
                         // Different type -> swap
-                        existingReaction.setType(reaction.getType());
-                        return reactionRepository.save(existingReaction);
+                        existing.setType(reaction.getType());
+                        return reactionRepository.saveAndFlush(existing);
                     }
                 })
                 .orElseGet(() -> {
                     // New reaction
                     reaction.setPost(post);
                     reaction.setId(null);
-                    return reactionRepository.save(reaction);
+                    reaction.setUserId(finalUserId);
+                    reaction.setUsername(reaction.getUsername()); // Persist the provided username
+                    Reaction saved = reactionRepository.saveAndFlush(reaction);
+                    post.getReactions().add(saved);
+                    return saved;
                 });
     }
 

@@ -1,10 +1,38 @@
-/* You can add global styles to this file, and also import other style files */
-
 @import 'tailwindcss';
-/*
-  Josh's Custom CSS Reset
-  https://www.joshwcomeau.com/css/custom-css-reset/
-*/
+
+:root {
+  /* Core Colors - Refined HSL for better harmony */
+  --primary-color: #1890ff;
+  --primary-hover: #40a9ff;
+  --primary-active: #096dd9;
+  --secondary-color: #722ed1;
+  --secondary-hover: #9254de;
+
+  --success-color: #52c41a;
+  --error-color: #ff4d4f;
+  --warning-color: #faad14;
+
+  /* Text Colors */
+  --text-main: rgba(0, 0, 0, 0.85);
+  --text-secondary: rgba(0, 0, 0, 0.45);
+  --text-disabled: rgba(0, 0, 0, 0.25);
+
+  /* Backgrounds */
+  --bg-app: #f0f2f5;
+  --bg-component: #ffffff;
+  --bg-hover: rgba(0, 0, 0, 0.02);
+
+  /* Borders & Shadows */
+  --border-color: #f0f0f0;
+  --border-radius-base: 8px;
+  --border-radius-lg: 12px;
+  --card-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+  --card-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.3);
+}
 
 *,
 *::before,
@@ -23,10 +51,65 @@
 }
 
 body {
-  line-height: 1.5;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  background-color: rgba(232, 237, 246, 1);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg-app);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text-main);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+}
+
+.hover-glow {
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+
+  &:hover {
+    box-shadow: 0 0 15px rgba(24, 144, 255, 0.15);
+    transform: translateY(-1px);
+  }
+}
+
+/* Forum Layout Utilities */
+.forum-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+.forum-header {
+  margin-bottom: 24px;
+}
+
+.forum-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.forum-meta-icon {
+  margin-right: 4px;
+  color: var(--text-secondary);
+}
+
+.post-content-area {
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--text-main);
 }
 
 img,
@@ -67,4 +150,33 @@ h6 {
 #root,
 #__next {
   isolation: isolate;
+}
+
+/* Mentions & Hashtags */
+.hashtag {
+  color: var(--primary-color);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.hashtag:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
+
+.mention {
+  color: var(--secondary-color);
+  font-weight: 700;
+  background: rgba(114, 46, 209, 0.08);
+  padding: 1px 6px;
+  margin: 0 1px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mention:hover {
+  background: rgba(114, 46, 209, 0.15);
+  color: var(--secondary-hover);
 }
