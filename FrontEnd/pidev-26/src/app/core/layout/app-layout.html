@@ -17,9 +17,12 @@
           <span
             class="rounded-full aspect-square w-8 bg-[#B4BEF0] text-center content-center font-bold text-[#4D5CAB] drop-shadow-xs"
           >
-            {{ fullName ? fullName[0] + fullName.split(' ').slice(-1)[0][0] : username[0] }}
+            {{
+              (fullName ? fullName[0] + fullName.split(' ').slice(-1)[0][0] : username[0])
+                | uppercase
+            }}
           </span>
-          <p class="ml-2 content-center font-semibold">{{ fullName ?? username }}</p>
+          <p class="ml-2 content-center font-semibold">{{ fullName ?? username | titlecase }}</p>
           <span class="flex flex-col">
             <nz-icon nzType="up" nzTheme="outline" />
             <nz-icon nzType="down" nzTheme="outline" />

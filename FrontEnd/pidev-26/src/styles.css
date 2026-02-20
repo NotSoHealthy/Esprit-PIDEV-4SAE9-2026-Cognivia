@@ -6,6 +6,17 @@
   https://www.joshwcomeau.com/css/custom-css-reset/
 */
 
+.ant-table-filter-trigger.active,
+.ant-table-column-sorter-up.active,
+.ant-table-column-sorter-down.active {
+  color: var(--ant-color-primary, #1677ff) !important;
+}
+
+.ant-pagination-options .ant-pagination-options-size-changer {
+  margin-inline-end: 1rem !important;
+  margin-right: 1rem !important;
+}
+
 *,
 *::before,
 *::after {

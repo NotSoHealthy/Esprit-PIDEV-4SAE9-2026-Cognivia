@@ -20,7 +20,7 @@
 
         <div class="rounded-xl bg-[#F2F6FE] px-3 py-2">
           <p class="text-[#4D5CAB]/70 text-xs font-medium">Gender</p>
-          <p class="text-black truncate">{{ display(patient.gender) }}</p>
+          <p class="text-black truncate">{{ display(patient.gender) | titlecase }}</p>
         </div>
       </div>
     </div>
@@ -31,12 +31,12 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div class="rounded-xl bg-[#F2F6FE] px-3 py-2">
           <p class="text-[#4D5CAB]/70 text-xs font-medium">Email</p>
-          <p class="text-black truncate">{{ display(patient.email) }}</p>
+          <p class="text-black truncate">{{ display(email) }}</p>
         </div>
 
         <div class="rounded-xl bg-[#F2F6FE] px-3 py-2">
           <p class="text-[#4D5CAB]/70 text-xs font-medium">Phone</p>
-          <p class="text-black truncate">{{ display(patient.phone) }}</p>
+          <p class="text-black truncate">{{ display(phoneNumber) }}</p>
         </div>
 
         <div class="rounded-xl bg-[#F2F6FE] px-3 py-2 sm:col-span-2">

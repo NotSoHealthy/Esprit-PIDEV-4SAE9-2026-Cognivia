@@ -1,18 +1,26 @@
-import { Component, Input } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, Input, OnInit } from '@angular/core';
+import { TitleCasePipe } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+import { API_BASE_URL } from '../../../../core/api/api.tokens';
 
 @Component({
   selector: 'app-patient-information',
-  imports: [],
+  imports: [TitleCasePipe],
   templateUrl: './patient-information.html',
   styleUrl: './patient-information.css',
 })
-export class PatientInformation {
+export class PatientInformation implements OnInit {
   @Input() patient: any | null = null;
+  private readonly http = inject(HttpClient);
+  private readonly apiBaseUrl = inject(API_BASE_URL);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   get severity(): string | null {
     const p = this.patient as any;
     return p?.severity ?? p?.severityLevel ?? p?.severityStatus ?? null;
   }
+  email: string | null = null;
+  phoneNumber: string | null = null;
 
   get severityPillClass(): string {
     const s = this.severity;
@@ -24,6 +32,31 @@ export class PatientInformation {
       'bg-slate-100 text-slate-700';
 
     return `px-2 py-1 rounded-lg text-xs font-semibold ${tone}`;
+  }
+
+  fetchContactInformation(): void {
+    this.http.get<any>(`${this.apiBaseUrl}/care/patient/${this.patient?.id}/contact`).subscribe({
+      next: (response) => {
+        this.email = response.email ?? null;
+        this.phoneNumber = response.phoneNumber ?? null;
+        console.log('Fetched contact information:', this.email, this.phoneNumber);
+
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error fetching patients:', error);
+        this.cdr.detectChanges();
+      },
+      complete: () => {
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  ngOnInit(): void {
+    if (this.patient) {
+      this.fetchContactInformation();
+    }
   }
 
   initials(): string {

@@ -24,6 +24,8 @@ public class Patient {
     private UUID userId;
     private String firstName;
     private String lastName;
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
     private LocalDate dateOfBirth;
     private int checkInFrequency; // in minutes
     @Enumerated(EnumType.STRING)

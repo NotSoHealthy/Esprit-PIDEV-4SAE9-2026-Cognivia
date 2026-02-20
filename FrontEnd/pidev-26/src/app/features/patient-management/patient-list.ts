@@ -14,6 +14,7 @@ import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { compareText, getAgeYears, normalizeSearch } from '../../shared/utils';
 import { getSeverityColor, getSeverityRank } from '../../shared/utils/patient.utils';
+import { TitleCasePipe } from '@angular/common';
 
 type PatientSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'EXTREME';
 
@@ -30,6 +31,7 @@ type PatientSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'EXTREME';
     NzTableModule,
     NzDividerModule,
     NzInputModule,
+    TitleCasePipe,
   ],
   templateUrl: './patient-list.html',
   styleUrl: './patient-list.css',
@@ -93,10 +95,6 @@ export class PatientList implements OnInit {
     this.fetchPatients();
   }
 
-  resetSearch(): void {
-    this.searchValue = '';
-  }
-
   get searchedPatients(): any[] {
     const q = this.normalizeSearch(this.searchValue);
     if (!q) return this.patients;
@@ -104,11 +102,8 @@ export class PatientList implements OnInit {
     return this.patients.filter((patient) => {
       const firstName = this.normalizeSearch(patient?.firstName);
       const lastName = this.normalizeSearch(patient?.lastName);
-      const userId = this.normalizeSearch(patient?.userId);
-      const severity = this.normalizeSearch(patient?.severity);
-      return (
-        firstName.includes(q) || lastName.includes(q) || userId.includes(q) || severity.includes(q)
-      );
+      const id = String(patient?.id ?? '');
+      return firstName.includes(q) || lastName.includes(q) || id.includes(q);
     });
   }
 
@@ -117,6 +112,16 @@ export class PatientList implements OnInit {
   readonly sortLastName = (a: any, b: any): number => this.compareText(a?.lastName, b?.lastName);
 
   readonly sortAge = (a: any, b: any): number => this.getAgeValue(a) - this.getAgeValue(b);
+
+  readonly sortGender = (a: any, b: any): number => this.compareText(a?.gender, b?.gender);
+
+  readonly sortId = (a: any, b: any): number => {
+    const idA = a?.id;
+    const idB = b?.id;
+    if (idA === null || idA === undefined) return 1;
+    if (idB === null || idB === undefined) return -1;
+    return String(idA).localeCompare(String(idB), undefined, { numeric: true });
+  };
 
   readonly sortSeverity = (a: any, b: any): number =>
     this.getSeverityRank(a) - this.getSeverityRank(b);
@@ -338,5 +343,11 @@ export class PatientList implements OnInit {
     const age = this.getAgeYears(dob);
     if (age === null) return Number.POSITIVE_INFINITY;
     return age;
+  }
+
+  get currentUserRole(): string | null {
+    const user = this.currentUser.user();
+    if (!user) return null;
+    return this.currentUser.user()?.kind ?? null;
   }
 }

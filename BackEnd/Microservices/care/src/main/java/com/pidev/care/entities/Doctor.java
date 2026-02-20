@@ -1,5 +1,6 @@
 package com.pidev.care.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,7 +26,9 @@ public class Doctor {
     private String specialty;
     private String licenseNumber;
     @OneToMany
+    @JsonIgnore
     private List<Note> notes;
     @OneToMany(mappedBy = "doctor")
+    @JsonIgnore
     private List<PatientDoctorAssignment> patientDoctorAssignments;
 }

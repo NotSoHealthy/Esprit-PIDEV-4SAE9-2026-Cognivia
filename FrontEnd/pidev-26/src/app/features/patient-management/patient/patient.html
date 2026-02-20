@@ -75,7 +75,7 @@
           <app-patient-information [patient]="patient"></app-patient-information>
         }
         @case ('visits') {
-          <p>Caregiver Visits content goes here.</p>
+          <app-visits [patientId]="patient.id"></app-visits>
         }
         @case ('prescriptions') {
           <p>Prescriptions content goes here.</p>

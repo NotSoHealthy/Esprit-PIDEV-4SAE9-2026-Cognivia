@@ -1,0 +1,53 @@
+<div class="flex flex-col gap-2 rounded-2xl bg-white p-4">
+  <div class="flex items-center gap-3 mb-4">
+    <input
+      nz-input
+      class="md:max-w-90 rounded-md!"
+      placeholder="Search by date, status, or id"
+      [(ngModel)]="searchValue"
+      (ngModelChange)="applySearch()"
+    />
+    <button nz-button nzType="default" (click)="resetSearch()" [disabled]="!searchValue">
+      Reset
+    </button>
+  </div>
+
+  <nz-table
+    #visitsTable
+    [nzData]="filteredVisits"
+    [nzShowPagination]="true"
+    [nzShowSizeChanger]="true"
+    nzNoResult="No visits found."
+    class="rounded-b-md overflow-hidden border border-gray-200"
+  >
+    <thead>
+      <tr>
+        <th [nzShowSort]="true" [nzSortFn]="sortVisitId">Visit ID</th>
+        <th [nzShowSort]="true" [nzSortFn]="sortVisitDate">Scheduled</th>
+        <th
+          [nzShowSort]="true"
+          [nzSortFn]="sortVisitStatus"
+          [nzShowFilter]="true"
+          [nzFilters]="statusFilters"
+          [nzFilterMultiple]="true"
+          [nzFilterFn]="statusFilterFn"
+        >
+          Status
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (visit of visitsTable.data; track getVisitId(visit)) {
+        <tr>
+          <td>#{{ getVisitId(visit) }}</td>
+          <td>{{ formatDateTime(getVisitDate(visit)) }}</td>
+          <td>
+            <nz-tag [nzColor]="getStatusColor(getVisitStatus(visit))">
+              {{ getVisitStatus(visit) || 'UNKNOWN' }}
+            </nz-tag>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </nz-table>
+</div>

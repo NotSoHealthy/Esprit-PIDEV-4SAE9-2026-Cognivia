@@ -2,15 +2,15 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { API_BASE_URL } from '../../../../core/api/api.tokens';
 
-import { PatientInformation } from './patient-information';
+import { Visits } from './visits';
 
-describe('PatientInformation', () => {
-  let component: PatientInformation;
-  let fixture: ComponentFixture<PatientInformation>;
+describe('Visits', () => {
+  let component: Visits;
+  let fixture: ComponentFixture<Visits>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PatientInformation],
+      imports: [Visits],
       providers: [
         provideHttpClientTesting(),
         {
@@ -20,7 +20,7 @@ describe('PatientInformation', () => {
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(PatientInformation);
+    fixture = TestBed.createComponent(Visits);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

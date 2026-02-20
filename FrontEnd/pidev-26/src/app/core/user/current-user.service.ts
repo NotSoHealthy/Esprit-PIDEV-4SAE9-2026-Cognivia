@@ -3,7 +3,7 @@ import { Injectable, inject, signal } from '@angular/core';
 
 import { API_BASE_URL } from '../api/api.tokens';
 
-export type CurrentUserKind = 'patient' | 'doctor' | 'caregiver' | 'unknown';
+export type CurrentUserKind = 'patient' | 'doctor' | 'caregiver' | 'admin' | 'unknown';
 
 export interface CurrentUserState {
   kind: CurrentUserKind;
@@ -60,7 +60,7 @@ export class CurrentUserService {
     if (role === 'ROLE_DOCTOR') return { endpoint: `/care/doctor/user/${userId}`, kind: 'doctor' };
     if (role === 'ROLE_CAREGIVER')
       return { endpoint: `/care/caregiver/user/${userId}`, kind: 'caregiver' };
-
+    if (role === 'ROLE_ADMIN') return { endpoint: null, kind: 'admin' };
     return { endpoint: null, kind: 'unknown' };
   }
 }

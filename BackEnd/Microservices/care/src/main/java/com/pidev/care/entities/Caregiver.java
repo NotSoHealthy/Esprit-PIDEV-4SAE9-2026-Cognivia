@@ -1,5 +1,6 @@
 package com.pidev.care.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,7 +26,9 @@ public class Caregiver {
     @Enumerated(EnumType.STRING)
     private CaregiverType type;
     @ManyToMany
+    @JsonIgnore
     private List<Patient> patientList;
     @OneToMany(mappedBy = "caregiver")
+    @JsonIgnore
     private List<Visit> visitList;
 }

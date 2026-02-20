@@ -4,10 +4,11 @@ import { ActivatedRoute } from '@angular/router';
 import { API_BASE_URL } from '../../../core/api/api.tokens';
 import { CommonModule } from '@angular/common';
 import { PatientInformation } from './patient-information/patient-information';
+import { Visits } from './visits/visits';
 
 @Component({
   selector: 'app-patient',
-  imports: [CommonModule, PatientInformation],
+  imports: [CommonModule, PatientInformation, Visits],
   templateUrl: './patient.html',
   styleUrl: './patient.css',
 })
