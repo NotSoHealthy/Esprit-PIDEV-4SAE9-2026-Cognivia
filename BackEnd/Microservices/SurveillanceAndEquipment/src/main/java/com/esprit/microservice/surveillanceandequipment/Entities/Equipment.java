@@ -11,8 +11,9 @@ public class Equipment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
-    private String Description;
+    private String description;
     @Enumerated(EnumType.STRING)
     private EquipmentStatus status;
     private int conditionScore;
+    private String imageUrl;
 }

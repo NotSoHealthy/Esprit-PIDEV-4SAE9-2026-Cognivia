@@ -1,0 +1,260 @@
+<div class="equipment-page">
+  <div class="page-header">
+    <h1 class="page-title">Equipment List</h1>
+    <div class="header-actions">
+      <button
+        class="bulk-delete-button"
+        type="button"
+        *ngIf="selectedCount > 0"
+        (click)="openBulkDeleteModal()"
+      >
+        Delete Selected ({{ selectedCount }})
+      </button>
+      <button class="add-button" type="button" (click)="openModal()">
+        Add Equipment
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="equipments.length === 0" class="loading" role="status" aria-live="polite">
+    Loading equipments...
+  </div>
+
+  <div class="table-container" *ngIf="equipments.length > 0">
+    <table class="equipment-table" role="table" aria-label="Equipment inventory table">
+      <thead>
+        <tr>
+          <th scope="col" class="checkbox-col">
+            <input
+              type="checkbox"
+              class="table-checkbox"
+              [checked]="equipments.length > 0 && selectedCount === equipments.length"
+              [indeterminate]="selectedCount > 0 && selectedCount < equipments.length"
+              (change)="toggleSelectAll($event)"
+              aria-label="Select all equipment"
+            />
+          </th>
+          <th scope="col" class="image-col">Image</th>
+          <th scope="col">Name</th>
+          <th scope="col">Description</th>
+          <th scope="col">Condition Score</th>
+          <th scope="col">Status</th>
+          <th scope="col" class="action-col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let eq of equipments">
+          <td data-label="Select" class="checkbox-col">
+            <input
+              type="checkbox"
+              class="table-checkbox"
+              [checked]="isSelected(eq.id)"
+              (change)="toggleSelection(eq, $event)"
+              [attr.aria-label]="'Select ' + eq.name"
+            />
+          </td>
+          <td data-label="Image" class="image-col">
+            <img
+              *ngIf="eq.imageUrl"
+              class="equipment-image"
+              [src]="eq.imageUrl"
+              [alt]="eq.name + ' image'"
+            />
+            <span *ngIf="!eq.imageUrl" class="image-placeholder">No image</span>
+          </td>
+          <td data-label="Name">{{ eq.name }}</td>
+          <td data-label="Description">{{ eq.description }}</td>
+          <td data-label="Condition Score">
+            <span class="condition-badge" [attr.aria-label]="'Condition score: ' + eq.conditionScore">
+              {{ eq.conditionScore }}
+            </span>
+          </td>
+          <td data-label="Status">
+            <span 
+              class="status-badge"
+              [ngClass]="{
+                'status-available': eq.status === 'AVAILABLE',
+                'status-maintenance': eq.status === 'MAINTENANCE',
+                'status-unavailable': eq.status === 'UNAVAILABLE'
+              }"
+              [attr.aria-label]="'Status: ' + eq.status"
+            >
+              {{ eq.status }}
+            </span>
+          </td>
+          <td data-label="Actions" class="action-col">
+            <div class="dropdown-container">
+              <button 
+                class="menu-button" 
+                type="button" 
+                (click)="toggleDropdown(eq.id)"
+                [attr.aria-expanded]="openDropdownId === eq.id"
+                [attr.aria-label]="'More actions for ' + eq.name"
+              >
+                <nz-icon nzType="ellipsis" nzTheme="outline"></nz-icon>
+              </button>
+              <div class="dropdown-menu" *ngIf="openDropdownId === eq.id" (click)="$event.stopPropagation()">
+                <button 
+                  class="dropdown-item edit-item" 
+                  type="button" 
+                  (click)="openEditModal(eq); closeDropdown()"
+                >
+                  <nz-icon nzType="edit" nzTheme="outline"></nz-icon>
+                  <span>Edit</span>
+                </button>
+                <button 
+                  class="dropdown-item delete-item" 
+                  type="button" 
+                  (click)="openDeleteModal(eq); closeDropdown()"
+                >
+                  <nz-icon nzType="delete" nzTheme="outline"></nz-icon>
+                  <span>Delete</span>
+                </button>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="modal-overlay" *ngIf="isModalOpen" (click)="closeModal()" role="dialog" aria-modal="true">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ isEditMode ? 'Edit Equipment' : 'Add Equipment' }}</h2>
+        <button class="icon-button" type="button" (click)="closeModal()" aria-label="Close">
+          ×
+        </button>
+      </div>
+
+      <form class="modal-form" (ngSubmit)="submitEquipment()">
+        <div class="form-field">
+          <label for="equipment-name">Name</label>
+          <input
+            id="equipment-name"
+            name="name"
+            type="text"
+            [(ngModel)]="newEquipment.name"
+            required
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="equipment-description">Description</label>
+          <textarea
+            id="equipment-description"
+            name="description"
+            rows="3"
+            [(ngModel)]="newEquipment.description"
+            required
+          ></textarea>
+        </div>
+
+        <div class="form-field">
+          <label for="equipment-image">Image</label>
+          <input
+            id="equipment-image"
+            name="image"
+            type="file"
+            accept="image/*"
+            (change)="onImageSelected($event)"
+            [required]="!isEditMode"
+          />
+          <img
+            *ngIf="imagePreview"
+            class="image-preview"
+            [src]="imagePreview"
+            alt="Selected equipment preview"
+          />
+          <p *ngIf="isEditMode && imagePreview && !selectedImage" class="image-info">Current image</p>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="equipment-condition">Condition Score</label>
+            <input
+              id="equipment-condition"
+              name="conditionScore"
+              type="number"
+              min="0"
+              max="100"
+              [(ngModel)]="newEquipment.conditionScore"
+              required
+            />
+          </div>
+
+          <div class="form-field">
+            <label for="equipment-status">Status</label>
+            <select
+              id="equipment-status"
+              name="status"
+              [(ngModel)]="newEquipment.status"
+              required
+            >
+              <option value="AVAILABLE">Available</option>
+              <option value="MAINTENANCE">Maintenance</option>
+              <option value="RESERVED">Reserved</option>
+            </select>
+          </div>
+        </div>
+
+        <p class="form-error" *ngIf="formError">{{ formError }}</p>
+
+        <div class="modal-actions">
+          <button class="secondary-button" type="button" (click)="closeModal()">Cancel</button>
+          <button class="primary-button" type="submit" [disabled]="isSaving">
+            {{ isSaving ? (isEditMode ? 'Updating...' : 'Saving...') : (isEditMode ? 'Update Equipment' : 'Save Equipment') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-overlay" *ngIf="isDeleteModalOpen" (click)="closeDeleteModal()" role="dialog" aria-modal="true">
+    <div class="modal modal-compact" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Delete Equipment</h2>
+        <button class="icon-button" type="button" (click)="closeDeleteModal()" aria-label="Close">
+          ×
+        </button>
+      </div>
+
+      <p class="modal-text">
+        Are you sure you want to delete <strong>{{ equipmentToDelete?.name }}</strong>? This action cannot be undone.
+      </p>
+
+      <p class="form-error" *ngIf="deleteError">{{ deleteError }}</p>
+
+      <div class="modal-actions">
+        <button class="secondary-button" type="button" (click)="closeDeleteModal()">Cancel</button>
+        <button class="danger-button" type="button" (click)="confirmDelete()">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" *ngIf="isBulkDeleteModalOpen" (click)="closeBulkDeleteModal()" role="dialog" aria-modal="true">
+    <div class="modal modal-compact" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Delete Selected</h2>
+        <button class="icon-button" type="button" (click)="closeBulkDeleteModal()" aria-label="Close">
+          ×
+        </button>
+      </div>
+
+      <p class="modal-text">
+        You are about to delete <strong>{{ selectedCount }}</strong> equipment item(s). This action cannot be undone.
+      </p>
+
+      <p class="form-error" *ngIf="bulkDeleteError">{{ bulkDeleteError }}</p>
+
+      <div class="modal-actions">
+        <button class="secondary-button" type="button" (click)="closeBulkDeleteModal()">Cancel</button>
+        <button class="danger-button" type="button" (click)="confirmBulkDelete()">
+          Delete Selected
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

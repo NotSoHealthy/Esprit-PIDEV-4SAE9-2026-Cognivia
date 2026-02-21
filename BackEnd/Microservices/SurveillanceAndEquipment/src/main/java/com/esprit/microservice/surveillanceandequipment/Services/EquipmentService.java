@@ -29,6 +29,7 @@ public class EquipmentService {
     }
 
     public Equipment updateEquipment(Equipment equipment) {
+        System.out.println("Updating equipment: " + equipment);
         return equipmentRepository.save(equipment);
     }
 

@@ -28,7 +28,7 @@ public class EquipmentController {
         return equipmentService.createEquipment(equipment);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping
     public Equipment updateEquipment(@RequestBody Equipment equipment) {
         return equipmentService.updateEquipment(equipment);
     }
