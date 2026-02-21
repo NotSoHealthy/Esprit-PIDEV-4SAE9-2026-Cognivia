@@ -6,17 +6,106 @@
 
   <div class="test-grid">
     @for (test of tests; track test) {
-      <div class="test-card glass">
-        <h3>{{ test.title }}</h3>
-        <p>{{ test.description }}</p>
-        <div class="card-footer">
-          <span>Questions: {{ test.questions.length }}</span>
-          <div class="actions">
-            <button class="btn btn-icon" [routerLink]="['/admin/tests/edit', test.id]" title="Edit Test">✎</button>
-            <button class="btn btn-icon danger" (click)="deleteTest(test.id)" title="Delete Test">🗑</button>
-          </div>
+    <div class="test-card glass">
+      <h3>{{ test.title }}</h3>
+      <p>{{ test.description }}</p>
+      <div class="card-footer">
+        <span>Questions: {{ test.questions.length }}</span>
+        <div class="actions">
+          <button class="btn btn-icon" [routerLink]="['/admin/tests/edit', test.id]" title="Edit Test">✎</button>
+          <button class="btn btn-icon assign" (click)="openAssignModal(test)" title="Assign Test">📋</button>
+          <button class="btn btn-icon danger" (click)="deleteTest(test.id)" title="Delete Test">🗑</button>
         </div>
       </div>
+    </div>
     }
   </div>
 </div>
+
+<!-- Assignment Modal -->
+@if (showAssignModal && selectedTest) {
+<div class="modal-overlay" (click)="closeAssignModal()">
+  <div class="modal-panel glass" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Assign Test</h2>
+      <span class="modal-subtitle">{{ selectedTest.title }}</span>
+      <button class="close-btn" (click)="closeAssignModal()">✕</button>
+    </div>
+
+    <!-- Assignment Type toggle -->
+    <div class="field-group">
+      <label class="field-label">Assignment Mode</label>
+      <div class="toggle-row">
+        <label class="toggle-option" [class.active]="assignmentType === 'GENERAL'">
+          <input type="radio" name="assignType" value="GENERAL" [(ngModel)]="assignmentType" />
+          🌐 General (by Severity)
+        </label>
+        <label class="toggle-option" [class.active]="assignmentType === 'TARGETED'">
+          <input type="radio" name="assignType" value="TARGETED" [(ngModel)]="assignmentType" />
+          🎯 Targeted (specific patient)
+        </label>
+      </div>
+    </div>
+
+    <!-- TARGETED: Patient dropdown -->
+    @if (assignmentType === 'TARGETED') {
+    <div class="field-group">
+      <label class="field-label" for="patientSelect">Select Patient</label>
+      <select id="patientSelect" class="form-select" [(ngModel)]="selectedPatientId">
+        <option [ngValue]="undefined" disabled>-- Choose a patient --</option>
+        @for (p of patients; track p.id) {
+        <option [ngValue]="p.id">{{ getPatientDisplayName(p) }}</option>
+        }
+      </select>
+    </div>
+    }
+
+    <!-- GENERAL: Severity selector -->
+    @if (assignmentType === 'GENERAL') {
+    <div class="field-group">
+      <label class="field-label">Target Severity Group</label>
+      <div class="severity-row">
+        @for (sev of severityOptions; track sev) {
+        <label class="severity-chip" [class.active]="selectedSeverity === sev" [class]="'sev-' + sev.toLowerCase()">
+          <input type="radio" name="severity" [value]="sev" [(ngModel)]="selectedSeverity" />
+          {{ sev }}
+        </label>
+        }
+      </div>
+    </div>
+    }
+
+    <!-- Common: Frequency & Due Date -->
+    <div class="field-row">
+      <div class="field-group">
+        <label class="field-label" for="freqSelect">Frequency</label>
+        <select id="freqSelect" class="form-select" [(ngModel)]="selectedFrequency">
+          @for (freq of frequencyOptions; track freq) {
+          <option [ngValue]="freq">{{ freq }}</option>
+          }
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="dueDateInput">Due Date (optional)</label>
+        <input id="dueDateInput" type="datetime-local" class="form-input" [(ngModel)]="dueAt" />
+      </div>
+    </div>
+
+    <!-- Feedback -->
+    @if (assignError) {
+    <div class="alert alert-error">{{ assignError }}</div>
+    }
+    @if (assignSuccess) {
+    <div class="alert alert-success">✅ Test assigned successfully!</div>
+    }
+
+    <!-- Actions -->
+    <div class="modal-actions">
+      <button class="btn btn-secondary" (click)="closeAssignModal()">Cancel</button>
+      <button class="btn btn-primary" (click)="submitAssignment()" [disabled]="isAssigning">
+        {{ isAssigning ? 'Assigning...' : 'Assign Test' }}
+      </button>
+    </div>
+  </div>
+</div>
+}

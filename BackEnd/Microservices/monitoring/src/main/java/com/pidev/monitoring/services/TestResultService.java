@@ -44,6 +44,12 @@ public class TestResultService {
 
         result.setAssignment(assignment);
         result.setTest(assignment.getTest());
+
+        // If targeted, ensure the patientId is set from the assignment for consistency
+        if (assignment.getAssignmentType() == AssignmentType.TARGETED && result.getPatientId() == null) {
+            result.setPatientId(assignment.getPatientId());
+        }
+
         calculateScore(result);
 
         return testResultRepository.save(result);

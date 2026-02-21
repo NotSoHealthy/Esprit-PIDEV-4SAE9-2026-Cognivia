@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { TestResultService } from '../../../../core/services/cognitive-tests/result.service';
@@ -15,19 +15,27 @@ export class ResultViewComponent implements OnInit {
 
     constructor(
         private route: ActivatedRoute,
-        private resultService: TestResultService
+        private resultService: TestResultService,
+        private cdr: ChangeDetectorRef,
+        private zone: NgZone
     ) { }
 
     ngOnInit(): void {
-        const id = this.route.snapshot.paramMap.get('id');
-        if (id) {
-            this.loadResult(+id);
-        }
+        this.zone.run(() => {
+            const id = this.route.snapshot.paramMap.get('id');
+            if (id) {
+                this.loadResult(+id);
+            }
+        });
     }
 
     loadResult(id: number): void {
         this.resultService.getResultById(id).subscribe((data: TestResult) => {
-            this.result = data;
+            this.zone.run(() => {
+                this.result = data;
+                this.cdr.markForCheck();
+                this.cdr.detectChanges();
+            });
         });
     }
 

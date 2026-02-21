@@ -17,6 +17,7 @@ public class TestAssignmentController {
         this.testAssignmentService = testAssignmentService;
     }
 
+    /** Doctor: assign a test (targeted to a patient OR general by severity) */
     @PostMapping("/test/{testId}")
     public TestAssignment assignTest(@PathVariable Long testId, @RequestBody TestAssignment assignment) {
         return testAssignmentService.assignTest(testId, assignment);
@@ -27,8 +28,18 @@ public class TestAssignmentController {
         return ResponseEntity.ok(testAssignmentService.getAssignmentById(id));
     }
 
+    /** Doctor: view all assignments */
     @GetMapping
     public List<TestAssignment> getAllAssignments() {
         return testAssignmentService.getAllAssignments();
+    }
+
+    /**
+     * Patient: fetch all assignments visible to them.
+     * The service internally resolves the patient's severity from the care service.
+     */
+    @GetMapping("/for-patient/{patientId}")
+    public List<TestAssignment> getAssignmentsForPatient(@PathVariable Long patientId) {
+        return testAssignmentService.getAssignmentsForPatient(patientId);
     }
 }

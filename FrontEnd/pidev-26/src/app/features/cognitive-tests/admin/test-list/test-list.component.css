@@ -56,9 +56,18 @@
   color: white;
 }
 
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.15);
+  color: #333;
+}
+
 .btn-icon {
   background: transparent;
   font-size: 1.2rem;
+}
+
+.btn-icon.assign {
+  color: #4f46e5;
 }
 
 .danger {
@@ -72,4 +81,245 @@
   -webkit-backdrop-filter: blur(4px);
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* ---- Assignment Modal ---- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-panel {
+  background: #fff;
+  border-radius: 16px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 520px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.modal-header h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #111;
+  margin: 0;
+}
+
+.modal-subtitle {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.close-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #888;
+  line-height: 1;
+}
+
+.close-btn:hover {
+  color: #333;
+}
+
+.field-group {
+  margin-bottom: 1.2rem;
+}
+
+.field-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.form-select,
+.form-input {
+  width: 100%;
+  padding: 0.6rem 0.9rem;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.form-select:focus,
+.form-input:focus {
+  border-color: #4f46e5;
+}
+
+/* Toggle row for assignment type */
+.toggle-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.toggle-option {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 2px solid #ddd;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #555;
+  transition: all 0.2s;
+}
+
+.toggle-option.active {
+  border-color: #4f46e5;
+  background: rgba(79, 70, 229, 0.08);
+  color: #4f46e5;
+}
+
+.toggle-option input {
+  display: none;
+}
+
+/* Severity chips */
+.severity-row {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.severity-chip {
+  padding: 0.45rem 1rem;
+  border-radius: 20px;
+  border: 2px solid #ddd;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #555;
+  transition: all 0.2s;
+}
+
+.severity-chip input {
+  display: none;
+}
+
+.severity-chip.sev-low.active {
+  background: #dcfce7;
+  border-color: #16a34a;
+  color: #15803d;
+}
+
+.severity-chip.sev-medium.active {
+  background: #fef9c3;
+  border-color: #ca8a04;
+  color: #92400e;
+}
+
+.severity-chip.sev-high.active {
+  background: #fee2e2;
+  border-color: #dc2626;
+  color: #991b1b;
+}
+
+.severity-chip.sev-extreme.active {
+  background: #f3e8ff;
+  border-color: #9333ea;
+  color: #6b21a8;
+}
+
+.severity-chip.sev-low:hover {
+  border-color: #16a34a;
+}
+
+.severity-chip.sev-medium:hover {
+  border-color: #ca8a04;
+}
+
+.severity-chip.sev-high:hover {
+  border-color: #dc2626;
+}
+
+.severity-chip.sev-extreme:hover {
+  border-color: #9333ea;
+}
+
+/* Alerts */
+.alert {
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.alert-error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.alert-success {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* Modal footer */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

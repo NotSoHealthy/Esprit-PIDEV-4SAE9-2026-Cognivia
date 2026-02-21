@@ -67,12 +67,6 @@ export class AppLayout implements OnInit {
       icon: 'form',
       roles: ['ROLE_PATIENT'],
     },
-    {
-      link: '/user/risks',
-      label: 'Risks',
-      icon: 'history',
-      roles: ['ROLE_PATIENT'],
-    },
   ];
   currentRouteLabel = '';
   ngOnInit(): void {

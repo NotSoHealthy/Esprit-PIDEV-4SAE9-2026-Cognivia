@@ -1,45 +1,50 @@
 <div class="user-container">
   @if (test) {
-    <div class="questionnaire-card glass">
-      <div class="progress-bar">
-        <div class="progress" [style.width.%]="(currentQuestionIndex + 1) / test.questions.length * 100"></div>
+  @if (test.questions && test.questions.length > 0) {
+  <div class="questionnaire-card glass">
+    <div class="progress-bar">
+      <div class="progress" [style.width.%]="(currentQuestionIndex + 1) / (test.questions.length || 1) * 100"></div>
+    </div>
+    <div class="q-header">
+      <h2>{{ test.title }}</h2>
+      <span>Question {{ currentQuestionIndex + 1 }} of {{ test.questions.length }}</span>
+    </div>
+    <div class="q-body">
+      <h3>{{ test.questions[currentQuestionIndex]?.questionText }}</h3>
+      @if (test.questions[currentQuestionIndex]?.questionType === 'SIMPLE') {
+      <div class="input-group">
+        <textarea [(ngModel)]="answers[currentQuestionIndex].answerText" placeholder="Your answer..."></textarea>
       </div>
-      <div class="q-header">
-        <h2>{{ test.title }}</h2>
-        <span>Question {{ currentQuestionIndex + 1 }} of {{ test.questions.length }}</span>
-      </div>
-      <div class="q-body">
-        <h3>{{ test.questions[currentQuestionIndex].questionText }}</h3>
-        @if (test.questions[currentQuestionIndex].questionType === 'SIMPLE') {
-          <div class="input-group">
-            <textarea [(ngModel)]="answers[currentQuestionIndex].answerText"
-            placeholder="Your answer..."></textarea>
-          </div>
-        }
-        @if (test.questions[currentQuestionIndex].questionType === 'MULTIPLE_CHOICE') {
-          <div class="options-group">
-            @for (opt of test.questions[currentQuestionIndex].options; track opt) {
-              <div class="option-card"
-                [class.selected]="answers[currentQuestionIndex].selectedOptionId === opt.id"
-                (click)="answers[currentQuestionIndex].selectedOptionId = opt.id">
-                {{ opt.optionText }}
-              </div>
-            }
-          </div>
+      }
+      @if (test.questions[currentQuestionIndex]?.questionType === 'MULTIPLE_CHOICE') {
+      <div class="options-group">
+        @for (opt of test.questions[currentQuestionIndex]?.options; track opt.id) {
+        <div class="option-card" [class.selected]="answers[currentQuestionIndex]?.selectedOptionId === opt.id"
+          (click)="answers[currentQuestionIndex].selectedOptionId = opt.id">
+          {{ opt.optionText }}
+        </div>
         }
       </div>
-      <div class="q-footer">
-        <button class="btn btn-outline" (click)="prevQuestion()"
-        [disabled]="currentQuestionIndex === 0">Previous</button>
-        @if (currentQuestionIndex < test.questions.length - 1) {
-          <button class="btn btn-primary"
-          (click)="nextQuestion()">Next</button>
+      }
+    </div>
+    <div class="q-footer">
+      <button class="btn btn-outline" (click)="prevQuestion()" [disabled]="currentQuestionIndex === 0">Previous</button>
+      @if (currentQuestionIndex < test.questions.length - 1) { <button class="btn btn-primary" (click)="nextQuestion()">
+        Next</button>
         }
         @if (currentQuestionIndex === test.questions.length - 1) {
-          <button class="btn btn-success"
-          (click)="submitTest()">Submit Test</button>
+        <button class="btn btn-success" (click)="submitTest()">Submit Test</button>
         }
-      </div>
     </div>
+  </div>
+  } @else {
+  <div class="empty-state glass">
+    <p>📭 This test has no questions yet.</p>
+  </div>
+  }
+  } @else {
+  <div class="empty-state glass">
+    <p>⏳ Loading test...</p>
+  </div>
   }
 </div>

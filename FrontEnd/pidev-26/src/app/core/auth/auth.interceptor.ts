@@ -8,8 +8,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const keycloak = inject(KeycloakService);
   const apiBaseUrl = inject(API_BASE_URL);
 
-  // Only attach token to your backend URLs (important!)
-  const isApiCall = req.url.startsWith(apiBaseUrl) || req.url.startsWith('/api');
+  // Only attach token to backend URLs
+  const isApiCall = (apiBaseUrl && apiBaseUrl !== '' && req.url.startsWith(apiBaseUrl)) ||
+    req.url.startsWith('/monitoring') ||
+    req.url.startsWith('/care') ||
+    req.url.startsWith('/auth') ||
+    req.url.startsWith('/api');
+
   if (!isApiCall) return next(req);
 
   if (!keycloak.isLoggedIn()) return next(req);

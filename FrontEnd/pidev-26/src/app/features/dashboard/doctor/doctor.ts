@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { RiskScoreService } from '../../../core/services/cognitive-tests/risk.service';
 import { TestResultService } from '../../../core/services/cognitive-tests/result.service';
+import { PatientService } from '../../../core/services/care/patient.service';
 import { RiskScore } from '../../../core/models/cognitive-tests/risk-score.model';
 import { TestResult } from '../../../core/models/cognitive-tests/test-result.model';
 import { CommonModule } from '@angular/common';
@@ -17,11 +18,13 @@ import { CommonModule } from '@angular/common';
 export class Doctor implements OnInit {
   private readonly riskService = inject(RiskScoreService);
   private readonly resultService = inject(TestResultService);
+  private readonly patientService = inject(PatientService);
   private readonly cdr = inject(ChangeDetectorRef);
 
   recentRisks: RiskScore[] = [];
   highRiskCount = 0;
   totalTestsToday = 0;
+  totalPatients = 0;
 
   ngOnInit(): void {
     this.loadMonitoringData();
@@ -51,6 +54,14 @@ export class Doctor implements OnInit {
         this.cdr.detectChanges();
       },
       error: (err: any) => console.error('Error loading results:', err)
+    });
+
+    this.patientService.getAllPatients().subscribe({
+      next: (patients: any[]) => {
+        this.totalPatients = patients.length;
+        this.cdr.detectChanges();
+      },
+      error: (err: any) => console.error('Error loading patients:', err)
     });
   }
 

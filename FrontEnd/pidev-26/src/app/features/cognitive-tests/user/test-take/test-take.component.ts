@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -10,7 +11,8 @@ import { QuestionType } from '../../../../core/models/cognitive-tests/question-t
 
 @Component({
     selector: 'app-test-take',
-    imports: [FormsModule],
+    standalone: true,
+    imports: [FormsModule, CommonModule],
     templateUrl: './test-take.component.html',
     styleUrls: ['./test-take.component.css']
 })
@@ -18,6 +20,7 @@ export class TestTakeComponent implements OnInit {
     testId?: number;
     test?: CognitiveTest;
     assignmentId?: number;
+    patientId?: number;
     currentQuestionIndex = 0;
     answers: any[] = [];
     startTime: number = 0;
@@ -26,30 +29,44 @@ export class TestTakeComponent implements OnInit {
         private route: ActivatedRoute,
         private router: Router,
         private testService: CognitiveTestService,
-        private resultService: TestResultService
+        private resultService: TestResultService,
+        private cdr: ChangeDetectorRef,
+        private zone: NgZone
     ) { }
 
     ngOnInit(): void {
-        const testId = this.route.snapshot.paramMap.get('testId');
-        const aId = this.route.snapshot.paramMap.get('assignmentId');
-        if (testId) {
-            this.testId = +testId;
-            this.loadTest(+testId);
-            if (aId) {
-                this.assignmentId = +aId;
+        this.zone.run(() => {
+            const testId = this.route.snapshot.paramMap.get('testId');
+            const aId = this.route.snapshot.queryParamMap.get('assignmentId');
+            const pId = this.route.snapshot.queryParamMap.get('patientId');
+            if (testId) {
+                this.testId = +testId;
+                this.loadTest(+testId);
+                if (aId) {
+                    this.assignmentId = +aId;
+                }
+                if (pId) {
+                    this.patientId = +pId;
+                }
             }
-        }
-        this.startTime = Date.now();
+            this.startTime = Date.now();
+        });
     }
 
     loadTest(id: number): void {
         this.testService.getTestById(id).subscribe((test: CognitiveTest) => {
-            this.test = test;
-            this.answers = test.questions.map((q: any) => ({
-                question: { id: q.id },
-                answerText: '',
-                selectedOptionId: null
-            }));
+            this.zone.run(() => {
+                this.test = test;
+                if (test.questions) {
+                    this.answers = test.questions.map((q: any) => ({
+                        question: { id: q.id },
+                        answerText: '',
+                        selectedOptionId: null
+                    }));
+                }
+                this.cdr.markForCheck();
+                this.cdr.detectChanges();
+            });
         });
     }
 
@@ -75,7 +92,8 @@ export class TestTakeComponent implements OnInit {
 
         const result: TestResult = {
             responseTime: Date.now() - this.startTime,
-            answers: mappedAnswers
+            answers: mappedAnswers,
+            patientId: this.patientId
         };
 
         if (this.assignmentId) {
