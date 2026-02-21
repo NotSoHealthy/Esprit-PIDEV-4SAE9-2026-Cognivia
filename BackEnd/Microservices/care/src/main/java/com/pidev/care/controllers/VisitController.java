@@ -23,6 +23,11 @@ public class VisitController {
         return visitService.getById(id);
     }
 
+    @GetMapping("/patient/{patientId}")
+    public List<Visit> getVisitsByPatientId(@PathVariable Long patientId) {
+        return visitService.getByPatientId(patientId);
+    }
+
     @PostMapping
     public Visit createVisit(@RequestBody Visit visit) {
         return visitService.create(visit);

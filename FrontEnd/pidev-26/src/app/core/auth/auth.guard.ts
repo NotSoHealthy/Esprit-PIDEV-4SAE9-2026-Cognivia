@@ -9,3 +9,14 @@ export const authGuard: CanMatchFn = () => {
 
   return keycloak.isLoggedIn() ? true : router.parseUrl('/');
 };
+
+export const roleGuard = (roles: string[]): CanMatchFn => {
+  return () => {
+    const router = inject(Router);
+    const keycloak = inject(KeycloakService);
+
+    return keycloak.isLoggedIn() && roles.includes(keycloak.getUserRole() ?? '')
+      ? true
+      : router.parseUrl('/');
+  };
+};

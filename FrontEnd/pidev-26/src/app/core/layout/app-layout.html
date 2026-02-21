@@ -17,9 +17,12 @@
           <span
             class="rounded-full aspect-square w-8 bg-[#B4BEF0] text-center content-center font-bold text-[#4D5CAB] drop-shadow-xs"
           >
-            {{ username.charAt(0).toUpperCase() }}
+            {{
+              (fullName ? fullName[0] + fullName.split(' ').slice(-1)[0][0] : username[0])
+                | uppercase
+            }}
           </span>
-          <p class="ml-2 content-center font-semibold">{{ username }}</p>
+          <p class="ml-2 content-center font-semibold">{{ fullName ?? username | titlecase }}</p>
           <span class="flex flex-col">
             <nz-icon nzType="up" nzTheme="outline" />
             <nz-icon nzType="down" nzTheme="outline" />
@@ -48,7 +51,6 @@
             <nz-icon
               [routerLink]="route.link"
               routerLinkActive="!bg-[#4D5CAB] !text-white"
-              [routerLinkActiveOptions]="{ exact: true }"
               [nzType]="route.icon"
               nzTheme="outline"
               class="w-fit text-[30px] bg-white p-3 rounded-full hover:bg-[#4D5CAB] transition-colors duration-200"
@@ -58,7 +60,7 @@
       </nav>
     </aside>
 
-    <main class="flex-1 min-w-0 p-4 overflow-auto">
+    <main class="flex-1 min-w-0 p-4 pr-8 overflow-auto">
       <router-outlet></router-outlet>
     </main>
   </div>

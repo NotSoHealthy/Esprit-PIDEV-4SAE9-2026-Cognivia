@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { authGuard } from './core/auth/auth.guard';
+import { authGuard, roleGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
   {
@@ -25,6 +25,13 @@ export const routes: Routes = [
       {
         path: 'equipment',
         loadComponent: () => import('./features/equipment/equipment').then((m) => m.Equipment),
+      },
+      {
+        path: 'patient-management',
+        title: 'Patients',
+        canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
+        loadChildren: () =>
+          import('./features/patient-management/patient-list.route').then((m) => m.routes),
       },
     ],
   },

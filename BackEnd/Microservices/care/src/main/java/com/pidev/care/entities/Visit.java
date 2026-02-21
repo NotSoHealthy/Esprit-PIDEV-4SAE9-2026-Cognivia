@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Entity
 @Getter
@@ -17,12 +18,16 @@ public class Visit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     private Long id;
+    @Enumerated(EnumType.STRING)
     private VisitStatus status;
+    private LocalDate date;
     private Instant createdAt;
     @ManyToOne
     private Caregiver caregiver;
     @ManyToOne
     private Patient patient;
+    @ManyToOne
+    private Doctor doctor;
 
     @PrePersist
     public void prePersist() {

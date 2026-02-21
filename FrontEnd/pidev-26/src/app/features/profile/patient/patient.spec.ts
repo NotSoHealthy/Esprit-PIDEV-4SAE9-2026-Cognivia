@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { API_BASE_URL } from '../../../core/api/api.tokens';
 
 import { Patient } from './patient';
 
@@ -8,9 +10,15 @@ describe('Patient', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Patient]
-    })
-    .compileComponents();
+      imports: [Patient],
+      providers: [
+        provideHttpClientTesting(),
+        {
+          provide: API_BASE_URL,
+          useValue: 'http://localhost',
+        },
+      ],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(Patient);
     component = fixture.componentInstance;
