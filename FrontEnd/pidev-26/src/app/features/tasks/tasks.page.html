@@ -147,8 +147,12 @@
 
   <form (ngSubmit)="submitEdit()" #ef="ngForm" class="modal-form">
     <div class="form-group">
-      <label class="form-label">Patient ID</label>
-      <input class="form-input" name="patientId" type="number" [(ngModel)]="editForm.patientId" required />
+      <label class="form-label">Patient</label>
+      <select class="form-input" name="patientId" [(ngModel)]="editForm.patientId" required>
+        <option *ngFor="let p of patients" [value]="p.id">
+          {{ p.firstName }} {{ p.lastName }}
+        </option>
+      </select>
     </div>
     <div class="form-group">
       <label class="form-label">Task Description</label>

@@ -31,9 +31,13 @@
 
       <div class="form-row">
         <div class="form-group" *ngIf="isStaff">
-          <label class="form-label">Patient ID <span class="required">*</span></label>
-          <input class="form-input" name="patientId" type="number" [(ngModel)]="model.patientId" required min="1"
-            placeholder="e.g. 101" />
+          <label class="form-label">Patient <span class="required">*</span></label>
+          <select class="form-input" name="patientId" [(ngModel)]="model.patientId" required>
+            <option [ngValue]="undefined" disabled selected>Select a patient</option>
+            <option *ngFor="let p of patients" [value]="p.id">
+              {{ p.firstName }} {{ p.lastName }}
+            </option>
+          </select>
         </div>
         <!-- patientId is automatically set for patients (if they could access this), but they are redirected. -->
         <div class="form-group">

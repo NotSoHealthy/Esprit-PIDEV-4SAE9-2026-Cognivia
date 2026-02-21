@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TaskService } from '../../../core/api/task.service';
@@ -17,11 +17,13 @@ export class TasksCreatePage implements OnInit {
   private readonly taskService = inject(TaskService);
   private readonly router = inject(Router);
   private readonly keycloak = inject(KeycloakService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   taskTypes = ['GENERAL', 'MEDICATION', 'EXERCISE', 'NUTRITION', 'HYGIENE', 'APPOINTMENT', 'MONITORING'];
+  patients: any[] = [];
 
   model: Partial<Task> = {
-    patientId: 0,
+    patientId: undefined,
     userId: 0,
     task: '',
     taskType: 'GENERAL',
@@ -45,6 +47,16 @@ export class TasksCreatePage implements OnInit {
       // Redirect patients away from creation page
       this.router.navigate(['/tasks']);
       return;
+    }
+
+    if (this.isStaff) {
+      this.taskService.getPatients().subscribe({
+        next: (p) => {
+          this.patients = p;
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.error('Failed to load patients', err)
+      });
     }
 
     const keycloakUserId = this.keycloak.getUserId();

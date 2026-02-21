@@ -28,6 +28,7 @@ export class TasksPage implements OnInit {
   editing: Task | null = null;
   showEditModal = false;
   editForm: Partial<Task> = {};
+  patients: any[] = [];
 
   userRole?: string;
   isPatient = false;
@@ -42,6 +43,16 @@ export class TasksPage implements OnInit {
     this.isCaregiverOrDoctor =
       !!this.userRole &&
       ['ROLE_CAREGIVER', 'ROLE_DOCTOR', 'ROLE_ADMIN'].includes(this.userRole);
+
+    if (this.isCaregiverOrDoctor) {
+      this.taskService.getPatients().subscribe({
+        next: (p) => {
+          this.patients = p;
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.error('Failed to load patients', err)
+      });
+    }
 
     // Auto-refresh on page enter
     this.load();

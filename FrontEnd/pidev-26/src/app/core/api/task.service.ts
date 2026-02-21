@@ -15,6 +15,10 @@ export class TaskService {
     return `${this.apiBase}/care/api/tasks${path}`;
   }
 
+  getPatients(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiBase}/care/patient`).pipe(catchError((err) => throwError(() => err)));
+  }
+
   getPatientByUserId(keycloakUserId: string): Observable<{ id: number }> {
     return this.http.get<{ id: number }>(`${this.apiBase}/care/patient/user/${keycloakUserId}`).pipe(catchError((err) => throwError(() => err)));
   }
