@@ -23,6 +23,9 @@ public class MaintenanceService {
         return maintenanceRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Maintenance not found with id: " + id));
     }
+    public List<Maintenance> getMaintenancesByEquipmentId(Long equipmentId) {
+        return maintenanceRepository.findByEquipmentId(equipmentId);
+    }
 
     public List<Maintenance> getAllMaintenances() {
         return maintenanceRepository.findAll();

@@ -23,6 +23,11 @@ public class MaintenanceController {
         return maintenanceService.getMaintenanceById(id);
     }
 
+    @GetMapping("/equipment/{equipmentId}")
+    public List<Maintenance> getMaintenancesByEquipmentId(@PathVariable Long equipmentId) {
+        return maintenanceService.getMaintenancesByEquipmentId(equipmentId);
+    }
+
     @PostMapping
     public Maintenance createMaintenance(@RequestBody Maintenance maintenance) {
         return maintenanceService.createMaintenance(maintenance);

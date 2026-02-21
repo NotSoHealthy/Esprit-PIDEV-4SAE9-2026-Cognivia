@@ -1,4 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Router } from '@angular/router';
 import { EquipmentService } from './services/equipment-service';
 import { EquipmentModel } from './models/equipment.model';
 import { CommonModule } from '@angular/common';
@@ -17,9 +18,11 @@ export class Equipment implements OnInit {
   isModalOpen = false;
   isDeleteModalOpen = false;
   isBulkDeleteModalOpen = false;
+  isDetailModalOpen = false;
   isEditMode = false;
   editingEquipmentId: number | null = null;
   equipmentToDelete: EquipmentModel | null = null;
+  equipmentToDetail: EquipmentModel | null = null;
   isSaving = false;
   formError = '';
   deleteError = '';
@@ -36,7 +39,11 @@ export class Equipment implements OnInit {
     imageUrl: ''
   };
 
-  constructor(private equipmentService: EquipmentService, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private equipmentService: EquipmentService, 
+    private cdr: ChangeDetectorRef,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadEquipments();
@@ -306,5 +313,22 @@ export class Equipment implements OnInit {
     if (!target.closest('.dropdown-container')) {
       this.closeDropdown();
     }
+  }
+
+  openDetailModal(equipment: EquipmentModel): void {
+    this.equipmentToDetail = equipment;
+    this.isDetailModalOpen = true;
+  }
+
+  closeDetailModal(): void {
+    this.isDetailModalOpen = false;
+    this.equipmentToDetail = null;
+  }
+
+  viewMaintenance(equipment: EquipmentModel): void {
+    this.closeDetailModal();
+    this.router.navigate(['/equipment/maintenance'], {
+      queryParams: { equipmentId: equipment.id }
+    });
   }
 }
