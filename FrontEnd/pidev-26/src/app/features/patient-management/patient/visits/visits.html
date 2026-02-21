@@ -1,0 +1,11 @@
+@if (!patientId) {
+  <div class="rounded-2xl bg-[#F2F6FE] p-4 text-[#4D5CAB]">No patient selected.</div>
+} @else {
+  @if (isLoading) {
+    <div class="rounded-xl bg-[#F2F6FE] px-3 py-2 text-[#4D5CAB]">Loading visits...</div>
+  } @else if (errorMessage) {
+    <div class="rounded-xl bg-[#F2F6FE] px-3 py-2 text-[#4D5CAB]">{{ errorMessage }}</div>
+  } @else {
+    <app-visit-list [visits]="visits"></app-visit-list>
+  }
+}

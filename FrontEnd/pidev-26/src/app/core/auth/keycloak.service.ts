@@ -90,6 +90,14 @@ export class KeycloakService {
     return this.keycloak.tokenParsed?.['preferred_username'] as string | undefined;
   }
 
+  getEmail(): string | undefined {
+    return this.keycloak.tokenParsed?.['email'] as string | undefined;
+  }
+
+  getPhoneNumber(): string | undefined {
+    return this.keycloak.tokenParsed?.['phone_number'] as string | undefined;
+  }
+
   getRealmRoles(): string[] {
     const realmAccess = this.keycloak.tokenParsed?.realm_access as any;
     return realmAccess?.roles ?? [];
