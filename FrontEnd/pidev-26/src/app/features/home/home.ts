@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { KeycloakService } from '../../core/auth/keycloak.service';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 
@@ -11,10 +12,16 @@ import { NzAlertModule } from 'ng-zorro-antd/alert';
 })
 export class Home implements OnInit {
   private readonly keycloak = inject(KeycloakService);
+  private readonly router = inject(Router);
   alertMessage: string | null = null;
 
   ngOnInit(): void {
     this.alertMessage = this.keycloak.getUnverifiedAlertMessage();
+
+    // If the user is already authenticated, send them to the dashboard
+    if (this.keycloak.isLoggedIn()) {
+      void this.router.navigateByUrl('/dashboard');
+    }
   }
 
   clearAlert(): void {

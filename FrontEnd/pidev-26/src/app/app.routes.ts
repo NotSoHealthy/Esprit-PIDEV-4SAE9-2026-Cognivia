@@ -27,7 +27,23 @@ export const routes: Routes = [
         title: 'Patients',
         canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
         loadChildren: () =>
-          import('./features/patient-management/patient-list.route').then((m) => m.routes),
+          import('./features/patient-management/patient-list.route').then((m) => m.routes),},
+      {
+
+        path: 'tasks',
+        loadComponent: () => import('./features/tasks/tasks.page').then((m) => m.TasksPage),
+      },
+      {
+        path: 'tasks/create',
+        loadComponent: () => import('./features/tasks/create/tasks-create.page').then((m) => m.TasksCreatePage),
+      },
+      {
+        path: 'tasks/list',
+        loadComponent: () => import('./features/tasks/list/tasks-list.page').then((m) => m.TasksListPage),
+      },
+      {
+        path: 'tasks/update',
+        loadComponent: () => import('./features/tasks/update/tasks-update.page').then((m) => m.TasksUpdatePage),
       },
     ],
   },

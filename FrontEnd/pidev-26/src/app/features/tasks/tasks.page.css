@@ -1,0 +1,615 @@
+/* ===================== Page Layout ===================== */
+.tasks-page {
+  padding: 8px 4px;
+  max-width: 1100px;
+}
+
+/* ===================== Page Header ===================== */
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.page-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1e2a55;
+  letter-spacing: -0.3px;
+}
+
+.page-subtitle {
+  font-size: 0.85rem;
+  color: #7b8db0;
+  margin-top: 3px;
+}
+
+/* ===================== Primary Button ===================== */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #4d5cab;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, box-shadow 0.18s, transform 0.12s;
+  box-shadow: 0 3px 10px rgba(77, 92, 171, 0.25);
+  white-space: nowrap;
+}
+
+.btn-primary:hover {
+  background: #3d4b9b;
+  box-shadow: 0 5px 16px rgba(77, 92, 171, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-icon {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.btn-secondary {
+  background: #f1f4fb;
+  color: #4d5cab;
+  border: 1.5px solid #c7d0ec;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-secondary:hover {
+  background: #e0e6f8;
+}
+
+/* ===================== Stat Cards ===================== */
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px 22px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 12px rgba(30, 42, 85, 0.06);
+  border: 1px solid rgba(199, 208, 236, 0.5);
+  transition: box-shadow 0.18s;
+}
+
+.stat-card:hover {
+  box-shadow: 0 4px 20px rgba(30, 42, 85, 0.1);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.stat-icon--total {
+  background: #eef1fc;
+  color: #4d5cab;
+}
+
+.stat-icon--progress {
+  background: #fff4e5;
+  color: #d97706;
+}
+
+.stat-icon--done {
+  background: #e8f8ef;
+  color: #059669;
+}
+
+.stat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #9aaac7;
+  text-transform: uppercase;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e2a55;
+  line-height: 1;
+}
+
+/* ===================== Loading ===================== */
+.loading-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #7b8db0;
+  font-size: 0.9rem;
+  padding: 32px 0;
+}
+
+.spinner {
+  width: 22px;
+  height: 22px;
+  border: 3px solid #d5daea;
+  border-top-color: #4d5cab;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===================== Empty State ===================== */
+.empty-state {
+  text-align: center;
+  padding: 56px 24px;
+  background: #fff;
+  border-radius: 20px;
+  border: 1px solid rgba(199, 208, 236, 0.5);
+  box-shadow: 0 2px 10px rgba(30, 42, 85, 0.05);
+}
+
+.empty-icon {
+  width: 52px;
+  height: 52px;
+  color: #b8c3df;
+  margin: 0 auto 14px;
+}
+
+.empty-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #5a6a8a;
+}
+
+.empty-sub {
+  font-size: 0.85rem;
+  color: #9aaac7;
+  margin-top: 4px;
+}
+
+/* ===================== Task Grid ===================== */
+.task-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+/* ===================== Task Card ===================== */
+.task-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 18px 20px;
+  border: 1px solid rgba(199, 208, 236, 0.5);
+  box-shadow: 0 2px 12px rgba(30, 42, 85, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: box-shadow 0.18s, transform 0.12s;
+}
+
+.task-card:hover {
+  box-shadow: 0 6px 22px rgba(30, 42, 85, 0.11);
+  transform: translateY(-2px);
+}
+
+/* Completed card: muted look */
+.task-card--completed {
+  border-color: #d1f0dc;
+  background: #f8fefb;
+}
+
+.task-card--completed .task-title {
+  text-decoration: line-through;
+  color: #9aaac7;
+}
+
+.task-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.task-card-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.task-card-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* ===================== Type Badges ===================== */
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.badge-general {
+  background: #eef1fc;
+  color: #4d5cab;
+}
+
+.badge-medication {
+  background: #fce4ec;
+  color: #c2185b;
+}
+
+.badge-exercise {
+  background: #e8f8ef;
+  color: #059669;
+}
+
+.badge-nutrition {
+  background: #fff8e1;
+  color: #d97706;
+}
+
+.badge-hygiene {
+  background: #e3f2fd;
+  color: #0277bd;
+}
+
+.badge-appointment {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.badge-monitoring {
+  background: #e0f2f1;
+  color: #00796b;
+}
+
+/* ===================== Status Pills ===================== */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.status-pill::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.status-in-progress {
+  background: #fff4e5;
+  color: #d97706;
+}
+
+.status-completed {
+  background: #e8f8ef;
+  color: #059669;
+}
+
+/* ===================== Task Title ===================== */
+.task-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e2a55;
+  line-height: 1.4;
+}
+
+/* ===================== Task Meta ===================== */
+.task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #f4f6fb;
+  border: 1px solid #e3e8f4;
+  border-radius: 8px;
+  padding: 4px 9px;
+  font-size: 0.75rem;
+  color: #5a6a8a;
+  font-weight: 500;
+}
+
+.meta-chip svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  color: #9aaac7;
+}
+
+/* ===================== Icon Buttons ===================== */
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.icon-btn svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.icon-btn--edit {
+  background: #eef1fc;
+  color: #4d5cab;
+}
+
+.icon-btn--edit:hover {
+  background: #dde3f8;
+  transform: scale(1.08);
+}
+
+.icon-btn--delete {
+  background: #fdecea;
+  color: #c62828;
+}
+
+.icon-btn--delete:hover {
+  background: #fbc8c8;
+  transform: scale(1.08);
+}
+
+/* ===================== Patient Done Toggle ===================== */
+.task-footer {
+  padding-top: 6px;
+  border-top: 1px solid #f0f3fb;
+}
+
+.toggle-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-label.disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.toggle-input {
+  display: none;
+}
+
+.toggle-track {
+  width: 38px;
+  height: 22px;
+  border-radius: 11px;
+  background: #d5daea;
+  position: relative;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+  transition: left 0.2s;
+}
+
+.toggle-label:has(.toggle-input:checked) .toggle-track {
+  background: #4d5cab;
+}
+
+.toggle-label:has(.toggle-input:checked) .toggle-thumb {
+  left: 19px;
+}
+
+.toggle-text {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #7b8db0;
+}
+
+/* ===================== Modal ===================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 20, 60, 0.35);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 420px;
+  max-width: 95vw;
+  background: #fff;
+  z-index: 101;
+  box-shadow: -8px 0 40px rgba(30, 42, 85, 0.18);
+  display: flex;
+  flex-direction: column;
+  animation: slideIn 0.25s cubic-bezier(.4, 0, .2, 1);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 28px 20px;
+  border-bottom: 1px solid #edf0f9;
+}
+
+.modal-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1e2a55;
+}
+
+.modal-close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: #f1f4fb;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5a6a8a;
+  transition: background 0.15s;
+}
+
+.modal-close:hover {
+  background: #e0e6f8;
+}
+
+.modal-close svg {
+  width: 16px;
+  height: 16px;
+}
+
+.modal-form {
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group--inline {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.form-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #5a6a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.form-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid #d5daea;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: #1e2a55;
+  background: #fafbff;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  appearance: auto;
+}
+
+.form-input:focus {
+  border-color: #4d5cab;
+  box-shadow: 0 0 0 3px rgba(77, 92, 171, 0.12);
+  background: #fff;
+}
+
+.form-checkbox {
+  width: 20px;
+  height: 20px;
+  accent-color: #4d5cab;
+  cursor: pointer;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  border-top: 1px solid #edf0f9;
+  padding-top: 20px;
+  margin-top: auto;
+}

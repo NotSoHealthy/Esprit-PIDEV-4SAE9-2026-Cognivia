@@ -12,6 +12,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -32,6 +33,12 @@ public class PatientService implements IService<Patient> {
 
     @Override
     public Patient create(Patient entity) {
+        if (entity.getUserId() != null) {
+            Optional<Patient> existingPatient = patientRepository.findByUserId(entity.getUserId());
+            if (existingPatient.isPresent()) {
+                throw new IllegalStateException("Patient with userId " + entity.getUserId() + " already exists");
+            }
+        }
         return patientRepository.save(entity);
     }
 
@@ -57,17 +64,14 @@ public class PatientService implements IService<Patient> {
     }
 
     public Patient getByUserId(UUID userId) {
-        return patientRepository.findByUserId(userId)
-            .map(patient -> {
-                Patient result = new Patient();
-                result.setId(patient.getId());
-                result.setUserId(patient.getUserId());
-                result.setFirstName(patient.getFirstName());
-                result.setLastName(patient.getLastName());
-                result.setDateOfBirth(patient.getDateOfBirth());
-                return result;
-            })
-            .orElse(null);
+        java.util.List<Patient> patients = patientRepository.findAllByUserId(userId);
+        if (patients.isEmpty()) {
+            return null;
+        }
+        if (patients.size() > 1) {
+            System.err.println("WARNING: Multiple patients found for userId: " + userId + ". Returning the first one.");
+        }
+        return patients.get(0);
     }
 
     public List<Patient> getByDoctorId(Long doctorId) {

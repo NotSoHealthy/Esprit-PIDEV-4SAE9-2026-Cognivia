@@ -1,0 +1,6 @@
+.page { max-width:900px; margin:0 auto }
+.controls { margin-bottom:8px }
+.tasks-table { width:100%; border-collapse:collapse }
+.tasks-table th, .tasks-table td { border:1px solid #e2e8f0; padding:6px }
+.btn.danger { background:#fff0f0; color:#a00; padding:6px 8px; border-radius:4px }
+.empty { color:#666 }

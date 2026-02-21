@@ -1,0 +1,35 @@
+<div class="page">
+  <h2>Update Task</h2>
+  <div>
+    <label>Task ID</label>
+    <input type="number" [(ngModel)]="id" name="id" />
+    <button class="btn" (click)="load()">Load</button>
+  </div>
+
+  <div *ngIf="model">
+    <div>
+      <label>Patient ID</label>
+      <input type="number" [(ngModel)]="model.patientId" name="patientId" />
+    </div>
+    <div>
+      <label>User ID</label>
+      <input type="number" [(ngModel)]="model.userId" name="userId" />
+    </div>
+    <div>
+      <label>Task</label>
+      <input [(ngModel)]="model.task" name="task" />
+    </div>
+    <div>
+      <label>Type</label>
+      <input [(ngModel)]="model.taskType" name="taskType" />
+    </div>
+    <div>
+      <label>Due</label>
+      <input type="datetime-local" [(ngModel)]="model.dueAt" name="dueAt" />
+    </div>
+    <div class="actions">
+      <button class="btn primary" (click)="update()">Update</button>
+    </div>
+  </div>
+  <p>{{ message }}</p>
+</div>

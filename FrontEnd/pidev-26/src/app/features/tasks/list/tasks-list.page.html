@@ -1,0 +1,24 @@
+<div class="page">
+  <h2>Tasks List</h2>
+  <div class="controls">
+    <button class="btn" (click)="loadAll()">Reload</button>
+  </div>
+  <p *ngIf="message">{{ message }}</p>
+  <table *ngIf="tasks.length>0" class="tasks-table">
+    <thead>
+      <tr><th>ID</th><th>Patient</th><th>User</th><th>Task</th><th>Due</th><th>Done</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let t of tasks">
+        <td>{{t.id}}</td>
+        <td>{{t.patientId}}</td>
+        <td>{{t.userId}}</td>
+        <td>{{t.task}}</td>
+        <td>{{t.dueAt|date:'short'}}</td>
+        <td>{{t.isDone ? 'Yes' : 'No'}}</td>
+        <td><button class="btn danger" (click)="remove(t.id)">Delete</button></td>
+      </tr>
+    </tbody>
+  </table>
+  <div *ngIf="tasks.length===0" class="empty">No tasks</div>
+</div>

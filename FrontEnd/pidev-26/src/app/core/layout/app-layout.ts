@@ -46,6 +46,18 @@ export class AppLayout implements OnInit {
     {
       link: '/patient-management',
       label: 'Patient Management',
+      icon: 'check',
+      roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_PATIENT', 'ROLE_ADMIN'],
+    },
+    {
+      link: '/tasks',
+      label: 'Tasks',
+      icon: 'check',
+      roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_PATIENT', 'ROLE_ADMIN'],
+    },
+    {
+      link: '/patients',
+      label: 'Patients',
       icon: 'user-add',
       roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'],
     },
