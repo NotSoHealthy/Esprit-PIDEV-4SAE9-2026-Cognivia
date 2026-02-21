@@ -23,6 +23,8 @@ public class Comment {
 
     private LocalDateTime updatedAt;
 
+    private Long parentId;
+
     @ManyToOne
     @JoinColumn(name = "post_id")
     @JsonIgnore
@@ -87,6 +89,14 @@ public class Comment {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Long getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(Long parentId) {
+        this.parentId = parentId;
     }
 
     public Post getPost() {

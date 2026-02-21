@@ -36,7 +36,11 @@
                                 </span>
                             </span>
                             <span class="meta-dot">·</span>
-                            <span class="post-time">{{ post.createdAt | timeAgo }}</span>
+                            <span class="post-time">
+                                {{ post.createdAt | timeAgo }}
+                                <span *ngIf="isEdited(post)"
+                                    class="edited-indicator ml-1 opacity-60 text-[10px]">(edited)</span>
+                            </span>
                             <span class="meta-dot">·</span>
                             <span class="post-category-tag">
                                 {{ getCategoryIcon(post.category) }} {{ getCategoryLabel(post.category) }}

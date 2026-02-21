@@ -42,6 +42,13 @@ import {
   WarningOutline,
   CheckCircleOutline,
   CheckCircleFill,
+  ProfileOutline,
+  SettingOutline,
+  WifiOutline,
+  TagsOutline,
+  ShareAltOutline,
+  LinkOutline,
+  RollbackOutline,
 } from '@ant-design/icons-angular/icons';
 
 export const appConfig: ApplicationConfig = {
@@ -88,6 +95,13 @@ export const appConfig: ApplicationConfig = {
       WarningOutline,
       CheckCircleOutline,
       CheckCircleFill,
+      ProfileOutline,
+      SettingOutline,
+      WifiOutline,
+      TagsOutline,
+      ShareAltOutline,
+      LinkOutline,
+      RollbackOutline,
     ]),
   ],
 };

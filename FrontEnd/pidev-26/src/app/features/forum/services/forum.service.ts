@@ -6,15 +6,23 @@ import { Comment } from '../models/comment.model';
 import { Reaction, ReactionType } from '../models/reaction.model';
 
 import { KeycloakService } from '../../../core/auth/keycloak.service';
+import { Inject } from '@angular/core';
+import { API_BASE_URL } from '../../../core/api/api.tokens';
 
 @Injectable({
     providedIn: 'root'
 })
 export class ForumService {
 
-    private apiUrl = 'http://localhost:8085/posts';
+    private apiUrl: string;
 
-    constructor(private http: HttpClient, private keycloakService: KeycloakService) { }
+    constructor(
+        private http: HttpClient,
+        private keycloakService: KeycloakService,
+        @Inject(API_BASE_URL) private baseUrl: string
+    ) {
+        this.apiUrl = `${this.baseUrl}/posts`;
+    }
 
     // Posts
     getAllPosts(): Observable<Post[]> {
@@ -69,7 +77,7 @@ export class ForumService {
     }
 
     deleteReaction(postId: number, reactionId: number): Observable<void> {
-        return this.http.delete<void>(`http://localhost:8085/posts/reactions/${reactionId}`);
+        return this.http.delete<void>(`${this.apiUrl}/reactions/${reactionId}`);
     }
 
     // Pin

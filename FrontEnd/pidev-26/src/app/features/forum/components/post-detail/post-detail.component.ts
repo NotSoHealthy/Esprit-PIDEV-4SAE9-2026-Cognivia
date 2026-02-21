@@ -58,6 +58,7 @@ export class PostDetailComponent implements OnInit {
     newCommentContent: string = '';
     tempEditContent: string = '';
     currentUserId: string = '';
+    selectedParentId: number | null = null;
 
     private location = inject(Location);
     private route = inject(ActivatedRoute);
@@ -104,10 +105,10 @@ export class PostDetailComponent implements OnInit {
         return cat ? cat.icon : '🗺️';
     }
 
-    isDoctor(post: Post | null): boolean {
-        if (!post) return false;
-        const username = post.username || post.userId || '';
-        return username.toLowerCase().includes('doctor');
+    isDoctor(item: { username?: string, userId?: string } | null): boolean {
+        if (!item) return false;
+        const name = item.username || item.userId || '';
+        return name.toLowerCase().includes('doctor');
     }
 
     goBack(): void {
@@ -130,7 +131,23 @@ export class PostDetailComponent implements OnInit {
         this.forumService.getCommentsByPostId(postId).subscribe({
             next: (data: Comment[]) => {
                 this.ngZone.run(() => {
-                    this.comments = data || [];
+                    const rawComments = data || [];
+                    // Simple nesting logic: group replies under parents
+                    const parents = rawComments.filter(c => !c.parentId);
+                    const replies = rawComments.filter(c => c.parentId);
+
+                    const sorted: Comment[] = [];
+                    parents.forEach(p => {
+                        sorted.push(p);
+                        const children = replies.filter(r => r.parentId === p.id);
+                        sorted.push(...children);
+                    });
+
+                    // Add any orphan replies at the end
+                    const orphanReplies = replies.filter(r => !parents.find(p => p.id === r.parentId));
+                    sorted.push(...orphanReplies);
+
+                    this.comments = sorted;
                     this.cdr.detectChanges();
                 });
             },
@@ -145,15 +162,16 @@ export class PostDetailComponent implements OnInit {
             id: 0,
             content: this.newCommentContent,
             userId: this.currentUserId,
-            username: this.keycloakService.getUsername()
+            username: this.keycloakService.getUsername(),
+            parentId: this.selectedParentId || undefined
         };
 
         this.forumService.addComment(this.post.id, newComment).subscribe({
-            next: (comment: Comment) => {
+            next: () => {
                 this.ngZone.run(() => {
-                    this.comments.push(comment);
                     this.newCommentContent = '';
-                    this.cdr.detectChanges();
+                    this.selectedParentId = null;
+                    this.loadComments(this.post!.id);
                 });
             },
             error: (e: any) => console.error('Error adding comment', e)
@@ -317,5 +335,86 @@ export class PostDetailComponent implements OnInit {
         if (!post || !post.reactions) return null;
         const reaction = post.reactions.find(r => r.userId === this.currentUserId);
         return reaction ? reaction.type : null;
+    }
+
+    repost(post: Post, event: Event): void {
+        event.stopPropagation();
+        event.preventDefault();
+
+        const repostTitle = `Repost: ${post.title}`;
+        const repostContent = `Originally posted by @${post.username || post.userId}:\n\n${post.content}`;
+
+        const newPost: Post = {
+            id: 0,
+            title: repostTitle,
+            content: repostContent,
+            category: post.category || 'general'
+        };
+
+        this.forumService.createPost(newPost).subscribe({
+            next: () => {
+                this.message.success('Post shared successfully!');
+                this.router.navigate(['/posts']);
+            },
+            error: (e: any) => {
+                console.error('Error reposting', e);
+                this.message.error('Failed to share post');
+            }
+        });
+    }
+
+    replyToComment(comment: Comment): void {
+        const mention = `@${comment.username || comment.userId} `;
+        if (!this.newCommentContent.includes(mention)) {
+            this.newCommentContent = mention + this.newCommentContent;
+        }
+
+        // If the comment we're replying to is itself a reply, we link to its parent 
+        // to maintain only one level of nesting (classic forum style)
+        this.selectedParentId = comment.parentId || comment.id;
+
+        // Scroll to the reply box
+        const element = document.querySelector('.comment-input-card') || document.querySelector('textarea');
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (element instanceof HTMLTextAreaElement) {
+                element.focus();
+            } else {
+                const textarea = element.querySelector('textarea');
+                if (textarea) textarea.focus();
+            }
+        }
+    }
+
+    reportPost(): void {
+        if (!this.post) return;
+
+        this.modal.confirm({
+            nzTitle: 'Report this post?',
+            nzContent: 'If you find this post inappropriate, you can report it. Posts with multiple reports will be automatically suspended.',
+            nzOkText: 'Report',
+            nzOkType: 'primary',
+            nzOkDanger: true,
+            nzOnOk: () => {
+                this.forumService.reportPost(this.post!.id).subscribe({
+                    next: () => {
+                        this.message.success('Post reported successfully.');
+                        this.router.navigate(['/posts']);
+                    },
+                    error: (err: any) => {
+                        const msg = err?.error?.message || 'Failed to report post.';
+                        this.message.error(msg);
+                    }
+                });
+            }
+        });
+    }
+
+    isEdited(item: any): boolean {
+        if (!item.createdAt || !item.updatedAt) return false;
+        const created = new Date(item.createdAt).getTime();
+        const updated = new Date(item.updatedAt).getTime();
+        // Return true if updated more than 5 seconds after creation
+        return (updated - created) > 5000;
     }
 }

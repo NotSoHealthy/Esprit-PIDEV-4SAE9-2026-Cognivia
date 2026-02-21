@@ -245,4 +245,11 @@ export class PostListComponent implements OnInit {
             }
         });
     }
+
+    isEdited(item: any): boolean {
+        if (!item.createdAt || !item.updatedAt) return false;
+        const created = new Date(item.createdAt).getTime();
+        const updated = new Date(item.updatedAt).getTime();
+        return (updated - created) > 5000;
+    }
 }

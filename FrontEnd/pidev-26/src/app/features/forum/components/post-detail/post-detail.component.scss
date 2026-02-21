@@ -1,159 +1,140 @@
+// =============================================
+// Classic Forum UI — Professional Two-Column Layout
+// =============================================
+
+$blue-header: #3498db;
+$sidebar-bg: #f8f9fa;
+$border-color: #e2e8f0;
+$text-dark: #2d3748;
+$text-muted: #718096;
+$accent-blue: #2980b9;
+$success-green: #27ae60;
+
 .post-detail-page {
     min-height: 100vh;
-    background-color: var(--bg-app);
+    background-color: #eef2f7;
+    padding-bottom: 60px;
 }
 
-.post-main-card {
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+// ----- Header Bar -----
+.forum-header-bar {
+    background: $blue-header;
+    border: 1px solid rgba(white, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
 
-    .post-header-area {
-        .post-detail-title {
-            color: var(--text-main);
-            letter-spacing: -0.01em;
+// ----- Main Container -----
+.forum-post-container {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+// ----- User Sidebar -----
+.forum-user-sidebar {
+    .user-avatar-large {
+        border: 4px solid white;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .user-avatar-md {
+        border: 2px solid white;
+        background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+        color: #2c3e50;
+        font-weight: 800;
+    }
+
+    .status-indicator {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        border: 2px solid white;
+
+        &.online {
+            background: #2ecc71;
+        }
+
+        &.offline {
+            background: #95a5a6;
         }
     }
 
-    .post-author-meta {
-        .meta-info {
-            .author-name {
-                line-height: 1.2;
-            }
-
-            .post-timestamp {
-                opacity: 0.7;
-            }
-        }
-    }
-
-    .post-content-area {
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        hyphens: auto;
+    .user-name {
+        letter-spacing: -0.01em;
+        line-height: 1.2;
     }
 }
 
-.action-btn {
-    &.like-btn {
-        color: var(--text-secondary);
-
-        &:hover {
-            background: rgba(34, 197, 94, 0.08);
-            color: #22c55e;
-        }
-
-        &.active {
-            background: transparent;
-            color: #22c55e;
-        }
-    }
-
-    &.dislike-btn {
-        color: var(--text-secondary);
-
-        &:hover {
-            background: rgba(239, 68, 68, 0.08);
-            color: #ef4444;
-        }
-
-        &.active {
-            background: transparent;
-            color: #ef4444;
-        }
-    }
-}
-
-.comment-compose-card {
-    .reply-submit-btn {
-        box-shadow: 0 4px 12px rgba(24, 144, 255, 0.2);
-
-        &:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(24, 144, 255, 0.3);
-        }
-    }
-}
-
-.forum-comment-item {
-    .comment-header {
-        .comment-date {
-            opacity: 0.6;
-        }
-    }
-
-    .comment-body {
-        font-size: 1.05rem;
-        color: var(--text-main);
-    }
-
-    .comment-actions {
-        opacity: 0.8;
-
-        &:hover {
-            opacity: 1;
-        }
-    }
-}
-
-.user-avatar {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    color: white;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.empty-replies {
-    opacity: 0.8;
-}
-
-// Variables (Sync with list for consistency)
-$purple: #5b21b6;
-$purple-light: #7c3aed;
-$border-light: #e5e7eb;
-$text-dark: #1f2937;
-$text-secondary: #6b7280;
-$text-muted: #9ca3af;
-
-.verified-badge {
-    color: #10b981; // Green color
-    font-size: 1rem;
-    display: inline-flex;
-    cursor: pointer;
-}
-
-.post-footer-actions {
-    .action-group {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-}
-
-// ----- Facebook Style Reaction Picker -----
-.reaction-container {
+// ----- Content Area -----
+.forum-content-area {
+    background: white;
     position: relative;
-    display: inline-block;
+
+    .post-title {
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+    }
+
+    .timestamp {
+        opacity: 0.8;
+    }
+}
+
+// ----- Classic Tags -----
+.classic-tag {
+    background: #edf2f7;
+    color: #4a5568;
+    border: 1px solid #cbd5e0;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 4px;
+    transition: all 0.2s;
 
     &:hover {
-        z-index: 1000;
-
-        .reaction-picker {
-            visibility: visible;
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
+        background: $blue-header;
+        color: white;
+        border-color: $blue-header;
     }
 }
 
-.reaction-main-btn {
-    text-transform: capitalize;
-    font-weight: 600 !important;
+// ----- Action Buttons -----
+.classic-action-btn {
+    height: 32px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    white-space: nowrap;
+
+    &:hover {
+        background: white;
+        color: $blue-header;
+        border-color: $blue-header;
+    }
 
     &.active {
-        color: $purple !important;
-        background: rgba($purple, 0.08) !important;
+        background: rgba($blue-header, 0.1);
+        color: $blue-header;
+        border-color: $blue-header;
+    }
+}
+
+// ----- Reactions -----
+.reaction-container {
+    position: relative;
+
+    &:hover .reaction-picker {
+        visibility: visible;
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
@@ -161,124 +142,107 @@ $text-muted: #9ca3af;
     position: absolute;
     bottom: 100%;
     left: 0;
-    display: flex;
-    gap: 8px;
-    padding: 8px 12px;
     background: white;
+    padding: 8px 12px;
     border-radius: 30px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    display: flex;
+    gap: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     border: 1px solid #e2e8f0;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     visibility: hidden;
     opacity: 0;
-    transform: translateY(10px) scale(0.9);
+    transform: translateY(10px);
     transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     z-index: 100;
 
     .reaction-option {
+        font-size: 1.5rem;
         cursor: pointer;
         transition: transform 0.2s;
-        font-size: 1.5rem;
-        line-height: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
 
         &:hover {
             transform: scale(1.4);
         }
-
-        .emoji {
-            user-select: none;
-        }
     }
 }
 
-// ----- Facebook Style Reaction Summary (Icons + Count) -----
 .reaction-summary {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    border: 1px solid #f1f5f9;
-    cursor: pointer;
-    transition: all 0.2s ease;
-
-    &:hover {
-        background: #f8fafc;
-        transform: scale(1.05);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
     .emoji-stack {
-        display: flex;
-        align-items: center;
-
         .summary-emoji {
-            font-size: 0.9rem;
             margin-right: -4px;
-            border: 2px solid white;
-            border-radius: 50%;
             background: white;
-            line-height: 1;
+            border-radius: 50%;
+            padding: 2px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 
-            &:last-child {
-                margin-right: 0;
+            &:last-of-type {
+                margin-right: 4px;
             }
         }
     }
 
     .total-count {
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: #64748b;
         margin-left: 2px;
     }
 }
 
-.action-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 0 16px !important;
-    height: 36px !important;
-    border-radius: 20px !important;
-    font-size: 0.85rem !important;
-    font-weight: 600 !important;
-    color: #475569 !important;
-    transition: all 0.2s ease !important;
+// ----- Comment Stack -----
+.comment-row {
+    transition: transform 0.2s, box-shadow 0.2s;
 
     &:hover {
-        background: #f1f5f9 !important;
-        color: $purple !important;
-    }
-
-    &.active {
-        color: $purple !important;
-        background: rgba($purple, 0.08) !important;
-    }
-
-    .anticon {
-        font-size: 1.1rem;
+        transform: translateX(4px);
+        box-shadow: -4px 4px 0px rgba($blue-header, 0.1);
     }
 }
 
-@media (max-width: 640px) {
-    .post-header-area {
-        padding: 1.5rem !important;
+.reply-indent {
+    margin-left: 60px;
+    border-left: 4px solid rgba($blue-header, 0.3) !important;
+    background-color: #fcfdfe !important;
+    transform: scale(0.98);
+    transform-origin: right top;
+}
+
+// Inline Quote Styling
+::ng-deep {
+    .mention {
+        color: $blue-header !important;
+        font-weight: 800 !important;
+        background: rgba($blue-header, 0.08) !important;
+        padding: 0 6px !important;
+        border-radius: 3px !important;
     }
 
-    .post-content-area {
-        padding: 1.5rem !important;
-        font-size: 1.1rem;
+    .hashtag {
+        color: $success-green !important;
+        font-weight: 700 !important;
     }
+}
 
-    .post-footer-actions {
+// Mobile Responsive
+@media (max-width: 768px) {
+    .flex {
         flex-direction: column;
-        gap: 1.5rem;
-        align-items: flex-start !important;
+    }
+
+    .forum-user-sidebar {
+        width: 100% !important;
+        border-right: none !important;
+        border-bottom: 1px solid $border-color;
+        flex-direction: row !important;
+        justify-content: center;
+        gap: 20px;
+        padding: 15px !important;
+    }
+
+    .user-avatar-large {
+        width: 50px !important;
+        height: 50px !important;
+    }
+
+    .user-stats {
+        display: none;
     }
 }
