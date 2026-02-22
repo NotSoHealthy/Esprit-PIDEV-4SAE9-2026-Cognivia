@@ -14,21 +14,28 @@ public class CommentServiceImpl implements CommentService {
 
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
+    private final UserLookupService userLookupService;
 
-    public CommentServiceImpl(CommentRepository commentRepository, PostRepository postRepository) {
+    public CommentServiceImpl(CommentRepository commentRepository, PostRepository postRepository,
+            UserLookupService userLookupService) {
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
+        this.userLookupService = userLookupService;
     }
 
     @Override
     public List<Comment> getCommentsByPostId(Long postId) {
-        return commentRepository.findByPostId(postId);
+        List<Comment> comments = commentRepository.findByPostId(postId);
+        comments.forEach(this::enrichWithAuthorInfo);
+        return comments;
     }
 
     @Override
     public Comment getCommentById(Long id) {
-        return commentRepository.findById(id)
+        Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Comment not found with id: " + id));
+        enrichWithAuthorInfo(comment);
+        return comment;
     }
 
     @Override
@@ -51,5 +58,12 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public void deleteComment(Long id) {
         commentRepository.deleteById(id);
+    }
+
+    private void enrichWithAuthorInfo(Comment comment) {
+        userLookupService.lookupUser(comment.getUserId()).ifPresent(profile -> {
+            comment.setAuthorFullName(profile.fullName);
+            comment.setAuthorRole(profile.role);
+        });
     }
 }

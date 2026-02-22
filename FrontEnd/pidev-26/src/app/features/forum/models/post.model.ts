@@ -22,4 +22,6 @@ export interface Post {
     isDoctor?: boolean;
     banned?: boolean;
     category?: string;
+    authorFullName?: string;
+    authorRole?: string;
 }

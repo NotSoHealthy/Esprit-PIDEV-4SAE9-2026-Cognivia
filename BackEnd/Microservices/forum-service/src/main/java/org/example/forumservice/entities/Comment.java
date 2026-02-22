@@ -30,6 +30,12 @@ public class Comment {
     @JsonIgnore
     private Post post;
 
+    @Transient
+    private String authorFullName;
+
+    @Transient
+    private String authorRole;
+
     public Comment() {
     }
 
@@ -105,6 +111,22 @@ public class Comment {
 
     public void setPost(Post post) {
         this.post = post;
+    }
+
+    public String getAuthorFullName() {
+        return authorFullName;
+    }
+
+    public void setAuthorFullName(String authorFullName) {
+        this.authorFullName = authorFullName;
+    }
+
+    public String getAuthorRole() {
+        return authorRole;
+    }
+
+    public void setAuthorRole(String authorRole) {
+        this.authorRole = authorRole;
     }
 
     @PrePersist

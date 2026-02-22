@@ -7,4 +7,6 @@ export interface Comment {
     userId?: string;
     username?: string;
     parentId?: number;
+    authorFullName?: string;
+    authorRole?: string;
 }

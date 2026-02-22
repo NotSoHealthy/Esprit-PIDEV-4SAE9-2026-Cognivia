@@ -16,15 +16,18 @@ public class PostServiceImpl implements PostService {
     private final org.example.forumservice.repositories.ReactionRepository reactionRepository;
     private final org.example.forumservice.repositories.PinnedPostRepository pinnedPostRepository;
     private final org.example.forumservice.repositories.ReportRepository reportRepository;
+    private final UserLookupService userLookupService;
 
     public PostServiceImpl(PostRepository postRepository,
             org.example.forumservice.repositories.ReactionRepository reactionRepository,
             org.example.forumservice.repositories.PinnedPostRepository pinnedPostRepository,
-            org.example.forumservice.repositories.ReportRepository reportRepository) {
+            org.example.forumservice.repositories.ReportRepository reportRepository,
+            UserLookupService userLookupService) {
         this.postRepository = postRepository;
         this.reactionRepository = reactionRepository;
         this.pinnedPostRepository = pinnedPostRepository;
         this.reportRepository = reportRepository;
+        this.userLookupService = userLookupService;
     }
 
     @Override
@@ -34,6 +37,7 @@ public class PostServiceImpl implements PostService {
                 .filter(post -> !post.isBanned())
                 .peek(post -> {
                     populateCounts(post);
+                    enrichWithAuthorInfo(post);
                     if (userId != null) {
                         post.setPinned(pinnedPostRepository.findByPostAndUserId(post, userId).isPresent());
                     }
@@ -53,7 +57,15 @@ public class PostServiceImpl implements PostService {
         }
 
         populateCounts(post);
+        enrichWithAuthorInfo(post);
         return post;
+    }
+
+    private void enrichWithAuthorInfo(Post post) {
+        userLookupService.lookupUser(post.getUserId()).ifPresent(profile -> {
+            post.setAuthorFullName(profile.fullName);
+            post.setAuthorRole(profile.role);
+        });
     }
 
     private void populateCounts(Post post) {

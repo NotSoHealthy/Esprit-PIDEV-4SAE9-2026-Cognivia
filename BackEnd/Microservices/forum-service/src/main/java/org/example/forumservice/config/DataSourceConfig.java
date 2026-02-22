@@ -1,0 +1,33 @@
+package org.example.forumservice.config;
+
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+
+import javax.sql.DataSource;
+
+@Configuration
+public class DataSourceConfig {
+
+    @Bean
+    @Primary
+    @ConfigurationProperties(prefix = "spring.datasource")
+    public DataSource dataSource() {
+        return DataSourceBuilder.create().build();
+    }
+
+    @Bean(name = "careDataSource")
+    @ConfigurationProperties(prefix = "care.datasource")
+    public DataSource careDataSource() {
+        return DataSourceBuilder.create().build();
+    }
+
+    @Bean(name = "careJdbcTemplate")
+    public NamedParameterJdbcTemplate careJdbcTemplate(@Qualifier("careDataSource") DataSource careDataSource) {
+        return new NamedParameterJdbcTemplate(careDataSource);
+    }
+}

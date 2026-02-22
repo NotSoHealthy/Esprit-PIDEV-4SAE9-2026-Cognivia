@@ -29,10 +29,13 @@
                         <!-- Top Metadata Row (Reddit style) -->
                         <div class="post-card-header">
                             <span class="meta-author">
-                                {{ post.username || post.userId || 'Anonymous' }}
-                                <span *ngIf="isDoctor(post)" class="verified-badge" nz-tooltip
-                                    nzTooltipTitle="Verified Doctor">
+                                {{ post.authorFullName || post.username || post.userId || 'Anonymous' }}
+                                <span *ngIf="post.authorRole === 'Doctor' || isDoctor(post)" class="verified-badge"
+                                    nz-tooltip nzTooltipTitle="Verified Doctor">
                                     <span nz-icon nzType="check-circle" nzTheme="fill"></span>
+                                </span>
+                                <span *ngIf="post.authorRole === 'Caregiver'" class="role-badge caregiver-badge">
+                                    Caregiver
                                 </span>
                             </span>
                             <span class="meta-dot">·</span>

@@ -39,16 +39,16 @@
                         <span class="status-indicator online" title="Online"></span>
                     </div>
 
-                    <div class="user-name-wrapper mb-2">
-                        <span class="user-name font-bold text-gray-900 block truncate"
-                            [title]="post.username || post.userId">
-                            @{{ post.username || post.userId || 'anonymous' }}
-                        </span>
-                        <nz-tag *ngIf="currentUserId === 'admin' || post.userId === 'admin'" [nzColor]="'blue'"
-                            class="mt-1 text-[10px] uppercase font-bold">Admin</nz-tag>
-                        <nz-tag *ngIf="isDoctor(post)" [nzColor]="'cyan'"
-                            class="mt-1 text-[10px] uppercase font-bold">Doctor</nz-tag>
-                    </div>
+                    <span class="user-name font-bold text-gray-900 block truncate"
+                        [title]="post.authorFullName || post.username || post.userId">
+                        {{ post.authorFullName || '@' + (post.username || post.userId || 'anonymous') }}
+                    </span>
+                    <nz-tag *ngIf="currentUserId === 'admin' || post.userId === 'admin'" [nzColor]="'blue'"
+                        class="mt-1 text-[10px] uppercase font-bold">Admin</nz-tag>
+                    <nz-tag *ngIf="post.authorRole === 'Doctor' || isDoctor(post)" [nzColor]="'cyan'"
+                        class="mt-1 text-[10px] uppercase font-bold">Doctor</nz-tag>
+                    <nz-tag *ngIf="post.authorRole === 'Caregiver'" [nzColor]="'orange'"
+                        class="mt-1 text-[10px] uppercase font-bold">Caregiver</nz-tag>
 
                     <div
                         class="user-stats text-[11px] text-gray-500 space-y-1 mt-4 pt-4 border-t border-gray-200 w-full">
@@ -171,13 +171,16 @@
                     class="forum-user-sidebar w-48 shrink-0 bg-[#f8f9fa] border-r border-gray-100 p-4 flex flex-col items-center">
                     <nz-avatar [nzSize]="60" [nzText]="(comment.username || comment.userId || 'A')[0].toUpperCase()"
                         class="user-avatar-md shadow-sm mb-3"></nz-avatar>
-                    <span class="user-name font-bold text-gray-800 text-sm truncate w-full text-center">
-                        @{{ comment.username || comment.userId }}
+                    <span class="user-name font-bold text-gray-800 text-sm truncate w-full text-center"
+                        [title]="comment.authorFullName || comment.username || comment.userId">
+                        {{ comment.authorFullName || '@' + (comment.username || comment.userId) }}
                     </span>
                     <div class="comment-user-role mt-1">
-                        <nz-tag *ngIf="isDoctor(comment)" nzColor="processing"
+                        <nz-tag *ngIf="comment.authorRole === 'Doctor' || isDoctor(comment)" nzColor="processing"
                             class="text-[10px] uppercase font-bold">Doctor</nz-tag>
-                        <span *ngIf="!isDoctor(comment)"
+                        <nz-tag *ngIf="comment.authorRole === 'Caregiver'" nzColor="warning"
+                            class="text-[10px] uppercase font-bold">Caregiver</nz-tag>
+                        <span *ngIf="!comment.authorRole && !isDoctor(comment)"
                             class="text-[10px] text-gray-500 uppercase font-semibold">Member</span>
                     </div>
                 </aside>

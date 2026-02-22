@@ -245,6 +245,23 @@ $radius-md: 8px;
             display: inline-flex;
             cursor: pointer;
         }
+
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-left: 4px;
+        }
+
+        .caregiver-badge {
+            background: #fff7ed;
+            color: #c2410c;
+            border: 1px solid #ffedd5;
+        }
     }
 
     .meta-dot {

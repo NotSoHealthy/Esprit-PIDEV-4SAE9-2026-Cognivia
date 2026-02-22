@@ -60,6 +60,12 @@ public class Post {
     @Transient
     private long angryCount;
 
+    @Transient
+    private String authorFullName;
+
+    @Transient
+    private String authorRole;
+
     public Post() {
     }
 
@@ -193,6 +199,22 @@ public class Post {
 
     public void setAngryCount(long angryCount) {
         this.angryCount = angryCount;
+    }
+
+    public String getAuthorFullName() {
+        return authorFullName;
+    }
+
+    public void setAuthorFullName(String authorFullName) {
+        this.authorFullName = authorFullName;
+    }
+
+    public String getAuthorRole() {
+        return authorRole;
+    }
+
+    public void setAuthorRole(String authorRole) {
+        this.authorRole = authorRole;
     }
 
     public LocalDateTime getCreatedAt() {
