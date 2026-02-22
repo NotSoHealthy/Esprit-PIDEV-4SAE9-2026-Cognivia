@@ -1,22 +1,55 @@
 <div class="admin-container">
+  <!-- Title Section -->
   <div class="header">
-    <h1>Cognitive Tests Management</h1>
-    <button class="btn btn-primary" [routerLink]="['/admin/tests/new']">Create New Test</button>
+    <div class="title-section">
+      <h1>Cognitive Tests</h1>
+      <p class="subtitle">Design and assign assessments to patients</p>
+    </div>
+    <button class="btn btn-primary" [routerLink]="['/admin/tests/new']">+ Create New Test</button>
+  </div>
+
+  <!-- Search & Sort Bar -->
+  <div class="controls-bar glass">
+    <div class="search-box">
+      <nz-icon nzType="search" />
+      <input type="text" [(ngModel)]="searchTerm" placeholder="Search by title or description..." />
+    </div>
+    <div class="sort-box">
+      <label>Sort by:</label>
+      <select [(ngModel)]="sortBy" class="sort-select">
+        <option value="title">Alphabetical</option>
+        <option value="questions">Question Count</option>
+      </select>
+    </div>
   </div>
 
   <div class="test-grid">
-    @for (test of tests; track test) {
-    <div class="test-card glass">
-      <h3>{{ test.title }}</h3>
-      <p>{{ test.description }}</p>
+    @for (test of filteredTests; track test.id; let i = $index) {
+    <div class="test-card glass fade-in-up" [style.animation-delay]="(i * 0.1) + 's'">
+      <div class="card-header">
+        <h3>{{ test.title }}</h3>
+        <span class="q-badge">{{ test.questions.length }} Questions</span>
+      </div>
+      <p class="description">{{ test.description }}</p>
       <div class="card-footer">
-        <span>Questions: {{ test.questions.length }}</span>
         <div class="actions">
-          <button class="btn btn-icon" [routerLink]="['/admin/tests/edit', test.id]" title="Edit Test">✎</button>
-          <button class="btn btn-icon assign" (click)="openAssignModal(test)" title="Assign Test">📋</button>
-          <button class="btn btn-icon danger" (click)="deleteTest(test.id)" title="Delete Test">🗑</button>
+          <button class="btn btn-icon edit" [routerLink]="['/admin/tests/edit', test.id]" title="Edit Test">
+            <nz-icon nzType="edit" />
+          </button>
+          <button class="btn btn-icon assign" (click)="openAssignModal(test)" title="Assign Test">
+            <nz-icon nzType="book" />
+          </button>
+          <button class="btn btn-icon delete" (click)="deleteTest(test.id)" title="Delete Test">
+            <nz-icon nzType="delete" />
+          </button>
         </div>
       </div>
+    </div>
+    }
+    @if (filteredTests.length === 0) {
+    <div class="empty-state">
+      <nz-icon nzType="inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;" />
+      <p>No tests found matching your criteria.</p>
     </div>
     }
   </div>

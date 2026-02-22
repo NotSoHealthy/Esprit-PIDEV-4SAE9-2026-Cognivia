@@ -22,6 +22,11 @@ import {
   InfoCircleOutline,
   RightOutline,
   ToolOutline,
+  SearchOutline,
+  EditOutline,
+  DeleteOutline,
+  InboxOutline,
+  BookOutline,
 } from '@ant-design/icons-angular/icons';
 
 export const appConfig: ApplicationConfig = {
@@ -48,6 +53,11 @@ export const appConfig: ApplicationConfig = {
       InfoCircleOutline,
       RightOutline,
       ToolOutline,
+      SearchOutline,
+      EditOutline,
+      DeleteOutline,
+      InboxOutline,
+      BookOutline,
     ]),
   ],
 };

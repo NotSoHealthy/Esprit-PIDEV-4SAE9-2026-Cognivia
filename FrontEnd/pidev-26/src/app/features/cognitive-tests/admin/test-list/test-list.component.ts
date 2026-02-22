@@ -1,4 +1,13 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { NzIconModule, NzIconService } from 'ng-zorro-antd/icon';
+import {
+    SearchOutline,
+    EditOutline,
+    DeleteOutline,
+    UserAddOutline,
+    InboxOutline,
+    BookOutline
+} from '@ant-design/icons-angular/icons';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -12,7 +21,8 @@ import { Frequency } from '../../../../core/models/cognitive-tests/frequency.enu
 
 @Component({
     selector: 'app-test-list',
-    imports: [RouterModule, FormsModule, CommonModule],
+    standalone: true,
+    imports: [RouterModule, FormsModule, CommonModule, NzIconModule],
     templateUrl: './test-list.component.html',
     styleUrls: ['./test-list.component.css']
 })
@@ -35,6 +45,10 @@ export class TestListComponent implements OnInit {
     assignError = '';
     isAssigning = false;
 
+    // Search and Sort
+    searchTerm: string = '';
+    sortBy: 'title' | 'questions' = 'title';
+
     severityOptions: SeverityTarget[] = ['LOW', 'MEDIUM', 'HIGH', 'EXTREME'];
     frequencyOptions = Object.values(Frequency);
 
@@ -42,12 +56,37 @@ export class TestListComponent implements OnInit {
         private testService: CognitiveTestService,
         private assignmentService: TestAssignmentService,
         private patientService: PatientService,
-        private cdr: ChangeDetectorRef
-    ) { }
+        private cdr: ChangeDetectorRef,
+        private iconService: NzIconService
+    ) {
+        this.iconService.addIcon(SearchOutline, EditOutline, DeleteOutline, UserAddOutline, InboxOutline, BookOutline);
+    }
 
     ngOnInit(): void {
         this.loadTests();
         this.loadPatients();
+    }
+
+    get filteredTests(): CognitiveTest[] {
+        let result = [...this.tests];
+
+        if (this.searchTerm) {
+            const q = this.searchTerm.toLowerCase();
+            result = result.filter(t =>
+                t.title?.toLowerCase().includes(q) ||
+                t.description?.toLowerCase().includes(q)
+            );
+        }
+
+        result.sort((a, b) => {
+            if (this.sortBy === 'title') {
+                return (a.title || '').localeCompare(b.title || '');
+            } else {
+                return (b.questions?.length ?? 0) - (a.questions?.length ?? 0);
+            }
+        });
+
+        return result;
     }
 
     loadTests(): void {

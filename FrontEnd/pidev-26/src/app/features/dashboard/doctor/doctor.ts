@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { RiskScoreService } from '../../../core/services/cognitive-tests/risk.service';
 import { TestResultService } from '../../../core/services/cognitive-tests/result.service';
@@ -11,7 +12,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-doctor',
   standalone: true,
-  imports: [CommonModule, RouterLink, NzIconModule],
+  imports: [CommonModule, RouterLink, NzIconModule, FormsModule],
   templateUrl: './doctor.html',
   styleUrl: './doctor.css',
 })
@@ -25,6 +26,11 @@ export class Doctor implements OnInit {
   highRiskCount = 0;
   totalTestsToday = 0;
   totalPatients = 0;
+
+  // Patient list for dashboard
+  patients: any[] = [];
+  searchTerm: string = '';
+  sortBy: 'name' | 'severity' = 'name';
 
   ngOnInit(): void {
     this.loadMonitoringData();
@@ -58,11 +64,35 @@ export class Doctor implements OnInit {
 
     this.patientService.getAllPatients().subscribe({
       next: (patients: any[]) => {
+        this.patients = patients;
         this.totalPatients = patients.length;
         this.cdr.detectChanges();
       },
       error: (err: any) => console.error('Error loading patients:', err)
     });
+  }
+
+  get filteredPatients(): any[] {
+    let result = [...this.patients];
+
+    if (this.searchTerm) {
+      const q = this.searchTerm.toLowerCase();
+      result = result.filter(p =>
+        p.firstName?.toLowerCase().includes(q) ||
+        p.lastName?.toLowerCase().includes(q)
+      );
+    }
+
+    result.sort((a, b) => {
+      if (this.sortBy === 'name') {
+        return (a.lastName || '').localeCompare(b.lastName || '');
+      } else {
+        const severityOrder: Record<string, number> = { 'EXTREME': 0, 'HIGH': 1, 'MEDIUM': 2, 'LOW': 3 };
+        return (severityOrder[a.severity] ?? 99) - (severityOrder[b.severity] ?? 99);
+      }
+    });
+
+    return result;
   }
 
   getRiskClass(level: string): string {
@@ -71,6 +101,16 @@ export class Doctor implements OnInit {
       case 'medium': return 'text-amber-600 bg-amber-50 border-amber-100';
       case 'low': return 'text-green-600 bg-green-50 border-green-100';
       default: return 'text-gray-600 bg-gray-50 border-gray-100';
+    }
+  }
+
+  getSeverityClass(severity: string): string {
+    switch (severity?.toUpperCase()) {
+      case 'EXTREME': return 'bg-purple-100 text-purple-700';
+      case 'HIGH': return 'bg-red-100 text-red-700';
+      case 'MEDIUM': return 'bg-amber-100 text-amber-700';
+      case 'LOW': return 'bg-green-100 text-green-700';
+      default: return 'bg-gray-100 text-gray-700';
     }
   }
 }

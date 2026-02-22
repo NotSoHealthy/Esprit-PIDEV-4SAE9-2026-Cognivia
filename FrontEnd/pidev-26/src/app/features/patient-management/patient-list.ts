@@ -135,9 +135,14 @@ export class PatientList implements OnInit {
   };
 
   fetchPatients(): void {
+    const doctorId = (this.currentUser.user() as any)?.data?.id;
+    if (!doctorId) {
+      console.warn('PatientList: doctorId is undefined, skipping fetch');
+      return;
+    }
+
     this.isLoading = true;
     this.errorMessage = null;
-    const doctorId = (this.currentUser.user() as any)?.data?.id;
     this.http.get<any>(`${this.apiBaseUrl}/care/patient/doctor/${doctorId}`).subscribe({
       next: (response) => {
         const list =

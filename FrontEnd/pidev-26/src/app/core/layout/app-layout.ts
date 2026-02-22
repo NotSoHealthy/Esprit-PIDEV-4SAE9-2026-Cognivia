@@ -50,12 +50,6 @@ export class AppLayout implements OnInit {
       roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'],
     },
     {
-      link: '/caregivers',
-      label: 'Caregivers',
-      icon: 'user',
-      roles: ['ROLE_DOCTOR', 'ROLE_ADMIN'],
-    },
-    {
       link: '/admin/tests',
       label: 'Tests',
       icon: 'form',

@@ -27,8 +27,9 @@ export const routes: Routes = [
         title: 'Patients',
         canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
         loadChildren: () =>
-          import('./features/patient-management/patient-list.route').then((m) => m.routes),},
-        {
+          import('./features/patient-management/patient-list.route').then((m) => m.routes),
+      },
+      {
         path: 'admin/tests',
         loadComponent: () => import('./features/cognitive-tests/admin/test-list/test-list.component').then(m => m.TestListComponent)
       },
@@ -51,10 +52,6 @@ export const routes: Routes = [
       {
         path: 'user/tests/take/:testId',
         loadComponent: () => import('./features/cognitive-tests/user/test-take/test-take.component').then(m => m.TestTakeComponent)
-      },
-      {
-        path: 'user/risks',
-        loadComponent: () => import('./features/cognitive-tests/user/risk-list/risk-list.component').then(m => m.RiskListComponent)
       },
       {
         path: 'results/:id',
