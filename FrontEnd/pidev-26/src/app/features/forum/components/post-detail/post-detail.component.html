@@ -50,6 +50,14 @@
                     <nz-tag *ngIf="post.authorRole === 'Caregiver'" [nzColor]="'orange'"
                         class="mt-1 text-[10px] uppercase font-bold">Caregiver</nz-tag>
 
+                    <button *ngIf="post.userId && post.userId !== currentUserId" nz-button nzType="primary"
+                        nzSize="small"
+                        class="mt-4 w-full rounded-full bg-primary flex items-center justify-center gap-1"
+                        (click)="sendMessageToAuthor()">
+                        <span nz-icon nzType="mail"></span>
+                        <span class="text-[11px] font-bold uppercase">Message</span>
+                    </button>
+
                     <div
                         class="user-stats text-[11px] text-gray-500 space-y-1 mt-4 pt-4 border-t border-gray-200 w-full">
                         <div class="flex justify-between">

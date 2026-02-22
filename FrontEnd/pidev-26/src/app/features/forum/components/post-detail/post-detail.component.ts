@@ -417,4 +417,11 @@ export class PostDetailComponent implements OnInit {
         // Return true if updated more than 5 seconds after creation
         return (updated - created) > 5000;
     }
+
+    sendMessageToAuthor(): void {
+        if (!this.post || !this.post.userId) return;
+        this.router.navigate(['/chat'], {
+            queryParams: { recipientId: this.post.userId }
+        });
+    }
 }

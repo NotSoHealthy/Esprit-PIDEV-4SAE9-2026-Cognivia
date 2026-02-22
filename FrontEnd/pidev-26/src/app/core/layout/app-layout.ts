@@ -61,6 +61,12 @@ export class AppLayout implements OnInit {
       icon: 'message',
       roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_PATIENT', 'ROLE_ADMIN', 'ROLE_PHARMACY'],
     },
+    {
+      link: '/chat',
+      label: 'Messages',
+      icon: 'message',
+      roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_PATIENT', 'ROLE_ADMIN', 'ROLE_PHARMACY'],
+    },
   ];
   currentRouteLabel = '';
   ngOnInit(): void {

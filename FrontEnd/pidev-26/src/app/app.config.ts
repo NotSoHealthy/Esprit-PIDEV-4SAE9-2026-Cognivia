@@ -49,6 +49,8 @@ import {
   ShareAltOutline,
   LinkOutline,
   RollbackOutline,
+  SendOutline,
+  MailOutline,
 } from '@ant-design/icons-angular/icons';
 
 export const appConfig: ApplicationConfig = {
@@ -102,6 +104,8 @@ export const appConfig: ApplicationConfig = {
       ShareAltOutline,
       LinkOutline,
       RollbackOutline,
+      SendOutline,
+      MailOutline,
     ]),
   ],
 };

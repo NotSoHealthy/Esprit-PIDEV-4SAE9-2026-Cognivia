@@ -43,6 +43,9 @@ public class GatewayApplication {
                                 .route("posts",
                                                 r -> r.path("/posts/**")
                                                                 .uri("lb://FORUM-SERVICE"))
+                                .route("chat",
+                                                r -> r.path("/chat/**")
+                                                                .uri("lb://DPCHAT"))
                                 .build();
         }
 }

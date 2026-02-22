@@ -1,0 +1,89 @@
+<div class="chat-container">
+    <nz-layout class="chat-layout">
+
+        <!-- Sidebar: All Users -->
+        <nz-sider [nzWidth]="300" class="chat-sider">
+            <div class="sider-header">
+                <h3 nz-typography>Messages</h3>
+                <small>{{ allUsers.length }} people</small>
+            </div>
+
+            <div class="contact-list">
+                <nz-spin [nzSpinning]="loadingUsers" nzTip="Loading users…">
+
+                    <div *ngIf="allUsers.length === 0 && !loadingUsers" class="no-contacts">
+                        <span nz-icon nzType="team" nzTheme="outline" class="empty-icon"></span>
+                        <p>No users found</p>
+                    </div>
+
+                    <div *ngFor="let user of allUsers" class="contact-item"
+                        [class.active]="selectedUser?.id === user.id" (click)="selectUser(user)">
+
+                        <nz-avatar [nzSrc]="getAvatar(user.id)" [nzText]="getInitials(user)" nzSize="large"
+                            class="contact-avatar">
+                        </nz-avatar>
+
+                        <div class="contact-info">
+                            <div class="contact-name">{{ user.name }}</div>
+                            <nz-tag [nzColor]="getRoleColor(user.role)" class="role-tag">
+                                {{ user.role }}
+                            </nz-tag>
+                        </div>
+
+                        <span *ngIf="selectedUser?.id === user.id" nz-icon nzType="right" class="active-arrow">
+                        </span>
+                    </div>
+                </nz-spin>
+            </div>
+        </nz-sider>
+
+        <!-- Main chat area -->
+        <nz-content class="chat-main">
+            <div *ngIf="selectedUser; else noSelection" class="chat-window">
+
+                <!-- Chat header -->
+                <div class="chat-header">
+                    <nz-avatar [nzSrc]="getAvatar(selectedUser.id)" nzSize="default"></nz-avatar>
+                    <div class="header-info">
+                        <span class="header-name">{{ selectedUser.name }}</span>
+                        <nz-tag [nzColor]="getRoleColor(selectedUser.role)" class="header-role">
+                            {{ selectedUser.role }}
+                        </nz-tag>
+                    </div>
+                </div>
+
+                <!-- Messages -->
+                <div class="message-area" #scrollContainer>
+                    <div *ngFor="let msg of messages" class="message-wrapper"
+                        [class.sent]="msg.senderId === currentUserId">
+                        <div class="message-bubble">
+                            <span class="content">{{ msg.content }}</span>
+                            <span class="meta">{{ msg.timestamp | timeAgo }}</span>
+                        </div>
+                    </div>
+                    <nz-empty *ngIf="messages.length === 0" nzNotFoundContent="No messages yet. Say hello! 👋">
+                    </nz-empty>
+                </div>
+
+                <!-- Input -->
+                <div class="chat-footer">
+                    <div class="input-wrapper">
+                        <input nz-input placeholder="Type a message…" [(ngModel)]="newMessage"
+                            (keyup.enter)="sendMessage()" />
+                        <button nz-button nzType="primary" (click)="sendMessage()">
+                            <span nz-icon nzType="send"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <ng-template #noSelection>
+                <div class="empty-state">
+                    <nz-empty [nzNotFoundContent]="'Select someone on the left to start chatting'"
+                        [nzNotFoundImage]="'https://gw.alipayobjects.com/zos/antfincdn/ZHrcdLPrvN/empty.svg'">
+                    </nz-empty>
+                </div>
+            </ng-template>
+        </nz-content>
+    </nz-layout>
+</div>

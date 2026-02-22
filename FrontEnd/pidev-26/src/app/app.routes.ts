@@ -44,6 +44,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'chat',
+        loadComponent: () =>
+          import('./features/forum/components/chat/chat.component').then(
+            (m) => m.ChatComponent,
+          ),
+      },
+      {
         path: 'patient-management',
         title: 'Patients',
         canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
