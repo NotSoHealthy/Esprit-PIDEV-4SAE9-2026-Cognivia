@@ -5,17 +5,24 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import javax.sql.DataSource;
 
 /**
- * Only configures the secondary (care) datasource used by UserLookupService.
- * The primary datasource (dpchat DB) is left to Spring Boot auto-configuration
- * so that HikariCP picks up spring.datasource.url correctly.
+ * Configures both the primary (dpchat) and secondary (care) datasources.
+ * Marking dpchat as @Primary ensures JPA uses it by default.
  */
 @Configuration
 public class DataSourceConfig {
+
+    @Primary
+    @Bean(name = "dataSource")
+    @ConfigurationProperties(prefix = "spring.datasource")
+    public DataSource dataSource() {
+        return DataSourceBuilder.create().build();
+    }
 
     @Bean(name = "careDataSource")
     @ConfigurationProperties(prefix = "care.datasource")
