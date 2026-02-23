@@ -1,7 +1,9 @@
 import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { EquipmentService } from './services/equipment-service';
+import { MaintenanceService } from './maintenance/services/maintenance.service';
 import { EquipmentModel } from './models/equipment.model';
+import { Maintenance } from './maintenance/models/maintenance.model';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { switchMap, forkJoin } from 'rxjs';
@@ -15,6 +17,9 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 })
 export class Equipment implements OnInit {
   equipments: EquipmentModel[] = [];
+  closestMaintenanceMap: Map<number, Maintenance | null> = new Map();
+  hoveredEquipmentId: number | null = null;
+  hoveredDetailEquipmentId: number | null = null;
   isModalOpen = false;
   isDeleteModalOpen = false;
   isBulkDeleteModalOpen = false;
@@ -40,7 +45,8 @@ export class Equipment implements OnInit {
   };
 
   constructor(
-    private equipmentService: EquipmentService, 
+    private equipmentService: EquipmentService,
+    private maintenanceService: MaintenanceService,
     private cdr: ChangeDetectorRef,
     private router: Router
   ) {}
@@ -51,15 +57,32 @@ export class Equipment implements OnInit {
   }
 
   loadEquipments(): void {
-    this.equipmentService.getAll().subscribe(data=> {
+    this.equipmentService.getAll().subscribe(data => {
       this.equipments = data;
       this.clearSelection();
-      this.cdr.detectChanges(); // Manually trigger change detection
+      this.closestMaintenanceMap.clear();
+      
+      // Fetch closest maintenance for equipments with MAINTENANCE status
+      const maintenanceRequests = data
+        .filter(eq => eq.status === 'MAINTENANCE')
+        .map(eq => 
+          this.maintenanceService.getClosestMaintenance(eq.id).subscribe({
+            next: (maintenance) => {
+              this.closestMaintenanceMap.set(eq.id, maintenance);
+              console.log(`Closest maintenance for ${eq.name}:`, maintenance);
+            },
+            error: (err) => {
+              console.error(`Failed to fetch closest maintenance for equipment ${eq.id}:`, err);
+              this.closestMaintenanceMap.set(eq.id, null);
+            }
+          })
+        );
+      
+      this.cdr.detectChanges();
       for (let eq of this.equipments) {
         console.log(`Equipment: ${eq.name}, Condition Score: ${eq.conditionScore}`);
-      } 
-    }
-    );
+      }
+    });
   }
 
   get selectedCount(): number {
@@ -317,12 +340,14 @@ export class Equipment implements OnInit {
 
   openDetailModal(equipment: EquipmentModel): void {
     this.equipmentToDetail = equipment;
+    this.hoveredDetailEquipmentId = null;
     this.isDetailModalOpen = true;
   }
 
   closeDetailModal(): void {
     this.isDetailModalOpen = false;
     this.equipmentToDetail = null;
+    this.hoveredDetailEquipmentId = null;
   }
 
   viewMaintenance(equipment: EquipmentModel): void {
@@ -330,5 +355,33 @@ export class Equipment implements OnInit {
     this.router.navigate(['/equipment/maintenance'], {
       queryParams: { equipmentId: equipment.id }
     });
+  }
+
+  onStatusHover(equipmentId: number): void {
+    this.hoveredEquipmentId = equipmentId;
+  }
+
+  onStatusLeave(): void {
+    this.hoveredEquipmentId = null;
+  }
+
+  onDetailStatusHover(equipmentId: number): void {
+    this.hoveredDetailEquipmentId = equipmentId;
+  }
+
+  onDetailStatusLeave(): void {
+    this.hoveredDetailEquipmentId = null;
+  }
+
+  getClosestMaintenanceForEquipment(equipmentId: number): Maintenance | null {
+    return this.closestMaintenanceMap.get(equipmentId) || null;
+  }
+
+  shouldShowMaintenanceTooltip(equipmentId: number): boolean {
+    return this.hoveredEquipmentId === equipmentId && !!this.getClosestMaintenanceForEquipment(equipmentId);
+  }
+
+  shouldShowMaintenanceTooltipDetail(equipmentId: number): boolean {
+    return this.hoveredDetailEquipmentId === equipmentId && !!this.getClosestMaintenanceForEquipment(equipmentId);
   }
 }

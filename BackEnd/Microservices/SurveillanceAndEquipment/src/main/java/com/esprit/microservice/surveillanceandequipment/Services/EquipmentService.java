@@ -1,12 +1,15 @@
 package com.esprit.microservice.surveillanceandequipment.Services;
 
 import com.esprit.microservice.surveillanceandequipment.Entities.Equipment;
+import com.esprit.microservice.surveillanceandequipment.Entities.EquipmentStatus;
+import com.esprit.microservice.surveillanceandequipment.Entities.Maintenance;
 import com.esprit.microservice.surveillanceandequipment.Repositories.EquipmentRepository;
 import com.esprit.microservice.surveillanceandequipment.Repositories.MaintenanceRepository;
 import com.esprit.microservice.surveillanceandequipment.Repositories.ReservationRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -25,7 +28,37 @@ public class EquipmentService {
     }
 
     public List<Equipment> getAllEquipment() {
-        return equipmentRepository.findAll();
+
+        List<Equipment> equipments = equipmentRepository.findAll();
+        LocalDateTime now = LocalDateTime.now();
+
+        for (Equipment equipment : equipments) {
+
+            List<Maintenance> activeMaintenances =
+                    maintenanceRepository
+                            .findByEquipmentIdAndMaintenanceTimeLessThanEqualAndMaintenanceCompletionTimeGreaterThanEqual(
+                                    equipment.getId(),
+                                    now,
+                                    now
+                            );
+
+            boolean hasActiveMaintenance = !activeMaintenances.isEmpty();
+
+            if (hasActiveMaintenance &&
+                    equipment.getStatus() != EquipmentStatus.MAINTENANCE) {
+
+                equipment.setStatus(EquipmentStatus.MAINTENANCE);
+                equipmentRepository.save(equipment);
+            }
+            else if (!hasActiveMaintenance &&
+                    equipment.getStatus() == EquipmentStatus.MAINTENANCE) {
+
+                equipment.setStatus(EquipmentStatus.AVAILABLE);
+                equipmentRepository.save(equipment);
+            }
+        }
+
+        return equipments;
     }
 
     public Equipment updateEquipment(Equipment equipment) {

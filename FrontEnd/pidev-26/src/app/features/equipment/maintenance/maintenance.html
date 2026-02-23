@@ -6,7 +6,7 @@
     </button>
     <h1 class="page-title">Maintenance Schedule</h1>
     <button class="schedule-button" type="button" (click)="openScheduleModal()">
-      <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
+      <nz-icon nzType="calendar" nzTheme="outline"></nz-icon>
       <span>Schedule Maintenance</span>
     </button>
   </div>
@@ -108,6 +108,14 @@
         <h2>Schedule Maintenance</h2>
         <button class="icon-button" type="button" (click)="closeScheduleModal()">×</button>
       </div>
+      <div *ngIf="overlapError" class="error-message">
+        <nz-icon nzType="exclamation-circle" nzTheme="fill"></nz-icon>
+        <span>{{ overlapError }}</span>
+      </div>
+      <div *ngIf="getScheduleValidationError() as scheduleValidationError" class="error-message">
+        <nz-icon nzType="exclamation-circle" nzTheme="fill"></nz-icon>
+        <span>{{ scheduleValidationError }}</span>
+      </div>
       <form class="modal-form" #scheduleForm="ngForm" (ngSubmit)="scheduleForm.form.valid && scheduleMaintenance()">
         <div class="form-row">
           <div class="form-field">
@@ -115,6 +123,7 @@
             <nz-date-picker 
               id="maintenanceDate"
               [(ngModel)]="newMaintenance.maintenanceDate"
+              (ngModelChange)="clearScheduleError()"
               name="maintenanceDate"
               nzPlaceHolder="Select date"
               required
@@ -125,6 +134,7 @@
             <nz-time-picker 
               id="maintenanceTime"
               [(ngModel)]="newMaintenance.maintenanceTime"
+              (ngModelChange)="clearScheduleError()"
               name="maintenanceTime"
               nzPlaceHolder="Select time"
               [nzUse12Hours]="true"
@@ -139,6 +149,7 @@
             <nz-date-picker 
               id="completionDate"
               [(ngModel)]="newMaintenance.completionDate"
+              (ngModelChange)="clearScheduleError()"
               name="completionDate"
               nzPlaceHolder="Select date"
             ></nz-date-picker>
@@ -148,6 +159,7 @@
             <nz-time-picker 
               id="completionTime"
               [(ngModel)]="newMaintenance.completionTime"
+              (ngModelChange)="clearScheduleError()"
               name="completionTime"
               nzPlaceHolder="Select time"
               [nzUse12Hours]="true"
@@ -179,8 +191,8 @@
           </select>
         </div>
         <div class="modal-actions">
-          <button type="button" class="secondary-button" (click)="closeScheduleModal()">Cancel</button>
-          <button type="submit" class="primary-button" [disabled]="!scheduleForm.form.valid">Schedule</button>
+          <button type="button" class="secondary-button" (click)="closeScheduleModal()" [disabled]="isScheduling">Cancel</button>
+          <button type="submit" class="primary-button" [disabled]="!scheduleForm.form.valid || isScheduling || !!getScheduleValidationError()">{{ isScheduling ? 'Scheduling...' : 'Schedule' }}</button>
         </div>
       </form>
     </div>
@@ -193,31 +205,70 @@
         <h2>Edit Maintenance</h2>
         <button class="icon-button" type="button" (click)="closeEditModal()">×</button>
       </div>
+      <div *ngIf="overlapErrorEdit" class="error-message">
+        <nz-icon nzType="exclamation-circle" nzTheme="fill"></nz-icon>
+        <span>{{ overlapErrorEdit }}</span>
+      </div>
+      <div *ngIf="getEditValidationError() as editValidationError" class="error-message">
+        <nz-icon nzType="exclamation-circle" nzTheme="fill"></nz-icon>
+        <span>{{ editValidationError }}</span>
+      </div>
       <form class="modal-form" #editForm="ngForm" (ngSubmit)="editForm.form.valid && updateMaintenance()" *ngIf="maintenanceToEdit">
-        <div class="form-field">
-          <label for="editMaintenanceTime">Scheduled Time *</label>
-          <input 
-            id="editMaintenanceTime"
-            type="datetime-local" 
-            [(ngModel)]="maintenanceToEdit.maintenanceTime"
-            name="maintenanceTime"
-            required
-          />
+        <div class="form-row">
+          <div class="form-field">
+            <label for="editMaintenanceDate">Scheduled Date *</label>
+            <nz-date-picker 
+              id="editMaintenanceDate"
+              [(ngModel)]="editMaintenance.maintenanceDate"
+              (ngModelChange)="clearEditError()"
+              name="maintenanceDate"
+              nzPlaceHolder="Select date"
+              required
+            ></nz-date-picker>
+          </div>
+          <div class="form-field">
+            <label for="editMaintenanceTime">Scheduled Time *</label>
+            <nz-time-picker 
+              id="editMaintenanceTime"
+              [(ngModel)]="editMaintenance.maintenanceTime"
+              (ngModelChange)="clearEditError()"
+              name="maintenanceTime"
+              nzPlaceHolder="Select time"
+              [nzUse12Hours]="true"
+              nzFormat="hh:mm a"
+              required
+            ></nz-time-picker>
+          </div>
         </div>
-        <div class="form-field">
-          <label for="editCompletionTime">Completion Time</label>
-          <input 
-            id="editCompletionTime"
-            type="datetime-local" 
-            [(ngModel)]="maintenanceToEdit.maintenanceCompletionTime"
-            name="maintenanceCompletionTime"
-          />
+        <div class="form-row">
+          <div class="form-field">
+            <label for="editCompletionDate">Completion Date</label>
+            <nz-date-picker 
+              id="editCompletionDate"
+              [(ngModel)]="editMaintenance.completionDate"
+              (ngModelChange)="clearEditError()"
+              name="completionDate"
+              nzPlaceHolder="Select date"
+            ></nz-date-picker>
+          </div>
+          <div class="form-field">
+            <label for="editCompletionTime">Completion Time</label>
+            <nz-time-picker 
+              id="editCompletionTime"
+              [(ngModel)]="editMaintenance.completionTime"
+              (ngModelChange)="clearEditError()"
+              name="completionTime"
+              nzPlaceHolder="Select time"
+              [nzUse12Hours]="true"
+              nzFormat="hh:mm a"
+            ></nz-time-picker>
+          </div>
         </div>
         <div class="form-field">
           <label for="editDescription">Description *</label>
           <textarea 
             id="editDescription"
-            [(ngModel)]="maintenanceToEdit.description"
+            [(ngModel)]="editMaintenance.description"
             name="description"
             rows="4"
             required
@@ -227,7 +278,7 @@
           <label for="editStatus">Status</label>
           <select 
             id="editStatus"
-            [(ngModel)]="maintenanceToEdit.status"
+            [(ngModel)]="editMaintenance.status"
             name="status"
           >
             <option [value]="MaintenanceStatus.SCHEDULED">Scheduled</option>
@@ -237,8 +288,8 @@
           </select>
         </div>
         <div class="modal-actions">
-          <button type="button" class="secondary-button" (click)="closeEditModal()">Cancel</button>
-          <button type="submit" class="primary-button" [disabled]="!editForm.form.valid">Update</button>
+          <button type="button" class="secondary-button" (click)="closeEditModal()" [disabled]="isUpdating">Cancel</button>
+          <button type="submit" class="primary-button" [disabled]="!editForm.form.valid || isUpdating || !!getEditValidationError()">{{ isUpdating ? 'Updating...' : 'Update' }}</button>
         </div>
       </form>
     </div>

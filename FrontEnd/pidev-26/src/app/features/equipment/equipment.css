@@ -408,6 +408,82 @@
   border: 1px solid rgba(107, 76, 122, 0.2);
 }
 
+/* Status wrapper and tooltip */
+.status-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.maintenance-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2d3748;
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 8px;
+  white-space: nowrap;
+  z-index: 1000;
+  animation: tooltipFadeIn 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+}
+
+.maintenance-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #2d3748;
+}
+
+.tooltip-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tooltip-label {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: #cbd5e0;
+}
+
+.tooltip-date {
+  margin: 0;
+  font-weight: 500;
+  color: #fff;
+}
+
+/* Ensure detail overlay tooltip colors override detail text styling */
+.detail-field .maintenance-tooltip {
+  color: #fff;
+}
+
+.detail-field .maintenance-tooltip .tooltip-label {
+  color: #cbd5e0;
+}
+
+.detail-field .maintenance-tooltip .tooltip-date {
+  color: #fff;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;

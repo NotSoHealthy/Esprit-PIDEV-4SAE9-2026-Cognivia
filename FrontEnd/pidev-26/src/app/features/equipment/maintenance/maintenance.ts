@@ -28,6 +28,10 @@ export class Maintenance implements OnInit {
   equipment: EquipmentModel | null = null;
   maintenances: MaintenanceModel[] = [];
   loading = false;
+  overlapError: string | null = null;
+  overlapErrorEdit: string | null = null;
+  isScheduling = false;
+  isUpdating = false;
 
   // Modal states
   isScheduleModalOpen = false;
@@ -38,6 +42,15 @@ export class Maintenance implements OnInit {
 
   // Form data
   newMaintenance = {
+    maintenanceDate: null as any,
+    maintenanceTime: null as any,
+    completionDate: null as any,
+    completionTime: null as any,
+    description: '',
+    status: MaintenanceStatus.SCHEDULED
+  };
+
+  editMaintenance = {
     maintenanceDate: null as any,
     maintenanceTime: null as any,
     completionDate: null as any,
@@ -107,14 +120,86 @@ export class Maintenance implements OnInit {
       description: '',
       status: MaintenanceStatus.SCHEDULED
     };
+    this.overlapError = null;
     this.isScheduleModalOpen = true;
   }
 
   closeScheduleModal(): void {
     this.isScheduleModalOpen = false;
+    this.overlapError = null;
+  }
+
+  clearScheduleError(): void {
+    this.overlapError = null;
+  }
+
+  clearEditError(): void {
+    this.overlapErrorEdit = null;
+  }
+
+  getScheduleValidationError(): string | null {
+    if (!this.newMaintenance.maintenanceDate || !this.newMaintenance.maintenanceTime) {
+      return null;
+    }
+
+    const maintenanceDateTime = this.combineDateAndTime(this.newMaintenance.maintenanceDate, this.newMaintenance.maintenanceTime);
+    const completionDateTime = this.newMaintenance.completionDate && this.newMaintenance.completionTime 
+      ? this.combineDateAndTime(this.newMaintenance.completionDate, this.newMaintenance.completionTime)
+      : null;
+
+    const startDate = new Date(maintenanceDateTime);
+    if (Number.isNaN(startDate.getTime())) {
+      return null;
+    }
+
+    const now = new Date();
+    if (startDate <= now) {
+      return 'Scheduled maintenance must start in the future.';
+    }
+
+    if (completionDateTime) {
+      const endDate = new Date(completionDateTime);
+      if (!Number.isNaN(endDate.getTime()) && startDate > endDate) {
+        return 'Completion time must be after the start time.';
+      }
+    }
+
+    return null;
+  }
+
+  getEditValidationError(): string | null {
+    if (!this.editMaintenance.maintenanceDate || !this.editMaintenance.maintenanceTime) {
+      return null;
+    }
+
+    const maintenanceDateTime = this.combineDateAndTime(this.editMaintenance.maintenanceDate, this.editMaintenance.maintenanceTime);
+    const completionDateTime = this.editMaintenance.completionDate && this.editMaintenance.completionTime 
+      ? this.combineDateAndTime(this.editMaintenance.completionDate, this.editMaintenance.completionTime)
+      : null;
+
+    const startDate = new Date(maintenanceDateTime);
+    if (Number.isNaN(startDate.getTime())) {
+      return null;
+    }
+
+    const now = new Date();
+    if (startDate <= now) {
+      return 'Scheduled maintenance must start in the future.';
+    }
+
+    if (completionDateTime) {
+      const endDate = new Date(completionDateTime);
+      if (!Number.isNaN(endDate.getTime()) && startDate > endDate) {
+        return 'Completion time must be after the start time.';
+      }
+    }
+
+    return null;
   }
 
   scheduleMaintenance(): void {
+    if (this.isScheduling) return; // Prevent multiple clicks
+    
     if (!this.equipment || !this.newMaintenance.maintenanceDate || !this.newMaintenance.maintenanceTime || !this.newMaintenance.description) {
       console.warn('Validation failed:', {
         hasEquipment: !!this.equipment,
@@ -122,8 +207,11 @@ export class Maintenance implements OnInit {
         hasMaintenanceTime: !!this.newMaintenance.maintenanceTime,
         hasDescription: !!this.newMaintenance.description
       });
+      this.overlapError = null;
       return;
     }
+
+    this.isScheduling = true;
 
     // Combine date and time
     const maintenanceDateTime = this.combineDateAndTime(this.newMaintenance.maintenanceDate, this.newMaintenance.maintenanceTime);
@@ -131,25 +219,81 @@ export class Maintenance implements OnInit {
       ? this.combineDateAndTime(this.newMaintenance.completionDate, this.newMaintenance.completionTime)
       : undefined;
 
-    const maintenance: Omit<MaintenanceModel, 'id'> = {
-      equipment: this.equipment,
-      maintenanceTime: maintenanceDateTime,
-      maintenanceCompletionTime: completionDateTime,
-      description: this.newMaintenance.description,
-      status: this.newMaintenance.status
-    };
+    const startDate = new Date(maintenanceDateTime);
+    const endDate = completionDateTime ? new Date(completionDateTime) : null;
+    const now = new Date();
+    if (startDate <= now) {
+      this.overlapError = 'Scheduled maintenance must start in the future.';
+      this.isScheduling = false;
+      this.cdr.detectChanges();
+      return;
+    }
 
-    console.log('Sending maintenance:', maintenance);
+    if (endDate && startDate > endDate) {
+      this.overlapError = 'Completion time must be after the start time.';
+      this.isScheduling = false;
+      this.cdr.detectChanges();
+      return;
+    }
 
-    this.maintenanceService.create(maintenance).subscribe({
-      next: (response) => {
-        console.log('Maintenance created:', response);
-        this.loadMaintenances();
-        this.closeScheduleModal();
+    console.log('Schedule - Combined dates:', {
+      maintenanceDateTime,
+      completionDateTime,
+      equipmentId: this.equipment!.id
+    });
+
+    // Check for overlapping maintenance before creating
+    this.maintenanceService.checkAvailability(
+      this.equipment.id!,
+      maintenanceDateTime,
+      completionDateTime || maintenanceDateTime
+    ).subscribe({
+      next: (overlap) => {
+        if (overlap) {
+          // There is an overlapping maintenance
+          const overlapStartDate = new Date(overlap.maintenanceTime).toLocaleString();
+          const overlapEndDate = overlap.maintenanceCompletionTime 
+            ? new Date(overlap.maintenanceCompletionTime).toLocaleString()
+            : 'Not specified';
+          
+          this.overlapError = `There is already a scheduled maintenance for this equipment from ${overlapStartDate} to ${overlapEndDate}. Please choose different dates.`;
+          this.isScheduling = false;
+          this.cdr.detectChanges();
+          return;
+        }
+
+        // No overlap, proceed with creating the maintenance
+        this.overlapError = null;
+        const maintenance: Omit<MaintenanceModel, 'id'> = {
+          equipment: this.equipment!,
+          maintenanceTime: maintenanceDateTime,
+          maintenanceCompletionTime: completionDateTime,
+          description: this.newMaintenance.description,
+          status: this.newMaintenance.status
+        };
+
+        console.log('Sending maintenance:', maintenance);
+
+        this.maintenanceService.create(maintenance).subscribe({
+          next: (response) => {
+            console.log('Maintenance created:', response);
+            this.loadMaintenances();
+            this.closeScheduleModal();
+            this.isScheduling = false;
+          },
+          error: (err) => {
+            console.error('Failed to schedule maintenance:', err);
+            console.error('Error details:', err.error);
+            this.isScheduling = false;
+            this.cdr.detectChanges();
+          }
+        });
       },
       error: (err) => {
-        console.error('Failed to schedule maintenance:', err);
-        console.error('Error details:', err.error);
+        console.error('Error checking maintenance availability:', err);
+        this.overlapError = 'Error checking availability. Please try again.';
+        this.isScheduling = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -157,7 +301,22 @@ export class Maintenance implements OnInit {
   private combineDateAndTime(date: any, time: any): string {
     if (!date || !time) return '';
     
-    const datePart = new Date(date).toISOString().split('T')[0];
+    let dateStr = '';
+    
+    // Handle date - extract as YYYY-MM-DD
+    if (typeof date.format === 'function') {
+      // It's a Day.js object from ng-zorro date picker
+      dateStr = date.format('YYYY-MM-DD');
+    } else if (date instanceof Date) {
+      // It's a Date object - use local values to avoid timezone shift
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      dateStr = `${year}-${month}-${day}`;
+    } else if (typeof date === 'string') {
+      // It's already a string
+      dateStr = date;
+    }
     
     let timeStr = '';
     if (typeof time.format === 'function') {
@@ -173,33 +332,155 @@ export class Maintenance implements OnInit {
       timeStr = time;
     }
     
-    return `${datePart}T${timeStr}`;
+    return `${dateStr}T${timeStr}`;
+  }
+
+  private splitDateAndTime(dateTimeString: string): { date: any; time: any } {
+    if (!dateTimeString) return { date: null, time: null };
+    
+    const [datePart, timePart] = dateTimeString.split('T');
+    
+    // Parse date string (YYYY-MM-DD format) using local timezone
+    const [year, month, day] = datePart.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    
+    // Parse time string (HH:mm format)
+    const [hours, minutes] = timePart.split(':').map(Number);
+    const time = new Date();
+    time.setHours(hours, minutes, 0, 0);
+    
+    return { date, time };
   }
 
   openEditModal(maintenance: MaintenanceModel): void {
     this.maintenanceToEdit = { ...maintenance };
+    this.overlapErrorEdit = null;
+    
+    // Split the datetime for editing
+    const maintenanceSplit = this.splitDateAndTime(maintenance.maintenanceTime);
+    let completionSplit = { date: null, time: null };
+    
+    if (maintenance.maintenanceCompletionTime) {
+      completionSplit = this.splitDateAndTime(maintenance.maintenanceCompletionTime);
+    }
+    
+    this.editMaintenance = {
+      maintenanceDate: maintenanceSplit.date,
+      maintenanceTime: maintenanceSplit.time,
+      completionDate: completionSplit.date,
+      completionTime: completionSplit.time,
+      description: maintenance.description,
+      status: maintenance.status
+    };
+    
     this.isEditModalOpen = true;
   }
 
   closeEditModal(): void {
     this.isEditModalOpen = false;
     this.maintenanceToEdit = null;
+    this.overlapErrorEdit = null;
+    this.editMaintenance = {
+      maintenanceDate: null,
+      maintenanceTime: null,
+      completionDate: null,
+      completionTime: null,
+      description: '',
+      status: MaintenanceStatus.SCHEDULED
+    };
   }
 
   updateMaintenance(): void {
-    if (!this.maintenanceToEdit) return;
+    if (this.isUpdating) return; // Prevent multiple clicks
+    
+    if (!this.maintenanceToEdit || !this.equipment) return;
 
-    console.log('Updating maintenance:', this.maintenanceToEdit);
+    this.isUpdating = true;
 
-    this.maintenanceService.update(this.maintenanceToEdit).subscribe({
-      next: (response) => {
-        console.log('Maintenance updated:', response);
-        this.loadMaintenances();
-        this.closeEditModal();
+    // Combine date and time
+    const maintenanceDateTime = this.combineDateAndTime(this.editMaintenance.maintenanceDate, this.editMaintenance.maintenanceTime);
+    const completionDateTime = this.editMaintenance.completionDate && this.editMaintenance.completionTime 
+      ? this.combineDateAndTime(this.editMaintenance.completionDate, this.editMaintenance.completionTime)
+      : maintenanceDateTime;
+
+    const startDate = new Date(maintenanceDateTime);
+    const endDate = completionDateTime ? new Date(completionDateTime) : null;
+    const now = new Date();
+    if (startDate <= now) {
+      this.overlapErrorEdit = 'Scheduled maintenance must start in the future.';
+      this.isUpdating = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    if (endDate && startDate > endDate) {
+      this.overlapErrorEdit = 'Completion time must be after the start time.';
+      this.isUpdating = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    console.log('Update - Combined dates:', {
+      maintenanceDateTime,
+      completionDateTime,
+      equipmentId: this.equipment.id,
+      currentMaintenanceId: this.maintenanceToEdit?.id
+    });
+
+    // Check for overlapping maintenance (excluding current maintenance)
+    this.maintenanceService.checkAvailability(
+      this.equipment.id!,
+      maintenanceDateTime,
+      completionDateTime
+    ).subscribe({
+      next: (overlap) => {
+        console.log('Overlap check response:', overlap);
+        
+        if (overlap && overlap.id !== this.maintenanceToEdit?.id) {
+          // There is an overlapping maintenance that's not the current one
+          const overlapStartDate = new Date(overlap.maintenanceTime).toLocaleString();
+          const overlapEndDate = overlap.maintenanceCompletionTime 
+            ? new Date(overlap.maintenanceCompletionTime).toLocaleString()
+            : 'Not specified';
+          
+          this.overlapErrorEdit = `There is already a scheduled maintenance for this equipment from ${overlapStartDate} to ${overlapEndDate}. Please choose different dates.`;
+          this.isUpdating = false;
+          this.cdr.detectChanges();
+          return;
+        }
+
+        // No overlap (or overlaps with itself), proceed with updating
+        this.overlapErrorEdit = null;
+        const updatedMaintenance: MaintenanceModel = {
+          ...this.maintenanceToEdit!,
+          maintenanceTime: maintenanceDateTime,
+          maintenanceCompletionTime: completionDateTime,
+          description: this.editMaintenance.description,
+          status: this.editMaintenance.status
+        };
+
+        console.log('Updating maintenance:', updatedMaintenance);
+
+        this.maintenanceService.update(updatedMaintenance).subscribe({
+          next: (response) => {
+            console.log('Maintenance updated:', response);
+            this.loadMaintenances();
+            this.closeEditModal();
+            this.isUpdating = false;
+          },
+          error: (err) => {
+            console.error('Failed to update maintenance:', err);
+            console.error('Error details:', err.error);
+            this.isUpdating = false;
+            this.cdr.detectChanges();
+          }
+        });
       },
       error: (err) => {
-        console.error('Failed to update maintenance:', err);
-        console.error('Error details:', err.error);
+        console.error('Error checking maintenance availability:', err);
+        this.overlapErrorEdit = 'Error checking availability. Please try again.';
+        this.isUpdating = false;
+        this.cdr.detectChanges();
       }
     });
   }

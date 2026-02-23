@@ -29,4 +29,18 @@ export class MaintenanceService {
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.endpoint}/${id}`);
   }
+
+  checkAvailability(equipmentId: number, start: string, end: string): Observable<Maintenance | null> {
+    return this.http.get<Maintenance | null>(`${this.endpoint}/checkavail`, {
+      params: {
+        equipmentId: equipmentId.toString(),
+        start: start,
+        end: end
+      }
+    });
+  }
+
+  getClosestMaintenance(equipmentId: number): Observable<Maintenance | null> {
+    return this.http.get<Maintenance | null>(`${this.endpoint}/closest/${equipmentId}`);
+  }
 }

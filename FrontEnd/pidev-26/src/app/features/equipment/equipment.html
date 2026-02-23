@@ -70,17 +70,32 @@
             </span>
           </td>
           <td data-label="Status">
-            <span 
-              class="status-badge"
-              [ngClass]="{
-                'status-available': eq.status === 'AVAILABLE',
-                'status-maintenance': eq.status === 'MAINTENANCE',
-                'status-unavailable': eq.status === 'UNAVAILABLE'
-              }"
-              [attr.aria-label]="'Status: ' + eq.status"
-            >
-              {{ eq.status }}
-            </span>
+            <div class="status-wrapper">
+              <span 
+                class="status-badge"
+                [ngClass]="{
+                  'status-available': eq.status === 'AVAILABLE',
+                  'status-maintenance': eq.status === 'MAINTENANCE',
+                  'status-unavailable': eq.status === 'UNAVAILABLE'
+                }"
+                [attr.aria-label]="'Status: ' + eq.status"
+                (mouseenter)="onStatusHover(eq.id)"
+                (mouseleave)="onStatusLeave()"
+              >
+                {{ eq.status }}
+              </span>
+              <div 
+                class="maintenance-tooltip" 
+                *ngIf="shouldShowMaintenanceTooltip(eq.id) && getClosestMaintenanceForEquipment(eq.id) as maintenance"
+              >
+                <div class="tooltip-content">
+                  <p class="tooltip-label">Maintenance Ends:</p>
+                  <p class="tooltip-date">
+                    {{ maintenance.maintenanceCompletionTime ? (maintenance.maintenanceCompletionTime | date:'medium') : (maintenance.maintenanceTime | date:'medium') }}
+                  </p>
+                </div>
+              </div>
+            </div>
           </td>
           <td data-label="Actions" class="action-col" (click)="$event.stopPropagation()">
             <div class="dropdown-container">
@@ -301,15 +316,30 @@
           <div class="detail-field">
             <label>Status</label>
             <p>
-              <span 
-                class="status-badge"
-                [ngClass]="{
-                  'status-available': equipmentToDetail?.status === 'AVAILABLE',
-                  'status-maintenance': equipmentToDetail?.status === 'MAINTENANCE',
-                  'status-unavailable': equipmentToDetail?.status === 'UNAVAILABLE'
-                }"
-              >
-                {{ equipmentToDetail?.status }}
+              <span class="status-wrapper" *ngIf="equipmentToDetail?.id as detailId">
+                <span 
+                  class="status-badge"
+                  [ngClass]="{
+                    'status-available': equipmentToDetail?.status === 'AVAILABLE',
+                    'status-maintenance': equipmentToDetail?.status === 'MAINTENANCE',
+                    'status-unavailable': equipmentToDetail?.status === 'UNAVAILABLE'
+                  }"
+                  (mouseenter)="onDetailStatusHover(detailId)"
+                  (mouseleave)="onDetailStatusLeave()"
+                >
+                  {{ equipmentToDetail?.status }}
+                </span>
+                <div 
+                  class="maintenance-tooltip" 
+                  *ngIf="shouldShowMaintenanceTooltipDetail(detailId) && getClosestMaintenanceForEquipment(detailId) as maintenance"
+                >
+                  <div class="tooltip-content">
+                    <p class="tooltip-label">Maintenance Ends:</p>
+                    <p class="tooltip-date">
+                      {{ maintenance.maintenanceCompletionTime ? (maintenance.maintenanceCompletionTime | date:'medium') : (maintenance.maintenanceTime | date:'medium') }}
+                    </p>
+                  </div>
+                </div>
               </span>
             </p>
           </div>
