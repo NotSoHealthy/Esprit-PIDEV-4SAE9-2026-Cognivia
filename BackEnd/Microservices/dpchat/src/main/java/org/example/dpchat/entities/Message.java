@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -26,17 +28,28 @@ public class Message {
     @Transient
     private String senderRole;
 
+    @Column(name = "is_deleted")
+    private Boolean deleted = false;
+
+    @Column(name = "is_edited")
+    private Boolean edited = false;
+
+    @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MessageReaction> reactions = new ArrayList<>();
+
     public Message() {
     }
 
     public Message(Long id, String senderId, String recipientId, String content, LocalDateTime timestamp,
-            Boolean read) {
+            Boolean read, Boolean deleted, Boolean edited) {
         this.id = id;
         this.senderId = senderId;
         this.recipientId = recipientId;
         this.content = content;
         this.timestamp = timestamp;
         this.read = read;
+        this.deleted = deleted;
+        this.edited = edited;
     }
 
     public Long getId() {
@@ -103,5 +116,33 @@ public class Message {
 
     public void setSenderRole(String senderRole) {
         this.senderRole = senderRole;
+    }
+
+    @JsonProperty("isDeleted")
+    public Boolean getDeleted() {
+        return deleted != null && deleted;
+    }
+
+    @JsonProperty("isDeleted")
+    public void setDeleted(Boolean deleted) {
+        this.deleted = deleted;
+    }
+
+    @JsonProperty("isEdited")
+    public Boolean getEdited() {
+        return edited != null && edited;
+    }
+
+    @JsonProperty("isEdited")
+    public void setEdited(Boolean edited) {
+        this.edited = edited;
+    }
+
+    public List<MessageReaction> getReactions() {
+        return reactions;
+    }
+
+    public void setReactions(List<MessageReaction> reactions) {
+        this.reactions = reactions;
     }
 }

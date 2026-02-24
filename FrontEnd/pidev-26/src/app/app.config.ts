@@ -51,6 +51,7 @@ import {
   RollbackOutline,
   SendOutline,
   MailOutline,
+  TeamOutline,
 } from '@ant-design/icons-angular/icons';
 
 export const appConfig: ApplicationConfig = {
@@ -106,6 +107,7 @@ export const appConfig: ApplicationConfig = {
       RollbackOutline,
       SendOutline,
       MailOutline,
+      TeamOutline,
     ]),
   ],
 };

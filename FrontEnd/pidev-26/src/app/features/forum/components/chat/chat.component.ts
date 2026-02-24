@@ -51,6 +51,22 @@ export class ChatComponent implements OnInit, OnDestroy {
     messages: Message[] = [];
     newMessage: string = '';
     currentUserId: string = '';
+    unreadCounts: { [key: string]: number } = {};
+    lastMessages: { [key: string]: Message } = {};
+    pollingInterval: any;
+
+    editingMessageId: number | null = null;
+    editingContent: string = '';
+
+    reactionMessages: { [key: number]: boolean } = {};
+    availableReactions = [
+        { type: 'LIKE', emoji: '👍' },
+        { type: 'LOVE', emoji: '❤️' },
+        { type: 'HAHA', emoji: '😂' },
+        { type: 'WOW', emoji: '😮' },
+        { type: 'SAD', emoji: '😢' },
+        { type: 'ANGRY', emoji: '😡' }
+    ];
 
     private pollingSub?: Subscription;
     private chatService = inject(ChatService);
@@ -75,6 +91,18 @@ export class ChatComponent implements OnInit, OnDestroy {
                 // Exclude self
                 this.allUsers = users.filter(u => u.id !== this.currentUserId);
                 this.loadingUsers = false;
+
+                // Initialize unread counts
+                this.allUsers.forEach(u => {
+                    this.chatService.getUnreadCount(this.currentUserId, u.id).subscribe(count => {
+                        this.unreadCounts[u.id] = count;
+                    });
+                    this.chatService.getLastMessage(this.currentUserId, u.id).subscribe(msg => {
+                        console.log(`Last message for ${u.id}:`, msg);
+                        if (msg) this.lastMessages[u.id] = msg;
+                    });
+                });
+
                 this.cdr.detectChanges();
 
                 // Auto-select if recipientId is in query params
@@ -103,6 +131,12 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.selectedUser = user;
         this.loadConversation();
         this.startPolling();
+
+        // Mark as read
+        this.chatService.markConversationAsRead(this.currentUserId, user.id).subscribe(() => {
+            this.unreadCounts[user.id] = 0;
+            this.cdr.detectChanges();
+        });
     }
 
     getInitials(user: UserInfo): string {
@@ -152,22 +186,41 @@ export class ChatComponent implements OnInit, OnDestroy {
                         this.scrollToBottom();
                         this.cdr.detectChanges();
                     }
+                    // Update unread counts while polling
+                    this.updateAllUnreadCounts();
                 }
             });
+    }
+
+    private updateAllUnreadCounts(): void {
+        this.allUsers.forEach(u => {
+            // Only update counts for users NOT currently selected (or if we want to confirm 0 for selected)
+            this.chatService.getUnreadCount(this.currentUserId, u.id).subscribe(count => {
+                if (this.unreadCounts[u.id] !== count) {
+                    this.unreadCounts[u.id] = count;
+                    this.cdr.detectChanges();
+                }
+            });
+            this.chatService.getLastMessage(this.currentUserId, u.id).subscribe(msg => {
+                if (msg && (!this.lastMessages[u.id] || this.lastMessages[u.id].id !== msg.id)) {
+                    this.lastMessages[u.id] = msg;
+                    this.cdr.detectChanges();
+                }
+            });
+        });
     }
 
     sendMessage(): void {
         if (!this.newMessage.trim() || !this.selectedUser) return;
 
-        const message: Partial<Message> = {
+        const messageData: Partial<Message> = {
             senderId: this.currentUserId,
             recipientId: this.selectedUser.id,
             content: this.newMessage
         };
 
-        this.chatService.sendMessage(message).subscribe({
-            next: (savedMsg) => {
-                this.messages.push(savedMsg);
+        this.chatService.sendMessage(messageData).subscribe({
+            next: () => {
                 this.newMessage = '';
                 this.scrollToBottom();
                 this.cdr.detectChanges();
@@ -176,10 +229,88 @@ export class ChatComponent implements OnInit, OnDestroy {
         });
     }
 
+    startEdit(message: Message) {
+        this.editingMessageId = message.id ?? null;
+        this.editingContent = message.content;
+    }
+
+    cancelEdit() {
+        this.editingMessageId = null;
+        this.editingContent = '';
+    }
+
+    confirmEdit(id: number | undefined) {
+        if (!id || !this.editingContent.trim()) return;
+
+        this.chatService.editMessage(id, this.editingContent).subscribe({
+            next: () => {
+                this.cancelEdit();
+                this.loadConversation();
+            },
+            error: () => this.nzMessage.error('Failed to edit message')
+        });
+    }
+
+    deleteMessage(id: number | undefined) {
+        if (!id) return;
+        if (confirm('Are you sure you want to delete this message?')) {
+            this.chatService.deleteMessage(id).subscribe({
+                next: () => {
+                    this.loadConversation();
+                },
+                error: () => this.nzMessage.error('Failed to delete message')
+            });
+        }
+    }
+
+    toggleReactionPicker(messageId: number | undefined): void {
+        if (!messageId) return;
+        this.reactionMessages[messageId] = !this.reactionMessages[messageId];
+    }
+
+    addReaction(messageId: number | undefined, type: string): void {
+        if (!messageId) return;
+        this.chatService.reactToMessage(messageId, this.currentUserId, type).subscribe({
+            next: () => {
+                this.reactionMessages[messageId] = false;
+                this.loadConversation();
+            },
+            error: () => this.nzMessage.error('Failed to react to message')
+        });
+    }
+
+    getReactionEmoji(type: string): string {
+        return this.availableReactions.find(r => r.type === type)?.emoji || '❓';
+    }
+
+    getGroupedReactions(message: Message): { type: string, emoji: string, count: number, me: boolean }[] {
+        if (!message.reactions || message.reactions.length === 0) return [];
+
+        const groups = message.reactions.reduce((acc, r) => {
+            if (!acc[r.type]) {
+                acc[r.type] = { count: 0, me: false };
+            }
+            acc[r.type].count++;
+            if (r.userId === this.currentUserId) {
+                acc[r.type].me = true;
+            }
+            return acc;
+        }, {} as { [key: string]: { count: number, me: boolean } });
+
+        return Object.keys(groups).map(type => ({
+            type,
+            emoji: this.getReactionEmoji(type),
+            count: groups[type].count,
+            me: groups[type].me
+        }));
+    }
+
     private scrollToBottom(): void {
         setTimeout(() => {
             try {
-                this.scrollContainer.nativeElement.scrollTop = this.scrollContainer.nativeElement.scrollHeight;
+                if (this.scrollContainer) {
+                    this.scrollContainer.nativeElement.scrollTop = this.scrollContainer.nativeElement.scrollHeight;
+                }
             } catch (err) { }
         }, 100);
     }

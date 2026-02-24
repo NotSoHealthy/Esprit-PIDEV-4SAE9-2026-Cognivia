@@ -43,4 +43,34 @@ export class ChatService {
     markAsRead(messageId: number): Observable<void> {
         return this.http.put<void>(`${this.apiUrl}/read/${messageId}`, {});
     }
+
+    getUnreadCount(recipientId: string, senderId: string): Observable<number> {
+        return this.http.get<number>(`${this.apiUrl}/unread-count`, {
+            params: { recipientId, senderId }
+        });
+    }
+
+    markConversationAsRead(recipientId: string, senderId: string): Observable<void> {
+        return this.http.put<void>(`${this.apiUrl}/read-conversation`, {}, {
+            params: { recipientId, senderId }
+        });
+    }
+
+    editMessage(id: number, content: string): Observable<Message> {
+        return this.http.put<Message>(`${this.apiUrl}/edit/${id}`, { content });
+    }
+
+    deleteMessage(id: number): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}/delete/${id}`);
+    }
+
+    getLastMessage(user1: string, user2: string): Observable<Message> {
+        return this.http.get<Message>(`${this.apiUrl}/last-message`, {
+            params: { user1, user2 }
+        });
+    }
+
+    reactToMessage(messageId: number, userId: string, type: string): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/react/${messageId}`, { userId, type });
+    }
 }

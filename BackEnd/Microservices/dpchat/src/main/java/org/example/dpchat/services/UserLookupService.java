@@ -41,7 +41,7 @@ public class UserLookupService {
 
     /** Returns all doctors and caregivers from the care database. */
     public List<UserProfile> getAllUsers() {
-        List<UserProfile> users = new ArrayList<>();
+        Map<String, UserProfile> userMap = new java.util.LinkedHashMap<>();
         try {
             List<Map<String, Object>> doctors = jdbc.queryForList(
                     "SELECT user_id::text AS user_id, COALESCE(first_name,'') AS first_name, COALESCE(last_name,'') AS last_name FROM doctor WHERE user_id IS NOT NULL",
@@ -51,7 +51,7 @@ public class UserLookupService {
                 String name = (row.get("first_name") + " " + row.get("last_name")).trim();
                 if (name.isEmpty())
                     name = "Unknown Doctor";
-                users.add(new UserProfile(id, name, "Doctor"));
+                userMap.put(id, new UserProfile(id, name, "Doctor"));
             }
 
             List<Map<String, Object>> caregivers = jdbc.queryForList(
@@ -62,12 +62,16 @@ public class UserLookupService {
                 String name = (row.get("first_name") + " " + row.get("last_name")).trim();
                 if (name.isEmpty())
                     name = "Unknown Caregiver";
-                users.add(new UserProfile(id, name, "Caregiver"));
+                // Only add if not already present as a doctor (prefer doctor role if someone
+                // has both?)
+                if (!userMap.containsKey(id)) {
+                    userMap.put(id, new UserProfile(id, name, "Caregiver"));
+                }
             }
         } catch (Exception e) {
             System.err.println("Error fetching all users: " + e.getMessage());
         }
-        return users;
+        return new ArrayList<>(userMap.values());
     }
 
     public Optional<UserProfile> lookupUser(String userId) {

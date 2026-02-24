@@ -1,6 +1,8 @@
 package org.example.dpchat.controllers;
 
 import org.example.dpchat.entities.Message;
+import org.example.dpchat.entities.MessageReaction;
+import org.example.dpchat.entities.ReactionType;
 import org.example.dpchat.services.MessageService;
 import org.example.dpchat.services.UserLookupService;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 public class ChatController {
@@ -69,6 +72,57 @@ public class ChatController {
     @PutMapping("/chat/read/{messageId}")
     public ResponseEntity<Void> markAsRead(@PathVariable("messageId") Long messageId) {
         messageService.markAsRead(messageId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/chat/unread-count")
+    public ResponseEntity<Long> getUnreadCount(
+            @RequestParam("recipientId") String recipientId,
+            @RequestParam("senderId") String senderId) {
+        return ResponseEntity.ok(messageService.getUnreadCount(recipientId, senderId));
+    }
+
+    @PutMapping("/chat/read-conversation")
+    public ResponseEntity<Void> markConversationAsRead(
+            @RequestParam("recipientId") String recipientId,
+            @RequestParam("senderId") String senderId) {
+        messageService.markConversationAsRead(recipientId, senderId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/chat/edit/{id}")
+    public ResponseEntity<Message> editMessage(@PathVariable("id") Long id, @RequestBody Map<String, String> body) {
+        String content = body.get("content");
+        return ResponseEntity.ok(messageService.editMessage(id, content));
+    }
+
+    @GetMapping("/chat/last-message")
+    public ResponseEntity<Message> getLastMessage(
+            @RequestParam("user1") String user1,
+            @RequestParam("user2") String user2) {
+        System.out.println("Fetching last message between " + user1 + " and " + user2);
+        Optional<Message> msg = messageService.getLastMessage(user1, user2);
+        if (msg.isPresent()) {
+            System.out.println("Found last message: " + msg.get().getContent());
+            return ResponseEntity.ok(msg.get());
+        } else {
+            System.out.println("No message found between users.");
+            return ResponseEntity.noContent().build();
+        }
+    }
+
+    @PostMapping("/chat/react/{messageId}")
+    public ResponseEntity<MessageReaction> reactToMessage(
+            @PathVariable("messageId") Long messageId,
+            @RequestBody Map<String, String> body) {
+        String userId = body.get("userId");
+        ReactionType type = ReactionType.valueOf(body.get("type"));
+        return ResponseEntity.ok(messageService.addReaction(messageId, userId, type));
+    }
+
+    @DeleteMapping("/chat/delete/{id}")
+    public ResponseEntity<Void> deleteMessage(@PathVariable("id") Long id) {
+        messageService.deleteMessage(id);
         return ResponseEntity.ok().build();
     }
 }
