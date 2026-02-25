@@ -17,6 +17,10 @@
   margin-right: 1rem !important;
 }
 
+th {
+  user-select: none;
+}
+
 *,
 *::before,
 *::after {

@@ -1,11 +1,12 @@
 import { Routes } from '@angular/router';
 
-import { authGuard, roleGuard } from './core/auth/auth.guard';
+import { authGuard, homeRedirectGuard, roleGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
+    canActivate: [homeRedirectGuard],
     loadComponent: () => import('./features/home/home').then((m) => m.Home),
   },
   {
@@ -28,6 +29,13 @@ export const routes: Routes = [
         canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
         loadChildren: () =>
           import('./features/patient-management/patient-list.route').then((m) => m.routes),
+      },
+      {
+        path: 'calendar',
+        title: 'Calendar',
+        canMatch: [roleGuard(['ROLE_CAREGIVER'])],
+        loadComponent: () =>
+          import('./features/caregiver/calendar/calendar').then((m) => m.Calendar),
       },
     ],
   },

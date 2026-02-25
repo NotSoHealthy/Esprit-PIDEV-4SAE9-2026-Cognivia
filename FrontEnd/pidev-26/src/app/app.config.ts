@@ -14,6 +14,7 @@ import {
   BellOutline,
   UpOutline,
   DownOutline,
+  CalendarOutline,
 } from '@ant-design/icons-angular/icons';
 
 export const appConfig: ApplicationConfig = {

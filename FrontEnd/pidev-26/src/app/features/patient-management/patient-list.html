@@ -8,74 +8,140 @@
   } @else if (!patients.length) {
     <div class="rounded-2xl bg-[#F2F6FE] p-4 text-[#4D5CAB]">No patients found.</div>
   } @else {
-    <div class="flex flex-col gap-4 p-4 rounded-xl bg-white drop-shadow-sm">
-      <div class="flex items-center gap-3">
-        <input
-          nz-input
-          class="md:max-w-90 rounded-md!"
-          placeholder="Search by name or id"
-          [(ngModel)]="searchValue"
-        />
-        <button nz-button nzType="default" (click)="searchValue = ''" [disabled]="!searchValue">
-          Reset
-        </button>
+    <div class="flex flex-col gap-6">
+      <div class="flex flex-row gap-4 max-h-20 justify-between">
+        <div class="flex flex-row gap-4 bg-white drop-shadow-sm rounded-xl p-4 items-center flex-1">
+          <span class="h-full w-1 rounded-2xl bg-black"></span>
+          <div class="flex flex-col">
+            <p class="font-bold text-xl">{{ patients.length || 0 }}</p>
+            <p class="text-md text-gray-500">Total Patients</p>
+          </div>
+          <span class="block grow"></span>
+          <div>
+            <div class="flex rounded-xl border border-gray-200 p-2 shadow-sm">
+              <mat-icon fontSet="material-symbols-outlined">group</mat-icon>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-row gap-4 bg-white drop-shadow-sm rounded-xl p-4 items-center flex-1">
+          <span class="h-full w-1 rounded-2xl bg-green-600"></span>
+          <div class="flex flex-col">
+            <p class="font-bold text-xl">{{ patientCountBySeverity['LOW'] || 0 }}</p>
+            <p class="text-md text-gray-500">Low Severity Patients</p>
+          </div>
+          <span class="block grow"></span>
+          <div>
+            <div class="flex rounded-xl border border-gray-200 p-2 shadow-sm">
+              <mat-icon fontSet="material-symbols-outlined">check</mat-icon>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-row gap-4 bg-white drop-shadow-sm rounded-xl p-4 items-center flex-1">
+          <span class="h-full w-1 rounded-2xl bg-blue-500"></span>
+          <div class="flex flex-col">
+            <p class="font-bold text-xl">{{ patientCountBySeverity['MEDIUM'] || 0 }}</p>
+            <p class="text-md text-gray-500">Medium Severity Patients</p>
+          </div>
+          <span class="block grow"></span>
+          <div>
+            <div class="flex rounded-xl border border-gray-200 p-2 shadow-sm">
+              <mat-icon fontSet="material-symbols-outlined">autorenew</mat-icon>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-row gap-4 bg-white drop-shadow-sm rounded-xl p-4 items-center flex-1">
+          <span class="h-full w-1 rounded-2xl bg-yellow-400"></span>
+          <div class="flex flex-col">
+            <p class="font-bold text-xl">{{ patientCountBySeverity['HIGH'] || 0 }}</p>
+            <p class="text-md text-gray-500">High Severity Patients</p>
+          </div>
+          <span class="block grow"></span>
+          <div>
+            <div class="flex rounded-xl border border-gray-200 p-2 shadow-sm">
+              <mat-icon fontSet="material-symbols-outlined">error</mat-icon>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-row gap-4 bg-white drop-shadow-sm rounded-xl p-4 items-center flex-1">
+          <span class="h-full w-1 rounded-2xl bg-red-600"></span>
+          <div class="flex flex-col">
+            <p class="font-bold text-xl">{{ patientCountBySeverity['EXTREME'] || 0 }}</p>
+            <p class="text-md text-gray-500">Extreme Severity Patients</p>
+          </div>
+          <span class="block grow"></span>
+          <div>
+            <div class="flex rounded-xl border border-gray-200 p-2 shadow-sm">
+              <mat-icon fontSet="material-symbols-outlined">release_alert</mat-icon>
+            </div>
+          </div>
+        </div>
       </div>
+      <div class="flex flex-col gap-4 p-4 rounded-xl bg-white drop-shadow-sm">
+        <div class="flex items-center gap-3">
+          <input
+            nz-input
+            class="md:max-w-90 rounded-md!"
+            placeholder="Search by name or id"
+            [(ngModel)]="searchValue"
+          />
+          <button nz-button nzType="default" (click)="searchValue = ''" [disabled]="!searchValue">
+            Reset
+          </button>
+        </div>
 
-      <nz-table
-        #basicTable
-        [nzData]="searchedPatients"
-        nzShowPagination
-        nzShowSizeChanger
-        nzNoResult="No matching patients."
-        class="rounded-b-md overflow-hidden border border-gray-200"
-      >
-        <thead>
-          <tr>
-            @if (currentUserRole == 'admin') {
-              <th nzShowSort [nzSortFn]="sortId" class="select-none">ID</th>
-            }
-            <th nzShowSort [nzSortFn]="sortFirstName" class="select-none">First Name</th>
-            <th nzShowSort [nzSortFn]="sortLastName" class="select-none">Last Name</th>
-            <th nzShowSort [nzSortFn]="sortAge" class="select-none">Age</th>
-            <th nzShowSort [nzSortFn]="sortGender" class="select-none">Gender</th>
-            <th
-              nzShowSort
-              [nzSortFn]="sortSeverity"
-              nzShowFilter
-              [nzFilters]="severityFilters"
-              [nzFilterMultiple]="true"
-              [nzFilterFn]="severityFilterFn"
-              class="select-none"
-            >
-              Severity
-            </th>
-            <th class="select-none">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (data of basicTable.data; track data.id) {
+        <nz-table
+          #basicTable
+          [nzData]="searchedPatients"
+          nzShowPagination
+          nzShowSizeChanger
+          nzNoResult="No matching patients."
+          class="rounded-b-md overflow-hidden border border-gray-200"
+        >
+          <thead>
             <tr>
               @if (currentUserRole == 'admin') {
-                <td>#{{ data.id }}</td>
+                <th nzShowSort [nzSortFn]="sortId">ID</th>
               }
-              <td>{{ data.firstName }}</td>
-              <td>{{ data.lastName }}</td>
-              <td>{{ getAgeYears(data.dateOfBirth) }} years</td>
-              <td>{{ data.gender | titlecase }}</td>
-              <td>
-                <nz-tag [nzColor]="getSeverityColor(data.severity)">
-                  {{ data.severity }}
-                </nz-tag>
-              </td>
-              <td>
-                <a [routerLink]="['/patient-management', data.id]" [state]="{ patient: data }"
-                  >View</a
-                >
-              </td>
+              <th nzShowSort [nzSortFn]="sortFirstName">First Name</th>
+              <th nzShowSort [nzSortFn]="sortLastName">Last Name</th>
+              <th nzShowSort [nzSortFn]="sortAge">Age</th>
+              <th nzShowSort [nzSortFn]="sortGender">Gender</th>
+              <th
+                nzShowSort
+                [nzSortFn]="sortSeverity"
+                nzShowFilter
+                [nzFilters]="severityFilters"
+                [nzFilterMultiple]="true"
+                [nzFilterFn]="severityFilterFn"
+              >
+                Severity
+              </th>
             </tr>
-          }
-        </tbody>
-      </nz-table>
+          </thead>
+          <tbody>
+            @for (data of basicTable.data; track data.id) {
+              <tr
+                class="cursor-pointer"
+                [routerLink]="['/patient-management', data.id]"
+                [state]="{ patient: data }"
+              >
+                @if (currentUserRole == 'admin') {
+                  <td>#{{ data.id }}</td>
+                }
+                <td>{{ data.firstName }}</td>
+                <td>{{ data.lastName }}</td>
+                <td>{{ getAgeYears(data.dateOfBirth) }} years</td>
+                <td>{{ data.gender | titlecase }}</td>
+                <td>
+                  <nz-tag [nzColor]="getSeverityColor(data.severity)">
+                    {{ data.severity }}
+                  </nz-tag>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </nz-table>
+      </div>
     </div>
   }
 </div>

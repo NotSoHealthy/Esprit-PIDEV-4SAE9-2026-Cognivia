@@ -49,4 +49,6 @@ public class VisitService implements IService<Visit> {
     public List<Visit> getByPatientId(Long patientId) {
         return visitRepository.findByPatientId(patientId);
     }
+
+    public List<Visit> getByCaregiverId(Long caregiverId) {return visitRepository.findByCaregiverId(caregiverId);}
 }

@@ -2,15 +2,15 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { API_BASE_URL } from '../../../core/api/api.tokens';
 
-import { VisitList } from './visit-list';
+import { Calendar } from './calendar';
 
-describe('VisitList', () => {
-  let component: VisitList;
-  let fixture: ComponentFixture<VisitList>;
+describe('Calendar', () => {
+  let component: Calendar;
+  let fixture: ComponentFixture<Calendar>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [VisitList],
+      imports: [Calendar],
       providers: [
         provideHttpClientTesting(),
         {
@@ -20,7 +20,7 @@ describe('VisitList', () => {
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(VisitList);
+    fixture = TestBed.createComponent(Calendar);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

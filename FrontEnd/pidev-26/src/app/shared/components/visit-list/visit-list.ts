@@ -1,10 +1,12 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, inject, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { CurrentUserService } from '../../../core/user/current-user.service';
+import { TitleCasePipe } from '@angular/common';
 
 type VisitStatus = string;
 
@@ -18,12 +20,15 @@ type VisitStatus = string;
     NzButtonModule,
     NzDividerModule,
     NzTagModule,
+    TitleCasePipe,
   ],
   templateUrl: './visit-list.html',
   styleUrl: './visit-list.css',
 })
 export class VisitList implements OnChanges {
   @Input() visits: any[] | null = null;
+
+  private readonly currentUser = inject(CurrentUserService);
 
   filteredVisits: any[] = [];
   searchValue = '';
@@ -117,8 +122,6 @@ export class VisitList implements OnChanges {
         year: 'numeric',
         month: 'short',
         day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
       }).format(d);
     } catch {
       return d.toLocaleString();
@@ -157,5 +160,18 @@ export class VisitList implements OnChanges {
       return isNaN(parsed.getTime()) ? null : parsed;
     }
     return null;
+  }
+
+  get currentUserRole(): string | null {
+    const user = this.currentUser.user();
+    if (!user) return null;
+    return this.currentUser.user()?.kind ?? null;
+  }
+
+  getCaregiverName(visit: any): string {
+    const firstName = visit?.caregiver?.firstName ?? '';
+    const lastName = visit?.caregiver?.lastName ?? '';
+    const fullName = `${firstName} ${lastName}`.trim();
+    return fullName || 'Caregiver not assigned';
   }
 }

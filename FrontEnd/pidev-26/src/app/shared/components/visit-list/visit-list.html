@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-2 rounded-2xl bg-white p-4">
+<div class="flex flex-col gap-2">
   <div class="flex items-center gap-3 mb-4">
     <input
       nz-input
@@ -22,8 +22,11 @@
   >
     <thead>
       <tr>
-        <th [nzShowSort]="true" [nzSortFn]="sortVisitId">Visit ID</th>
+        @if (currentUserRole == 'admin') {
+          <th [nzShowSort]="true" [nzSortFn]="sortVisitId">Visit ID</th>
+        }
         <th [nzShowSort]="true" [nzSortFn]="sortVisitDate">Scheduled</th>
+        <th>Caregiver</th>
         <th
           [nzShowSort]="true"
           [nzSortFn]="sortVisitStatus"
@@ -39,7 +42,10 @@
     <tbody>
       @for (visit of visitsTable.data; track getVisitId(visit)) {
         <tr>
-          <td>#{{ getVisitId(visit) }}</td>
+          @if (currentUserRole == 'admin') {
+            <td>#{{ getVisitId(visit) }}</td>
+          }
+          <td>{{ getCaregiverName(visit) | titlecase }}</td>
           <td>{{ formatDateTime(getVisitDate(visit)) }}</td>
           <td>
             <nz-tag [nzColor]="getStatusColor(getVisitStatus(visit))">

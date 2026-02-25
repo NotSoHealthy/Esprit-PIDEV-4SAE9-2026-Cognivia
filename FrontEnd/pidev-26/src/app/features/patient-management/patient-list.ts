@@ -15,6 +15,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { compareText, getAgeYears, normalizeSearch } from '../../shared/utils';
 import { getSeverityColor, getSeverityRank } from '../../shared/utils/patient.utils';
 import { TitleCasePipe } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 
 type PatientSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'EXTREME';
 
@@ -32,6 +33,7 @@ type PatientSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'EXTREME';
     NzDividerModule,
     NzInputModule,
     TitleCasePipe,
+    MatIconModule,
   ],
   templateUrl: './patient-list.html',
   styleUrl: './patient-list.css',
@@ -165,6 +167,7 @@ export class PatientList implements OnInit {
       complete: () => {
         this.isLoading = false;
         this.cdr.detectChanges();
+        console.log(this.patientCountBySeverity);
       },
     });
   }
@@ -349,5 +352,14 @@ export class PatientList implements OnInit {
     const user = this.currentUser.user();
     if (!user) return null;
     return this.currentUser.user()?.kind ?? null;
+  }
+
+  get patientCountBySeverity(): Record<string, number> {
+    const counts: Record<string, number> = {};
+    for (const patient of this.patients) {
+      const severity = patient?.severity ?? 'UNKNOWN';
+      counts[severity] = (counts[severity] ?? 0) + 1;
+    }
+    return counts;
   }
 }
