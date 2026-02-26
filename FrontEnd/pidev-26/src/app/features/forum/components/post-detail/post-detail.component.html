@@ -1,263 +1,204 @@
-<div class="post-detail-page bg-app" *ngIf="post">
-    <div class="forum-container max-w-6xl mx-auto px-4 py-6">
-        <!-- Back Navigation -->
-        <div class="detail-nav mb-4">
-            <a nz-button nzType="link"
-                class="back-btn p-0 flex items-center text-primary font-semibold hover:opacity-80 transition-all"
-                (click)="goBack()">
-                <span nz-icon nzType="arrow-left" class="mr-2"></span>
-                <span>Back to Discussions</span>
+<div class="post-detail-page" *ngIf="post">
+    <div class="forum-container mx-auto px-4">
+
+        <!-- Premium Navigation -->
+        <nav class="mb-8">
+            <a class="back-btn" (click)="goBack()">
+                <span nz-icon nzType="arrow-left"></span>
+                Back to Conversations
             </a>
-        </div>
+        </nav>
 
-        <!-- Classic Forum Header Bar -->
-        <div class="forum-header-bar flex justify-between items-center px-4 py-2 bg-[#3498db] text-white rounded-t-lg">
-            <div class="flex items-center gap-2">
-                <span nz-icon nzType="profile" nzTheme="outline"></span>
-                <span class="font-semibold uppercase text-xs tracking-wider">Discussion Detail</span>
-            </div>
-            <div class="flex items-center gap-4 text-xs font-medium">
-                <span class="hover:underline cursor-pointer flex items-center gap-1">
-                    <span nz-icon nzType="setting"></span> Tools
-                </span>
-                <span class="hover:underline cursor-pointer flex items-center gap-1">
-                    <span nz-icon nzType="wifi"></span> RSS
-                </span>
-            </div>
-        </div>
+        <!-- Main Discussion Card -->
+        <article class="forum-post-container" [class.pinned]="post.pinned">
 
-        <!-- Main Post Table-like Structure -->
-        <div class="forum-post-container border-x border-b border-gray-200 bg-white mb-6">
-            <!-- Main Post Row -->
-            <div class="flex min-h-[300px]">
-                <!-- User Sidebar -->
-                <aside
-                    class="forum-user-sidebar w-48 shrink-0 bg-[#f8f9fa] border-r border-gray-100 p-6 flex flex-col items-center text-center">
-                    <div class="relative mb-4">
-                        <nz-avatar [nzSize]="90" [nzText]="(post.username || post.userId || 'A')[0].toUpperCase()"
-                            class="user-avatar-large shadow-md transition-transform hover:scale-105"></nz-avatar>
-                        <span class="status-indicator online" title="Online"></span>
-                    </div>
+            <!-- Hero Header Section -->
+            <header class="post-hero-header">
+                <span class="post-category-label">{{ getCategoryLabel(post.category) }}</span>
+                <h1 class="post-title">{{ post.title }}</h1>
 
-                    <span class="user-name font-bold text-gray-900 block truncate"
-                        [title]="post.authorFullName || post.username || post.userId">
-                        {{ post.authorFullName || '@' + (post.username || post.userId || 'anonymous') }}
-                    </span>
-                    <nz-tag *ngIf="currentUserId === 'admin' || post.userId === 'admin'" [nzColor]="'blue'"
-                        class="mt-1 text-[10px] uppercase font-bold">Admin</nz-tag>
-                    <nz-tag *ngIf="post.authorRole === 'Doctor' || isDoctor(post)" [nzColor]="'cyan'"
-                        class="mt-1 text-[10px] uppercase font-bold">Doctor</nz-tag>
-                    <nz-tag *ngIf="post.authorRole === 'Caregiver'" [nzColor]="'orange'"
-                        class="mt-1 text-[10px] uppercase font-bold">Caregiver</nz-tag>
-
-                    <button *ngIf="post.userId && post.userId !== currentUserId" nz-button nzType="primary"
-                        nzSize="small"
-                        class="mt-4 w-full rounded-full bg-primary flex items-center justify-center gap-1"
-                        (click)="sendMessageToAuthor()">
-                        <span nz-icon nzType="mail"></span>
-                        <span class="text-[11px] font-bold uppercase">Message</span>
-                    </button>
-
-                    <div
-                        class="user-stats text-[11px] text-gray-500 space-y-1 mt-4 pt-4 border-t border-gray-200 w-full">
-                        <div class="flex justify-between">
-                            <span>Posts:</span>
-                            <span class="font-bold">128</span>
+                <div class="author-meta-bar">
+                    <div class="author-info-group">
+                        <div class="author-avatar-wrap">
+                            <nz-avatar [nzSize]="48" [nzText]="(post.username || post.userId || 'A')[0].toUpperCase()"
+                                [style.background-color]="'#3b429f'"></nz-avatar>
+                            <span class="status-online"></span>
                         </div>
-                        <div class="flex justify-between">
-                            <span>Joined:</span>
-                            <span class="font-bold">Feb 2024</span>
-                        </div>
-                    </div>
-                </aside>
-
-                <!-- Post Content Area -->
-                <main class="forum-content-area flex-1 p-8 flex flex-col">
-                    <div class="post-meta-header flex justify-between items-start mb-6 pb-2 border-b border-gray-50">
-                        <div class="flex items-center gap-3">
-                            <span class="status-icon" [style.color]="'#10b981'">●</span>
-                            <h1 class="post-title text-2xl font-bold text-gray-800">{{ post.title }}</h1>
-                        </div>
-                        <span class="timestamp text-gray-400 text-xs font-semibold uppercase tracking-tighter">
-                            {{ post.createdAt | timeAgo }}
-                            <span *ngIf="isEdited(post)" class="text-[10px] ml-1 opacity-70">/ (edited)</span>
-                        </span>
-                    </div>
-
-                    <div class="post-body-text flex-1 text-gray-700 leading-relaxed text-base"
-                        [innerHTML]="post.content | highlightMention">
-                    </div>
-
-                    <!-- Actions & Tags -->
-                    <div class="post-footer mt-8 pt-6 border-t border-gray-100">
-                        <!-- Topic Tags Section -->
-                        <div class="topic-tags-row flex items-center gap-3 mb-6">
-                            <span
-                                class="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1">
-                                <span nz-icon nzType="tags" nzTheme="outline"></span> Topic Tags
+                        <div class="name-role-group">
+                            <span class="author-name">
+                                {{ post.authorFullName || '@' + (post.username || post.userId || 'anonymous') }}
                             </span>
-                            <div class="flex gap-2">
-                                <nz-tag class="classic-tag capitalize">{{ getCategoryLabel(post.category) }}</nz-tag>
-                                <nz-tag class="classic-tag">healthcare</nz-tag>
-                                <nz-tag class="classic-tag">discussion</nz-tag>
-                            </div>
+                            <span class="author-role-tag">
+                                {{ post.authorRole || (isDoctor(post) ? 'Doctor' : 'Member') }}
+                            </span>
                         </div>
 
-                        <!-- Button Actions Row -->
-                        <div class="flex items-center justify-between">
-                            <div class="flex gap-2 items-center">
-                                <div class="reaction-container inline-block">
-                                    <button nz-button nzType="default" class="classic-action-btn"
-                                        [class.active]="getUserReaction(post)" (click)="like($event)">
-                                        <span nz-icon [nzType]="getReactionIcon(getUserReaction(post))"></span>
-                                        {{ getUserReaction(post) || 'React' }}
-                                    </button>
-                                    <!-- Reaction Picker -->
-                                    <div class="reaction-picker">
-                                        <div class="reaction-option" (click)="react('LIKE', $event)">👍</div>
-                                        <div class="reaction-option" (click)="react('LOVE', $event)">❤️</div>
-                                        <div class="reaction-option" (click)="react('HAHA', $event)">😂</div>
-                                        <div class="reaction-option" (click)="react('WOW', $event)">😮</div>
-                                        <div class="reaction-option" (click)="react('SAD', $event)">😢</div>
-                                        <div class="reaction-option" (click)="react('ANGRY', $event)">😡</div>
-                                    </div>
-                                </div>
-
-                                <!-- Reaction Summary (Icons + Count) -->
-                                <div class="reaction-summary flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 transition-all"
-                                    *ngIf="getTotalReactions(post) > 0" (click)="showReactionDetails(post, $event)">
-                                    <div class="emoji-stack flex">
-                                        <span class="summary-emoji text-sm" *ngIf="post.likeCount">👍</span>
-                                        <span class="summary-emoji text-sm" *ngIf="post.loveCount">❤️</span>
-                                        <span class="summary-emoji text-sm" *ngIf="post.hahaCount">😂</span>
-                                        <span class="summary-emoji text-sm" *ngIf="post.wowCount">😮</span>
-                                        <span class="summary-emoji text-sm" *ngIf="post.sadCount">😢</span>
-                                        <span class="summary-emoji text-sm" *ngIf="post.angryCount">😡</span>
-                                    </div>
-                                    <span class="total-count font-bold text-gray-500 text-xs">{{ getTotalReactions(post)
-                                        }}</span>
-                                </div>
-
-                                <button nz-button nzType="default" class="classic-action-btn ml-2"
-                                    (click)="repost(post, $event)">
-                                    <span nz-icon nzType="share-alt"></span> Repost
-                                </button>
-                            </div>
-
-                            <div class="flex gap-4 text-gray-400 text-lg">
-                                <span *ngIf="post.userId !== currentUserId" nz-icon nzType="warning"
-                                    class="cursor-pointer hover:text-red-500" nz-tooltip nzTooltipTitle="Report Post"
-                                    (click)="reportPost()"></span>
-                                <span nz-icon nzType="link" class="cursor-pointer hover:text-primary" nz-tooltip
-                                    nzTooltipTitle="Copy Link"></span>
-                                <span nz-icon nzType="share-alt" class="cursor-pointer hover:text-primary" nz-tooltip
-                                    nzTooltipTitle="Share Post"></span>
-                                <span *ngIf="post.userId === currentUserId || currentUserId === 'admin'" nz-icon
-                                    nzType="delete" class="cursor-pointer hover:text-red-600" nz-popconfirm
-                                    nzPopconfirmTitle="Confirm deletion?" (nzOnConfirm)="deletePost()"></span>
-                            </div>
-                        </div>
-                    </div>
-                </main>
-            </div>
-        </div>
-
-        <!-- Replies Section -->
-        <div class="replies-header flex items-center gap-2 mb-4">
-            <span nz-icon nzType="message" class="text-primary text-xl"></span>
-            <span class="text-primary font-bold uppercase text-xs tracking-widest">{{ comments.length }} Replies</span>
-        </div>
-
-        <!-- Comments List -->
-        <div class="forum-comments-stack space-y-4">
-            <div *ngFor="let comment of comments"
-                class="comment-row border border-gray-200 bg-white mb-4 flex min-h-[160px] transition-all hover:border-primary/30"
-                [class.reply-indent]="comment.parentId" [class.shadow-sm]="!comment.parentId"
-                [class.shadow-inner]="comment.parentId">
-                <!-- User Sidebar for Comment -->
-                <aside
-                    class="forum-user-sidebar w-48 shrink-0 bg-[#f8f9fa] border-r border-gray-100 p-4 flex flex-col items-center">
-                    <nz-avatar [nzSize]="60" [nzText]="(comment.username || comment.userId || 'A')[0].toUpperCase()"
-                        class="user-avatar-md shadow-sm mb-3"></nz-avatar>
-                    <span class="user-name font-bold text-gray-800 text-sm truncate w-full text-center"
-                        [title]="comment.authorFullName || comment.username || comment.userId">
-                        {{ comment.authorFullName || '@' + (comment.username || comment.userId) }}
-                    </span>
-                    <div class="comment-user-role mt-1">
-                        <nz-tag *ngIf="comment.authorRole === 'Doctor' || isDoctor(comment)" nzColor="processing"
-                            class="text-[10px] uppercase font-bold">Doctor</nz-tag>
-                        <nz-tag *ngIf="comment.authorRole === 'Caregiver'" nzColor="warning"
-                            class="text-[10px] uppercase font-bold">Caregiver</nz-tag>
-                        <span *ngIf="!comment.authorRole && !isDoctor(comment)"
-                            class="text-[10px] text-gray-500 uppercase font-semibold">Member</span>
-                    </div>
-                </aside>
-
-                <!-- Comment Content -->
-                <main class="comment-content-area flex-1 p-6 flex flex-col">
-                    <div class="comment-meta flex items-center justify-between mb-3">
-                        <div class="flex items-center gap-2 text-primary font-bold text-xs uppercase cursor-pointer hover:underline"
-                            (click)="replyToComment(comment)">
-                            <span nz-icon nzType="rollback"></span> Reply to @{{ comment.username || comment.userId }}
-                        </div>
-                        <span class="text-gray-400 text-[11px] font-bold uppercase tracking-widest">
-                            {{ comment.createdAt | timeAgo }}
-                            <span *ngIf="isEdited(comment)" class="text-[9px] ml-1 opacity-70">/ (edited)</span>
-                        </span>
-                    </div>
-
-                    <div class="comment-text flex-1 text-gray-700 text-sm leading-relaxed"
-                        [innerHTML]="comment.content | highlightMention">
-                    </div>
-
-                    <div
-                        class="comment-footer-actions flex justify-end gap-3 mt-4 pt-2 border-t border-gray-50 opacity-60 hover:opacity-100 transition-opacity">
-                        <span nz-icon nzType="message" class="cursor-pointer hover:text-primary"></span>
-                        <span *ngIf="comment.userId === currentUserId || currentUserId === 'admin'" nz-icon
-                            nzType="edit" class="cursor-pointer hover:text-primary"
-                            (click)="editComment(comment)"></span>
-                        <span *ngIf="comment.userId === currentUserId || currentUserId === 'admin'" nz-icon
-                            nzType="delete" class="cursor-pointer hover:text-red-500" nz-popconfirm
-                            nzPopconfirmTitle="Delete comment?" (nzOnConfirm)="deleteComment(comment.id)"></span>
-                    </div>
-                </main>
-            </div>
-
-            <!-- Empty State -->
-            <div *ngIf="!comments || comments.length === 0"
-                class="p-12 bg-white text-center border border-gray-100 rounded-lg">
-                <nz-empty nzNotFoundContent="No replies yet. Start the conversation!">
-                </nz-empty>
-            </div>
-        </div>
-
-        <!-- Compose Reply Footer -->
-        <div class="mt-8 bg-[#f8f9fa] p-8 rounded-xl border border-dashed border-gray-300">
-            <div class="flex gap-6 max-w-4xl mx-auto">
-                <nz-avatar [nzSize]="64" [nzText]="(currentUserId || 'U')[0].toUpperCase()"
-                    class="user-avatar-large shadow-inner shrink-0"></nz-avatar>
-                <div class="flex-1">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">Post a Quick Reply</h3>
-                    <textarea nz-input [(ngModel)]="newCommentContent" [nzAutosize]="{ minRows: 4, maxRows: 10 }"
-                        class="rounded-lg border-gray-200 focus:border-primary p-4 mb-4 text-sm"
-                        placeholder="Type your message here..."></textarea>
-                    <div class="flex justify-end">
-                        <button nz-button nzType="primary" (click)="addComment()" [disabled]="!newCommentContent.trim()"
-                            class="h-10 px-8 rounded-lg font-bold shadow-md hover:shadow-lg transition-all">
-                            Post Reply
+                        <button *ngIf="post.userId && post.userId !== currentUserId" nz-button nzType="text"
+                            nzSize="small" class="ml-2 text-primary font-bold hover:underline"
+                            (click)="sendMessageToAuthor()">
+                            Message
                         </button>
                     </div>
+
+                    <div class="post-time-stats">
+                        <span class="timestamp">{{ post.createdAt | timeAgo }}</span>
+                        <span *ngIf="isEdited(post)" class="edited-flag">Edited</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Body Content Section -->
+            <section class="post-body-container">
+                <div class="post-body-text" [innerHTML]="post.content | highlightMention"></div>
+
+                <!-- Topic Tags -->
+                <div class="flex gap-2 mt-8">
+                    <nz-tag
+                        class="rounded-lg border-none bg-slate-100 text-slate-600 font-semibold px-3 py-1">#healthcare</nz-tag>
+                    <nz-tag
+                        class="rounded-lg border-none bg-slate-100 text-slate-600 font-semibold px-3 py-1">#discussion</nz-tag>
+                    <nz-tag *ngIf="post.category"
+                        class="rounded-lg border-none bg-slate-100 text-slate-600 font-semibold px-3 py-1">#{{
+                        post.category }}</nz-tag>
+                </div>
+            </section>
+
+            <!-- Premium Interaction Footer -->
+            <footer class="post-interaction-footer">
+                <div class="primary-actions">
+                    <!-- Reaction Wrapper -->
+                    <div class="reaction-picker-wrap">
+                        <button class="btn-premium" [class.btn-active]="getUserReaction(post)"
+                            (click)="like(post, $event)">
+                            <span nz-icon [nzType]="getReactionIcon(getUserReaction(post))"
+                                [nzTheme]="getUserReaction(post) ? 'fill' : 'outline'"></span>
+                            <span>{{ getUserReaction(post) || 'React' }}</span>
+                        </button>
+
+                        <div class="reaction-menu">
+                            <span class="emoji-item" (click)="react('LIKE', $event)">👍</span>
+                            <span class="emoji-item" (click)="react('LOVE', $event)">❤️</span>
+                            <span class="emoji-item" (click)="react('HAHA', $event)">😂</span>
+                            <span class="emoji-item" (click)="react('WOW', $event)">😮</span>
+                            <span class="emoji-item" (click)="react('SAD', $event)">😢</span>
+                            <span class="emoji-item" (click)="react('ANGRY', $event)">😡</span>
+                        </div>
+                    </div>
+
+                    <!-- Counter -->
+                    <div class="reaction-summary" *ngIf="getTotalReactions(post) > 0"
+                        (click)="showReactionDetails(post, $event)">
+                        <div class="emoji-stack">
+                            <span class="summary-emoji" *ngIf="post.likeCount">👍</span>
+                            <span class="summary-emoji" *ngIf="post.loveCount">❤️</span>
+                            <span class="summary-emoji" *ngIf="post.hahaCount">😂</span>
+                            <span class="summary-emoji" *ngIf="post.wowCount">😮</span>
+                            <span class="summary-emoji" *ngIf="post.sadCount">😢</span>
+                            <span class="summary-emoji" *ngIf="post.angryCount">😡</span>
+                        </div>
+                        <span class="total-count">{{ getTotalReactions(post) }}</span>
+                    </div>
+
+                    <button class="btn-premium" (click)="repost(post, $event)">
+                        <span nz-icon nzType="share-alt"></span>
+                        <span>Repost</span>
+                    </button>
+                </div>
+
+                <div class="secondary-actions">
+                    <span *ngIf="post.userId !== currentUserId" nz-icon nzType="warning" class="util-icon" nz-tooltip
+                        nzTooltipTitle="Report Content" (click)="reportPost(post, $event)"></span>
+
+                    <span nz-icon nzType="link" class="util-icon" nz-tooltip nzTooltipTitle="Copy link"></span>
+
+                    <span *ngIf="post.userId === currentUserId || currentUserId === 'admin'" nz-icon nzType="delete"
+                        class="util-icon delete-icon" nz-popconfirm nzPopconfirmTitle="Permanently delete this post?"
+                        (nzOnConfirm)="deletePost()"></span>
+                </div>
+            </footer>
+        </article>
+
+        <!-- Discussion Thread -->
+        <section class="replies-section-wrap">
+            <div class="section-title-bar">
+                <span nz-icon nzType="message" class="text-2xl text-slate-400"></span>
+                <h2 class="text-xl font-bold text-slate-800 m-0">Conversations</h2>
+                <span class="reply-count-badge">{{ comments.length }} Replies</span>
+            </div>
+
+            <!-- Comment Card Redesign -->
+            <div class="comments-flow">
+                <div *ngFor="let comment of comments" class="comment-card" [class.is-reply]="comment.parentId">
+                    <div class="comment-header">
+                        <div class="commenter-info">
+                            <nz-avatar [nzSize]="32"
+                                [nzText]="(comment.username || comment.userId || 'A')[0].toUpperCase()"
+                                [style.background-color]="'#e2e8f0'" [style.color]="'#475569'"></nz-avatar>
+                            <span class="commenter-name">
+                                {{ comment.authorFullName || '@' + (comment.username || comment.userId) }}
+                            </span>
+                            <span class="comment-role-tag" *ngIf="comment.authorRole || isDoctor(comment)">
+                                {{ comment.authorRole || 'Doctor' }}
+                            </span>
+                        </div>
+                        <div class="comment-meta">
+                            {{ comment.createdAt | timeAgo }}
+                            <span *ngIf="isEdited(comment)" class="ml-1 opacity-60">(edited)</span>
+                        </div>
+                    </div>
+
+                    <div class="comment-text-body" [innerHTML]="comment.content | highlightMention"></div>
+
+                    <div class="comment-actions-bar">
+                        <span class="action-link" (click)="replyToComment(comment)">
+                            <span nz-icon nzType="rollback"></span> Reply
+                        </span>
+
+                        <span *ngIf="comment.userId === currentUserId || currentUserId === 'admin'" class="action-link"
+                            (click)="editComment(comment)">
+                            <span nz-icon nzType="edit"></span> Edit
+                        </span>
+
+                        <span *ngIf="comment.userId === currentUserId || currentUserId === 'admin'"
+                            class="action-link delete" nz-popconfirm nzPopconfirmTitle="Delete this reply?"
+                            (nzOnConfirm)="deleteComment(comment.id)">
+                            <span nz-icon nzType="delete"></span> Delete
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div *ngIf="comments.length === 0"
+                    class="py-12 bg-white rounded-3xl border border-dashed border-slate-200 text-center">
+                    <nz-empty nzNotFoundContent="No replies yet. Be the first to join the conversation!"></nz-empty>
                 </div>
             </div>
-        </div>
+        </section>
+
+        <!-- Premium Reply Composer -->
+        <section class="premium-composer">
+            <label class="composer-label">What are your thoughts?</label>
+            <textarea nz-input [(ngModel)]="newCommentContent" [nzAutosize]="{ minRows: 4, maxRows: 12 }"
+                class="reply-textarea" placeholder="Write a thoughtful reply..."></textarea>
+
+            <div class="flex justify-between items-center">
+                <p class="text-xs text-slate-400 m-0">
+                    Use <span class="font-bold text-navy">@username</span> to mention others.
+                </p>
+                <button class="post-reply-btn" (click)="addComment()" [disabled]="!newCommentContent.trim()">
+                    Post Reply
+                </button>
+            </div>
+        </section>
     </div>
 </div>
 
-<!-- Edit Comment Modal -->
-<ng-template #editCommentTpl let-data>
-    <div class="p-4">
-        <textarea nz-input rows="6" [(ngModel)]="tempEditContent"
-            class="rounded-lg border-gray-200 focus:border-primary p-4 w-full text-base"
-            placeholder="Update your content..."></textarea>
+<!-- Edit Comment Modal Template -->
+<ng-template #editCommentTpl>
+    <div class="p-6">
+        <label class="block text-sm font-bold text-slate-700 mb-3">Update your comment</label>
+        <textarea nz-input rows="8" [(ngModel)]="tempEditContent"
+            class="rounded-xl border-2 border-slate-100 focus:border-navy p-4 w-full text-base transition-all"
+            placeholder="Edit your content..."></textarea>
     </div>
 </ng-template>

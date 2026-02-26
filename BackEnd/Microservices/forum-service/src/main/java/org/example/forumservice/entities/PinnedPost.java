@@ -1,8 +1,16 @@
 package org.example.forumservice.entities;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class PinnedPost {
 
     @Id
@@ -14,37 +22,4 @@ public class PinnedPost {
     @ManyToOne
     @JoinColumn(name = "post_id")
     private Post post;
-
-    public PinnedPost() {
-    }
-
-    public PinnedPost(Long id, String userId, Post post) {
-        this.id = id;
-        this.userId = userId;
-        this.post = post;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public Post getPost() {
-        return post;
-    }
-
-    public void setPost(Post post) {
-        this.post = post;
-    }
 }

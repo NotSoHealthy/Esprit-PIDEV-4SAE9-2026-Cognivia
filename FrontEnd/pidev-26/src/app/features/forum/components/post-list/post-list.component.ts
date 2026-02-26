@@ -14,7 +14,6 @@ import { ReactionType, Reaction } from '../../models/reaction.model';
 import { TimeAgoPipe } from '../../../../shared/pipes/time-ago.pipe';
 import { HighlightMentionPipe } from '../../../../shared/pipes/highlight-mention.pipe';
 import { ReactionDetailsComponent } from '../reaction-details/reaction-details.component';
-
 import { NzListModule } from 'ng-zorro-antd/list';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
@@ -22,6 +21,7 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 @Component({
     selector: 'app-post-list',
@@ -40,10 +40,12 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
         NzTagModule,
         NzModalModule,
         NzDropDownModule,
+        NzSpinModule,
         TimeAgoPipe,
         HighlightMentionPipe,
         RouterLink
     ],
+    providers: [NzModalService, NzMessageService],
     templateUrl: './post-list.component.html',
     styleUrl: './post-list.component.scss'
 })
@@ -54,12 +56,20 @@ export class PostListComponent implements OnInit {
     currentUserId: string = '';
     currentUsername: string = '';
 
+    // Pagination
+    currentPage: number = 0;
+    pageSize: number = 5;
+    totalPosts: number = 0;
+    isFirstPage: boolean = true;
+    isLastPage: boolean = false;
+    loading: boolean = false;
+
     categories = [
-        { key: 'all', label: 'All Topics', icon: '📋' },
-        { key: 'patient-care', label: 'Patient Care', icon: '🩺' },
-        { key: 'treatment', label: 'Treatment Options', icon: '💊' },
-        { key: 'mental-health', label: 'Mental Health', icon: '🧠' },
-        { key: 'rehab', label: 'Rehabilitation', icon: '🏃' },
+        { key: 'all', label: 'All Topics' },
+        { key: 'patient-care', label: 'Patient Care' },
+        { key: 'treatment', label: 'Treatment Options' },
+        { key: 'mental-health', label: 'Mental Health' },
+        { key: 'rehab', label: 'Rehabilitation' },
     ];
 
     private forumService = inject(ForumService);
@@ -73,27 +83,61 @@ export class PostListComponent implements OnInit {
     ngOnInit(): void {
         this.currentUserId = this.keycloakService.getUserId() || '';
         this.currentUsername = (this.keycloakService.getUsername() as string) || '';
-        this.loadPosts();
+        // Wrap in setTimeout to avoid ExpressionChangedAfterItHasBeenCheckedError
+        setTimeout(() => this.loadPosts());
     }
 
     loadPosts(): void {
-        this.forumService.getAllPosts().subscribe({
-            next: (data: Post[]) => {
-                this.posts = data || [];
-                this.filteredPosts = [...this.posts];
+        this.loading = true;
+        this.forumService.getAllPosts(this.currentPage, this.pageSize, this.selectedCategory).subscribe({
+            next: (response: any) => {
+                // Handle Spring Page response
+                if (response && response.content) {
+                    this.posts = response.content;
+                    this.filteredPosts = [...this.posts];
+                    this.totalPosts = response.totalElements;
+                    this.isFirstPage = response.first;
+                    this.isLastPage = response.last;
+                } else {
+                    this.posts = [];
+                    this.filteredPosts = [];
+                    this.totalPosts = 0;
+                }
+                this.loading = false;
                 this.cdr.detectChanges();
             },
-            error: (e: any) => console.error('Error fetching posts', e)
+            error: (e: any) => {
+                console.error('Error fetching posts', e);
+                this.loading = false;
+                this.cdr.detectChanges();
+            }
         });
+    }
+
+    nextPage(): void {
+        if (!this.isLastPage) {
+            this.currentPage++;
+            this.loadPosts();
+            this.scrollToTop();
+        }
+    }
+
+    prevPage(): void {
+        if (!this.isFirstPage) {
+            this.currentPage--;
+            this.loadPosts();
+            this.scrollToTop();
+        }
+    }
+
+    private scrollToTop(): void {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     selectCategory(key: string): void {
         this.selectedCategory = key;
-        if (key === 'all') {
-            this.filteredPosts = [...this.posts];
-        } else {
-            this.filteredPosts = this.posts.filter(p => p.category === key);
-        }
+        this.currentPage = 0; // Reset to first page
+        this.loadPosts();
     }
 
     getCategoryLabel(key?: string): string {
@@ -102,8 +146,7 @@ export class PostListComponent implements OnInit {
     }
 
     getCategoryIcon(key?: string): string {
-        const cat = this.categories.find(c => c.key === key);
-        return cat ? cat.icon : '🗺️';
+        return '';
     }
 
     togglePin(post: Post, event: Event): void {
@@ -197,7 +240,9 @@ export class PostListComponent implements OnInit {
     }
 
     getUserReaction(post: Post): ReactionType | null {
-        if (!post || !post.reactions) return null;
+        if (!post) return null;
+        if (post.userReaction) return post.userReaction as ReactionType;
+        if (!post.reactions) return null;
         const reaction = post.reactions.find(r => r.userId === this.currentUserId);
         return reaction ? reaction.type : null;
     }
@@ -206,12 +251,29 @@ export class PostListComponent implements OnInit {
         event.stopPropagation();
         event.preventDefault();
 
-        if (!post.reactions || post.reactions.length === 0) return;
+        // If reactions are not present (due to @JsonIgnore in list view), fetch them on demand
+        if (!post.reactions || post.reactions.length === 0) {
+            this.forumService.getReactionsByPostId(post.id).subscribe({
+                next: (reactions) => {
+                    post.reactions = reactions;
+                    if (reactions && reactions.length > 0) {
+                        this.openReactionModal(reactions);
+                    } else {
+                        this.message.info('No reactions yet');
+                    }
+                },
+                error: () => this.message.error('Failed to load reaction details')
+            });
+        } else {
+            this.openReactionModal(post.reactions);
+        }
+    }
 
+    private openReactionModal(reactions: Reaction[]): void {
         this.modal.create({
             nzContent: ReactionDetailsComponent,
             nzData: {
-                reactions: post.reactions
+                reactions: reactions
             },
             nzFooter: null,
             nzWidth: 450,

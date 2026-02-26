@@ -2,9 +2,18 @@ package org.example.dpchat.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class MessageReaction {
 
     @Id
@@ -22,57 +31,6 @@ public class MessageReaction {
     @JoinColumn(name = "message_id")
     @JsonIgnore
     private Message message;
-
-    public MessageReaction() {
-    }
-
-    public MessageReaction(Long id, ReactionType type, String userId, LocalDateTime createdAt, Message message) {
-        this.id = id;
-        this.type = type;
-        this.userId = userId;
-        this.createdAt = createdAt;
-        this.message = message;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public ReactionType getType() {
-        return type;
-    }
-
-    public void setType(ReactionType type) {
-        this.type = type;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Message getMessage() {
-        return message;
-    }
-
-    public void setMessage(Message message) {
-        this.message = message;
-    }
 
     @PrePersist
     protected void onCreate() {

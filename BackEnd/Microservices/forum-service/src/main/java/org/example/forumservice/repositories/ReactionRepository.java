@@ -2,6 +2,8 @@ package org.example.forumservice.repositories;
 
 import org.example.forumservice.entities.Reaction;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import org.springframework.data.jpa.repository.Modifying;
@@ -21,4 +23,10 @@ public interface ReactionRepository extends JpaRepository<Reaction, Long> {
     void deleteByPost_IdAndUserId(Long postId, String userId);
 
     long countByPost_IdAndType(Long postId, org.example.forumservice.entities.ReactionType type);
+
+    @Query("SELECT r.post.id, r.type, COUNT(r) FROM Reaction r WHERE r.post.id IN :postIds GROUP BY r.post.id, r.type")
+    List<Object[]> countReactionsForPosts(@Param("postIds") List<Long> postIds);
+
+    @Query("SELECT r.post.id, r.type FROM Reaction r WHERE r.userId = :userId AND r.post.id IN :postIds")
+    List<Object[]> findUserReactionsForPosts(@Param("userId") String userId, @Param("postIds") List<Long> postIds);
 }

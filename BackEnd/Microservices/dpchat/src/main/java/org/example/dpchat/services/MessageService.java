@@ -1,8 +1,7 @@
 package org.example.dpchat.services;
-
 import org.example.dpchat.entities.Message;
-import org.example.dpchat.entities.MessageReaction;
 import org.example.dpchat.entities.ReactionType;
+import org.example.dpchat.dto.ChatSummaryDTO;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,6 +26,8 @@ public interface MessageService {
             org.example.dpchat.entities.ReactionType type);
 
     Message editMessage(Long id, String content);
+
+    List<ChatSummaryDTO> getChatSummary(String userId);
 
     void deleteMessage(Long id);
 }

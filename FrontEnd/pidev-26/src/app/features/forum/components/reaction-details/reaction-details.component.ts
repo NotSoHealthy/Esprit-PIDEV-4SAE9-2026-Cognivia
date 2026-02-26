@@ -62,36 +62,40 @@ import { Reaction, ReactionType } from '../../models/reaction.model';
   `,
   styles: [`
     .reaction-details-container {
-      margin: 0 -24px 0 -24px;
+      margin: 0;
       display: flex;
       flex-direction: column;
-      height: 480px;
+      height: 100%;
       background: white;
-      border-radius: 8px;
-      overflow: hidden;
     }
     :host ::ng-deep .ant-tabs-nav {
-      padding: 0 12px;
+      padding: 0 16px;
       margin-bottom: 0 !important;
-      background: white;
-      border-bottom: 1px solid #f0f0f0;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
     }
     :host ::ng-deep .ant-tabs-tab {
-      padding: 12px 8px !important;
+      padding: 14px 12px !important;
       margin: 0 4px !important;
+      transition: all 0.2s;
+    }
+    :host ::ng-deep .ant-tabs-tab-active .tab-label,
+    :host ::ng-deep .ant-tabs-tab-active .tab-count-all {
+        color: var(--primary-color) !important;
     }
     .reactor-list-scroll {
       flex: 1;
       overflow-y: auto;
-      padding: 0;
+      padding: 8px 0;
     }
     :host ::ng-deep .ant-list-item {
-      padding: 12px 16px !important;
-      border-bottom: 1px solid #f9f9f9;
-      transition: background 0.2s;
+      padding: 12px 24px !important;
+      border-bottom: 1px solid #f1f5f9;
+      transition: all 0.2s;
+      cursor: default;
     }
     :host ::ng-deep .ant-list-item:hover {
-      background: #fcfcfc;
+      background: #f8fafc;
     }
     .avatar-wrapper {
       position: relative;
@@ -103,50 +107,49 @@ import { Reaction, ReactionType } from '../../models/reaction.model';
       right: -4px;
       background: white;
       border-radius: 50%;
-      width: 20px;
-      height: 20px;
+      width: 22px;
+      height: 22px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      border: 1.5px solid white;
+      font-size: 13px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      border: 2px solid white;
     }
     .reactor-name {
-      font-size: 14px;
-      font-weight: 500;
-      color: #050505;
-      max-width: 280px;
-      display: block;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #1e293b;
     }
     .tab-label {
-      font-weight: 600;
-      color: #65676b;
-      font-size: 14px;
+      font-weight: 700;
+      color: #64748b;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
     }
     .tab-count-all {
-      margin-left: 4px;
-      font-size: 14px;
-      color: #65676b;
+      margin-left: 6px;
+      font-size: 0.85rem;
+      color: #94a3b8;
       font-weight: 600;
     }
     .tab-emoji {
-      font-size: 20px;
-      margin-right: 4px;
+      font-size: 1.4rem;
+      margin-right: 6px;
+      filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
     }
     .tab-count {
-      font-size: 14px;
-      color: #65676b;
-      font-weight: 600;
+      font-size: 0.9rem;
+      color: #64748b;
+      font-weight: 700;
     }
     .empty-state {
-      padding: 60px 20px;
+      padding: 80px 40px;
       text-align: center;
-      color: #65676b;
-      font-size: 15px;
+      color: #94a3b8;
+      font-size: 1rem;
+      font-weight: 500;
     }
   `]
 })

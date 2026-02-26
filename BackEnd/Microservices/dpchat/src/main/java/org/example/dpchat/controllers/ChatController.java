@@ -1,5 +1,8 @@
 package org.example.dpchat.controllers;
 
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import org.example.dpchat.dto.ChatSummaryDTO;
 import org.example.dpchat.entities.Message;
 import org.example.dpchat.entities.MessageReaction;
 import org.example.dpchat.entities.ReactionType;
@@ -13,15 +16,15 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
+@RequiredArgsConstructor
 public class ChatController {
 
     private final MessageService messageService;
     private final UserLookupService userLookupService;
 
-    public ChatController(MessageService messageService, UserLookupService userLookupService) {
+    @PostConstruct
+    public void init() {
         System.out.println("ChatController initialized!");
-        this.messageService = messageService;
-        this.userLookupService = userLookupService;
     }
 
     @GetMapping("/root-test")
@@ -109,6 +112,11 @@ public class ChatController {
             System.out.println("No message found between users.");
             return ResponseEntity.noContent().build();
         }
+    }
+
+    @GetMapping("/chat/summary/{userId}")
+    public ResponseEntity<List<ChatSummaryDTO>> getChatSummary(@PathVariable("userId") String userId) {
+        return ResponseEntity.ok(messageService.getChatSummary(userId));
     }
 
     @PostMapping("/chat/react/{messageId}")

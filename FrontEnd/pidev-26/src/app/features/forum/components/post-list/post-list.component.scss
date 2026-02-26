@@ -2,60 +2,62 @@
 // Forum Post List — Healthcare Forum Style
 // =============================================
 
-$purple: #5b21b6;
-$purple-light: #7c3aed;
-$purple-bg: #f5f3ff;
-$border-light: #e5e7eb;
-$text-dark: #1f2937;
-$text-secondary: #6b7280;
-$text-muted: #9ca3af;
-$radius-lg: 12px;
-$radius-md: 8px;
+$navy: var(--primary-color);
+$indigo: var(--primary-hover);
+$navy-bg: var(--bg-hover);
+$border-light: var(--border-color);
+$text-dark: var(--text-main);
+$text-secondary: var(--text-secondary);
+$text-muted: var(--text-disabled);
+$radius-lg: var(--border-radius-lg);
+$radius-md: var(--border-radius-base);
+$shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
 
 .forum-page {
     min-height: 100vh;
-    background: #f9fafb;
+    background: var(--bg-app);
 }
 
 .forum-container {
-    max-width: 1100px;
+    max-width: 1240px;
     margin: 0 auto;
-    padding: 0 24px 60px;
+    padding: 0 24px 40px;
 }
 
 // ----- Hero Section -----
 .hero-section {
-    padding: 48px 0 24px;
+    padding: 32px 0 20px;
     border-bottom: 1px solid $border-light;
-    margin-bottom: 28px;
+    margin-bottom: 20px;
 
     .hero-title {
-        font-size: 2rem;
+        font-size: 1.75rem;
         font-weight: 800;
         color: $text-dark;
-        margin: 0 0 4px;
+        margin: 0 0 2px;
     }
 
     .hero-subtitle {
-        font-size: 1rem;
+        font-size: 0.95rem;
         color: $text-secondary;
-        margin: 0 0 20px;
+        margin: 0 0 16px;
     }
 
     .cta-button {
         width: 100%;
-        height: 48px;
-        font-size: 1rem;
+        height: 42px;
+        font-size: 0.95rem;
         font-weight: 700;
         border-radius: $radius-md;
-        background: $purple;
-        border-color: $purple;
+        background: $navy;
+        border-color: $navy;
         box-shadow: none;
 
         &:hover,
         &:focus {
-            background: $purple-light;
-            border-color: $purple-light;
+            background: $indigo;
+            border-color: $indigo;
         }
     }
 }
@@ -63,9 +65,9 @@ $radius-md: 8px;
 // ----- Category Filter Chips -----
 .category-filters {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     flex-wrap: wrap;
-    margin-bottom: 28px;
+    margin-bottom: 20px;
 }
 
 .category-chip {
@@ -87,15 +89,15 @@ $radius-md: 8px;
     }
 
     &:hover {
-        border-color: $purple;
-        color: $purple;
+        border-color: $navy;
+        color: $navy;
     }
 
     &.active {
-        background: $purple;
+        background: $navy;
         color: white;
-        border-color: $purple;
-        box-shadow: 0 2px 8px rgba($purple, 0.25);
+        border-color: $navy;
+        box-shadow: 0 2px 8px rgba(59, 66, 159, 0.25);
     }
 }
 
@@ -103,10 +105,10 @@ $radius-md: 8px;
 .content-grid {
     display: grid;
     grid-template-columns: 1fr 320px;
-    gap: 28px;
+    gap: 24px;
     align-items: start;
 
-    @media (max-width: 900px) {
+    @media (max-width: 1000px) {
         grid-template-columns: 1fr;
     }
 }
@@ -131,20 +133,25 @@ $radius-md: 8px;
 
     &:hover {
         border-color: #cdd1d6;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        box-shadow: var(--card-hover-shadow);
 
         .post-card-title {
-            color: $purple;
+            color: $navy;
         }
     }
 
     &.pinned {
-        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-        border-color: #f59e0b;
-        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+        background: #edeff2dc !important;
+        border-color: rgba(59, 66, 159, 0.3);
+        box-shadow: 0 4px 12px rgba(59, 66, 159, 0.08);
+
+        .post-card-accent {
+            background: $navy;
+        }
 
         &:hover {
-            box-shadow: 0 4px 16px rgba(245, 158, 11, 0.22);
+            border-color: $navy;
+            box-shadow: 0 8px 24px rgba(59, 66, 159, 0.12);
         }
     }
 }
@@ -152,12 +159,8 @@ $radius-md: 8px;
 .post-card-accent {
     width: 4px;
     min-height: 100%;
-    background: $purple-light;
+    background: $indigo;
     flex-shrink: 0;
-
-    &.pinned-accent {
-        background: linear-gradient(180deg, #f59e0b, #d97706);
-    }
 }
 
 // ----- Pin Badge -----
@@ -170,9 +173,9 @@ $radius-md: 8px;
     font-size: 0.72rem;
     font-weight: 700;
     text-transform: uppercase;
-    background: #fef3c7;
-    color: #b45309;
-    border: 1px solid #fcd34d;
+    background: rgba(59, 66, 159, 0.08);
+    color: $navy;
+    border: 1px solid rgba(59, 66, 159, 0.2);
     white-space: nowrap;
     flex-shrink: 0;
     letter-spacing: 0.03em;
@@ -200,31 +203,31 @@ $radius-md: 8px;
     padding: 0;
 
     &:hover {
-        color: #f59e0b !important;
-        background: rgba(245, 158, 11, 0.1) !important;
+        color: $navy !important;
+        background: rgba(59, 66, 159, 0.05) !important;
     }
 
     &.active {
-        color: #f59e0b !important;
+        color: $navy !important;
+        background: rgba(59, 66, 159, 0.1) !important;
 
         &:hover {
-            color: #d97706 !important;
-            background: rgba(245, 158, 11, 0.15) !important;
+            background: rgba(59, 66, 159, 0.15) !important;
         }
     }
 }
 
 .post-card-body {
     flex: 1;
-    padding: 32px 36px;
+    padding: 24px 28px;
 }
 
 .post-card-header {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 16px;
-    font-size: 0.85rem;
+    margin-bottom: 12px;
+    font-size: 0.82rem;
     color: $text-secondary;
 
     .meta-author {
@@ -235,7 +238,7 @@ $radius-md: 8px;
         gap: 6px;
 
         &:hover {
-            color: $purple;
+            color: $navy;
             text-decoration: underline;
         }
 
@@ -292,7 +295,7 @@ $radius-md: 8px;
     margin-bottom: 12px;
 
     .post-card-title {
-        font-size: 1.4rem;
+        font-size: 1.25rem;
         font-weight: 700;
         color: $text-dark;
         transition: color 0.2s;
@@ -314,11 +317,17 @@ $radius-md: 8px;
     font-size: 0.72rem;
     font-weight: 600;
     text-transform: capitalize;
-    background: #ecfdf5;
-    color: #059669;
-    border: 1px solid #a7f3d0;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
     white-space: nowrap;
     flex-shrink: 0;
+    transition: all 0.2s;
+
+    &:hover {
+        background: #e2e8f0;
+        color: $navy;
+    }
 }
 
 // Replaced by .post-title-row .post-card-title
@@ -345,16 +354,16 @@ $radius-md: 8px;
 }
 
 .read-more-link {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 700;
-    color: $purple;
+    color: $navy;
     text-decoration: none;
     transition: all 0.2s ease;
     display: inline-block;
-    margin-bottom: 24px;
+    margin-bottom: 16px;
 
     &:hover {
-        color: $purple-light;
+        color: $indigo;
         text-decoration: underline;
     }
 }
@@ -415,8 +424,8 @@ $radius-md: 8px;
     font-weight: 600 !important;
 
     &.active {
-        color: $purple !important;
-        background: rgba($purple, 0.08) !important;
+        color: $navy !important;
+        background: rgba(59, 66, 159, 0.08) !important;
     }
 }
 
@@ -505,6 +514,11 @@ $radius-md: 8px;
 .action-btn {
     display: flex;
     align-items: center;
+    /* Walkthrough: Layout Optimization */
+    /* - [x] Analyze spacing and padding in `post-list.component.scss` */
+    /* - [x] Create implementation plan to reduce dead space */
+    /* - [x] Implement spacing adjustments in SCSS */
+    /* - [x] Verify the optimized layout */
     gap: 6px;
     padding: 0 12px !important;
     height: 32px !important;
@@ -516,12 +530,12 @@ $radius-md: 8px;
 
     &:hover {
         background: #f1f5f9 !important;
-        color: $purple !important;
+        color: $navy !important;
     }
 
     &.active {
-        color: $purple !important;
-        background: rgba($purple, 0.08) !important;
+        color: $navy !important;
+        background: rgba(59, 66, 159, 0.08) !important;
     }
 
     .anticon {
@@ -546,10 +560,10 @@ $radius-md: 8px;
 }
 
 .sidebar-card-title {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 700;
     color: $text-dark;
-    margin: 0 0 12px;
+    margin: 0 0 10px;
 }
 
 // Members Card
@@ -564,15 +578,15 @@ $radius-md: 8px;
         height: 44px;
         font-weight: 700;
         border-radius: $radius-md;
-        background: $purple;
-        border-color: $purple;
+        background: $navy;
+        border-color: $navy;
         font-size: 0.95rem;
         box-shadow: none;
 
         &:hover,
         &:focus {
-            background: $purple-light;
-            border-color: $purple-light;
+            background: $indigo;
+            border-color: $indigo;
         }
     }
 }
@@ -594,7 +608,7 @@ $radius-md: 8px;
         }
 
         .check-icon {
-            color: $purple;
+            color: $navy;
             font-weight: 700;
         }
     }
@@ -652,4 +666,63 @@ $radius-md: 8px;
             color: #4b5563;
         }
     }
+}
+
+// ----- Pagination -----
+.pagination-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 32px;
+    padding: 24px;
+    background: white;
+    border-radius: $radius-lg;
+    border: 1px solid $border-light;
+    box-shadow: $shadow-sm;
+
+    .page-info {
+        font-size: 0.95rem;
+        color: $text-secondary;
+
+        strong {
+            color: $navy;
+            font-size: 1.1rem;
+        }
+    }
+
+    button {
+        min-width: 120px;
+        height: 40px;
+        font-weight: 700;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+
+        &:not(:disabled):hover {
+            border-color: $navy;
+            color: $navy;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        &:disabled {
+            background: #f1f5f9;
+            color: #94a3b8;
+        }
+    }
+}
+
+.loading-state {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 60px;
+    min-height: 400px;
+    background: white;
+    border-radius: $radius-lg;
+    border: 1px solid $border-light;
 }

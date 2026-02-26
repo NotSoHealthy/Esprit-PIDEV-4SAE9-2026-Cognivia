@@ -1,19 +1,20 @@
 <div class="chat-container">
     <nz-layout class="chat-layout">
 
-        <!-- Sidebar: All Users -->
-        <nz-sider [nzWidth]="300" class="chat-sider">
+        <!-- Sidebar: Active Conversations -->
+        <nz-sider [nzWidth]="320" class="chat-sider">
             <div class="sider-header">
-                <h3 nz-typography>Messages</h3>
-                <small>{{ allUsers.length }} people</small>
+                <h3 nz-typography>Conversations</h3>
+                <small>{{ allUsers.length }} active contacts</small>
             </div>
 
             <div class="contact-list">
-                <nz-spin [nzSpinning]="loadingUsers" nzTip="Loading users…">
+                <nz-spin [nzSpinning]="loadingUsers" nzTip="Syncing contacts…">
 
                     <div *ngIf="allUsers.length === 0 && !loadingUsers" class="no-contacts">
-                        <span nz-icon nzType="team" nzTheme="outline" class="empty-icon"></span>
-                        <p>No users found</p>
+                        <span nz-icon nzType="message" nzTheme="outline" class="empty-icon"></span>
+                        <p>Your inbox is empty</p>
+                        <small>Start a conversation from the forum</small>
                     </div>
 
                     <div *ngFor="let user of allUsers" class="contact-item"
@@ -42,49 +43,54 @@
                             </div>
                         </div>
 
-                        <span *ngIf="selectedUser?.id === user.id" nz-icon nzType="right" class="active-arrow">
-                        </span>
+                        <span nz-icon nzType="right" class="active-arrow"></span>
                     </div>
                 </nz-spin>
             </div>
         </nz-sider>
 
-        <!-- Main chat area -->
+        <!-- Main Workspace -->
         <nz-content class="chat-main">
             <div *ngIf="selectedUser; else noSelection" class="chat-window">
 
-                <!-- Chat header -->
-                <div class="chat-header">
-                    <nz-avatar [nzSrc]="getAvatar(selectedUser.id)" nzSize="default"></nz-avatar>
+                <!-- Dynamic Chat Header -->
+                <header class="chat-header">
+                    <nz-avatar [nzSrc]="getAvatar(selectedUser.id)" nzSize="large"
+                        style="border: 2px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></nz-avatar>
                     <div class="header-info">
                         <span class="header-name">{{ selectedUser.name }}</span>
                         <nz-tag [nzColor]="getRoleColor(selectedUser.role)" class="header-role">
                             {{ selectedUser.role }}
                         </nz-tag>
                     </div>
-                </div>
+                </header>
 
-                <!-- Messages -->
+                <!-- Discussion Stream -->
                 <div #scrollContainer class="message-area">
                     <div *ngFor="let msg of messages" class="message-wrapper"
-                        [class.sent]="msg.senderId === currentUserId">
+                        [class.sent]="msg.senderId === currentUserId"
+                        [attr.aria-label]="msg.senderId === currentUserId ? 'Sent message' : 'Received message'">
+
                         <div class="message-bubble">
+                            <!-- Contextual Actions -->
                             <div class="message-actions" *ngIf="!msg.isDeleted">
                                 <button nz-button nzType="text" nzSize="small" class="reaction-trigger"
-                                    (click)="toggleReactionPicker(msg.id)">
+                                    (click)="toggleReactionPicker(msg.id)" nz-tooltip nzTooltipTitle="React">
                                     <span nz-icon nzType="smile" nzTheme="outline"></span>
                                 </button>
                                 <ng-container *ngIf="msg.senderId === currentUserId">
-                                    <button nz-button nzType="text" nzSize="small" (click)="startEdit(msg)">
-                                        <i nz-icon nzType="edit"></i>
+                                    <button nz-button nzType="text" nzSize="small" (click)="startEdit(msg)" nz-tooltip
+                                        nzTooltipTitle="Edit">
+                                        <span nz-icon nzType="edit"></span>
                                     </button>
                                     <button nz-button nzType="text" nzSize="small" nzDanger
-                                        (click)="deleteMessage(msg.id)">
-                                        <i nz-icon nzType="delete"></i>
+                                        (click)="deleteMessage(msg.id)" nz-tooltip nzTooltipTitle="Delete">
+                                        <span nz-icon nzType="delete"></span>
                                     </button>
                                 </ng-container>
                             </div>
 
+                            <!-- Floating Reaction Picker -->
                             <div class="reaction-picker" *ngIf="msg.id && reactionMessages[msg.id]">
                                 <span *ngFor="let r of availableReactions" class="reaction-option"
                                     (click)="addReaction(msg.id, r.type)">
@@ -92,29 +98,33 @@
                                 </span>
                             </div>
 
+                            <!-- Body Content -->
                             <div class="content" *ngIf="editingMessageId !== msg.id">
                                 <span *ngIf="msg.isDeleted" class="deleted-text">
-                                    <i>{{ msg.content }}</i>
+                                    <span nz-icon nzType="stop" class="mr-1"></span>
+                                    <i>This message was deleted</i>
                                 </span>
                                 <span *ngIf="!msg.isDeleted">{{ msg.content }}</span>
                                 <small *ngIf="msg.isEdited && !msg.isDeleted" class="edited-label">(edited)</small>
-
-                                <div class="reactions-display" *ngIf="msg.reactions && msg.reactions.length > 0">
-                                    <span *ngFor="let group of getGroupedReactions(msg)" class="reaction-badge"
-                                        [class.me]="group.me" (click)="addReaction(msg.id, group.type)"
-                                        [title]="group.type">
-                                        <span class="emoji">{{ group.emoji }}</span>
-                                        <span class="count" *ngIf="group.count > 1">{{ group.count }}</span>
-                                    </span>
-                                </div>
                             </div>
 
+                            <!-- Nested Reactions Display (Floating) -->
+                            <div class="reactions-display" *ngIf="msg.reactions && msg.reactions.length > 0">
+                                <span *ngFor="let group of getGroupedReactions(msg)" class="reaction-badge"
+                                    [class.me]="group.me" (click)="addReaction(msg.id, group.type)"
+                                    [nz-tooltip]="group.type">
+                                    <span class="emoji">{{ group.emoji }}</span>
+                                    <span class="count" *ngIf="group.count > 1">{{ group.count }}</span>
+                                </span>
+                            </div>
+
+                            <!-- Inline Editor -->
                             <div class="edit-wrapper" *ngIf="editingMessageId === msg.id">
                                 <input nz-input [(ngModel)]="editingContent" (keyup.enter)="confirmEdit(msg.id)"
-                                    (keyup.esc)="cancelEdit()" autoFocus />
+                                    (keyup.esc)="cancelEdit()" class="rounded-lg mb-2" />
                                 <div class="edit-actions">
-                                    <span (click)="confirmEdit(msg.id)" class="action-btn save">Save</span>
-                                    <span (click)="cancelEdit()" class="action-btn cancel">Cancel</span>
+                                    <span (click)="confirmEdit(msg.id)" class="action-btn save">Update</span>
+                                    <span (click)="cancelEdit()" class="action-btn cancel">Discard</span>
                                 </div>
                             </div>
 
@@ -122,27 +132,31 @@
                         </div>
                     </div>
 
-                    <nz-empty *ngIf="messages.length === 0" nzNotFoundContent="No messages yet. Say hello! 👋">
-                    </nz-empty>
+                    <div *ngIf="messages.length === 0"
+                        class="flex flex-col items-center justify-center h-full opacity-40">
+                        <span nz-icon nzType="coffee" class="text-6xl mb-4"></span>
+                        <p class="text-lg font-medium">No messages yet. Break the ice!</p>
+                    </div>
                 </div>
 
-                <!-- Input -->
-                <div class="chat-footer">
+                <!-- Smart Composer -->
+                <footer class="chat-footer">
                     <div class="input-wrapper">
-                        <input nz-input placeholder="Type a message…" [(ngModel)]="newMessage"
-                            (keyup.enter)="sendMessage()" />
-                        <button nz-button nzType="primary" (click)="sendMessage()">
+                        <input nz-input placeholder="Write a message…" [(ngModel)]="newMessage"
+                            (keyup.enter)="sendMessage()" class="chat-input-field" />
+                        <button nz-button (click)="sendMessage()" [disabled]="!newMessage.trim()">
                             <span nz-icon nzType="send"></span>
                         </button>
                     </div>
-                </div>
+                </footer>
             </div>
 
             <ng-template #noSelection>
                 <div class="empty-state">
-                    <nz-empty [nzNotFoundContent]="'Select someone on the left to start chatting'"
-                        [nzNotFoundImage]="'https://gw.alipayobjects.com/zos/antfincdn/ZHrcdLPrvN/empty.svg'">
-                    </nz-empty>
+                    <img src="https://gw.alipayobjects.com/zos/antfincdn/ZHrcdLPrvN/empty.svg"
+                        style="width: 280px; margin-bottom: 2rem; opacity: 0.8;" alt="No selection" />
+                    <h2 nz-typography class="text-slate-400">Select a connection to start</h2>
+                    <p class="text-slate-400">Pick someone from your network and start a discussion</p>
                 </div>
             </ng-template>
         </nz-content>

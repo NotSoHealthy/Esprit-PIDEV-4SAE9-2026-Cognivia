@@ -1,8 +1,8 @@
 package org.example.forumservice.controllers;
 
+import lombok.RequiredArgsConstructor;
 import org.example.forumservice.entities.Reaction;
 import org.example.forumservice.services.ReactionService;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,13 +11,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/posts/{postId}/reactions")
+@RequiredArgsConstructor
 public class ReactionController {
 
     private final ReactionService reactionService;
-
-    public ReactionController(ReactionService reactionService) {
-        this.reactionService = reactionService;
-    }
 
     @GetMapping
     public ResponseEntity<List<Reaction>> getReactionsByPostId(@PathVariable Long postId) {

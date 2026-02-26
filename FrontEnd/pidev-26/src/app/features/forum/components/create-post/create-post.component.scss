@@ -5,16 +5,17 @@
 }
 
 .elegant-card {
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
-    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+    padding: 2rem;
+    border: 1px solid var(--border-color);
 }
 
 .gradient-text {
     font-size: 2rem;
     font-weight: 800;
     margin-bottom: 0.5rem;
-    background: linear-gradient(45deg, #1890ff, #722ed1);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -47,7 +48,7 @@
     padding: 0 32px;
     font-weight: 600;
     border-radius: var(--border-radius-base);
-    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(59, 66, 159, 0.2);
 }
 
 @media (max-width: 768px) {
@@ -68,7 +69,7 @@ nz-form-item {
 
 nz-form-label {
     font-weight: 600;
-    color: #262626;
+    color: var(--text-main);
 }
 
 .actions {
@@ -86,5 +87,5 @@ nz-form-label {
 }
 
 .text-secondary {
-    color: #8c8c8c;
+    color: var(--text-secondary);
 }

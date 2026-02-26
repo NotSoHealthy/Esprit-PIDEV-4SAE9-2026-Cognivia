@@ -13,7 +13,6 @@
         <div class="category-filters">
             <span *ngFor="let cat of categories" class="category-chip" [class.active]="selectedCategory === cat.key"
                 (click)="selectCategory(cat.key)">
-                <span class="chip-icon">{{ cat.icon }}</span>
                 {{ cat.label }}
             </span>
         </div>
@@ -89,7 +88,7 @@
                             <div class="footer-actions-left">
                                 <span class="meta-item">
                                     <span nz-icon nzType="message" nzTheme="outline"></span>
-                                    {{ post.comments?.length || 0 }}
+                                    {{ post.commentCount || 0 }}
                                 </span>
                                 <span class="meta-divider"></span>
                                 <span class="action-group">
@@ -156,7 +155,7 @@
                 </div>
 
                 <!-- Empty State -->
-                <div *ngIf="!filteredPosts || filteredPosts.length === 0" class="empty-state">
+                <div *ngIf="!loading && (!filteredPosts || filteredPosts.length === 0)" class="empty-state">
                     <nz-empty [nzNotFoundContent]="emptyTpl">
                         <ng-template #emptyTpl>
                             <p class="empty-text">No discussions yet. Be the first to start one!</p>
@@ -167,6 +166,24 @@
                         </ng-template>
                     </nz-empty>
                 </div>
+
+                <!-- Loading State -->
+                <div *ngIf="loading" class="loading-state">
+                    <nz-spin nzSimple nzSize="large"></nz-spin>
+                </div>
+
+                <!-- Pagination Controls -->
+                <div class="pagination-container" *ngIf="!loading && totalPosts > 0">
+                    <button nz-button nzType="default" (click)="prevPage()" [disabled]="isFirstPage">
+                        <span nz-icon nzType="left"></span> Previous
+                    </button>
+                    <span class="page-info">
+                        Page <strong>{{ currentPage + 1 }}</strong>
+                    </span>
+                    <button nz-button nzType="default" (click)="nextPage()" [disabled]="isLastPage">
+                        Next <span nz-icon nzType="right"></span>
+                    </button>
+                </div>
             </div>
 
             <!-- Sidebar -->
@@ -175,9 +192,6 @@
                 <div class="sidebar-card members-card">
                     <h3 class="sidebar-card-title">Active Members</h3>
                     <p class="members-count">{{ posts.length }} active discussions</p>
-                    <button nz-button nzType="primary" nzBlock class="join-btn">
-                        Join Community
-                    </button>
                 </div>
 
                 <!-- Guidelines Card -->

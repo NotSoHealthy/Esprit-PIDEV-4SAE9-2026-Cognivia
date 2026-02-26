@@ -25,10 +25,12 @@ export class ForumService {
     }
 
     // Posts
-    getAllPosts(): Observable<Post[]> {
+    getAllPosts(page: number = 0, size: number = 10, category: string = 'all'): Observable<any> {
         const userId = this.keycloakService.getUserId();
-        const url = userId ? `${this.apiUrl}?userId=${userId}` : this.apiUrl;
-        return this.http.get<Post[]>(url);
+        let url = `${this.apiUrl}?page=${page}&size=${size}`;
+        if (userId) url += `&userId=${userId}`;
+        if (category && category !== 'all') url += `&category=${category}`;
+        return this.http.get<any>(url);
     }
 
     getPostById(id: number): Observable<Post> {

@@ -24,4 +24,6 @@ export interface Post {
     category?: string;
     authorFullName?: string;
     authorRole?: string;
+    commentCount?: number;
+    userReaction?: string;
 }

@@ -59,6 +59,7 @@ export class PostDetailComponent implements OnInit {
     tempEditContent: string = '';
     currentUserId: string = '';
     selectedParentId: number | null = null;
+    reactions: Reaction[] = [];
 
     private location = inject(Location);
     private route = inject(ActivatedRoute);
@@ -78,6 +79,7 @@ export class PostDetailComponent implements OnInit {
         if (id) {
             this.loadPost(id);
             this.loadComments(id);
+            this.loadReactions(id);
         }
     }
 
@@ -94,15 +96,7 @@ export class PostDetailComponent implements OnInit {
     }
 
     getCategoryIcon(key?: string): string {
-        const categories = [
-            { key: 'patient-care', icon: '🩺' },
-            { key: 'treatment', icon: '💊' },
-            { key: 'mental-health', icon: '🧠' },
-            { key: 'rehab', icon: '🏃' },
-            { key: 'general', icon: '🗺️' }
-        ];
-        const cat = categories.find(c => c.key === key);
-        return cat ? cat.icon : '🗺️';
+        return '';
     }
 
     isDoctor(item: { username?: string, userId?: string } | null): boolean {
@@ -246,6 +240,21 @@ export class PostDetailComponent implements OnInit {
         });
     }
 
+    loadReactions(postId: number): void {
+        this.forumService.getReactionsByPostId(postId).subscribe({
+            next: (data: Reaction[]) => {
+                this.ngZone.run(() => {
+                    this.reactions = data || [];
+                    if (this.post) {
+                        this.post.reactions = this.reactions;
+                    }
+                    this.cdr.detectChanges();
+                });
+            },
+            error: (e: any) => console.error('Error fetching reactions', e)
+        });
+    }
+
     react(type: any, event?: Event): void {
         if (!this.post) return;
         if (event) {
@@ -263,16 +272,17 @@ export class PostDetailComponent implements OnInit {
         this.forumService.addReaction(this.post.id, reaction as Reaction).subscribe({
             next: () => {
                 this.ngZone.run(() => {
+                    // Reload both post (counts) AND reactions (so getUserReaction() updates)
                     this.loadPost(this.post!.id);
+                    this.loadReactions(this.post!.id);
                 });
             },
             error: (e: any) => console.error('Error adding reaction', e)
         });
     }
 
-    like(event?: Event): void {
-        if (!this.post) return;
-        const currentType = this.getUserReaction(this.post);
+    like(post: Post, event?: Event): void {
+        const currentType = this.getUserReaction(post);
         // If already liked, treat as toggle (could optionally un-react, but current API adds)
         this.react('LIKE' as ReactionType, event);
     }
@@ -282,9 +292,9 @@ export class PostDetailComponent implements OnInit {
             case 'LIKE': return 'like';
             case 'LOVE': return 'heart';
             case 'HAHA': return 'smile';
-            case 'WOW': return 'info-circle';
+            case 'WOW': return 'bulb';
             case 'SAD': return 'frown';
-            case 'ANGRY': return 'warning';
+            case 'ANGRY': return 'alert';
             case 'DISLIKE': return 'dislike';
             default: return 'like';
         }
@@ -299,13 +309,29 @@ export class PostDetailComponent implements OnInit {
         event.stopPropagation();
         event.preventDefault();
 
-        if (!post.reactions || post.reactions.length === 0) return;
+        // Use this.reactions[] (always up-to-date) rather than post.reactions (often null)
+        if (this.reactions && this.reactions.length > 0) {
+            this.openReactionModal(this.reactions);
+        } else {
+            // Fetch on demand if not yet loaded (mirrors post-list behaviour)
+            this.forumService.getReactionsByPostId(post.id).subscribe({
+                next: (reactions) => {
+                    this.reactions = reactions;
+                    if (reactions && reactions.length > 0) {
+                        this.openReactionModal(reactions);
+                    } else {
+                        this.message.info('No reactions yet');
+                    }
+                },
+                error: () => this.message.error('Failed to load reaction details')
+            });
+        }
+    }
 
+    private openReactionModal(reactions: Reaction[]): void {
         this.modal.create({
             nzContent: ReactionDetailsComponent,
-            nzData: {
-                reactions: post.reactions
-            },
+            nzData: { reactions },
             nzFooter: null,
             nzWidth: 450,
             nzCentered: true,
@@ -332,9 +358,14 @@ export class PostDetailComponent implements OnInit {
     }
 
     getUserReaction(post: Post | null): ReactionType | null {
-        if (!post || !post.reactions) return null;
-        const reaction = post.reactions.find(r => r.userId === this.currentUserId);
-        return reaction ? reaction.type : null;
+        if (!post) return null;
+        if (post.userReaction) return post.userReaction as ReactionType;
+        // Use the dedicated this.reactions[] — always fresh after loadReactions()
+        if (this.reactions && this.reactions.length > 0) {
+            const reaction = this.reactions.find(r => r.userId === this.currentUserId);
+            if (reaction) return reaction.type;
+        }
+        return null;
     }
 
     repost(post: Post, event: Event): void {
@@ -386,8 +417,11 @@ export class PostDetailComponent implements OnInit {
         }
     }
 
-    reportPost(): void {
-        if (!this.post) return;
+    reportPost(post: Post, event?: Event): void {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
 
         this.modal.confirm({
             nzTitle: 'Report this post?',

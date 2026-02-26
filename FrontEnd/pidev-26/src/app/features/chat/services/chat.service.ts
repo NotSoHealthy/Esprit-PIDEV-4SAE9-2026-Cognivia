@@ -10,6 +10,12 @@ export interface UserInfo {
     role: string;
 }
 
+export interface ChatSummary {
+    contactId: string;
+    unreadCount: number;
+    lastMessage: Message;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -72,5 +78,9 @@ export class ChatService {
 
     reactToMessage(messageId: number, userId: string, type: string): Observable<any> {
         return this.http.post<any>(`${this.apiUrl}/react/${messageId}`, { userId, type });
+    }
+
+    getChatSummary(userId: string): Observable<ChatSummary[]> {
+        return this.http.get<ChatSummary[]>(`${this.apiUrl}/summary/${userId}`);
     }
 }

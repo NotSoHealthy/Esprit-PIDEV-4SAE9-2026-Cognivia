@@ -1,6 +1,7 @@
 package org.example.dpchat.repositories;
 
 import org.example.dpchat.entities.Message;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -16,6 +17,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     List<Message> findByRecipientIdOrderByTimestampDesc(String recipientId);
 
+    @EntityGraph(attributePaths = { "reactions" })
     @Query("SELECT m FROM Message m WHERE (m.senderId = :user1 AND m.recipientId = :user2) OR (m.senderId = :user2 AND m.recipientId = :user1) ORDER BY m.timestamp ASC")
     List<Message> findConversation(String user1, String user2);
 
@@ -26,6 +28,9 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     Optional<Message> findLastMessage(@Param("u1") String u1, @Param("u2") String u2);
 
     long countByRecipientIdAndSenderIdAndReadFalse(String recipientId, String senderId);
+
+    @Query("SELECT m.senderId, COUNT(m) FROM Message m WHERE m.recipientId = :recipientId AND m.read = false GROUP BY m.senderId")
+    List<Object[]> getUnreadCountsBySender(@Param("recipientId") String recipientId);
 
     @Modifying
     @Transactional

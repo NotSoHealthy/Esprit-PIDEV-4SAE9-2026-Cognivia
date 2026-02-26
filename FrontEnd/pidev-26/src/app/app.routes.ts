@@ -46,7 +46,7 @@ export const routes: Routes = [
       {
         path: 'chat',
         loadComponent: () =>
-          import('./features/forum/components/chat/chat.component').then(
+          import('./features/chat/chat.component').then(
             (m) => m.ChatComponent,
           ),
       },

@@ -58,7 +58,7 @@ export class AppLayout implements OnInit {
     {
       link: '/posts',
       label: 'Forum',
-      icon: 'message',
+      icon: 'team',
       roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_PATIENT', 'ROLE_ADMIN', 'ROLE_PHARMACY'],
     },
     {

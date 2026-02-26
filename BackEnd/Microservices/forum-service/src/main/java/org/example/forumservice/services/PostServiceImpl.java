@@ -1,50 +1,110 @@
 package org.example.forumservice.services;
 
+import lombok.RequiredArgsConstructor;
 import org.example.forumservice.entities.Post;
-import org.example.forumservice.repositories.PostRepository;
-
+import org.example.forumservice.entities.ReactionType;
+import org.example.forumservice.repositories.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
-    private final org.example.forumservice.repositories.ReactionRepository reactionRepository;
-    private final org.example.forumservice.repositories.PinnedPostRepository pinnedPostRepository;
-    private final org.example.forumservice.repositories.ReportRepository reportRepository;
+    private final ReactionRepository reactionRepository;
+    private final PinnedPostRepository pinnedPostRepository;
+    private final CommentRepository commentRepository;
+    private final ReportRepository reportRepository;
     private final UserLookupService userLookupService;
-
-    public PostServiceImpl(PostRepository postRepository,
-            org.example.forumservice.repositories.ReactionRepository reactionRepository,
-            org.example.forumservice.repositories.PinnedPostRepository pinnedPostRepository,
-            org.example.forumservice.repositories.ReportRepository reportRepository,
-            UserLookupService userLookupService) {
-        this.postRepository = postRepository;
-        this.reactionRepository = reactionRepository;
-        this.pinnedPostRepository = pinnedPostRepository;
-        this.reportRepository = reportRepository;
-        this.userLookupService = userLookupService;
-    }
 
     @Override
     public List<Post> getAllPosts(String userId) {
-        List<Post> posts = postRepository.findAll();
-        return posts.stream()
-                .filter(post -> !post.isBanned())
-                .peek(post -> {
-                    populateCounts(post);
-                    enrichWithAuthorInfo(post);
-                    if (userId != null) {
-                        post.setPinned(pinnedPostRepository.findByPostAndUserId(post, userId).isPresent());
-                    }
-                })
-                .sorted(Comparator.comparing(Post::isPinned).reversed()
-                        .thenComparing(Comparator.comparing(Post::getCreatedAt).reversed()))
-                .collect(Collectors.toList());
+        Page<Post> postPage = getPosts(userId, "all", 0, Integer.MAX_VALUE);
+        return postPage.getContent();
+    }
+
+    @Override
+    public Page<Post> getPosts(String userId, String category, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Post> postPage;
+
+        if (category == null || category.equalsIgnoreCase("all")) {
+            postPage = postRepository.findAllWithPinnedFirst(userId, pageable);
+        } else {
+            postPage = postRepository.findByCategoryWithPinnedFirst(userId, category, pageable);
+        }
+
+        if (postPage.isEmpty()) {
+            return postPage;
+        }
+
+        enrichPosts(postPage.getContent(), userId);
+
+        return postPage;
+    }
+
+    private void enrichPosts(List<Post> posts, String userId) {
+        if (posts.isEmpty())
+            return;
+
+        List<Long> postIds = posts.stream().map(Post::getId).collect(Collectors.toList());
+
+        // Batch fetch reaction counts
+        List<Object[]> reactionCounts = reactionRepository.countReactionsForPosts(postIds);
+        Map<Long, Map<ReactionType, Long>> countsByPost = new HashMap<>();
+        for (Object[] row : reactionCounts) {
+            Long postId = (Long) row[0];
+            ReactionType type = (ReactionType) row[1];
+            Long count = (Long) row[2];
+            countsByPost.computeIfAbsent(postId, k -> new HashMap<>()).put(type, count);
+        }
+
+        // Batch fetch comment counts
+        List<Object[]> commentCounts = commentRepository.countCommentsForPosts(postIds);
+        Map<Long, Long> commentCountsByPost = new HashMap<>();
+        for (Object[] row : commentCounts) {
+            commentCountsByPost.put((Long) row[0], (Long) row[1]);
+        }
+
+        // Batch fetch pinned status
+        Set<Long> pinnedPostIds = new HashSet<>();
+        Map<Long, ReactionType> userReactionsByPost = new HashMap<>();
+
+        if (userId != null) {
+            pinnedPostIds = pinnedPostRepository.findByUserId(userId).stream()
+                    .map(pp -> pp.getPost().getId())
+                    .collect(Collectors.toSet());
+
+            List<Object[]> userReactions = reactionRepository.findUserReactionsForPosts(userId, postIds);
+            for (Object[] row : userReactions) {
+                userReactionsByPost.put((Long) row[0], (ReactionType) row[1]);
+            }
+        }
+
+        for (Post post : posts) {
+            Map<ReactionType, Long> counts = countsByPost.getOrDefault(post.getId(), Collections.emptyMap());
+            post.setLikeCount(counts.getOrDefault(ReactionType.LIKE, 0L));
+            post.setDislikeCount(counts.getOrDefault(ReactionType.DISLIKE, 0L));
+            post.setLoveCount(counts.getOrDefault(ReactionType.LOVE, 0L));
+            post.setHahaCount(counts.getOrDefault(ReactionType.HAHA, 0L));
+            post.setWowCount(counts.getOrDefault(ReactionType.WOW, 0L));
+            post.setSadCount(counts.getOrDefault(ReactionType.SAD, 0L));
+            post.setAngryCount(counts.getOrDefault(ReactionType.ANGRY, 0L));
+
+            post.setCommentCount(commentCountsByPost.getOrDefault(post.getId(), 0L));
+            post.setUserReaction(userReactionsByPost.get(post.getId()));
+
+            enrichWithAuthorInfo(post);
+            post.setPinned(pinnedPostIds.contains(post.getId()));
+        }
     }
 
     @Override
@@ -69,25 +129,19 @@ public class PostServiceImpl implements PostService {
     }
 
     private void populateCounts(Post post) {
-        post.setLikeCount(reactionRepository.countByPost_IdAndType(post.getId(),
-                org.example.forumservice.entities.ReactionType.LIKE));
-        post.setDislikeCount(reactionRepository.countByPost_IdAndType(post.getId(),
-                org.example.forumservice.entities.ReactionType.DISLIKE));
-        post.setLoveCount(reactionRepository.countByPost_IdAndType(post.getId(),
-                org.example.forumservice.entities.ReactionType.LOVE));
-        post.setHahaCount(reactionRepository.countByPost_IdAndType(post.getId(),
-                org.example.forumservice.entities.ReactionType.HAHA));
-        post.setWowCount(reactionRepository.countByPost_IdAndType(post.getId(),
-                org.example.forumservice.entities.ReactionType.WOW));
-        post.setSadCount(reactionRepository.countByPost_IdAndType(post.getId(),
-                org.example.forumservice.entities.ReactionType.SAD));
-        post.setAngryCount(reactionRepository.countByPost_IdAndType(post.getId(),
-                org.example.forumservice.entities.ReactionType.ANGRY));
+        post.setLikeCount(reactionRepository.countByPost_IdAndType(post.getId(), ReactionType.LIKE));
+        post.setDislikeCount(reactionRepository.countByPost_IdAndType(post.getId(), ReactionType.DISLIKE));
+        post.setLoveCount(reactionRepository.countByPost_IdAndType(post.getId(), ReactionType.LOVE));
+        post.setHahaCount(reactionRepository.countByPost_IdAndType(post.getId(), ReactionType.HAHA));
+        post.setWowCount(reactionRepository.countByPost_IdAndType(post.getId(), ReactionType.WOW));
+        post.setSadCount(reactionRepository.countByPost_IdAndType(post.getId(), ReactionType.SAD));
+        post.setAngryCount(reactionRepository.countByPost_IdAndType(post.getId(), ReactionType.ANGRY));
+
+        post.setCommentCount(commentRepository.findByPostId(post.getId()).size());
     }
 
     @Override
     public Post createPost(Post post) {
-        // Ensure the ID is null so that Hibernate treats it as a new entity
         post.setId(null);
         post.setBanned(false);
         return postRepository.save(post);
@@ -110,7 +164,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public Post togglePin(Long id, String userId) {
         Post post = getPostById(id);
-        java.util.Optional<org.example.forumservice.entities.PinnedPost> existing = pinnedPostRepository
+        Optional<org.example.forumservice.entities.PinnedPost> existing = pinnedPostRepository
                 .findByPostAndUserId(post, userId);
 
         if (existing.isPresent()) {
@@ -136,7 +190,7 @@ public class PostServiceImpl implements PostService {
         }
 
         if (reportRepository.existsByPost_IdAndUserId(postId, userId)) {
-            return; // Already reported by this user
+            return;
         }
 
         org.example.forumservice.entities.Report report = new org.example.forumservice.entities.Report();

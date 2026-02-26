@@ -12,10 +12,11 @@ import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { ChatService, UserInfo } from '../../services/chat.service';
-import { Message } from '../../models/chat.model';
-import { KeycloakService } from '../../../../core/auth/keycloak.service';
-import { TimeAgoPipe } from '../../../../shared/pipes/time-ago.pipe';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
+import { ChatService, UserInfo } from './services/chat.service';
+import { Message } from './models/chat.model';
+import { KeycloakService } from '../../core/auth/keycloak.service';
+import { TimeAgoPipe } from '../../shared/pipes/time-ago.pipe';
 import { interval, Subscription, startWith, switchMap } from 'rxjs';
 
 @Component({
@@ -33,6 +34,7 @@ import { interval, Subscription, startWith, switchMap } from 'rxjs';
         NzEmptyModule,
         NzTagModule,
         NzSpinModule,
+        NzTooltipModule,
         TimeAgoPipe
     ],
     templateUrl: './chat.component.html',
@@ -76,7 +78,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     private route = inject(ActivatedRoute);
 
     ngOnInit(): void {
-        this.currentUserId = this.keycloakService.getUserId() || '';
+        this.currentUserId = (this.keycloakService.getUserId() || '').trim().toLowerCase();
         this.loadUsers();
     }
 
@@ -88,32 +90,23 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.loadingUsers = true;
         this.chatService.getAllUsers().subscribe({
             next: (users) => {
-                // Exclude self
-                this.allUsers = users.filter(u => u.id !== this.currentUserId);
+                // Exclude self (with normalization)
+                this.allUsers = users.filter(u => u.id.trim().toLowerCase() !== this.currentUserId);
                 this.loadingUsers = false;
 
-                // Initialize unread counts
-                this.allUsers.forEach(u => {
-                    this.chatService.getUnreadCount(this.currentUserId, u.id).subscribe(count => {
-                        this.unreadCounts[u.id] = count;
-                    });
-                    this.chatService.getLastMessage(this.currentUserId, u.id).subscribe(msg => {
-                        console.log(`Last message for ${u.id}:`, msg);
-                        if (msg) this.lastMessages[u.id] = msg;
-                    });
-                });
-
-                this.cdr.detectChanges();
+                // Initialize unread counts and last messages
+                this.updateChatSummaries();
 
                 // Auto-select if recipientId is in query params
                 const recipientId = this.route.snapshot.queryParamMap.get('recipientId');
                 if (recipientId) {
-                    const found = this.allUsers.find(u => u.id === recipientId);
+                    const normRecipientId = recipientId.trim().toLowerCase();
+                    const found = this.allUsers.find(u => u.id.trim().toLowerCase() === normRecipientId);
                     if (found) {
                         this.selectUser(found);
                     } else {
                         // User not in DB — create a placeholder
-                        const placeholder: UserInfo = { id: recipientId, name: recipientId.substring(0, 8) + '…', role: 'User' };
+                        const placeholder: UserInfo = { id: normRecipientId, name: recipientId.substring(0, 8) + '…', role: 'User' };
                         this.allUsers = [placeholder, ...this.allUsers];
                         this.selectUser(placeholder);
                     }
@@ -153,11 +146,11 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
 
     getRoleColor(role: string): string {
-        switch (role) {
-            case 'Doctor': return 'blue';
-            case 'Caregiver': return 'green';
-            default: return 'default';
-        }
+        const r = (role || '').toUpperCase();
+        if (r.includes('DOCTOR')) return 'blue';
+        if (r.includes('CAREGIVER')) return 'green';
+        if (r.includes('ADMIN')) return 'volcano';
+        return 'default';
     }
 
     loadConversation(): void {
@@ -186,27 +179,21 @@ export class ChatComponent implements OnInit, OnDestroy {
                         this.scrollToBottom();
                         this.cdr.detectChanges();
                     }
-                    // Update unread counts while polling
-                    this.updateAllUnreadCounts();
+                    // Update unread counts and last messages efficiently
+                    this.updateChatSummaries();
                 }
             });
     }
 
-    private updateAllUnreadCounts(): void {
-        this.allUsers.forEach(u => {
-            // Only update counts for users NOT currently selected (or if we want to confirm 0 for selected)
-            this.chatService.getUnreadCount(this.currentUserId, u.id).subscribe(count => {
-                if (this.unreadCounts[u.id] !== count) {
-                    this.unreadCounts[u.id] = count;
-                    this.cdr.detectChanges();
+    private updateChatSummaries(): void {
+        this.chatService.getChatSummary(this.currentUserId).subscribe(summaries => {
+            summaries.forEach(s => {
+                this.unreadCounts = { ...this.unreadCounts, [s.contactId]: s.unreadCount };
+                if (s.lastMessage) {
+                    this.lastMessages = { ...this.lastMessages, [s.contactId]: s.lastMessage };
                 }
             });
-            this.chatService.getLastMessage(this.currentUserId, u.id).subscribe(msg => {
-                if (msg && (!this.lastMessages[u.id] || this.lastMessages[u.id].id !== msg.id)) {
-                    this.lastMessages[u.id] = msg;
-                    this.cdr.detectChanges();
-                }
-            });
+            this.cdr.detectChanges();
         });
     }
 

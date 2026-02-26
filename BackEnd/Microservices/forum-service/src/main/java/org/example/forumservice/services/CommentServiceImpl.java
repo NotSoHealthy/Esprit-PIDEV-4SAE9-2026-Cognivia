@@ -1,27 +1,21 @@
 package org.example.forumservice.services;
 
+import lombok.RequiredArgsConstructor;
 import org.example.forumservice.entities.Comment;
 import org.example.forumservice.entities.Post;
 import org.example.forumservice.repositories.CommentRepository;
 import org.example.forumservice.repositories.PostRepository;
-
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class CommentServiceImpl implements CommentService {
 
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final UserLookupService userLookupService;
-
-    public CommentServiceImpl(CommentRepository commentRepository, PostRepository postRepository,
-            UserLookupService userLookupService) {
-        this.commentRepository = commentRepository;
-        this.postRepository = postRepository;
-        this.userLookupService = userLookupService;
-    }
 
     @Override
     public List<Comment> getCommentsByPostId(Long postId) {
@@ -43,7 +37,6 @@ public class CommentServiceImpl implements CommentService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found with id: " + postId));
         comment.setPost(post);
-        // Ensure the ID is null so that Hibernate treats it as a new entity
         comment.setId(null);
         return commentRepository.save(comment);
     }

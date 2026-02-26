@@ -1,8 +1,9 @@
 package org.example.forumservice.controllers;
 
+import lombok.RequiredArgsConstructor;
 import org.example.forumservice.entities.Post;
 import org.example.forumservice.services.PostService;
-
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,17 +12,18 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/posts")
+@RequiredArgsConstructor
 public class PostController {
 
     private final PostService postService;
 
-    public PostController(PostService postService) {
-        this.postService = postService;
-    }
-
     @GetMapping
-    public ResponseEntity<List<Post>> getAllPosts(@RequestParam(required = false) String userId) {
-        return ResponseEntity.ok(postService.getAllPosts(userId));
+    public ResponseEntity<Page<Post>> getAllPosts(
+            @RequestParam(required = false) String userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String category) {
+        return ResponseEntity.ok(postService.getPosts(userId, category, page, size));
     }
 
     @GetMapping("/{id}")
