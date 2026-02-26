@@ -177,19 +177,6 @@
             required
           ></textarea>
         </div>
-        <div class="form-field">
-          <label for="status">Status</label>
-          <select 
-            id="status"
-            [(ngModel)]="newMaintenance.status"
-            name="status"
-          >
-            <option [value]="MaintenanceStatus.SCHEDULED">Scheduled</option>
-            <option [value]="MaintenanceStatus.IN_PROGRESS">In Progress</option>
-            <option [value]="MaintenanceStatus.COMPLETED">Completed</option>
-            <option [value]="MaintenanceStatus.CANCELLED">Cancelled</option>
-          </select>
-        </div>
         <div class="modal-actions">
           <button type="button" class="secondary-button" (click)="closeScheduleModal()" [disabled]="isScheduling">Cancel</button>
           <button type="submit" class="primary-button" [disabled]="!scheduleForm.form.valid || isScheduling || !!getScheduleValidationError()">{{ isScheduling ? 'Scheduling...' : 'Schedule' }}</button>
@@ -273,19 +260,6 @@
             rows="4"
             required
           ></textarea>
-        </div>
-        <div class="form-field">
-          <label for="editStatus">Status</label>
-          <select 
-            id="editStatus"
-            [(ngModel)]="editMaintenance.status"
-            name="status"
-          >
-            <option [value]="MaintenanceStatus.SCHEDULED">Scheduled</option>
-            <option [value]="MaintenanceStatus.IN_PROGRESS">In Progress</option>
-            <option [value]="MaintenanceStatus.COMPLETED">Completed</option>
-            <option [value]="MaintenanceStatus.CANCELLED">Cancelled</option>
-          </select>
         </div>
         <div class="modal-actions">
           <button type="button" class="secondary-button" (click)="closeEditModal()" [disabled]="isUpdating">Cancel</button>

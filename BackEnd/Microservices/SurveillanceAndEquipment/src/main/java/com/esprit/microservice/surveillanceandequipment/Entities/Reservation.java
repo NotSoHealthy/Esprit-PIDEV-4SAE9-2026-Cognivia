@@ -19,4 +19,6 @@ public class Reservation {
     private LocalDateTime returnDate;
     @Enumerated(EnumType.STRING)
     private ReservationStatus status;
+    private Long userIdAssignedBy;
+    private String userRoleAssignedBy;
 }

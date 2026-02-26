@@ -799,6 +799,37 @@
   transform: scale(0.95);
 }
 
+.reservation-button {
+  background: #2c5aa0;
+  color: #ffffff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(44, 90, 160, 0.25);
+}
+
+.reservation-button nz-icon {
+  font-size: 1.2rem;
+  color: #ffffff;
+}
+
+.reservation-button:hover {
+  background: #3d6fb8;
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(44, 90, 160, 0.35);
+}
+
+.reservation-button:active {
+  transform: scale(0.95);
+}
+
 .action-buttons-group {
   display: flex;
   align-items: center;

@@ -357,6 +357,15 @@
             <nz-icon nzType="calendar" nzTheme="outline"></nz-icon>
             <span>View Maintenance</span>
           </button>
+          <button 
+            class="action-icon-button reservation-button" 
+            type="button" 
+            (click)="viewReservations(equipmentToDetail!)"
+            aria-label="View Reservations"
+          >
+            <nz-icon nzType="book" nzTheme="outline" />
+            <span>Assign</span>
+          </button>
           <div class="dropdown-container">
             <button 
               class="menu-button detail-menu-button" 

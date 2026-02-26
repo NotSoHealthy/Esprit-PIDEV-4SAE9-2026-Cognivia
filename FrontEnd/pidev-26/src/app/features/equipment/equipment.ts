@@ -357,6 +357,13 @@ export class Equipment implements OnInit {
     });
   }
 
+  viewReservations(equipment: EquipmentModel): void {
+    this.closeDetailModal();
+    this.router.navigate(['/equipment/reservation'], {
+      queryParams: { equipmentId: equipment.id }
+    });
+  }
+
   onStatusHover(equipmentId: number): void {
     this.hoveredEquipmentId = equipmentId;
   }

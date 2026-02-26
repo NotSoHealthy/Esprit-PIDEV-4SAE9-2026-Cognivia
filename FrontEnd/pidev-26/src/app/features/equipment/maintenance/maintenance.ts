@@ -7,6 +7,7 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
 import { MaintenanceService } from './services/maintenance.service';
 import { EquipmentService } from '../services/equipment-service';
+import { ReservationService } from '../reservation/services/reservation.service';
 import { Maintenance as MaintenanceModel } from './models/maintenance.model';
 import { EquipmentModel } from '../models/equipment.model';
 import { MaintenanceStatus } from './models/maintenance-status.enum';
@@ -20,6 +21,7 @@ import { MaintenanceStatus } from './models/maintenance-status.enum';
 export class Maintenance implements OnInit {
   private maintenanceService = inject(MaintenanceService);
   private equipmentService = inject(EquipmentService);
+  private reservationService = inject(ReservationService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
@@ -262,28 +264,54 @@ export class Maintenance implements OnInit {
           return;
         }
 
-        // No overlap, proceed with creating the maintenance
-        this.overlapError = null;
-        const maintenance: Omit<MaintenanceModel, 'id'> = {
-          equipment: this.equipment!,
-          maintenanceTime: maintenanceDateTime,
-          maintenanceCompletionTime: completionDateTime,
-          description: this.newMaintenance.description,
-          status: this.newMaintenance.status
-        };
+        // No maintenance overlap, now check for overlapping reservations
+        this.reservationService.checkAvailability(
+          this.equipment!.id!,
+          maintenanceDateTime,
+          completionDateTime || maintenanceDateTime
+        ).subscribe({
+          next: (reservationOverlap) => {
+            if (reservationOverlap) {
+              // There is an overlapping reservation
+              const overlapStartDate = new Date(reservationOverlap.reservationDate).toLocaleDateString();
+              const overlapEndDate = new Date(reservationOverlap.returnDate).toLocaleDateString();
+              
+              this.overlapError = `This equipment is already reserved from ${overlapStartDate} to ${overlapEndDate}. Please choose different dates.`;
+              this.isScheduling = false;
+              this.cdr.detectChanges();
+              return;
+            }
 
-        console.log('Sending maintenance:', maintenance);
+            // No overlaps, proceed with creating the maintenance
+            this.overlapError = null;
+            const maintenance: Omit<MaintenanceModel, 'id'> = {
+              equipment: this.equipment!,
+              maintenanceTime: maintenanceDateTime,
+              maintenanceCompletionTime: completionDateTime,
+              description: this.newMaintenance.description,
+              status: this.newMaintenance.status
+            };
 
-        this.maintenanceService.create(maintenance).subscribe({
-          next: (response) => {
-            console.log('Maintenance created:', response);
-            this.loadMaintenances();
-            this.closeScheduleModal();
-            this.isScheduling = false;
+            console.log('Sending maintenance:', maintenance);
+
+            this.maintenanceService.create(maintenance).subscribe({
+              next: (response) => {
+                console.log('Maintenance created:', response);
+                this.loadMaintenances();
+                this.closeScheduleModal();
+                this.isScheduling = false;
+              },
+              error: (err) => {
+                console.error('Failed to schedule maintenance:', err);
+                console.error('Error details:', err.error);
+                this.isScheduling = false;
+                this.cdr.detectChanges();
+              }
+            });
           },
           error: (err) => {
-            console.error('Failed to schedule maintenance:', err);
-            console.error('Error details:', err.error);
+            console.error('Error checking reservation availability:', err);
+            this.overlapError = 'Error checking availability. Please try again.';
             this.isScheduling = false;
             this.cdr.detectChanges();
           }
@@ -449,28 +477,54 @@ export class Maintenance implements OnInit {
           return;
         }
 
-        // No overlap (or overlaps with itself), proceed with updating
-        this.overlapErrorEdit = null;
-        const updatedMaintenance: MaintenanceModel = {
-          ...this.maintenanceToEdit!,
-          maintenanceTime: maintenanceDateTime,
-          maintenanceCompletionTime: completionDateTime,
-          description: this.editMaintenance.description,
-          status: this.editMaintenance.status
-        };
+        // No maintenance overlap, now check for overlapping reservations
+        this.reservationService.checkAvailability(
+          this.equipment!.id!,
+          maintenanceDateTime,
+          completionDateTime
+        ).subscribe({
+          next: (reservationOverlap) => {
+            if (reservationOverlap) {
+              // There is an overlapping reservation
+              const overlapStartDate = new Date(reservationOverlap.reservationDate).toLocaleDateString();
+              const overlapEndDate = new Date(reservationOverlap.returnDate).toLocaleDateString();
+              
+              this.overlapErrorEdit = `This equipment is already reserved from ${overlapStartDate} to ${overlapEndDate}. Please choose different dates.`;
+              this.isUpdating = false;
+              this.cdr.detectChanges();
+              return;
+            }
 
-        console.log('Updating maintenance:', updatedMaintenance);
+            // No overlaps, proceed with updating
+            this.overlapErrorEdit = null;
+            const updatedMaintenance: MaintenanceModel = {
+              ...this.maintenanceToEdit!,
+              maintenanceTime: maintenanceDateTime,
+              maintenanceCompletionTime: completionDateTime,
+              description: this.editMaintenance.description,
+              status: this.editMaintenance.status
+            };
 
-        this.maintenanceService.update(updatedMaintenance).subscribe({
-          next: (response) => {
-            console.log('Maintenance updated:', response);
-            this.loadMaintenances();
-            this.closeEditModal();
-            this.isUpdating = false;
+            console.log('Updating maintenance:', updatedMaintenance);
+
+            this.maintenanceService.update(updatedMaintenance).subscribe({
+              next: (response) => {
+                console.log('Maintenance updated:', response);
+                this.loadMaintenances();
+                this.closeEditModal();
+                this.isUpdating = false;
+              },
+              error: (err) => {
+                console.error('Failed to update maintenance:', err);
+                console.error('Error details:', err.error);
+                this.isUpdating = false;
+                this.cdr.detectChanges();
+              }
+            });
           },
           error: (err) => {
-            console.error('Failed to update maintenance:', err);
-            console.error('Error details:', err.error);
+            console.error('Error checking reservation availability:', err);
+            this.overlapErrorEdit = 'Error checking availability. Please try again.';
             this.isUpdating = false;
             this.cdr.detectChanges();
           }

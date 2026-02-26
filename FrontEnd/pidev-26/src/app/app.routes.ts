@@ -33,6 +33,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/equipment/maintenance/maintenance').then((m) => m.Maintenance),
       },
       {
+        path: 'equipment/reservation',
+        canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
+        loadComponent: () => import('./features/equipment/reservation/reservation').then((m) => m.Reservation),
+      },
+      {
         path: 'patient-management',
         title: 'Patients',
         canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
