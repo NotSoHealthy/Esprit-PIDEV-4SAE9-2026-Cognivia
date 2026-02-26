@@ -11,8 +11,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 @Entity
 @Getter
 @Setter
@@ -31,19 +29,6 @@ public class Patient {
     @Enumerated(EnumType.STRING)
     private Gender gender;
     private LocalDate dateOfBirth;
-    private int checkInFrequency; // in minutes
-    @Enumerated(EnumType.STRING)
-    private Severity severity;
-    @JsonIgnore
-    @ManyToMany
-    private List<EmergencyContact> emergencyContactList;
-    @JsonIgnore
-    @ManyToMany(mappedBy = "patientList")
-    private List<Caregiver> caregiverList;
-    @JsonIgnore
-    @OneToMany(mappedBy = "patient")
-    private List<Visit> visits;
-
     private Integer checkInFrequency; // in minutes (Integer to prevent "Cannot map null into int" error)
     @Enumerated(EnumType.STRING)
     private Severity severity;

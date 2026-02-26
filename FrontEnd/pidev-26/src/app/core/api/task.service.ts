@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { API_BASE_URL } from './api.tokens';
-import { Task } from './models/task.model';
+import { Task, TaskSubmission } from './models/task.model';
 
 @Injectable({ providedIn: 'root' })
 export class TaskService {
@@ -61,5 +61,26 @@ export class TaskService {
 
   delete(id: number) {
     return this.http.delete<void>(this.url(`/${id}`)).pipe(catchError((err) => throwError(() => err)));
+  }
+
+  // Task Submission Methods
+  submitTask(taskId: number, submission: Partial<TaskSubmission>): Observable<TaskSubmission> {
+    return this.http.post<TaskSubmission>(this.url(`/${taskId}/submissions`), submission).pipe(catchError((err) => throwError(() => err)));
+  }
+
+  getSubmissions(taskId: number): Observable<TaskSubmission[]> {
+    return this.http.get<TaskSubmission[]>(this.url(`/${taskId}/submissions`)).pipe(catchError((err) => throwError(() => err)));
+  }
+
+  validateSubmission(taskId: number, submissionId: number, validation: any, caregiverId?: number): Observable<TaskSubmission> {
+    let url = this.url(`/${taskId}/submissions/${submissionId}/validate`);
+    if (caregiverId) {
+      url += `?caregiverId=${caregiverId}`;
+    }
+    return this.http.put<TaskSubmission>(url, validation).pipe(catchError((err) => throwError(() => err)));
+  }
+
+  deleteSubmission(taskId: number, submissionId: number): Observable<void> {
+    return this.http.delete<void>(this.url(`/${taskId}/submissions/${submissionId}`)).pipe(catchError((err) => throwError(() => err)));
   }
 }

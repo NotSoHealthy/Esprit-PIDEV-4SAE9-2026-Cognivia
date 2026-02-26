@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TaskService } from '../../../core/api/task.service';
 import { Task } from '../../../core/api/models/task.model';
 import { KeycloakService } from '../../../core/auth/keycloak.service';
@@ -16,6 +16,7 @@ import { KeycloakService } from '../../../core/auth/keycloak.service';
 export class TasksCreatePage implements OnInit {
   private readonly taskService = inject(TaskService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly keycloak = inject(KeycloakService);
   private readonly cdr = inject(ChangeDetectorRef);
 
@@ -53,6 +54,13 @@ export class TasksCreatePage implements OnInit {
       this.taskService.getPatients().subscribe({
         next: (p) => {
           this.patients = p;
+          // After loading patients, check if we have a pre-selected patient from query params
+          this.route.queryParams.subscribe(params => {
+            if (params['patientId']) {
+              this.model.patientId = Number(params['patientId']);
+              this.cdr.detectChanges();
+            }
+          });
           this.cdr.detectChanges();
         },
         error: (err) => console.error('Failed to load patients', err)

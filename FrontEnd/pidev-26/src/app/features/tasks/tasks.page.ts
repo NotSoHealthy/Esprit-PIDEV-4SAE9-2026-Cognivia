@@ -3,7 +3,7 @@ import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TaskService } from '../../core/api/task.service';
-import { Task } from '../../core/api/models/task.model';
+import { Task, TaskSubmission } from '../../core/api/models/task.model';
 import { KeycloakService } from '../../core/auth/keycloak.service';
 
 export type TaskStatus = 'IN_PROGRESS' | 'COMPLETED';
@@ -29,6 +29,18 @@ export class TasksPage implements OnInit {
   showEditModal = false;
   editForm: Partial<Task> = {};
   patients: any[] = [];
+  selectedPatientId: number | null = null;
+  selectedTask: Task | null = null;
+
+  // Submission state
+  showSubmissionForm = false;
+  submissionForm = {
+    description: '',
+    picturePreview: '',
+  };
+  currentSubmissions: TaskSubmission[] = [];
+  submissionLoading = false;
+  validationComments: { [key: number]: string } = {};
 
   userRole?: string;
   isPatient = false;
@@ -61,7 +73,10 @@ export class TasksPage implements OnInit {
   load(): void {
     this.loading = true;
     const keycloakUserId = this.keycloak.getUserId();
-    if (!keycloakUserId) { this.loading = false; return; }
+    if (!keycloakUserId) {
+      this.loading = false;
+      return;
+    }
 
     if (this.isPatient) {
       if (this.currentUserId) {
@@ -72,51 +87,46 @@ export class TasksPage implements OnInit {
             if (patient && patient.id) {
               this.currentUserId = patient.id;
               this.fetchPatientTasks(patient.id);
-            } else { this.loading = false; }
+            } else {
+              this.loading = false;
+            }
           },
-          error: () => this.loading = false
+          error: () => (this.loading = false),
         });
       }
     } else if (this.isCaregiverOrDoctor) {
-      if (this.currentUserId) {
-        this.fetchStaffTasks(this.currentUserId);
-      } else {
-        console.log('Fetching staff ID for role:', this.userRole, 'with Keycloak UUID:', keycloakUserId);
-        const obs = this.userRole === 'ROLE_DOCTOR'
-          ? this.taskService.getDoctorByUserId(keycloakUserId)
-          : this.taskService.getCaregiverByUserId(keycloakUserId);
+      // Staff (Caregiver/Doctor/Admin) sees ALL tasks by default, then filters by patient sidebar
+      this.taskService.getAll().subscribe({
+        next: (t) => {
+          this.tasks = t;
+          this.loading = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Error fetching all tasks:', err);
+          this.loading = false;
+          this.cdr.detectChanges();
+        },
+      });
 
-        console.log('TasksCreatePage: Fetching staff ID for UUID:', keycloakUserId);
+      // Also ensure we have the numeric ID for the staff member if needed for validation
+      if (!this.currentUserId) {
+        const obs = this.userRole === 'ROLE_DOCTOR' ? this.taskService.getDoctorByUserId(keycloakUserId) : this.taskService.getCaregiverByUserId(keycloakUserId);
         obs.subscribe({
           next: (staff) => {
-            console.log('TasksCreatePage: Staff resolution result:', staff);
             if (staff && staff.id) {
-              console.log('Staff ID resolution result:', staff);
-              if (staff && staff.id) {
-                this.currentUserId = staff.id;
-                this.fetchStaffTasks(staff.id);
-              } else {
-                console.warn('No numeric staff ID found, stopping loading.');
-                this.loading = false;
-                this.cdr.detectChanges();
-              }
-            } else {
-              console.warn('No numeric staff ID found, stopping loading.');
-              this.loading = false;
-              this.cdr.detectChanges();
+              this.currentUserId = staff.id;
             }
-          },
-          error: (err) => {
-            console.error('Error resolving staff ID:', err);
-            this.loading = false;
-            this.cdr.detectChanges();
           }
         });
       }
-    } else { // This 'else' block is for when neither isPatient nor isCaregiverOrDoctor is true, or as a general fallback
+    } else {
       this.taskService.getAll().subscribe({
-        next: (t) => { this.tasks = t; this.loading = false; },
-        error: () => this.loading = false
+        next: (t) => {
+          this.tasks = t;
+          this.loading = false;
+        },
+        error: () => (this.loading = false),
       });
     }
   }
@@ -133,6 +143,10 @@ export class TasksPage implements OnInit {
       next: (t) => {
         this.tasks = t;
         this.loading = false;
+        // Defaults to "All Patients" (null) if list exists
+        if (this.patients.length > 0 && this.selectedPatientId === null) {
+          this.selectPatient(null);
+        }
         this.cdr.detectChanges();
       },
       error: () => {
@@ -140,6 +154,32 @@ export class TasksPage implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  selectPatient(id: number | null): void {
+    this.selectedPatientId = id;
+    this.selectedTask = null; // Reset details on filter change
+    this.cdr.detectChanges();
+  }
+
+  selectTask(t: Task | null): void {
+    if (t) {
+      this.selectTaskDetail(t);
+    } else {
+      this.selectedTask = null;
+      this.resetSubmissionForm();
+      this.cdr.detectChanges();
+    }
+  }
+
+  get filteredTasks(): Task[] {
+    if (this.selectedPatientId === null) return this.tasks;
+    return this.tasks.filter(t => t.patientId === this.selectedPatientId);
+  }
+
+  getPatientName(id: number): string {
+    const p = this.patients.find(x => x.id === id);
+    return p ? `${p.firstName} ${p.lastName}` : `Patient #${id}`;
   }
 
   get canCreate(): boolean {
@@ -168,9 +208,13 @@ export class TasksPage implements OnInit {
   get inProgressTasks(): number { return this.tasks.filter(t => !t.isDone).length; }
   get completedTasks(): number { return this.tasks.filter(t => t.isDone).length; }
 
-  // Navigate to dedicated create page
+  // Navigate to dedicated create page with optional pre-selected patient
   goCreate(): void {
-    this.router.navigate(['/tasks/create']);
+    const queryParams: any = {};
+    if (this.selectedPatientId) {
+      queryParams.patientId = this.selectedPatientId;
+    }
+    this.router.navigate(['/tasks/create'], { queryParams });
   }
 
   // Edit modal
@@ -227,5 +271,188 @@ export class TasksPage implements OnInit {
       MONITORING: 'badge-monitoring',
     };
     return map[type] ?? 'badge-general';
+  }
+
+  // Task Submission Methods
+  selectTaskDetail(task: Task): void {
+    this.selectedTask = task;
+    if (task.id && (this.isPatient || this.isCaregiverOrDoctor)) {
+      this.loadSubmissions(task.id);
+    }
+    this.resetSubmissionForm();
+    this.cdr.detectChanges();
+  }
+
+  loadSubmissions(taskId: number): void {
+    this.submissionLoading = true;
+    this.taskService.getSubmissions(taskId).subscribe({
+      next: (submissions: TaskSubmission[]) => {
+        this.currentSubmissions = submissions;
+        this.submissionLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err: any) => {
+        console.error('Failed to load submissions:', err);
+        this.submissionLoading = false;
+        this.currentSubmissions = [];
+      }
+    });
+  }
+
+  openSubmissionForm(): void {
+    this.showSubmissionForm = true;
+    this.cdr.detectChanges();
+  }
+
+  closeSubmissionForm(): void {
+    this.showSubmissionForm = false;
+    this.resetSubmissionForm();
+    this.cdr.detectChanges();
+  }
+
+  resetSubmissionForm(): void {
+    this.submissionForm = {
+      description: '',
+      picturePreview: '',
+    };
+  }
+
+  onPictureSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input && input.files && input.files.length > 0) {
+      const file = input.files[0];
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file');
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size must be less than 5MB');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.submissionForm.picturePreview = e.target?.result as string;
+        console.log('Image preview loaded');
+        this.cdr.detectChanges();
+      };
+      reader.onerror = () => {
+        console.error('FileReader error');
+        alert('Failed to read image');
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  validateSubmission(): boolean {
+    if (!this.submissionForm.picturePreview) {
+      alert('Please select a photo');
+      return false;
+    }
+    if (!this.submissionForm.description || this.submissionForm.description.trim().length === 0) {
+      alert('Please enter a description');
+      return false;
+    }
+    return true;
+  }
+
+  submitTaskWork(): void {
+    if (!this.selectedTask?.id || !this.validateSubmission()) return;
+
+    this.submissionLoading = true;
+    const submission: Partial<TaskSubmission> = {
+      taskId: this.selectedTask.id,
+      patientId: this.currentUserId || 0,
+      description: this.submissionForm.description,
+      pictureData: this.submissionForm.picturePreview,
+      validationStatus: 'pending'
+    };
+
+    this.taskService.submitTask(this.selectedTask.id, submission).subscribe({
+      next: () => {
+        alert('Task submitted successfully!');
+        this.closeSubmissionForm();
+        this.loadSubmissions(this.selectedTask!.id!);
+        this.submissionLoading = false;
+      },
+      error: (err: any) => {
+        console.error('Submission failed:', err);
+        alert('Failed to submit task. Please try again.');
+        this.submissionLoading = false;
+      }
+    });
+  }
+
+  deleteSubmission(submissionId?: number): void {
+    if (!submissionId || !this.selectedTask?.id) return;
+    if (!confirm('Delete this submission?')) return;
+
+    this.taskService.deleteSubmission(this.selectedTask.id, submissionId).subscribe({
+      next: () => {
+        this.loadSubmissions(this.selectedTask!.id!);
+      },
+      error: () => {
+        alert('Failed to delete submission');
+      }
+    });
+  }
+
+  approveSubmission(submissionId: number, comments?: string): void {
+    if (!this.selectedTask?.id) return;
+
+    const validation = {
+      validationStatus: 'approved',
+      validationComments: comments || ''
+    };
+
+    this.taskService.validateSubmission(this.selectedTask.id, submissionId, validation, this.currentUserId).subscribe({
+      next: () => {
+        // Automatically mark as done when approved
+        if (this.selectedTask?.id) {
+          this.taskService.markDone(this.selectedTask.id, true).subscribe({
+            next: () => {
+              alert('Submission approved and task marked as completed!');
+              this.validationComments[submissionId] = '';
+              // Refresh task state and submissions
+              this.load();
+              this.loadSubmissions(this.selectedTask!.id!);
+            },
+            error: (err) => {
+              console.error('Failed to mark task as done:', err);
+              alert('Submission approved, but failed to mark task as done.');
+            }
+          });
+        }
+      },
+      error: (err: any) => {
+        console.error('Approval failed:', err);
+        alert('Failed to approve submission');
+      }
+    });
+  }
+
+  rejectSubmission(submissionId: number, comments?: string): void {
+    if (!this.selectedTask?.id) return;
+
+    const validation = {
+      validationStatus: 'rejected',
+      validationComments: comments || 'Submission rejected. Please resubmit.'
+    };
+
+    this.taskService.validateSubmission(this.selectedTask.id, submissionId, validation, this.currentUserId).subscribe({
+      next: () => {
+        alert('Submission rejected!');
+        this.validationComments[submissionId] = '';
+        this.loadSubmissions(this.selectedTask!.id!);
+      },
+      error: (err: any) => {
+        console.error('Rejection failed:', err);
+        alert('Failed to reject submission');
+      }
+    });
   }
 }
