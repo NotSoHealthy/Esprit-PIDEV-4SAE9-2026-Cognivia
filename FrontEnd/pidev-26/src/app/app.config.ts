@@ -28,6 +28,8 @@ import {
   InboxOutline,
   BookOutline,
   DownloadOutline,
+  ArrowLeftOutline,
+  PlayCircleOutline,
 } from '@ant-design/icons-angular/icons';
 
 export const appConfig: ApplicationConfig = {
@@ -60,6 +62,8 @@ export const appConfig: ApplicationConfig = {
       InboxOutline,
       BookOutline,
       DownloadOutline,
+      ArrowLeftOutline,
+      PlayCircleOutline,
     ]),
   ],
 };

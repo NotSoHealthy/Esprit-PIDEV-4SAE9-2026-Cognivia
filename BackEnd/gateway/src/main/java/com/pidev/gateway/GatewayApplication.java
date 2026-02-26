@@ -22,7 +22,7 @@ public class GatewayApplication {
                 return http
                                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                                 .authorizeExchange(exchanges -> exchanges
-                                                .pathMatchers("/auth/**").permitAll()
+                                                .pathMatchers("/auth/**", "/games/**").permitAll()
                                                 .pathMatchers("/admin/**").hasRole("ADMIN")
                                                 .anyExchange().authenticated())
                                 .oauth2ResourceServer(oauth -> oauth.jwt())
@@ -40,6 +40,10 @@ public class GatewayApplication {
                                                 r -> r.path("/monitoring/**")
                                                                 .filters(f -> f.stripPrefix(1))
                                                                 .uri("lb://monitoring"))
+                                .route("games",
+                                                r -> r.path("/games/**")
+                                                                .filters(f -> f.stripPrefix(1))
+                                                                .uri("lb://games"))
                                 .build();
         }
 }

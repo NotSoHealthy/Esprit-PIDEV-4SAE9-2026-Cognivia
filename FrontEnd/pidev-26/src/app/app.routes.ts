@@ -57,6 +57,10 @@ export const routes: Routes = [
         path: 'results/:id',
         loadComponent: () => import('./features/cognitive-tests/user/result-view/result-view.component').then(m => m.ResultViewComponent)
       },
+      {
+        path: 'user/games/memory',
+        loadComponent: () => import('./features/games/memory-game-view/memory-game-view.component').then(m => m.MemoryGameViewComponent)
+      },
     ],
   },
   {
