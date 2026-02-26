@@ -55,6 +55,18 @@ export class AppLayout implements OnInit {
       icon: 'user',
       roles: ['ROLE_DOCTOR', 'ROLE_ADMIN'],
     },
+    {
+    link: '/pharmacy',
+    label: 'Pharmacy',
+    icon: 'medicine-box',
+    roles: ['ROLE_PHARMACY', 'ROLE_ADMIN'],
+   },
+   {
+    link: '/prescriptions',
+    label: 'Prescriptions',
+    icon: 'file-text',
+    roles: ['ROLE_DOCTOR', 'ROLE_PHARMACY', 'ROLE_ADMIN'],
+   },
   ];
   currentRouteLabel = '';
   ngOnInit(): void {

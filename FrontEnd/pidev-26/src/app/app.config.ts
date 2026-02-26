@@ -14,6 +14,8 @@ import {
   BellOutline,
   UpOutline,
   DownOutline,
+  MedicineBoxOutline,
+  FileTextOutline,
 } from '@ant-design/icons-angular/icons';
 
 export const appConfig: ApplicationConfig = {
@@ -32,6 +34,8 @@ export const appConfig: ApplicationConfig = {
       BellOutline,
       UpOutline,
       DownOutline,
+      MedicineBoxOutline,
+      FileTextOutline,
     ]),
   ],
 };
