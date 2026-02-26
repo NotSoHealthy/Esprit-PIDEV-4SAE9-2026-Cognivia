@@ -27,6 +27,7 @@ import {
   DeleteOutline,
   InboxOutline,
   BookOutline,
+  DownloadOutline,
 } from '@ant-design/icons-angular/icons';
 
 export const appConfig: ApplicationConfig = {
@@ -58,6 +59,7 @@ export const appConfig: ApplicationConfig = {
       DeleteOutline,
       InboxOutline,
       BookOutline,
+      DownloadOutline,
     ]),
   ],
 };

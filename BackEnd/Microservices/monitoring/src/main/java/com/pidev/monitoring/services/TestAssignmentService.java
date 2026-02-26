@@ -1,15 +1,22 @@
 package com.pidev.monitoring.services;
 
-import com.pidev.monitoring.entities.*;
+import com.pidev.monitoring.entities.TestAssignment;
+import com.pidev.monitoring.entities.AssignmentType;
+import com.pidev.monitoring.entities.CognitiveTest;
+import com.pidev.monitoring.entities.Frequency;
+import com.pidev.monitoring.entities.SeverityTarget;
+import com.pidev.monitoring.entities.TestResult;
 import com.pidev.monitoring.repositories.CognitiveTestRepository;
 import com.pidev.monitoring.repositories.TestAssignmentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class TestAssignmentService {
@@ -88,7 +95,46 @@ public class TestAssignmentService {
         // 3. Merge both lists
         List<TestAssignment> all = new ArrayList<>(targeted);
         all.addAll(general);
-        return all;
+
+        // 4. Filter out assignments that the patient has already completed
+        return all.stream()
+                .filter(assignment -> !isAssignmentCompletedByPatient(assignment, patientId))
+                .toList();
+    }
+
+    /**
+     * Checks if a patient has already submitted a result for a specific
+     * assignment.
+     */
+    private boolean isAssignmentCompletedByPatient(TestAssignment assignment, Long patientId) {
+        if (assignment.getResults() == null || assignment.getResults().isEmpty()) {
+            return false;
+        }
+
+        // Get the latest result for this specific patient
+        LocalDateTime lastCompletion = assignment.getResults().stream()
+                .filter(result -> patientId.equals(result.getPatientId()))
+                .map(TestResult::getTakenAt)
+                .filter(java.util.Objects::nonNull)
+                .max(LocalDateTime::compareTo)
+                .orElse(null);
+
+        if (lastCompletion == null) {
+            return false;
+        }
+
+        Frequency freq = assignment.getFrequency();
+        if (freq == null)
+            freq = Frequency.ONCE;
+
+        LocalDateTime now = LocalDateTime.now();
+
+        return switch (freq) {
+            case ONCE -> true; // If they have any result, it's done
+            case DAILY -> lastCompletion.isAfter(now.minusHours(24));
+            case WEEKLY -> lastCompletion.isAfter(now.minusDays(7));
+            case MONTHLY -> lastCompletion.isAfter(now.minusDays(30));
+        };
     }
 
     /**

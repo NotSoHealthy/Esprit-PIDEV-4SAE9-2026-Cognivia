@@ -36,4 +36,10 @@ export class CognitiveTestService {
     deleteTest(id: number): Observable<void> {
         return this.http.delete<void>(`${this.apiUrl}/${id}`);
     }
+
+    downloadMLData(): Observable<Blob> {
+        return this.http.get(`${API_BASE_URL}/monitoring/export/ml-data`, {
+            responseType: 'blob'
+        });
+    }
 }

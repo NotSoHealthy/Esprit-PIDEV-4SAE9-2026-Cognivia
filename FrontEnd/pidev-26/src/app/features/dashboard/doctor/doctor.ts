@@ -7,6 +7,7 @@ import { TestResultService } from '../../../core/services/cognitive-tests/result
 import { PatientService } from '../../../core/services/care/patient.service';
 import { RiskScore } from '../../../core/models/cognitive-tests/risk-score.model';
 import { TestResult } from '../../../core/models/cognitive-tests/test-result.model';
+import { CognitiveTestService } from '../../../core/services/cognitive-tests/test.service';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -20,6 +21,7 @@ export class Doctor implements OnInit {
   private readonly riskService = inject(RiskScoreService);
   private readonly resultService = inject(TestResultService);
   private readonly patientService = inject(PatientService);
+  private readonly testService = inject(CognitiveTestService);
   private readonly cdr = inject(ChangeDetectorRef);
 
   recentRisks: RiskScore[] = [];
@@ -31,6 +33,7 @@ export class Doctor implements OnInit {
   patients: any[] = [];
   searchTerm: string = '';
   sortBy: 'name' | 'severity' = 'name';
+  isDownloading = false;
 
   ngOnInit(): void {
     this.loadMonitoringData();
@@ -112,5 +115,28 @@ export class Doctor implements OnInit {
       case 'LOW': return 'bg-green-100 text-green-700';
       default: return 'bg-gray-100 text-gray-700';
     }
+  }
+
+  downloadMLData(): void {
+    if (this.isDownloading) return;
+
+    this.isDownloading = true;
+    this.testService.downloadMLData().subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `patient_ml_data_${new Date().getTime()}.csv`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.isDownloading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Download failed', err);
+        this.isDownloading = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 }
