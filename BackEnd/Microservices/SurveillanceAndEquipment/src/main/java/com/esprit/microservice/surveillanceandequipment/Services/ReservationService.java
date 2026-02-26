@@ -9,7 +9,9 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -95,5 +97,24 @@ public class ReservationService {
                                 r.getReturnDate().isAfter(startDate)
                 )
                 .findFirst();
+    }
+    public Optional<Reservation> getClosestReservation(Long equipmentId) {
+
+        List<Reservation> reservations =
+                reservationRepository.findByEquipmentId(equipmentId);
+
+        if (reservations.isEmpty()) {
+            return Optional.empty();
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+
+        return reservations.stream()
+                .min(Comparator.comparing(r ->
+                        Math.abs(ChronoUnit.SECONDS.between(
+                                r.getReservationDate(),
+                                now
+                        ))
+                ));
     }
 }

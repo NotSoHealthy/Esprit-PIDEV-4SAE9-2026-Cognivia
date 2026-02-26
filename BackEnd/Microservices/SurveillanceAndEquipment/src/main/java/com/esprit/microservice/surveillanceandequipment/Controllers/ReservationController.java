@@ -59,4 +59,8 @@ public class ReservationController {
 
         return reservation;
     }
+    @GetMapping("/closest/{equipmentId}")
+    public Optional<Reservation> getClosestReservation(@PathVariable Long equipmentId) {
+        return reservationService.getClosestReservation(equipmentId);
+    }
 }

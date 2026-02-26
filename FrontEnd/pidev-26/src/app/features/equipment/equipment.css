@@ -408,6 +408,12 @@
   border: 1px solid rgba(107, 76, 122, 0.2);
 }
 
+.status-reserved {
+  background: linear-gradient(135deg, #fff4cc 0%, #ffe999 100%);
+  color: #8c6d1f;
+  border: 1px solid rgba(140, 109, 31, 0.2);
+}
+
 /* Status wrapper and tooltip */
 .status-wrapper {
   position: relative;

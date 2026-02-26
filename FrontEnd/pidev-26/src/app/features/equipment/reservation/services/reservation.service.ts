@@ -49,4 +49,8 @@ export class ReservationService {
       })
     );
   }
+
+  getClosestReservation(equipmentId: number): Observable<ReservationModel | null> {
+    return this.http.get<ReservationModel | null>(`${this.endpoint}/closest/${equipmentId}`);
+  }
 }

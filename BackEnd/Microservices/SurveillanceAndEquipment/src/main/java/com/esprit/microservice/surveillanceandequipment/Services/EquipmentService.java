@@ -3,6 +3,7 @@ package com.esprit.microservice.surveillanceandequipment.Services;
 import com.esprit.microservice.surveillanceandequipment.Entities.Equipment;
 import com.esprit.microservice.surveillanceandequipment.Entities.EquipmentStatus;
 import com.esprit.microservice.surveillanceandequipment.Entities.Maintenance;
+import com.esprit.microservice.surveillanceandequipment.Entities.Reservation;
 import com.esprit.microservice.surveillanceandequipment.Repositories.EquipmentRepository;
 import com.esprit.microservice.surveillanceandequipment.Repositories.MaintenanceRepository;
 import com.esprit.microservice.surveillanceandequipment.Repositories.ReservationRepository;
@@ -34,27 +35,52 @@ public class EquipmentService {
 
         for (Equipment equipment : equipments) {
 
+            Long equipmentId = equipment.getId();
+
             List<Maintenance> activeMaintenances =
                     maintenanceRepository
                             .findByEquipmentIdAndMaintenanceTimeLessThanEqualAndMaintenanceCompletionTimeGreaterThanEqual(
-                                    equipment.getId(),
+                                    equipmentId,
                                     now,
                                     now
                             );
 
             boolean hasActiveMaintenance = !activeMaintenances.isEmpty();
 
-            if (hasActiveMaintenance &&
-                    equipment.getStatus() != EquipmentStatus.MAINTENANCE) {
+            List<Reservation> activeReservations =
+                    reservationRepository
+                            .findByEquipmentIdAndReservationDateLessThanEqualAndReturnDateGreaterThanEqual(
+                                    equipmentId,
+                                    now,
+                                    now
+                            );
 
-                equipment.setStatus(EquipmentStatus.MAINTENANCE);
-                equipmentRepository.save(equipment);
+            boolean hasActiveReservation = !activeReservations.isEmpty();
+
+            if (hasActiveMaintenance) {
+
+                if (equipment.getStatus() != EquipmentStatus.MAINTENANCE) {
+                    equipment.setStatus(EquipmentStatus.MAINTENANCE);
+                    equipmentRepository.save(equipment);
+                }
             }
-            else if (!hasActiveMaintenance &&
-                    equipment.getStatus() == EquipmentStatus.MAINTENANCE) {
 
-                equipment.setStatus(EquipmentStatus.AVAILABLE);
-                equipmentRepository.save(equipment);
+
+            else if (hasActiveReservation) {
+
+                if (equipment.getStatus() != EquipmentStatus.RESERVED) {
+                    equipment.setStatus(EquipmentStatus.RESERVED);
+                    equipmentRepository.save(equipment);
+                }
+            }
+
+
+            else {
+
+                if (equipment.getStatus() != EquipmentStatus.AVAILABLE) {
+                    equipment.setStatus(EquipmentStatus.AVAILABLE);
+                    equipmentRepository.save(equipment);
+                }
             }
         }
 

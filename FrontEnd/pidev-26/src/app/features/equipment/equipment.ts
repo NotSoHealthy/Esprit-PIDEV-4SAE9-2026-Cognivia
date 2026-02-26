@@ -2,8 +2,10 @@ import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/cor
 import { Router } from '@angular/router';
 import { EquipmentService } from './services/equipment-service';
 import { MaintenanceService } from './maintenance/services/maintenance.service';
+import { ReservationService } from './reservation/services/reservation.service';
 import { EquipmentModel } from './models/equipment.model';
 import { Maintenance } from './maintenance/models/maintenance.model';
+import { ReservationModel } from './reservation/model/reservation.model';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { switchMap, forkJoin } from 'rxjs';
@@ -18,6 +20,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 export class Equipment implements OnInit {
   equipments: EquipmentModel[] = [];
   closestMaintenanceMap: Map<number, Maintenance | null> = new Map();
+  closestReservationMap: Map<number, ReservationModel | null> = new Map();
   hoveredEquipmentId: number | null = null;
   hoveredDetailEquipmentId: number | null = null;
   isModalOpen = false;
@@ -47,6 +50,7 @@ export class Equipment implements OnInit {
   constructor(
     private equipmentService: EquipmentService,
     private maintenanceService: MaintenanceService,
+    private reservationService: ReservationService,
     private cdr: ChangeDetectorRef,
     private router: Router
   ) {}
@@ -61,6 +65,7 @@ export class Equipment implements OnInit {
       this.equipments = data;
       this.clearSelection();
       this.closestMaintenanceMap.clear();
+      this.closestReservationMap.clear();
       
       // Fetch closest maintenance for equipments with MAINTENANCE status
       const maintenanceRequests = data
@@ -74,6 +79,22 @@ export class Equipment implements OnInit {
             error: (err) => {
               console.error(`Failed to fetch closest maintenance for equipment ${eq.id}:`, err);
               this.closestMaintenanceMap.set(eq.id, null);
+            }
+          })
+        );
+
+      // Fetch closest reservation for equipments with RESERVED status
+      const reservationRequests = data
+        .filter(eq => eq.status === 'RESERVED')
+        .map(eq => 
+          this.reservationService.getClosestReservation(eq.id).subscribe({
+            next: (reservation) => {
+              this.closestReservationMap.set(eq.id, reservation);
+              console.log(`Closest reservation for ${eq.name}:`, reservation);
+            },
+            error: (err) => {
+              console.error(`Failed to fetch closest reservation for equipment ${eq.id}:`, err);
+              this.closestReservationMap.set(eq.id, null);
             }
           })
         );
@@ -390,5 +411,17 @@ export class Equipment implements OnInit {
 
   shouldShowMaintenanceTooltipDetail(equipmentId: number): boolean {
     return this.hoveredDetailEquipmentId === equipmentId && !!this.getClosestMaintenanceForEquipment(equipmentId);
+  }
+
+  getClosestReservationForEquipment(equipmentId: number): ReservationModel | null {
+    return this.closestReservationMap.get(equipmentId) || null;
+  }
+
+  shouldShowReservationTooltip(equipmentId: number): boolean {
+    return this.hoveredEquipmentId === equipmentId && !!this.getClosestReservationForEquipment(equipmentId);
+  }
+
+  shouldShowReservationTooltipDetail(equipmentId: number): boolean {
+    return this.hoveredDetailEquipmentId === equipmentId && !!this.getClosestReservationForEquipment(equipmentId);
   }
 }

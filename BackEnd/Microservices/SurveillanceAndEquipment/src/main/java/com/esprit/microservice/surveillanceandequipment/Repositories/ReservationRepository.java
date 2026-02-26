@@ -13,4 +13,10 @@ import java.util.Optional;
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
     List<Reservation> findByEquipmentId(Long equipmentId);
+    List<Reservation>
+    findByEquipmentIdAndReservationDateLessThanEqualAndReturnDateGreaterThanEqual(
+            Long equipmentId,
+            LocalDateTime now1,
+            LocalDateTime now2
+    );
 }

@@ -76,7 +76,8 @@
                 [ngClass]="{
                   'status-available': eq.status === 'AVAILABLE',
                   'status-maintenance': eq.status === 'MAINTENANCE',
-                  'status-unavailable': eq.status === 'UNAVAILABLE'
+                  'status-unavailable': eq.status === 'UNAVAILABLE',
+                  'status-reserved': eq.status === 'RESERVED'
                 }"
                 [attr.aria-label]="'Status: ' + eq.status"
                 (mouseenter)="onStatusHover(eq.id)"
@@ -92,6 +93,17 @@
                   <p class="tooltip-label">Maintenance Ends:</p>
                   <p class="tooltip-date">
                     {{ maintenance.maintenanceCompletionTime ? (maintenance.maintenanceCompletionTime | date:'medium') : (maintenance.maintenanceTime | date:'medium') }}
+                  </p>
+                </div>
+              </div>
+              <div 
+                class="maintenance-tooltip" 
+                *ngIf="shouldShowReservationTooltip(eq.id) && getClosestReservationForEquipment(eq.id) as reservation"
+              >
+                <div class="tooltip-content">
+                  <p class="tooltip-label">Reservation Ends:</p>
+                  <p class="tooltip-date">
+                    {{ reservation.returnDate | date:'medium' }}
                   </p>
                 </div>
               </div>
@@ -322,7 +334,8 @@
                   [ngClass]="{
                     'status-available': equipmentToDetail?.status === 'AVAILABLE',
                     'status-maintenance': equipmentToDetail?.status === 'MAINTENANCE',
-                    'status-unavailable': equipmentToDetail?.status === 'UNAVAILABLE'
+                    'status-unavailable': equipmentToDetail?.status === 'UNAVAILABLE',
+                    'status-reserved': equipmentToDetail?.status === 'RESERVED'
                   }"
                   (mouseenter)="onDetailStatusHover(detailId)"
                   (mouseleave)="onDetailStatusLeave()"
@@ -337,6 +350,17 @@
                     <p class="tooltip-label">Maintenance Ends:</p>
                     <p class="tooltip-date">
                       {{ maintenance.maintenanceCompletionTime ? (maintenance.maintenanceCompletionTime | date:'medium') : (maintenance.maintenanceTime | date:'medium') }}
+                    </p>
+                  </div>
+                </div>
+                <div 
+                  class="maintenance-tooltip" 
+                  *ngIf="shouldShowReservationTooltipDetail(detailId) && getClosestReservationForEquipment(detailId) as reservation"
+                >
+                  <div class="tooltip-content">
+                    <p class="tooltip-label">Reservation Ends:</p>
+                    <p class="tooltip-date">
+                      {{ reservation.returnDate | date:'medium' }}
                     </p>
                   </div>
                 </div>
