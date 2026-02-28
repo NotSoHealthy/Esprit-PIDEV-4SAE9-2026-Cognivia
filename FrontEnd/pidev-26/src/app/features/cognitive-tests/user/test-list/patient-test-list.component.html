@@ -4,27 +4,6 @@
     <p class="subtitle">Tests assigned to you by your doctor</p>
   </div>
 
-  <!-- Games Section -->
-  <div class="test-grid" style="margin-bottom: 2rem;">
-    <div class="test-card glass" style="border-left: 4px solid #4D5CAB;">
-      <div class="card-content">
-        <div class="card-top">
-          <h3 style="display: flex; align-items: center; gap: 8px;">
-            🎮 Memory Game
-          </h3>
-          <span class="badge badge-targeted">Recommended</span>
-        </div>
-        <p>Exercise your memory and cognitive skills by matching pairs of cards.</p>
-      </div>
-      <div class="card-footer">
-        <span class="info">WebGL Game</span>
-        <button class="btn btn-primary" [routerLink]="['/user/games/memory']">
-          Play Game
-        </button>
-      </div>
-    </div>
-  </div>
-
   <!-- Loading state -->
   @if (loading) {
   <div class="empty-state glass">

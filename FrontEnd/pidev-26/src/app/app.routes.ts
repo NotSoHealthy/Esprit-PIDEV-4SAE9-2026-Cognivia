@@ -15,11 +15,13 @@ export const routes: Routes = [
     children: [
       {
         path: 'dashboard',
+        title: 'Dashboard',
         loadComponent: () =>
           import('./features/dashboard/dashboard.page').then((m) => m.DashboardPage),
       },
       {
         path: 'profile',
+        title: 'Profile',
         loadComponent: () => import('./features/profile/profile').then((m) => m.Profile),
       },
       {
@@ -31,6 +33,7 @@ export const routes: Routes = [
       },
       {
         path: 'admin/tests',
+        title: 'Admin Tests',
         loadComponent: () => import('./features/cognitive-tests/admin/test-list/test-list.component').then(m => m.TestListComponent)
       },
       {
@@ -47,6 +50,7 @@ export const routes: Routes = [
       },
       {
         path: 'user/tests',
+        title: 'Tests',
         loadComponent: () => import('./features/cognitive-tests/user/test-list/patient-test-list.component').then(m => m.PatientTestListComponent)
       },
       {
@@ -59,6 +63,7 @@ export const routes: Routes = [
       },
       {
         path: 'user/games/memory',
+        title: 'Cognitive Games',
         loadComponent: () => import('./features/games/memory-game-view/memory-game-view.component').then(m => m.MemoryGameViewComponent)
       },
     ],

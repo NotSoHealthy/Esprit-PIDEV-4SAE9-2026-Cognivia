@@ -61,6 +61,12 @@ export class AppLayout implements OnInit {
       icon: 'form',
       roles: ['ROLE_PATIENT'],
     },
+    {
+      link: '/user/games/memory',
+      label: 'Cognitive Games',
+      icon: 'play-circle',
+      roles: ['ROLE_PATIENT'],
+    },
   ];
   currentRouteLabel = '';
   ngOnInit(): void {

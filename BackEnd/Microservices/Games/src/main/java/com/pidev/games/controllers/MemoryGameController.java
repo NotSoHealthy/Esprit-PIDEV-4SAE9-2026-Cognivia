@@ -11,8 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/memory")
-@CrossOrigin(origins = "*")
+@RequestMapping("/memory")
 public class MemoryGameController {
 
     private static final Logger log = LoggerFactory.getLogger(MemoryGameController.class);
