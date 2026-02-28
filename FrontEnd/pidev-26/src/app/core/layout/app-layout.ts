@@ -36,6 +36,7 @@ export class AppLayout implements OnInit {
   private readonly activeRoute = inject(ActivatedRoute);
   private readonly keycloak = inject(KeycloakService);
   private readonly currentUser = inject(CurrentUserService);
+
   public readonly routes = [
     {
       link: '/dashboard',
@@ -55,6 +56,15 @@ export class AppLayout implements OnInit {
       icon: 'check',
       roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_PATIENT', 'ROLE_ADMIN'],
     },
+
+    // ✅ AJOUT ICI
+    {
+      link: '/appointments',
+      label: 'Appointments',
+      icon: 'calendar',
+      roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_PATIENT', 'ROLE_ADMIN'],
+    },
+
     {
       link: '/patients',
       label: 'Patients',
@@ -68,7 +78,9 @@ export class AppLayout implements OnInit {
       roles: ['ROLE_DOCTOR', 'ROLE_ADMIN'],
     },
   ];
+
   currentRouteLabel = '';
+
   ngOnInit(): void {
     this.updateCurrentRouteLabel();
 
@@ -99,13 +111,13 @@ export class AppLayout implements OnInit {
       return;
     }
 
-    // Fallback: map URL segment to configured nav labels.
     const pathOnly = this.router.url.split('?')[0]?.split('#')[0] ?? '';
     const firstSegment = pathOnly.split('/').filter(Boolean)[0] ?? '';
     const routePath = firstSegment ? `/${firstSegment}` : '';
     const matchingRoute = this.routes.find((route) => route.link === routePath);
 
-    this.currentRouteLabel = matchingRoute?.label ?? this.formatRouteLabel(this.router.url);
+    this.currentRouteLabel =
+      matchingRoute?.label ?? this.formatRouteLabel(this.router.url);
   }
 
   private formatRouteLabel(url: string): string {

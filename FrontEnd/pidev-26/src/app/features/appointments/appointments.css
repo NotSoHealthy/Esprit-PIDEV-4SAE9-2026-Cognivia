@@ -1,0 +1,166 @@
+.page-container {
+    padding: 32px;
+    background-color: #f0f2f5;
+    min-height: 100vh;
+}
+
+.premium-card {
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.title-group h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.subtitle {
+    color: #8c8c8c;
+    margin: 4px 0 0 0;
+}
+
+.search-filters {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: #fafafa;
+    border-radius: 8px;
+}
+
+.search-box {
+    width: 400px;
+}
+
+.other-filters {
+    display: flex;
+    gap: 12px;
+}
+
+/* Table Design */
+.premium-table ::ng-deep .ant-table-thead>tr>th {
+    background: #f0f5ff !important;
+    font-weight: 600;
+}
+
+.id-cell {
+    font-weight: 600;
+    color: #1890ff;
+}
+
+.date-cell .main-date {
+    font-weight: 500;
+}
+
+.date-cell .sub-date {
+    font-size: 12px;
+    color: #8c8c8c;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-pending {
+    background: #fff7e6;
+    color: #fa8c16;
+    border: 1px solid #ffd591;
+}
+
+.status-approved {
+    background: #f6ffed;
+    color: #52c41a;
+    border: 1px solid #b7eb8f;
+}
+
+.status-cancelled {
+    background: #fff1f0;
+    color: #f5222d;
+    border: 1px solid #ffa39e;
+}
+
+.status-completed {
+    background: #e6f7ff;
+    color: #1890ff;
+    border: 1px solid #91d5ff;
+}
+
+.notes-cell {
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #595959;
+}
+
+.actions {
+    display: flex;
+    gap: 4px;
+}
+
+.edit-btn:hover {
+    color: #1890ff !important;
+    background: #e6f7ff;
+}
+
+.delete-btn:hover {
+    color: #f5222d !important;
+    background: #fff1f0;
+}
+
+/* Transitions */
+button {
+    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+tr.ant-table-row:hover>td {
+    background-color: #f9f9f9 !important;
+}
+
+/* Modal Form */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.form-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.form-item label {
+    font-weight: 600;
+    color: #434343;
+}
+
+.full-width {
+    grid-column: span 2;
+}
+
+@media (max-width: 768px) {
+    .search-filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-box {
+        width: 100%;
+    }
+}
