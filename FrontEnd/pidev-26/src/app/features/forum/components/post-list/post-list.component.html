@@ -17,6 +17,14 @@
             </span>
         </div>
 
+        <!-- Filter Indicator -->
+        <div class="active-filters" *ngIf="selectedTag">
+            <nz-tag nzMode="closeable" (nzOnClose)="handleTagSelection('')" class="keyword-filter-tag">
+                <span nz-icon nzType="tag"></span>
+                Filtered by: #{{ selectedTag }}
+            </nz-tag>
+        </div>
+
         <!-- Two Column Layout -->
         <div class="content-grid">
             <!-- Posts Column -->
@@ -26,6 +34,14 @@
                     <div class="post-card-accent" [class.pinned-accent]="post.pinned"></div>
                     <div class="post-card-body">
                         <!-- Top Metadata Row (Reddit style) -->
+                        <!-- Repost Indicator -->
+                        <div class="repost-indicator" *ngIf="post.isRepost">
+                            <span nz-icon nzType="retweet" class="repost-icon"></span>
+                            <span class="repost-text">
+                                Reposted from <span class="original-author">@{{ post.originalUsername }}</span>
+                            </span>
+                        </div>
+
                         <div class="post-card-header">
                             <span class="meta-author">
                                 {{ post.authorFullName || post.username || post.userId || 'Anonymous' }}
@@ -83,6 +99,14 @@
                         <a *ngIf="shouldShowReadMore(post.content)" [routerLink]="['/posts', post.id]"
                             class="read-more-link" (click)="$event.stopPropagation()">Read more...</a>
 
+                        <!-- Keywords / Tags -->
+                        <div class="post-keywords" *ngIf="post.keywords && post.keywords.length > 0">
+                            <span *ngFor="let keyword of post.keywords" class="keyword-tag"
+                                (click)="handleTagSelection(keyword); $event.stopPropagation()">
+                                #{{ keyword }}
+                            </span>
+                        </div>
+
                         <!-- Footer Actions Row -->
                         <div class="post-card-footer">
                             <div class="footer-actions-left">
@@ -90,6 +114,12 @@
                                     <span nz-icon nzType="message" nzTheme="outline"></span>
                                     {{ post.commentCount || 0 }}
                                 </span>
+                                <span class="meta-divider"></span>
+                                <button nz-button nzType="text" nzSize="small" class="action-btn repost-btn"
+                                    (click)="repost(post, $event)" nz-tooltip nzTooltipTitle="Repost this discussion">
+                                    <span nz-icon nzType="retweet"></span>
+                                    Repost
+                                </button>
                                 <span class="meta-divider"></span>
                                 <span class="action-group">
                                     <div class="reaction-container">
@@ -188,6 +218,9 @@
 
             <!-- Sidebar -->
             <aside class="sidebar-column">
+                <!-- Word Map Widget -->
+                <app-word-map [selectedTag]="selectedTag" (tagSelected)="handleTagSelection($event)"></app-word-map>
+
                 <!-- Active Members Card -->
                 <div class="sidebar-card members-card">
                     <h3 class="sidebar-card-title">Active Members</h3>
@@ -204,6 +237,7 @@
                         <li><span class="check-icon">✓</span> Support one another</li>
                     </ul>
                 </div>
+
             </aside>
         </div>
     </div>

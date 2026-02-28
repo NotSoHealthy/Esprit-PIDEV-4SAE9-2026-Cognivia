@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Post } from '../models/post.model';
 import { Comment } from '../models/comment.model';
@@ -25,12 +25,25 @@ export class ForumService {
     }
 
     // Posts
-    getAllPosts(page: number = 0, size: number = 10, category: string = 'all'): Observable<any> {
+    getAllPosts(page: number = 0, size: number = 10, category: string = 'all', keyword?: string): Observable<any> {
+        let params = new HttpParams()
+            .set('page', page.toString())
+            .set('size', size.toString());
+
         const userId = this.keycloakService.getUserId();
-        let url = `${this.apiUrl}?page=${page}&size=${size}`;
-        if (userId) url += `&userId=${userId}`;
-        if (category && category !== 'all') url += `&category=${category}`;
-        return this.http.get<any>(url);
+        if (userId) {
+            params = params.set('userId', userId);
+        }
+
+        if (category && category !== 'all') {
+            params = params.set('category', category);
+        }
+
+        if (keyword) {
+            params = params.set('keyword', keyword);
+        }
+
+        return this.http.get<any>(this.apiUrl, { params });
     }
 
     getPostById(id: number): Observable<Post> {
@@ -91,5 +104,23 @@ export class ForumService {
     reportPost(postId: number): Observable<void> {
         const userId = this.keycloakService.getUserId();
         return this.http.post<void>(`${this.apiUrl}/${postId}/report?userId=${userId}`, {});
+    }
+
+    getWordCloud(): Observable<any> {
+        return this.http.get<any>(`${this.apiUrl}/analysis/word-cloud`);
+    }
+
+    reclassifyAllPosts(): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/reclassify`, {});
+    }
+
+    repostPost(postId: number): Observable<Post> {
+        const userId = this.keycloakService.getUserId();
+        const username = this.keycloakService.getUsername();
+        let params = new HttpParams()
+            .set('userId', userId || '')
+            .set('username', (username as string) || '');
+
+        return this.http.post<Post>(`${this.apiUrl}/${postId}/repost`, {}, { params });
     }
 }

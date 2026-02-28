@@ -11,6 +11,17 @@
 
         <!-- Main Discussion Card -->
         <article class="forum-post-container" [class.pinned]="post.pinned">
+            <!-- Repost Banner -->
+            <div class="repost-detail-banner" *ngIf="post.isRepost">
+                <span nz-icon nzType="retweet" class="repost-icon"></span>
+                <span class="repost-text">
+                    Reposted from <span class="original-author">@{{ post.originalUsername }}</span>
+                </span>
+                <button nz-button nzType="link" [routerLink]="['/posts', post.originalPostId]"
+                    class="view-original-btn">
+                    View Original
+                </button>
+            </div>
 
             <!-- Hero Header Section -->
             <header class="post-hero-header">
@@ -52,14 +63,15 @@
                 <div class="post-body-text" [innerHTML]="post.content | highlightMention"></div>
 
                 <!-- Topic Tags -->
-                <div class="flex gap-2 mt-8">
-                    <nz-tag
-                        class="rounded-lg border-none bg-slate-100 text-slate-600 font-semibold px-3 py-1">#healthcare</nz-tag>
-                    <nz-tag
-                        class="rounded-lg border-none bg-slate-100 text-slate-600 font-semibold px-3 py-1">#discussion</nz-tag>
+                <div class="flex flex-wrap gap-2 mt-8">
+                    <nz-tag *ngFor="let keyword of post.keywords"
+                        class="rounded-lg border-none bg-slate-100 text-slate-600 font-semibold px-3 py-1">
+                        #{{ keyword }}
+                    </nz-tag>
                     <nz-tag *ngIf="post.category"
-                        class="rounded-lg border-none bg-slate-100 text-slate-600 font-semibold px-3 py-1">#{{
-                        post.category }}</nz-tag>
+                        class="rounded-lg border-none bg-slate-100 text-slate-600 font-semibold px-3 py-1">
+                        #{{ post.category }}
+                    </nz-tag>
                 </div>
             </section>
 
@@ -84,6 +96,13 @@
                             <span class="emoji-item" (click)="react('ANGRY', $event)">😡</span>
                         </div>
                     </div>
+
+                    <!-- Repost Button -->
+                    <button class="btn-premium btn-repost" (click)="repost(post, $event)" nz-tooltip
+                        nzTooltipTitle="Share this discussion with others">
+                        <span nz-icon nzType="retweet"></span>
+                        <span>Repost</span>
+                    </button>
 
                     <!-- Counter -->
                     <div class="reaction-summary" *ngIf="getTotalReactions(post) > 0"

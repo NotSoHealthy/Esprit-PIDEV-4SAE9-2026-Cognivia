@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, ChangeDetectorRef, NgZone, ViewChild, TemplateRef } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -45,7 +45,8 @@ import { ReactionDetailsComponent } from '../reaction-details/reaction-details.c
         NzEmptyModule,
         NzTagModule,
         TimeAgoPipe,
-        HighlightMentionPipe
+        HighlightMentionPipe,
+        RouterModule
     ],
     templateUrl: './post-detail.component.html',
     styleUrl: './post-detail.component.scss'
@@ -84,19 +85,28 @@ export class PostDetailComponent implements OnInit {
     }
 
     getCategoryLabel(key?: string): string {
+        if (!key) return 'General Discussion';
         const categories = [
-            { key: 'patient-care', label: 'Patient Care' },
-            { key: 'treatment', label: 'Treatment Options' },
-            { key: 'mental-health', label: 'Mental Health' },
-            { key: 'rehab', label: 'Rehabilitation' },
-            { key: 'general', label: 'General Discussion' }
+            { key: 'Research & Clinical', label: 'Research & Clinical' },
+            { key: 'Care & Support', label: 'Care & Support' },
+            { key: 'Medication', label: 'Medication' },
+            { key: 'Symptoms & Diagnosis', label: 'Symptoms & Diagnosis' },
+            { key: 'Neurology', label: 'Neurology' },
+            { key: 'General', label: 'General Discussion' }
         ];
         const cat = categories.find(c => c.key === key);
-        return cat ? cat.label : 'General';
+        return cat ? cat.label : key;
     }
 
     getCategoryIcon(key?: string): string {
-        return '';
+        switch (key) {
+            case 'Research & Clinical': return 'experiment';
+            case 'Care & Support': return 'heart';
+            case 'Medication': return 'medicine-box';
+            case 'Symptoms & Diagnosis': return 'solution';
+            case 'Neurology': return 'deployment-unit';
+            default: return 'message';
+        }
     }
 
     isDoctor(item: { username?: string, userId?: string } | null): boolean {
@@ -371,25 +381,14 @@ export class PostDetailComponent implements OnInit {
     repost(post: Post, event: Event): void {
         event.stopPropagation();
         event.preventDefault();
-
-        const repostTitle = `Repost: ${post.title}`;
-        const repostContent = `Originally posted by @${post.username || post.userId}:\n\n${post.content}`;
-
-        const newPost: Post = {
-            id: 0,
-            title: repostTitle,
-            content: repostContent,
-            category: post.category || 'general'
-        };
-
-        this.forumService.createPost(newPost).subscribe({
+        this.forumService.repostPost(post.id).subscribe({
             next: () => {
-                this.message.success('Post shared successfully!');
+                this.message.success('Post successfully reposted!');
                 this.router.navigate(['/posts']);
             },
-            error: (e: any) => {
-                console.error('Error reposting', e);
-                this.message.error('Failed to share post');
+            error: (err) => {
+                console.error('Repost failed:', err);
+                this.message.error('Failed to repost. Please try again.');
             }
         });
     }

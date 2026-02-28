@@ -1,8 +1,3 @@
-// =============================================
-// Modern Premium Discussion UI Redesign
-// =============================================
-
-// Colors & Design Tokens (Retaining Original Navy/Indigo Palette)
 $navy: #3b429f;
 $indigo: #5d66d0;
 $navy-light: rgba(59, 66, 159, 0.05);
@@ -32,11 +27,13 @@ $premium-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0
 }
 
 // ----- Global Transitions -----
+
 * {
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 // ----- Back Navigation -----
+
 .back-btn {
     font-size: 0.875rem;
     font-weight: 600;
@@ -361,6 +358,58 @@ $premium-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0
             border-radius: 20px;
             font-size: 0.75rem;
             font-weight: 800;
+        }
+    }
+}
+
+// ----- Repost Detail Banner -----
+.repost-detail-banner {
+    padding: 24px 32px 16px 32px;
+    border-bottom: 1px solid $border-color;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: $text-muted;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+
+    .repost-icon {
+        color: $text-muted;
+        font-size: 1rem;
+    }
+
+    .repost-text {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .original-author {
+        font-weight: 700;
+        color: $text-main;
+        transition: color 0.2s ease;
+
+        &:hover {
+            color: $navy;
+            text-decoration: underline;
+        }
+    }
+
+    .view-original-btn {
+        margin-left: auto;
+        font-weight: 600;
+        color: $navy;
+        font-size: 0.8rem;
+        height: 28px;
+        padding: 0 12px;
+        border-radius: 14px;
+        background: rgba(59, 66, 159, 0.05);
+        border: none;
+
+        &:hover {
+            background: rgba(59, 66, 159, 0.1);
         }
     }
 }

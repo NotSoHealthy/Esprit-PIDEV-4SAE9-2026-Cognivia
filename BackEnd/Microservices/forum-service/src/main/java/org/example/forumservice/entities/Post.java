@@ -43,36 +43,46 @@ public class Post {
 
     private String username;
 
-    private boolean banned;
+    private Boolean banned;
 
     private String category;
 
-    @Transient
-    private boolean pinned;
+    @ElementCollection
+    @CollectionTable(name = "post_keywords", joinColumns = @JoinColumn(name = "post_id"))
+    @Column(name = "keyword")
+    private List<String> keywords = new ArrayList<>();
+
+    private Boolean isRepost = false;
+    private Long originalPostId;
+    private String originalUserId;
+    private String originalUsername;
 
     @Transient
-    private long likeCount;
+    private Boolean pinned;
 
     @Transient
-    private long dislikeCount;
+    private Long likeCount;
 
     @Transient
-    private long loveCount;
+    private Long dislikeCount;
 
     @Transient
-    private long hahaCount;
+    private Long loveCount;
 
     @Transient
-    private long wowCount;
+    private Long hahaCount;
 
     @Transient
-    private long sadCount;
+    private Long wowCount;
 
     @Transient
-    private long angryCount;
+    private Long sadCount;
 
     @Transient
-    private long commentCount;
+    private Long angryCount;
+
+    @Transient
+    private Long commentCount;
 
     @Transient
     private String authorFullName;

@@ -22,8 +22,9 @@ public class PostController {
             @RequestParam(required = false) String userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String category) {
-        return ResponseEntity.ok(postService.getPosts(userId, category, page, size));
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String keyword) {
+        return ResponseEntity.ok(postService.getPosts(userId, category, keyword, page, size));
     }
 
     @GetMapping("/{id}")
@@ -55,6 +56,25 @@ public class PostController {
     @PostMapping("/{id}/report")
     public ResponseEntity<Void> reportPost(@PathVariable Long id, @RequestParam String userId) {
         postService.reportPost(id, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/repost")
+    public ResponseEntity<Post> repostPost(
+            @PathVariable Long id,
+            @RequestParam String userId,
+            @RequestParam String username) {
+        return ResponseEntity.ok(postService.repostPost(id, userId, username));
+    }
+
+    @GetMapping("/analysis/word-cloud")
+    public ResponseEntity<java.util.Map<String, Long>> getWordCloud() {
+        return ResponseEntity.ok(postService.getKeywordFrequencies());
+    }
+
+    @PostMapping("/reclassify")
+    public ResponseEntity<Void> reclassifyAllPosts() {
+        postService.reclassifyAllPosts();
         return ResponseEntity.ok().build();
     }
 }

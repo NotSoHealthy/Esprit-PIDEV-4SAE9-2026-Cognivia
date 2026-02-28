@@ -52,6 +52,15 @@ import {
   SendOutline,
   MailOutline,
   TeamOutline,
+  ReloadOutline,
+  LineChartOutline,
+  CloseCircleOutline,
+  ExperimentOutline,
+  MedicineBoxOutline,
+  SolutionOutline,
+  DeploymentUnitOutline,
+  TagOutline,
+  RetweetOutline,
 } from '@ant-design/icons-angular/icons';
 
 export const appConfig: ApplicationConfig = {
@@ -108,6 +117,15 @@ export const appConfig: ApplicationConfig = {
       SendOutline,
       MailOutline,
       TeamOutline,
+      ReloadOutline,
+      LineChartOutline,
+      CloseCircleOutline,
+      ExperimentOutline,
+      MedicineBoxOutline,
+      SolutionOutline,
+      DeploymentUnitOutline,
+      TagOutline,
+      RetweetOutline,
     ]),
   ],
 };

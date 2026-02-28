@@ -14,6 +14,7 @@ import { ReactionType, Reaction } from '../../models/reaction.model';
 import { TimeAgoPipe } from '../../../../shared/pipes/time-ago.pipe';
 import { HighlightMentionPipe } from '../../../../shared/pipes/highlight-mention.pipe';
 import { ReactionDetailsComponent } from '../reaction-details/reaction-details.component';
+import { WordMapComponent } from '../word-map/word-map.component';
 import { NzListModule } from 'ng-zorro-antd/list';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
@@ -43,7 +44,8 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
         NzSpinModule,
         TimeAgoPipe,
         HighlightMentionPipe,
-        RouterLink
+        RouterLink,
+        WordMapComponent
     ],
     providers: [NzModalService, NzMessageService],
     templateUrl: './post-list.component.html',
@@ -55,6 +57,7 @@ export class PostListComponent implements OnInit {
     selectedCategory: string = 'all';
     currentUserId: string = '';
     currentUsername: string = '';
+    selectedTag: string = '';
 
     // Pagination
     currentPage: number = 0;
@@ -66,10 +69,12 @@ export class PostListComponent implements OnInit {
 
     categories = [
         { key: 'all', label: 'All Topics' },
-        { key: 'patient-care', label: 'Patient Care' },
-        { key: 'treatment', label: 'Treatment Options' },
-        { key: 'mental-health', label: 'Mental Health' },
-        { key: 'rehab', label: 'Rehabilitation' },
+        { key: 'Research & Clinical', label: 'Research & Clinical' },
+        { key: 'Care & Support', label: 'Care & Support' },
+        { key: 'Medication', label: 'Medication' },
+        { key: 'Symptoms & Diagnosis', label: 'Symptoms & Diagnosis' },
+        { key: 'Neurology', label: 'Neurology' },
+        { key: 'General', label: 'General Discussion' }
     ];
 
     private forumService = inject(ForumService);
@@ -88,8 +93,8 @@ export class PostListComponent implements OnInit {
     }
 
     loadPosts(): void {
-        this.loading = true;
-        this.forumService.getAllPosts(this.currentPage, this.pageSize, this.selectedCategory).subscribe({
+        setTimeout(() => this.loading = true);
+        this.forumService.getAllPosts(this.currentPage, this.pageSize, this.selectedCategory, this.selectedTag).subscribe({
             next: (response: any) => {
                 // Handle Spring Page response
                 if (response && response.content) {
@@ -136,17 +141,35 @@ export class PostListComponent implements OnInit {
 
     selectCategory(key: string): void {
         this.selectedCategory = key;
+        this.selectedTag = ''; // Clear keyword filter when switching categories
         this.currentPage = 0; // Reset to first page
         this.loadPosts();
     }
 
+    handleTagSelection(tag: string): void {
+        this.selectedTag = tag;
+        this.currentPage = 0;
+        this.loadPosts();
+        // Scroll to top of posts
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+
     getCategoryLabel(key?: string): string {
+        if (!key) return 'General';
         const cat = this.categories.find(c => c.key === key);
-        return cat ? cat.label : 'General';
+        return cat ? cat.label : key;
     }
 
     getCategoryIcon(key?: string): string {
-        return '';
+        switch (key) {
+            case 'Research & Clinical': return 'experiment';
+            case 'Care & Support': return 'heart';
+            case 'Medication': return 'medicine-box';
+            case 'Symptoms & Diagnosis': return 'solution';
+            case 'Neurology': return 'deployment-unit';
+            default: return 'message';
+        }
     }
 
     togglePin(post: Post, event: Event): void {
@@ -208,6 +231,20 @@ export class PostListComponent implements OnInit {
     isDoctor(post: Post): boolean {
         const username = post.username || post.userId || '';
         return username.toLowerCase().includes('doctor');
+    }
+
+    repost(post: Post, event: Event): void {
+        event.stopPropagation();
+        this.forumService.repostPost(post.id).subscribe({
+            next: () => {
+                this.message.success('Post successfully reposted!');
+                this.loadPosts();
+            },
+            error: (err) => {
+                console.error('Repost failed:', err);
+                this.message.error('Failed to repost. Please try again.');
+            }
+        });
     }
 
     // - **Hover-reveal Picker:** Users can hover over the "Reaction" button to choose from 6 different emojis.

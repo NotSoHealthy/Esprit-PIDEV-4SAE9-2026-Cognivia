@@ -1,6 +1,7 @@
 package org.example.forumservice.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.forumservice.entities.Post;
 import org.example.forumservice.entities.ReactionType;
 import org.example.forumservice.repositories.*;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
@@ -24,19 +26,24 @@ public class PostServiceImpl implements PostService {
     private final CommentRepository commentRepository;
     private final ReportRepository reportRepository;
     private final UserLookupService userLookupService;
+    private final AnalysisService analysisService;
 
     @Override
     public List<Post> getAllPosts(String userId) {
-        Page<Post> postPage = getPosts(userId, "all", 0, Integer.MAX_VALUE);
+        Page<Post> postPage = getPosts(userId, "all", null, 0, Integer.MAX_VALUE);
         return postPage.getContent();
     }
 
     @Override
-    public Page<Post> getPosts(String userId, String category, int page, int size) {
+    public Page<Post> getPosts(String userId, String category, String keyword, int page, int size) {
+        log.info("Fetching posts: userId={}, category={}, keyword={}, page={}, size={}",
+                userId, category, keyword, page, size);
         Pageable pageable = PageRequest.of(page, size);
         Page<Post> postPage;
 
-        if (category == null || category.equalsIgnoreCase("all")) {
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            postPage = postRepository.findByKeywordWithPinnedFirst(userId, keyword, pageable);
+        } else if (category == null || category.equalsIgnoreCase("all")) {
             postPage = postRepository.findAllWithPinnedFirst(userId, pageable);
         } else {
             postPage = postRepository.findByCategoryWithPinnedFirst(userId, category, pageable);
@@ -112,7 +119,7 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
 
-        if (post.isBanned()) {
+        if (Boolean.TRUE.equals(post.getBanned())) {
             throw new RuntimeException("This post has been suspended due to community reports.");
         }
 
@@ -137,13 +144,18 @@ public class PostServiceImpl implements PostService {
         post.setSadCount(reactionRepository.countByPost_IdAndType(post.getId(), ReactionType.SAD));
         post.setAngryCount(reactionRepository.countByPost_IdAndType(post.getId(), ReactionType.ANGRY));
 
-        post.setCommentCount(commentRepository.findByPostId(post.getId()).size());
+        post.setCommentCount((long) commentRepository.findByPostId(post.getId()).size());
     }
 
     @Override
     public Post createPost(Post post) {
         post.setId(null);
         post.setBanned(false);
+
+        List<String> keywords = analysisService.extractKeywords(post.getTitle() + " " + post.getContent());
+        post.setKeywords(keywords);
+        post.setCategory(analysisService.determineCategory(keywords));
+
         return postRepository.save(post);
     }
 
@@ -152,7 +164,11 @@ public class PostServiceImpl implements PostService {
         Post existing = getPostById(id);
         existing.setTitle(post.getTitle());
         existing.setContent(post.getContent());
-        existing.setCategory(post.getCategory());
+
+        List<String> keywords = analysisService.extractKeywords(post.getTitle() + " " + post.getContent());
+        existing.setKeywords(keywords);
+        existing.setCategory(analysisService.determineCategory(keywords));
+
         return postRepository.save(existing);
     }
 
@@ -203,5 +219,46 @@ public class PostServiceImpl implements PostService {
             post.setBanned(true);
             postRepository.save(post);
         }
+    }
+
+    @Override
+    public Post repostPost(Long postId, String userId, String username) {
+        Post original = getPostById(postId);
+
+        Post repost = new Post();
+        repost.setTitle(original.getTitle());
+        repost.setContent(original.getContent());
+        repost.setUserId(userId);
+        repost.setUsername(username);
+        repost.setCategory(original.getCategory());
+        repost.setKeywords(new ArrayList<>(original.getKeywords()));
+        repost.setBanned(false);
+
+        repost.setIsRepost(true);
+        repost.setOriginalPostId(original.getId());
+        repost.setOriginalUserId(original.getUserId());
+        repost.setOriginalUsername(original.getUsername());
+
+        return postRepository.save(repost);
+    }
+
+    @Override
+    public void reclassifyAllPosts() {
+        log.info("Reclassifying all posts...");
+        List<Post> allPosts = postRepository.findAll();
+        for (Post post : allPosts) {
+            List<String> keywords = analysisService.extractKeywords(post.getTitle() + " " + post.getContent());
+            post.setKeywords(keywords);
+            post.setCategory(analysisService.determineCategory(keywords));
+        }
+        postRepository.saveAll(allPosts);
+        log.info("Reclassification complete. Processed {} posts.", allPosts.size());
+    }
+
+    @Override
+    public Map<String, Long> getKeywordFrequencies() {
+        return postRepository.findAll().stream()
+                .flatMap(post -> post.getKeywords().stream())
+                .collect(Collectors.groupingBy(k -> k, Collectors.counting()));
     }
 }

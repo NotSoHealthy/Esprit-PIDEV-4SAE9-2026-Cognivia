@@ -26,4 +26,9 @@ export interface Post {
     authorRole?: string;
     commentCount?: number;
     userReaction?: string;
+    keywords?: string[];
+    isRepost?: boolean;
+    originalPostId?: number;
+    originalUserId?: string;
+    originalUsername?: string;
 }

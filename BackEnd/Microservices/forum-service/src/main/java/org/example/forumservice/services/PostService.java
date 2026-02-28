@@ -8,7 +8,7 @@ import java.util.List;
 public interface PostService {
     List<Post> getAllPosts(String userId);
 
-    Page<Post> getPosts(String userId, String category, int page, int size);
+    Page<Post> getPosts(String userId, String category, String keyword, int page, int size);
 
     Post getPostById(Long id);
 
@@ -18,7 +18,13 @@ public interface PostService {
 
     void deletePost(Long id);
 
+    void reclassifyAllPosts();
+
     Post togglePin(Long id, String userId);
 
     void reportPost(Long postId, String userId);
+
+    Post repostPost(Long postId, String userId, String username);
+
+    java.util.Map<String, Long> getKeywordFrequencies();
 }

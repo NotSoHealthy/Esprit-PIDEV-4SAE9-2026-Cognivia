@@ -101,6 +101,46 @@ $shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
 }
 
+// ----- Active Filters Indicator -----
+.active-filters {
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .keyword-filter-tag {
+        background: rgba(59, 66, 159, 0.08);
+        /* Light navy */
+        color: $navy;
+        border: 1px solid rgba(59, 66, 159, 0.15);
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+
+        .anticon {
+            font-size: 1rem;
+        }
+
+        &:hover {
+            background: rgba(59, 66, 159, 0.15);
+            border-color: $navy;
+        }
+
+        ::ng-deep .ant-tag-close-icon {
+            color: #64ffda;
+
+            &:hover {
+                color: white;
+            }
+        }
+    }
+}
+
 // ----- Two Column Layout -----
 .content-grid {
     display: grid;
@@ -220,6 +260,41 @@ $shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
 .post-card-body {
     flex: 1;
     padding: 24px 28px;
+}
+
+// ----- Repost Indicator -----
+.repost-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: $text-secondary;
+    font-weight: 500;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e2e8f0;
+    letter-spacing: -0.01em;
+
+    .repost-icon {
+        color: $text-muted;
+        font-size: 0.95rem;
+    }
+
+    .repost-text {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .original-author {
+        color: $text-dark;
+        font-weight: 700;
+
+        &:hover {
+            color: $navy;
+            text-decoration: underline;
+        }
+    }
 }
 
 .post-card-header {
@@ -351,6 +426,32 @@ $shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
     -webkit-box-orient: vertical;
     overflow: hidden;
     margin-bottom: 16px;
+}
+
+.post-keywords {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+
+    .keyword-tag {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: $navy;
+        background: rgba(59, 66, 159, 0.05);
+        padding: 2px 8px;
+        border-radius: 4px;
+        border: 1px solid rgba(59, 66, 159, 0.1);
+        transition: all 0.2s ease;
+        cursor: pointer;
+
+        &:hover {
+            background: $navy;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(59, 66, 159, 0.2);
+        }
+    }
 }
 
 .read-more-link {

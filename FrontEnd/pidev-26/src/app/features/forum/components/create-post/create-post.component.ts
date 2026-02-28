@@ -34,8 +34,7 @@ export class CreatePostComponent {
     post: Post = {
         id: 0,
         title: '',
-        content: '',
-        category: 'general'
+        content: ''
     };
 
     suggestions: string[] = ['admin', 'doctor_yahya', 'nurse_sarah', 'patient_john', 'healthcare_bot', 'community_manager'];
