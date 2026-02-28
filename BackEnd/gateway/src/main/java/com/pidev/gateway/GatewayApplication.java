@@ -16,6 +16,7 @@ public class GatewayApplication {
     public static void main(String[] args) {
         SpringApplication.run(GatewayApplication.class, args);
     }
+
     @Bean
     public SecurityWebFilterChain security(ServerHttpSecurity http) {
         return http
@@ -28,17 +29,29 @@ public class GatewayApplication {
                 .oauth2ResourceServer(oauth -> oauth.jwt())
                 .build();
     }
+
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
+
                 .route("care",
-                        r->r.path("/care/**")
+                        r -> r.path("/care/**")
                                 .filters(f -> f.stripPrefix(1))
                                 .uri("lb://care"))
+
+                // ✅ APPOINTMENTS microservice
+                // /appointments/** -> APPOINTMENT-SERVICE
+                // rewritePath to /api/appointments/** (si ton service expose /api/appointments)
+                .route("appointments",
+                        r -> r.path( "/appointments/**")
+                                .filters(f -> f.stripPrefix(1))
+                                .uri("lb://APPOINTMENT-SERVICE"))
+
                 .route("monitoring",
-                        r->r.path("/monitoring/**")
+                        r -> r.path("/monitoring/**")
                                 .filters(f -> f.stripPrefix(1))
                                 .uri("lb://monitoring"))
+
                 .build();
     }
 }

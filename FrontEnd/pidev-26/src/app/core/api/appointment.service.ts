@@ -9,7 +9,7 @@ export class AppointmentApiService {
     private readonly http = inject(HttpClient);
 
     // Dev: /api (proxy -> 8085) | Prod: http://.../api
-    private readonly baseUrl = `${environment.apiBaseUrl}/appointments`;
+    private readonly baseUrl = `${environment.apiBaseUrl}/appointments/appointments`;
 
     getAll(filters?: {
         patientId?: number;
@@ -29,7 +29,7 @@ export class AppointmentApiService {
     }
 
     getById(id: number): Observable<Appointment> {
-        return this.http.get<Appointment>(`${this.baseUrl}/${id}`);
+        return this.http.get<Appointment>(`${this.baseUrl}/appointments/${id}`);
     }
 
     create(body: Appointment): Observable<Appointment> {
@@ -37,10 +37,10 @@ export class AppointmentApiService {
     }
 
     update(id: number, body: Appointment): Observable<Appointment> {
-        return this.http.put<Appointment>(`${this.baseUrl}/${id}`, body);
+        return this.http.put<Appointment>(`${this.baseUrl}/appointments/${id}`, body);
     }
 
     delete(id: number): Observable<void> {
-        return this.http.delete<void>(`${this.baseUrl}/${id}`);
+        return this.http.delete<void>(`${this.baseUrl}/appointments/${id}`);
     }
 }
