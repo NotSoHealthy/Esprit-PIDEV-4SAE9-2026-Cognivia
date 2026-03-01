@@ -190,4 +190,10 @@ export class Visits implements OnChanges, OnInit {
     const fullName = `${firstName} ${lastName}`.trim();
     return fullName || '-';
   }
+
+  getUserRole(): string | null {
+    const user = this.currentUser.user();
+    if (!user) return null;
+    return this.currentUser.user()?.kind ?? null;
+  }
 }

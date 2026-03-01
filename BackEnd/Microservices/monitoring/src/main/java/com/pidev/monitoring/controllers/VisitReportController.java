@@ -22,8 +22,8 @@ public class VisitReportController {
     public VisitReport getVisitReportById(@PathVariable Long id) {
         return visitReportService.getById(id);
     }
-    @GetMapping(params = "visitId")
-    public List<VisitReport> getVisitReportsByVisitId(@RequestParam Long visitId) {
+    @GetMapping("/visit/{visitId}")
+    public VisitReport getVisitReportByVisitId(@PathVariable Long visitId) {
         return visitReportService.getByVisitId(visitId);
     }
 

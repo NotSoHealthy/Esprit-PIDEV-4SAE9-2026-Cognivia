@@ -5,24 +5,31 @@
     {{ errorMessage }}
   </div>
 } @else {
-  <nz-calendar
-    [(ngModel)]="calendarDate"
-    [(nzMode)]="calendarMode"
-    (nzPanelChange)="panelChange($event)"
-  >
-    <ng-container *nzDateCell="let date">
-      @if (getVisitsForDate(date).length) {
-        <ul class="cal-events">
-          @for (visit of getVisitsForDate(date); track visit?.id ?? visit?.visitId ?? $index) {
-            <li class="cal-event">
-              <nz-badge
-                [nzStatus]="badgeStatusForVisit(visit)"
-                [nzText]="formatVisitForCalendar(visit) | titlecase"
-              />
-            </li>
-          }
-        </ul>
-      }
-    </ng-container>
-  </nz-calendar>
+  <div class="rounded-2xl bg-[#F2F6FE] p-4">
+    <nz-calendar
+      [(ngModel)]="calendarDate"
+      [(nzMode)]="calendarMode"
+      (nzPanelChange)="panelChange($event)"
+    >
+      <ng-container *nzDateCell="let date">
+        @if (getVisitsForDate(date).length) {
+          <ul class="cal-events">
+            @for (visit of getVisitsForDate(date); track visit?.id ?? visit?.visitId ?? $index) {
+              <li
+                class="cal-event"
+                nz-popover
+                [nzPopoverTitle]="popOverTitle(visit)"
+                [nzPopoverContent]="popOverContent(visit)"
+              >
+                <nz-badge
+                  [nzStatus]="badgeStatusForVisit(visit)"
+                  [nzText]="formatVisitForCalendar(visit) | titlecase"
+                />
+              </li>
+            }
+          </ul>
+        }
+      </ng-container>
+    </nz-calendar>
+  </div>
 }

@@ -1,28 +1,26 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
-import { API_BASE_URL } from '../../../core/api/api.tokens';
 
-import { VisitList } from './visit-list';
+import { ReportEditor } from './report-editor';
+import { IMGBB_API_KEY } from '../../../core/media/imgbb.tokens';
 
-describe('VisitList', () => {
-  let component: VisitList;
-  let fixture: ComponentFixture<VisitList>;
+describe('ReportEditor', () => {
+  let component: ReportEditor;
+  let fixture: ComponentFixture<ReportEditor>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [VisitList],
+      imports: [ReportEditor],
       providers: [
-        provideRouter([]),
         provideHttpClientTesting(),
         {
-          provide: API_BASE_URL,
-          useValue: 'http://localhost',
+          provide: IMGBB_API_KEY,
+          useValue: 'test-imgbb-key',
         },
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(VisitList);
+    fixture = TestBed.createComponent(ReportEditor);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

@@ -1,0 +1,17 @@
+<div class="flex flex-col gap-3">
+  @if (isUploadingImage) {
+    <p class="text-sm text-gray-500">Uploading image...</p>
+  }
+
+  <nz-spin [nzSpinning]="isUploadingImage" nzTip="Uploading image..." nzSize="large">
+    <quill-editor
+      class="w-full"
+      [(ngModel)]="reportContent"
+      (ngModelChange)="onReportContentChange($event)"
+      [modules]="modules"
+      [readOnly]="readOnly || isUploadingImage"
+      placeholder="Write your visit report..."
+      (onEditorCreated)="onEditorCreated($event)"
+    ></quill-editor>
+  </nz-spin>
+</div>

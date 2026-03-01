@@ -7,6 +7,8 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { CurrentUserService } from '../../../core/user/current-user.service';
 import { TitleCasePipe } from '@angular/common';
+import { getStatusColor } from '../../utils/patient.utils';
+import { Router } from '@angular/router';
 
 type VisitStatus = string;
 
@@ -29,6 +31,8 @@ export class VisitList implements OnChanges {
   @Input() visits: any[] | null = null;
 
   private readonly currentUser = inject(CurrentUserService);
+  private readonly router = inject(Router);
+  protected readonly getStatusColor = getStatusColor;
 
   filteredVisits: any[] = [];
   searchValue = '';
@@ -59,7 +63,15 @@ export class VisitList implements OnChanges {
       const id = this.normalizeSearch(this.getVisitId(visit));
       const when = this.normalizeSearch(this.formatDateTime(this.getVisitDate(visit)));
       const status = this.normalizeSearch(this.getVisitStatus(visit));
-      return id.includes(q) || when.includes(q) || status.includes(q);
+      const caregiverName = this.normalizeSearch(this.getCaregiverName(visit));
+      const patientName = this.normalizeSearch(this.getPatientName(visit));
+      return (
+        id.includes(q) ||
+        when.includes(q) ||
+        status.includes(q) ||
+        caregiverName.includes(q) ||
+        patientName.includes(q)
+      );
     });
   }
 
@@ -102,16 +114,6 @@ export class VisitList implements OnChanges {
       visit?.careStatus ??
       ''
     );
-  }
-
-  getStatusColor(status: VisitStatus): string {
-    const s = this.normalizeSearch(status);
-    if (!s) return 'default';
-    if (s.includes('cancel')) return 'default';
-    if (s.includes('complete') || s.includes('done')) return 'success';
-    if (s.includes('pending') || s.includes('planned') || s.includes('scheduled'))
-      return 'processing';
-    return 'blue';
   }
 
   formatDateTime(value: unknown): string {
@@ -168,10 +170,58 @@ export class VisitList implements OnChanges {
     return this.currentUser.user()?.kind ?? null;
   }
 
+  onVisitRowClick(visit: any): void {
+    if (!this.canOpenReportEditor(visit)) return;
+
+    const visitId = this.getVisitId(visit);
+    if (!visitId || visitId === '-') return;
+
+    this.router.navigate(['/visit', visitId, 'report'], {
+      state: { visit },
+    });
+  }
+
+  canOpenReportEditor(visit: any): boolean {
+    if (this.currentUserRole !== 'caregiver') return false;
+    if (!this.isScheduledStatus(this.getVisitStatus(visit))) return false;
+    const when = this.getVisitDate(visit);
+    if (!when) return false;
+    return this.isSameDay(when, new Date());
+  }
+
   getCaregiverName(visit: any): string {
     const firstName = visit?.caregiver?.firstName ?? '';
     const lastName = visit?.caregiver?.lastName ?? '';
     const fullName = `${firstName} ${lastName}`.trim();
     return fullName || 'Caregiver not assigned';
+  }
+
+  getPatientName(visit: any): string {
+    const fromPatient = visit?.patient;
+    const firstName = fromPatient?.firstName ?? '';
+    const lastName = fromPatient?.lastName ?? '';
+    const fullName = `${firstName} ${lastName}`.trim();
+
+    const fallback =
+      visit?.patientName ??
+      visit?.patientFullName ??
+      visit?.patient?.name ??
+      visit?.patient?.fullName ??
+      '';
+
+    return fullName || String(fallback || '-');
+  }
+
+  private isScheduledStatus(status: VisitStatus): boolean {
+    const s = this.normalizeSearch(status);
+    return s.includes('pending') || s.includes('planned') || s.includes('scheduled');
+  }
+
+  private isSameDay(a: Date, b: Date): boolean {
+    return (
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate()
+    );
   }
 }

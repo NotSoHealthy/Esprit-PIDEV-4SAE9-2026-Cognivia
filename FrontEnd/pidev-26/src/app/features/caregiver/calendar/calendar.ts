@@ -6,11 +6,12 @@ import { NzCalendarMode, NzCalendarModule } from 'ng-zorro-antd/calendar';
 import { FormsModule } from '@angular/forms';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { TitleCasePipe } from '@angular/common';
+import { NzPopoverModule } from 'ng-zorro-antd/popover';
 
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [NzCalendarModule, NzBadgeModule, FormsModule, TitleCasePipe],
+  imports: [NzCalendarModule, NzBadgeModule, FormsModule, TitleCasePipe, NzPopoverModule],
   templateUrl: './calendar.html',
   styleUrl: './calendar.css',
 })
@@ -110,8 +111,7 @@ export class Calendar implements OnInit {
   }
 
   private getVisitDate(visit: any): Date | null {
-    const raw = visit?.scheduledAt ?? visit?.date ?? visit?.startTime ?? visit?.createdAt;
-    return this.toDate(raw);
+    return this.toDate(visit?.date);
   }
 
   private toDate(value: unknown): Date | null {
@@ -132,13 +132,26 @@ export class Calendar implements OnInit {
     );
   }
 
-  private formatTime(date: Date): string {
-    try {
-      return new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' }).format(
-        date,
-      );
-    } catch {
-      return date.toLocaleTimeString();
-    }
+  popOverTitle(visit: any): string {
+    const patient = visit?.patient;
+    const date = (this.getVisitDate(visit) ?? new Date()).toLocaleDateString('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+    });
+    const name = patient ? `${patient.firstName ?? ''} ${patient.lastName ?? ''}`.trim() : 'Visit';
+    return `${name} at ${date}`;
+  }
+
+  popOverContent(visit: any): string {
+    const status = String(visit?.status ?? 'Unknown')
+      .trim()
+      .toLocaleLowerCase()
+      .replace(/^\w/, (c) => c.toUpperCase());
+    const severity = String(visit?.patient?.severity ?? '')
+      .trim()
+      .toLocaleLowerCase()
+      .replace(/^\w/, (c) => c.toUpperCase());
+    return `Status: ${status}${severity ? ` | Severity: ${severity}` : ''}`;
   }
 }

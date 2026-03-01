@@ -34,6 +34,7 @@
     "keycloak-angular": "^21.0.0",
     "keycloak-js": "^26.2.3",
     "ng-zorro-antd": "^21.1.0",
+    "ngx-quill": "^30.0.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

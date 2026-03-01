@@ -8,14 +8,16 @@
   } @else {
     <div class="flex flex-col gap-2 rounded-2xl bg-white p-4">
       <app-visit-list [visits]="visits"></app-visit-list>
-      <button
-        nz-button
-        nzType="primary"
-        (click)="showModal()"
-        class="w-[25%] ml-auto! rounded-sm px-6"
-      >
-        Schedule New Visit
-      </button>
+      @if (getUserRole() === 'doctor') {
+        <button
+          nz-button
+          nzType="primary"
+          (click)="showModal()"
+          class="w-[25%] ml-auto! rounded-sm px-6"
+        >
+          Schedule New Visit
+        </button>
+      }
     </div>
     <nz-modal
       [(nzVisible)]="isVisible"

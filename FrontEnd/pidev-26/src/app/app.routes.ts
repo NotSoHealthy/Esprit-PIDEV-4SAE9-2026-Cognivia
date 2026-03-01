@@ -37,6 +37,15 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/caregiver/calendar/calendar').then((m) => m.Calendar),
       },
+      {
+        path: 'visit/:visitId/report',
+        title: 'Visit Report',
+        canMatch: [roleGuard(['ROLE_CAREGIVER'])],
+        loadComponent: () =>
+          import('./features/caregiver/visit-report/visit-report.page').then(
+            (m) => m.VisitReportPage,
+          ),
+      },
     ],
   },
   {
