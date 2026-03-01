@@ -1,0 +1,96 @@
+<div class="pharmacy-page">
+    <div class="pharmacy-header">
+        <h1 class="pharmacy-title">Pharmacies</h1>
+
+        <button nz-button nzType="primary" (click)="openAddModal()">
+            Add pharmacy
+        </button>
+    </div>
+
+    <div *ngIf="loading" class="pharmacy-muted">Loading…</div>
+    <div *ngIf="errorMsg" class="pharmacy-error">{{ errorMsg }}</div>
+
+    <div *ngIf="!loading && !errorMsg && pharmacies.length === 0" class="pharmacy-muted">
+        No pharmacies found.
+    </div>
+
+    <div class="pharmacy-list" *ngIf="pharmacies.length > 0">
+        <div class="pharmacy-card" *ngFor="let p of pharmacies" (click)="openMedicines(p)" role="button" tabindex="0">
+            <div class="card-actions" (click)="$event.stopPropagation()">
+                <button nz-button nzType="text" class="like-btn" (click)="toggleLike(p, $event)"
+                    [attr.aria-pressed]="p.id ? liked.has(p.id) : false">
+                    <nz-icon nzType="heart" [nzTheme]="p.id && liked.has(p.id) ? 'fill' : 'outline'">
+                    </nz-icon>
+                </button>
+
+                <a nz-dropdown [nzDropdownMenu]="menu" nzTrigger="click" class="dots"
+                    (click)="$event.stopPropagation()">
+                    <nz-icon nzType="more" nzTheme="outline"></nz-icon> </a>
+
+                <nz-dropdown-menu #menu="nzDropdownMenu">
+                    <ul nz-menu>
+                        <li nz-menu-item (click)="favorite(p, $event)">Favorite</li>
+                        <li nz-menu-item (click)="report(p, $event)">Report</li>
+                        <li nz-menu-item (click)="edit(p, $event)">Edit</li>
+                        <li nz-menu-item class="danger" (click)="delete(p, $event)">Delete</li>
+                    </ul>
+                </nz-dropdown-menu>
+            </div>
+
+            <!-- Main content -->
+            <div class="pharmacy-main">
+                <div class="pharmacy-name">{{ p.name }}</div>
+
+                <div class="pharmacy-address" *ngIf="p.address; else noAddress">
+                    {{ p.address }}
+                </div>
+                <ng-template #noAddress>
+                    <div class="pharmacy-address pharmacy-muted">No address</div>
+                </ng-template>
+            </div>
+
+            <div class="pharmacy-meta">
+                <span class="pharmacy-muted">Created:</span>
+                <span>{{ p.createdAt ? (p.createdAt | date: 'mediumDate') : '—' }}</span>
+            </div>
+        </div>
+    </div>
+    <nz-modal [(nzVisible)]="isAddModalOpen" nzTitle="Add pharmacy" [nzOkLoading]="saving" nzOkText="Create"
+        nzCancelText="Cancel" (nzOnOk)="submitAdd()" (nzOnCancel)="cancelAdd()">
+        <form nz-form [formGroup]="addForm">
+            <nz-form-item>
+                <nz-form-label [nzRequired]="true">Name</nz-form-label>
+                <nz-form-control nzErrorTip="Name is required">
+                    <input nz-input formControlName="name" placeholder="Pharmacy name" />
+                </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item>
+                <nz-form-label>Address</nz-form-label>
+                <nz-form-control>
+                    <input nz-input formControlName="address" placeholder="Address" />
+                </nz-form-control>
+            </nz-form-item>
+
+            <div class="coords">
+                <nz-form-item>
+                    <nz-form-label>Latitude</nz-form-label>
+                    <nz-form-control>
+                        <input nz-input type="number" formControlName="latitude" placeholder="e.g. 36.8065" />
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item>
+                    <nz-form-label>Longitude</nz-form-label>
+                    <nz-form-control>
+                        <input nz-input type="number" formControlName="longitude" placeholder="e.g. 10.1815" />
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+
+            <div class="hint pharmacy-muted">
+                createdAt and updatedAt will be sent as <b>null</b>.
+            </div>
+        </form>
+    </nz-modal>
+</div>

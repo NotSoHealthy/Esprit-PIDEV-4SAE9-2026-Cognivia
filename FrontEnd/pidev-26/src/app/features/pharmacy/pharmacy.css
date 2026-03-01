@@ -1,0 +1,118 @@
+.pharmacy-page {
+  max-width: 900px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+.pharmacy-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.pharmacy-list {
+  display: flex;
+  flex-direction: column; /* ✅ always 1 per line */
+  gap: 12px;
+}
+
+.pharmacy-card {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+.pharmacy-main {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap; /* allows address to wrap under on small screens */
+}
+
+.pharmacy-name {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.pharmacy-address {
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.pharmacy-meta {
+  margin-top: 8px;
+  font-size: 13px;
+  display: flex;
+  gap: 6px;
+}
+
+.pharmacy-muted {
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.pharmacy-error {
+  color: #b42318;
+  background: rgba(180, 35, 24, 0.08);
+  border: 1px solid rgba(180, 35, 24, 0.2);
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.pharmacy-card {
+  position: relative;
+  cursor: pointer;
+}
+
+.pharmacy-card:hover {
+  transform: translateY(-1px);
+  transition: transform 120ms ease;
+}
+
+.card-actions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dots {
+  padding: 6px;
+  border-radius: 8px;
+}
+
+.like-btn {
+  padding: 0 6px;
+}
+
+:host ::ng-deep .danger {
+  color: #b42318 !important;
+}
+
+.pharmacy-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.coords {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .coords {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hint {
+  margin-top: 8px;
+  font-size: 12px;
+}

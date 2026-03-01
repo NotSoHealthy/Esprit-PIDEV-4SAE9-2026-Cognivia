@@ -35,6 +35,10 @@ public class GatewayApplication {
                         r->r.path("/care/**")
                                 .filters(f -> f.stripPrefix(1))
                                 .uri("lb://care"))
+                .route("pharmacy",
+                        r->r.path("/pharmacy/**")
+                                .filters(f -> f.stripPrefix(1))
+                                .uri("lb://pharmacy"))
                 .route("monitoring",
                         r->r.path("/monitoring/**")
                                 .filters(f -> f.stripPrefix(1))
@@ -42,3 +46,4 @@ public class GatewayApplication {
                 .build();
     }
 }
+

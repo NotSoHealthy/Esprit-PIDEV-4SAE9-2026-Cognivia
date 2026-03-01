@@ -16,6 +16,9 @@ import {
   DownOutline,
   MedicineBoxOutline,
   FileTextOutline,
+  HeartOutline,
+  HeartFill,
+  MoreOutline
 } from '@ant-design/icons-angular/icons';
 
 export const appConfig: ApplicationConfig = {
@@ -36,6 +39,10 @@ export const appConfig: ApplicationConfig = {
       DownOutline,
       MedicineBoxOutline,
       FileTextOutline,
+      HeartOutline,
+      HeartFill,
+      MoreOutline
+      
     ]),
   ],
 };

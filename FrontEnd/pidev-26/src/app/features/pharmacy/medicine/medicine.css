@@ -1,0 +1,9 @@
+.medicine-page {
+  max-width: 900px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+.muted {
+  color: rgba(0, 0, 0, 0.55);
+}
