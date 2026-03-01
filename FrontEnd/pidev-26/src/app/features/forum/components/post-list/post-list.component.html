@@ -2,11 +2,30 @@
     <div class="forum-container">
         <!-- Hero Section -->
         <section class="hero-section">
-            <h1 class="hero-title">Healthcare Forum</h1>
-            <p class="hero-subtitle">Where caregivers and medical professionals connect</p>
-            <button nz-button nzType="primary" nzSize="large" nzBlock class="cta-button" routerLink="/posts/new">
-                <span nz-icon nzType="plus"></span> Start a Discussion
-            </button>
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1 class="hero-title">Healthcare Forum</h1>
+                    <p class="hero-subtitle">Where caregivers and medical professionals connect, share knowledge, and
+                        support each other.</p>
+                    <button nz-button nzType="primary" nzSize="large" class="cta-button" routerLink="/posts/new">
+                        <span nz-icon nzType="plus"></span> Start a Discussion
+                    </button>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat-card">
+                        <span class="stat-number">{{ posts.length }}</span>
+                        <span class="stat-label">Discussions</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">{{ categories.length - 1 }}</span>
+                        <span class="stat-label">Categories</span>
+                    </div>
+                    <div class="stat-card">
+                        <span nz-icon nzType="team" class="stat-icon"></span>
+                        <span class="stat-label">Community</span>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <!-- Category Filter Chips -->
@@ -120,6 +139,26 @@
                                     <span nz-icon nzType="retweet"></span>
                                     Repost
                                 </button>
+                                <span class="meta-divider"></span>
+                                <a nz-dropdown [nzDropdownMenu]="shareMenu" nzTrigger="click"
+                                    (click)="$event.stopPropagation()">
+                                    <button nz-button nzType="text" nzSize="small" class="action-btn">
+                                        <span nz-icon nzType="share-alt"></span>
+                                        Share
+                                    </button>
+                                </a>
+                                <nz-dropdown-menu #shareMenu="nzDropdownMenu">
+                                    <ul nz-menu>
+                                        <li nz-menu-item (click)="sharePost(post, 'copy', $event)"><span nz-icon
+                                                nzType="link"></span> Copy Link</li>
+                                        <li nz-menu-item (click)="sharePost(post, 'twitter', $event)"><span nz-icon
+                                                nzType="twitter"></span> X / Twitter</li>
+                                        <li nz-menu-item (click)="sharePost(post, 'whatsapp', $event)"><span nz-icon
+                                                nzType="whats-app"></span> WhatsApp</li>
+                                        <li nz-menu-item (click)="sharePost(post, 'email', $event)"><span nz-icon
+                                                nzType="mail"></span> Email</li>
+                                    </ul>
+                                </nz-dropdown-menu>
                                 <span class="meta-divider"></span>
                                 <span class="action-group">
                                     <div class="reaction-container">

@@ -62,7 +62,8 @@ export class CreatePostComponent {
                 this.submitting = false;
                 this.cdr.detectChanges();
                 console.error('Error creating post', e);
-                this.message.error('Failed to create post. Please try again.');
+                const msg = e?.error?.message || 'Failed to create post. Please try again.';
+                this.message.error(msg);
             }
         });
     }

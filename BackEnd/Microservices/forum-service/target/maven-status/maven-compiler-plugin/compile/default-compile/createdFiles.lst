@@ -12,6 +12,7 @@ org\example\forumservice\repositories\CommentRepository.class
 org\example\forumservice\services\PostServiceImpl.class
 org\example\forumservice\controllers\PostController.class
 org\example\forumservice\config\DataSourceConfig.class
+org\example\forumservice\services\BadWordFilterService.class
 org\example\forumservice\services\CommentService.class
 org\example\forumservice\entities\Post.class
 org\example\forumservice\ForumServiceApplication.class

@@ -118,17 +118,31 @@
                         <span class="total-count">{{ getTotalReactions(post) }}</span>
                     </div>
 
-                    <button class="btn-premium" (click)="repost(post, $event)">
+                    <button class="btn-premium" nz-dropdown [nzDropdownMenu]="shareMenu" nzTrigger="click"
+                        (click)="$event.stopPropagation()">
                         <span nz-icon nzType="share-alt"></span>
-                        <span>Repost</span>
+                        <span>Share</span>
                     </button>
+                    <nz-dropdown-menu #shareMenu="nzDropdownMenu">
+                        <ul nz-menu>
+                            <li nz-menu-item (click)="sharePost(post, 'copy', $event)"><span nz-icon
+                                    nzType="link"></span> Copy Link</li>
+                            <li nz-menu-item (click)="sharePost(post, 'twitter', $event)"><span nz-icon
+                                    nzType="twitter"></span> X / Twitter</li>
+                            <li nz-menu-item (click)="sharePost(post, 'whatsapp', $event)"><span nz-icon
+                                    nzType="whats-app"></span> WhatsApp</li>
+                            <li nz-menu-item (click)="sharePost(post, 'email', $event)"><span nz-icon
+                                    nzType="mail"></span> Email</li>
+                        </ul>
+                    </nz-dropdown-menu>
                 </div>
 
                 <div class="secondary-actions">
                     <span *ngIf="post.userId !== currentUserId" nz-icon nzType="warning" class="util-icon" nz-tooltip
                         nzTooltipTitle="Report Content" (click)="reportPost(post, $event)"></span>
 
-                    <span nz-icon nzType="link" class="util-icon" nz-tooltip nzTooltipTitle="Copy link"></span>
+                    <span nz-icon nzType="link" class="util-icon" nz-tooltip nzTooltipTitle="Copy link"
+                        (click)="sharePost(post, 'copy', $event)"></span>
 
                     <span *ngIf="post.userId === currentUserId || currentUserId === 'admin'" nz-icon nzType="delete"
                         class="util-icon delete-icon" nz-popconfirm nzPopconfirmTitle="Permanently delete this post?"

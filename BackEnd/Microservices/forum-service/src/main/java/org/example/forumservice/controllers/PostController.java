@@ -53,6 +53,19 @@ public class PostController {
         return ResponseEntity.ok(postService.togglePin(id, userId));
     }
 
+    @GetMapping("/reported")
+    public ResponseEntity<Page<Post>> getReportedPosts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(postService.getReportedPosts(page, size));
+    }
+
+    @DeleteMapping("/{id}/reports")
+    public ResponseEntity<Void> removeReportsFromPost(@PathVariable Long id) {
+        postService.removeReportsFromPost(id);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/{id}/report")
     public ResponseEntity<Void> reportPost(@PathVariable Long id, @RequestParam String userId) {
         postService.reportPost(id, userId);

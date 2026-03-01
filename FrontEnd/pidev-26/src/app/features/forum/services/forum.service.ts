@@ -106,6 +106,18 @@ export class ForumService {
         return this.http.post<void>(`${this.apiUrl}/${postId}/report?userId=${userId}`, {});
     }
 
+    // Admin
+    getReportedPosts(page: number = 0, size: number = 10): Observable<any> {
+        let params = new HttpParams()
+            .set('page', page.toString())
+            .set('size', size.toString());
+        return this.http.get<any>(`${this.apiUrl}/reported`, { params });
+    }
+
+    removeReportsFromPost(postId: number): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}/${postId}/reports`);
+    }
+
     getWordCloud(): Observable<any> {
         return this.http.get<any>(`${this.apiUrl}/analysis/word-cloud`);
     }

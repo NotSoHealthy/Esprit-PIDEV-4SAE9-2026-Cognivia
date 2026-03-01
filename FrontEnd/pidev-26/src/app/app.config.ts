@@ -61,6 +61,9 @@ import {
   DeploymentUnitOutline,
   TagOutline,
   RetweetOutline,
+  UndoOutline,
+  TwitterOutline,
+  WhatsAppOutline,
 } from '@ant-design/icons-angular/icons';
 
 export const appConfig: ApplicationConfig = {
@@ -126,6 +129,9 @@ export const appConfig: ApplicationConfig = {
       DeploymentUnitOutline,
       TagOutline,
       RetweetOutline,
+      UndoOutline,
+      TwitterOutline,
+      WhatsAppOutline,
     ]),
   ],
 };

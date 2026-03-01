@@ -16,6 +16,7 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final UserLookupService userLookupService;
+    private final BadWordFilterService badWordFilterService;
 
     @Override
     public List<Comment> getCommentsByPostId(Long postId) {
@@ -34,6 +35,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public Comment addComment(Long postId, Comment comment) {
+        badWordFilterService.validateText(comment.getContent());
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found with id: " + postId));
         comment.setPost(post);
@@ -43,6 +45,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public Comment updateComment(Long id, Comment comment) {
+        badWordFilterService.validateText(comment.getContent());
         Comment existing = getCommentById(id);
         existing.setContent(comment.getContent());
         return commentRepository.save(existing);

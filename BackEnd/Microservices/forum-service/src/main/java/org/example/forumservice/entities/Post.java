@@ -39,6 +39,14 @@ public class Post {
     @JsonIgnore
     private List<Reaction> reactions = new ArrayList<>();
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Report> reports = new ArrayList<>();
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<PinnedPost> pinnedPosts = new ArrayList<>();
+
     private String userId;
 
     private String username;

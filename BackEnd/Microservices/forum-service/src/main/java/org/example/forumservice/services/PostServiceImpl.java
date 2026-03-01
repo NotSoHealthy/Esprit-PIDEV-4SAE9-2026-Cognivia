@@ -27,6 +27,7 @@ public class PostServiceImpl implements PostService {
     private final ReportRepository reportRepository;
     private final UserLookupService userLookupService;
     private final AnalysisService analysisService;
+    private final BadWordFilterService badWordFilterService;
 
     @Override
     public List<Post> getAllPosts(String userId) {
@@ -149,6 +150,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public Post createPost(Post post) {
+        badWordFilterService.validateText(post.getTitle() + " " + post.getContent());
         post.setId(null);
         post.setBanned(false);
 
@@ -161,6 +163,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public Post updatePost(Long id, Post post) {
+        badWordFilterService.validateText(post.getTitle() + " " + post.getContent());
         Post existing = getPostById(id);
         existing.setTitle(post.getTitle());
         existing.setContent(post.getContent());
@@ -194,6 +197,32 @@ public class PostServiceImpl implements PostService {
             post.setPinned(true);
         }
         return post;
+    }
+
+    @Override
+    public Page<Post> getReportedPosts(int page, int size) {
+        log.info("Fetching reported posts: page={}, size={}", page, size);
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Post> postPage = postRepository.findAllReportedPosts(pageable);
+
+        if (postPage.isEmpty()) {
+            return postPage;
+        }
+
+        enrichPosts(postPage.getContent(), null);
+
+        return postPage;
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void removeReportsFromPost(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found with id: " + postId));
+
+        reportRepository.deleteByPost_Id(postId);
+        post.setBanned(false);
+        postRepository.save(post);
     }
 
     @Override

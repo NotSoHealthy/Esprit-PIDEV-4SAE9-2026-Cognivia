@@ -31,4 +31,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                         "ORDER BY (CASE WHEN pp.id IS NOT NULL THEN 0 ELSE 1 END) ASC, p.createdAt DESC")
         Page<Post> findByKeywordWithPinnedFirst(@Param("userId") String userId, @Param("keyword") String keyword,
                         Pageable pageable);
+
+        @Query("SELECT DISTINCT p FROM Post p JOIN Report r ON p.id = r.post.id ORDER BY p.createdAt DESC")
+        Page<Post> findAllReportedPosts(Pageable pageable);
 }

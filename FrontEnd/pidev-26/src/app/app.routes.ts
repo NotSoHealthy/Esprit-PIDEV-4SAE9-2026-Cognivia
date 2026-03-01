@@ -51,6 +51,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'admin/reported-posts',
+        canMatch: [roleGuard(['ROLE_ADMIN'])],
+        loadComponent: () =>
+          import('./features/forum/components/admin-reported-posts/admin-reported-posts').then(
+            (m) => m.AdminReportedPosts,
+          ),
+      },
+      {
         path: 'patient-management',
         title: 'Patients',
         canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],

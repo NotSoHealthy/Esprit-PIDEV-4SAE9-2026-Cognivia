@@ -247,6 +247,33 @@ export class PostListComponent implements OnInit {
         });
     }
 
+    sharePost(post: Post, platform: string, event: Event): void {
+        event.stopPropagation();
+        event.preventDefault();
+
+        const postUrl = `${window.location.origin}/posts/${post.id}`;
+        const text = `Check out this discussion: ${post.title}`;
+
+        switch (platform) {
+            case 'twitter':
+                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(postUrl)}`, '_blank');
+                break;
+            case 'whatsapp':
+                window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + postUrl)}`, '_blank');
+                break;
+            case 'email':
+                window.location.href = `mailto:?subject=${encodeURIComponent(text)}&body=${encodeURIComponent(postUrl)}`;
+                break;
+            case 'copy':
+                navigator.clipboard.writeText(postUrl).then(() => {
+                    this.message.success('Link copied to clipboard!');
+                }).catch(err => {
+                    this.message.error('Failed to copy link.');
+                });
+                break;
+        }
+    }
+
     // - **Hover-reveal Picker:** Users can hover over the "Reaction" button to choose from 6 different emojis.
     // - **Individual Reaction Counts:** Real-time summary of all reactions on each post.
     // - **Icon Registration:** All reaction icons (Like, Heart, Smile, Bulb, Frown, Alert) are registered in the Angular app configuration.

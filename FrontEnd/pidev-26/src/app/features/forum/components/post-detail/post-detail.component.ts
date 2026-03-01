@@ -16,6 +16,7 @@ import { NzCommentModule } from 'ng-zorro-antd/comment';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { ForumService } from '../../services/forum.service';
 import { Post } from '../../models/post.model';
 import { Comment } from '../../models/comment.model';
@@ -44,6 +45,7 @@ import { ReactionDetailsComponent } from '../reaction-details/reaction-details.c
         NzPopconfirmModule,
         NzEmptyModule,
         NzTagModule,
+        NzDropDownModule,
         TimeAgoPipe,
         HighlightMentionPipe,
         RouterModule
@@ -178,7 +180,11 @@ export class PostDetailComponent implements OnInit {
                     this.loadComments(this.post!.id);
                 });
             },
-            error: (e: any) => console.error('Error adding comment', e)
+            error: (e: any) => {
+                console.error('Error adding comment', e);
+                const msg = e?.error?.message || 'Failed to add comment.';
+                this.message.error(msg);
+            }
         });
     }
 
@@ -391,6 +397,33 @@ export class PostDetailComponent implements OnInit {
                 this.message.error('Failed to repost. Please try again.');
             }
         });
+    }
+
+    sharePost(post: Post, platform: string, event: Event): void {
+        event.stopPropagation();
+        event.preventDefault();
+
+        const postUrl = `${window.location.origin}/posts/${post.id}`;
+        const text = `Check out this discussion: ${post.title}`;
+
+        switch (platform) {
+            case 'twitter':
+                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(postUrl)}`, '_blank');
+                break;
+            case 'whatsapp':
+                window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + postUrl)}`, '_blank');
+                break;
+            case 'email':
+                window.location.href = `mailto:?subject=${encodeURIComponent(text)}&body=${encodeURIComponent(postUrl)}`;
+                break;
+            case 'copy':
+                navigator.clipboard.writeText(postUrl).then(() => {
+                    this.message.success('Link copied to clipboard!');
+                }).catch(err => {
+                    this.message.error('Failed to copy link.');
+                });
+                break;
+        }
     }
 
     replyToComment(comment: Comment): void {

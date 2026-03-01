@@ -22,6 +22,10 @@ public interface PostService {
 
     Post togglePin(Long id, String userId);
 
+    Page<Post> getReportedPosts(int page, int size);
+
+    void removeReportsFromPost(Long postId);
+
     void reportPost(Long postId, String userId);
 
     Post repostPost(Long postId, String userId, String username);
