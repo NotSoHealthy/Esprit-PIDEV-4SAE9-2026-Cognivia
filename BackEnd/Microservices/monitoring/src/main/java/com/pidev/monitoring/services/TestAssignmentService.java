@@ -39,6 +39,8 @@ public class TestAssignmentService {
                 .orElseThrow(() -> new RuntimeException("Test not found with id: " + testId));
 
         assignment.setTest(test);
+        assignment.setAssignedAt(LocalDateTime.now());
+        assignment.setDueAt(assignment.getAssignedAt().plusDays(1)); // 1 day completion window
 
         // Validation: TARGETED must have patientId, GENERAL must have targetSeverity
         if (assignment.getAssignmentType() == AssignmentType.TARGETED) {
@@ -96,8 +98,11 @@ public class TestAssignmentService {
         List<TestAssignment> all = new ArrayList<>(targeted);
         all.addAll(general);
 
-        // 4. Filter out assignments that the patient has already completed
+        LocalDateTime now = LocalDateTime.now();
+
+        // 4. Filter out assignments that are completed OR expired
         return all.stream()
+                .filter(assignment -> assignment.getDueAt() != null && now.isBefore(assignment.getDueAt()))
                 .filter(assignment -> !isAssignmentCompletedByPatient(assignment, patientId))
                 .toList();
     }

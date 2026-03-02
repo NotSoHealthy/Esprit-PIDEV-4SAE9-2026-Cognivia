@@ -13,12 +13,20 @@ import java.time.LocalDateTime;
 @Builder
 public class RiskScore {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     private Long patientId;
     private Double riskValue;
     private String riskLevel;
 
+    // Trend analysis fields
+    private String trendDirection; // IMPROVING, STABLE, DECLINING
+    private Double averageScore; // Weighted average of last N tests
+    private Integer scoreCount; // How many tests this risk is based on
+    private Double previousRiskValue; // Previous risk for comparison
+
+    @Builder.Default
+    @Column(nullable = false)
     private LocalDateTime generatedAt = LocalDateTime.now();
 }

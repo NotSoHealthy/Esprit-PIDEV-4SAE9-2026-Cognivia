@@ -143,7 +143,7 @@ export class PatientList implements OnInit {
 
     this.isLoading = true;
     this.errorMessage = null;
-    this.http.get<any>(`${this.apiBaseUrl}/care/patient/doctor/${doctorId}`).subscribe({
+    this.http.get<any>(`${this.apiBaseUrl}/care/patient`).subscribe({
       next: (response) => {
         const list =
           (Array.isArray(response) && response) ||

@@ -44,7 +44,7 @@
           {{ assignment.test?.questions?.length || 0 }} Questions
         </span>
         <button class="btn btn-primary" [routerLink]="['/user/tests/take', assignment.test?.id]"
-          [queryParams]="{ assignmentId: assignment.id }">
+          [queryParams]="{ assignmentId: assignment.id, patientId: patientId }">
           Start Assessment
         </button>
       </div>

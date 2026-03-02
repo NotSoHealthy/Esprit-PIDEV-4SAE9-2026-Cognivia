@@ -19,7 +19,7 @@ public class TestResult {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(columnDefinition = "TIMESTAMP")
+    @Column(columnDefinition = "TIMESTAMP", nullable = false)
     private LocalDateTime takenAt = LocalDateTime.now();
 
     private Long responseTime; // in milliseconds

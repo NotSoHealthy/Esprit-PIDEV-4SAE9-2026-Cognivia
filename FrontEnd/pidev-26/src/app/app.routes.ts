@@ -62,6 +62,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/cognitive-tests/user/result-view/result-view.component').then(m => m.ResultViewComponent)
       },
       {
+        path: 'doctor/risk-assessment',
+        title: 'Risk Assessments',
+        canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_ADMIN'])],
+        loadComponent: () => import('./features/cognitive-tests/admin/risk-assessment/risk-assessment.component').then(m => m.RiskAssessmentComponent)
+      },
+      {
         path: 'user/games/memory',
         title: 'Cognitive Games',
         loadComponent: () => import('./features/games/memory-game-view/memory-game-view.component').then(m => m.MemoryGameViewComponent)

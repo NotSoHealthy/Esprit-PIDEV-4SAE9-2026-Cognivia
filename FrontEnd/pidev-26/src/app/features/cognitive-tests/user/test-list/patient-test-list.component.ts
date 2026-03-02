@@ -16,6 +16,7 @@ export class PatientTestListComponent implements OnInit {
     assignments: TestAssignment[] = [];
     loading = true;
     error = '';
+    patientId?: number;
 
     constructor(
         private assignmentService: TestAssignmentService,
@@ -54,6 +55,7 @@ export class PatientTestListComponent implements OnInit {
             next: (patient) => {
                 console.log('Patient profile resolved:', patient);
                 if (patient?.id) {
+                    this.patientId = patient.id;
                     this.loadAssignments(patient.id);
                 } else {
                     this.showError('No patient profile found. Please complete your profile first.');
