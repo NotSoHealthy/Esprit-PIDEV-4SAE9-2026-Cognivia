@@ -13,32 +13,6 @@
         </button>
     </div>
 
-    <!-- Streak Badge -->
-    <div *ngIf="streak" class="flex gap-4 mb-6">
-        <div class="flex items-center gap-3 bg-white rounded-2xl px-5 py-3 shadow-sm border border-gray-100">
-            <span class="text-3xl" [style.color]="streakFlameColor">🔥</span>
-            <div>
-                <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Current Streak</p>
-                <p class="text-2xl font-bold text-[#4D5CAB]">{{ streak.currentStreak }} <span
-                        class="text-sm font-normal text-gray-400">days</span></p>
-            </div>
-        </div>
-        <div class="flex items-center gap-3 bg-white rounded-2xl px-5 py-3 shadow-sm border border-gray-100">
-            <span class="text-3xl">🏆</span>
-            <div>
-                <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Best Streak</p>
-                <p class="text-2xl font-bold text-[#4D5CAB]">{{ streak.longestStreak }} <span
-                        class="text-sm font-normal text-gray-400">days</span></p>
-            </div>
-        </div>
-        <div class="flex items-center gap-3 bg-white rounded-2xl px-5 py-3 shadow-sm border border-gray-100">
-            <span class="text-3xl">🎮</span>
-            <div>
-                <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Total Games</p>
-                <p class="text-2xl font-bold text-[#4D5CAB]">{{ streak.totalGamesPlayed }}</p>
-            </div>
-        </div>
-    </div>
 
     <div class="game-wrapper bg-white rounded-3xl drop-shadow-sm overflow-hidden relative shadow-md"
         style="height: 650px;">

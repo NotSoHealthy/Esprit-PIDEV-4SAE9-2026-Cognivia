@@ -15,6 +15,8 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { CurrentUserService } from '../user/current-user.service';
+import { StreakService } from '../../features/games/streak.service';
+import { StreakFlameComponent } from '../../shared/components/streak-flame/streak-flame.component';
 
 @Component({
   selector: 'app-layout',
@@ -26,6 +28,7 @@ import { CurrentUserService } from '../user/current-user.service';
     NzIconModule,
     NzDropdownModule,
     NzMenuModule,
+    StreakFlameComponent
   ],
   templateUrl: './app-layout.html',
   styleUrl: './app-layout.css',
@@ -36,6 +39,7 @@ export class AppLayout implements OnInit {
   private readonly activeRoute = inject(ActivatedRoute);
   private readonly keycloak = inject(KeycloakService);
   private readonly currentUser = inject(CurrentUserService);
+  private readonly streakService = inject(StreakService);
   public readonly routes = [
     {
       link: '/dashboard',
@@ -69,6 +73,7 @@ export class AppLayout implements OnInit {
     },
   ];
   currentRouteLabel = '';
+  streakCount = 0;
   ngOnInit(): void {
     this.updateCurrentRouteLabel();
 
@@ -79,7 +84,18 @@ export class AppLayout implements OnInit {
       )
       .subscribe(() => this.updateCurrentRouteLabel());
 
-    console.log('User Roles:', this.keycloak.getUserRole());
+    if (this.userRole === 'ROLE_PATIENT') {
+      this.fetchStreak();
+    }
+  }
+
+  private fetchStreak(): void {
+    const patientId = this.keycloak.getUserId();
+    if (patientId) {
+      this.streakService.getStreak(patientId).subscribe(s => {
+        this.streakCount = s.currentStreak;
+      });
+    }
   }
 
   private getDeepestActiveRoute(route: ActivatedRoute): ActivatedRoute {

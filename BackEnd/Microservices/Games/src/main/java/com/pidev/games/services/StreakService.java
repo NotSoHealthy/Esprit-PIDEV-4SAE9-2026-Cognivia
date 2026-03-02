@@ -56,8 +56,13 @@ public class StreakService {
             streak.setCurrentStreak(streak.getCurrentStreak() + 1);
             log.info("Patient {} extended streak to {} days!", patientId, streak.getCurrentStreak());
 
+        } else if (lastActivity.equals(today.minusDays(2))) {
+            // Grace Period: Played the day before yesterday, missed only 1 day
+            // Streak stays the same (doesn't increment, but doesn't reset)
+            log.info("Patient {} used grace period. Streak remains at {}", patientId, streak.getCurrentStreak());
+
         } else {
-            // Missed a day — streak resets
+            // Gap > 1 day (and not within grace period) — streak resets
             streak.setCurrentStreak(1);
             log.info("Patient {} streak reset. Last activity was {}", patientId, lastActivity);
         }
