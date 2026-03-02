@@ -1,0 +1,151 @@
+.medications-page {
+  max-width: 900px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+.medications-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.back-btn {
+  padding: 4px 8px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.medications-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+  flex: 1;
+}
+
+.medications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.medication-card {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  display: flex;
+  gap: 16px;
+  transition: all 0.3s ease;
+}
+
+.medication-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.medication-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafa;
+}
+
+.medication-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.medication-no-image {
+  color: rgba(0, 0, 0, 0.25);
+  font-size: 32px;
+}
+
+.medication-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.medication-name {
+  font-weight: 700;
+  font-size: 16px;
+  margin: 0;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.medication-meta {
+  font-size: 13px;
+  display: flex;
+  gap: 6px;
+}
+
+.medication-muted {
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.medications-error {
+  background: #fff2e8;
+  border: 1px solid #ffbb96;
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #d4380d;
+  margin-bottom: 16px;
+}
+
+.spinner-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 48px 16px;
+}
+
+.empty-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 48px 16px;
+}
+
+@media (max-width: 576px) {
+  .medications-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .medications-title {
+    font-size: 20px;
+  }
+
+  .medication-card {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .medication-image {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+.add-medication-fab {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1000;
+}
+
+.add-medication-fab .fab-text {
+  margin-left: 8px;
+  font-weight: 600;
+  white-space: nowrap;
+}

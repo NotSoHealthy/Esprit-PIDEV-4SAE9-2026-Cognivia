@@ -28,6 +28,12 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/pharmacy/pharmacy').then((m) => m.Pharmacy),
       },
+      {
+        path: 'medications/:pharmacyId',
+        title: 'Medications',
+        loadComponent: () =>
+          import('./features/pharmacy/medication/medication').then((m) => m.Medication),
+      },
       
       {
         path: 'patient-management',

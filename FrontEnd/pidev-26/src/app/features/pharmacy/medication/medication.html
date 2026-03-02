@@ -1,0 +1,145 @@
+<div class="medications-page">
+  <!-- Header with back button and pharmacy name -->
+  <div class="medications-header">
+    <button nz-button nzType="text" class="back-btn" (click)="goBack()">
+      <nz-icon nzType="arrow-left" nzTheme="outline"></nz-icon>
+      Back
+    </button>
+    <h1 class="medications-title">{{ pharmacy?.name || 'Loading...' }}</h1>
+  </div>
+
+  <!-- Loading spinner -->
+  <div *ngIf="loading" class="spinner-wrapper">
+    <nz-spin nzTip="Loading medications..." nzSize="large" style="transform: scale(1.4);"></nz-spin>
+  </div>
+
+  <!-- Error message -->
+  <div *ngIf="errorMsg" class="medications-error">{{ errorMsg }}</div>
+
+  <!-- Empty state -->
+  <div *ngIf="!loading && !errorMsg && medications.length === 0" class="empty-wrapper">
+    <nz-empty nzNotFoundContent="No medications found"></nz-empty>
+  </div>
+
+  <!-- Medications list -->
+  <div class="medications-list" *ngIf="medications.length > 0">
+    <div class="medication-card" *ngFor="let medication of medications">
+      <div class="medication-image" *ngIf="medication.imageUrl; else noImage">
+        <img [src]="medication.imageUrl" [alt]="medication.name" />
+      </div>
+
+      <ng-template #noImage>
+        <div class="medication-image medication-no-image">
+          <nz-icon nzType="picture" nzTheme="outline"></nz-icon>
+        </div>
+      </ng-template>
+
+      <div class="medication-content">
+        <h3 class="medication-name">{{ medication.name }}</h3>
+        <div class="medication-meta">
+          <span class="medication-muted">ID:</span>
+          <span>{{ medication.id }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ FLOAT BUTTON (always visible) -->
+  <nz-float-button
+    class="add-medication-fab"
+    nzType="primary"
+    nzShape="square"
+    nzTooltipTitle="Add medication"
+    (click)="addMedication()"
+  >
+    <nz-float-button-content>
+      <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
+      <span class="fab-text">Add medication</span>
+    </nz-float-button-content>
+  </nz-float-button>
+
+  <!-- ✅ ADD MEDICATION MODAL -->
+  <nz-modal
+    [(nzVisible)]="isAddModalOpen"
+    nzTitle="Add medication"
+    [nzOkLoading]="submitting"
+    nzOkText="Save"
+    nzCancelText="Cancel"
+    (nzOnOk)="submitAddMedication()"
+    (nzOnCancel)="closeAddModal()"
+  >
+    <ng-container *nzModalContent>
+      <form nz-form [formGroup]="addForm">
+        <!-- Name -->
+        <nz-form-item>
+          <nz-form-label [nzRequired]="true" nzFor="name">Name</nz-form-label>
+
+          <nz-form-control nzHasFeedback [nzErrorTip]="nameErrorTpl">
+            <input
+              id="name"
+              nz-input
+              formControlName="name"
+              placeholder="e.g. Donepezil"
+            />
+
+            <ng-template #nameErrorTpl>
+              <ng-container *ngIf="addForm.controls.name.hasError('required')">
+                Name is required.
+              </ng-container>
+              <ng-container *ngIf="addForm.controls.name.hasError('minlength')">
+                Name must be at least 3 characters.
+              </ng-container>
+            </ng-template>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Therapeutic Class -->
+        <nz-form-item>
+          <nz-form-label [nzRequired]="true">Therapeutic class</nz-form-label>
+
+          <nz-form-control>
+            <nz-radio-group formControlName="therapeuticClass">
+              <label
+                *ngFor="let option of therapeuticOptions"
+                nz-radio
+                [nzValue]="option.value"
+              >
+                {{ option.label }}
+              </label>
+            </nz-radio-group>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Image Upload -->
+        <nz-form-item>
+          <nz-form-label [nzRequired]="true">Photo</nz-form-label>
+
+          <nz-form-control
+            [nzErrorTip]="photoErrorTpl"
+            nzHasFeedback
+          >
+            <nz-upload
+              [nzFileList]="fileList"
+              [nzBeforeUpload]="beforeUpload"
+              [nzOnRemove]="onRemove"
+              nzListType="picture-card"
+              nzAccept="image/*"
+              nzShowUploadList="true"
+            >
+              <div *ngIf="fileList.length === 0">
+                <nz-icon nzType="plus"></nz-icon>
+                <div class="ant-upload-text">Upload image</div>
+              </div>
+            </nz-upload>
+
+            <ng-template #photoErrorTpl>
+              <ng-container *ngIf="photoMissing">
+                Photo is required.
+              </ng-container>
+            </ng-template>
+          </nz-form-control>
+        </nz-form-item>
+      </form>
+    </ng-container>
+  </nz-modal>
+</div>

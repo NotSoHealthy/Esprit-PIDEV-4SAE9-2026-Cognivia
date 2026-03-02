@@ -18,7 +18,10 @@ import {
   FileTextOutline,
   HeartOutline,
   HeartFill,
-  MoreOutline
+  MoreOutline,
+  PlusOutline,
+  PictureOutline,
+  ArrowLeftOutline
 } from '@ant-design/icons-angular/icons';
 
 export const appConfig: ApplicationConfig = {
@@ -41,7 +44,10 @@ export const appConfig: ApplicationConfig = {
       FileTextOutline,
       HeartOutline,
       HeartFill,
-      MoreOutline
+      MoreOutline,
+      ArrowLeftOutline,
+      PictureOutline,
+      PlusOutline
       
     ]),
   ],

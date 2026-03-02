@@ -9,21 +9,31 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
-
+import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { PharmacyService } from './services/pharmacy.service';
 import { Pharmacy as PharmacyModel } from './models/pharmacy.model';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { FormsModule } from '@angular/forms';
+import { NzRateModule } from 'ng-zorro-antd/rate';
 
 @Component({
   selector: 'app-pharmacy',
   standalone: true,
   imports: [
     CommonModule,
+
+    // ⭐ rating needs FormsModule (ngModel) + NzRateModule
+    FormsModule,
+    NzRateModule,
+  NzEmptyModule,   // ✅ ADD THIS
+
     NzDropDownModule,
     NzIconModule,
     NzButtonModule,
     NzModalModule,
     NzFormModule,
     NzInputModule,
+    NzSpinModule,
     ReactiveFormsModule,
   ],
   templateUrl: './pharmacy.html',
@@ -41,6 +51,10 @@ export class Pharmacy implements OnInit {
 
   liked = new Set<number>();
 
+  // ⭐ rating state (per pharmacy)
+  // store the user's selected rating locally by pharmacy id
+  rateMap = new Map<number, number>();
+
   // modal state
   isAddModalOpen = false;
   saving = false;
@@ -57,22 +71,45 @@ export class Pharmacy implements OnInit {
   }
 
   loadPharmacies(): void {
-    this.loading = true;
-    this.errorMsg = null;
+  this.loading = true;
+  this.errorMsg = null;
 
-    this.service.getAll().subscribe({
-      next: (list) => {
+  const startTime = Date.now();
+
+  this.service.getAll().subscribe({
+    next: (list) => {
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(1000 - elapsed, 0); // minimum 1 second
+
+      setTimeout(() => {
         this.pharmacies = list ?? [];
         this.loading = false;
         this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error(err);
+      }, remaining);
+    },
+    error: (err) => {
+      console.error(err);
+
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(1000 - elapsed, 0);
+
+      setTimeout(() => {
         this.errorMsg = 'Failed to load pharmacies';
         this.loading = false;
-      },
-    });
+      }, remaining);
+    },
+  });
+}
+
+  // ⭐ helpers used by the HTML binding
+  getRate(id: number): number {
+    return this.rateMap.get(id) ?? 0;
   }
+
+setRate(id: number, value: number): void {
+  this.rateMap.set(id, Math.round(value)); // or Math.floor(value)
+  this.cdr.detectChanges();
+}
 
   // ✅ open modal
   openAddModal(): void {
@@ -99,7 +136,6 @@ export class Pharmacy implements OnInit {
 
     const v = this.addForm.getRawValue();
 
-    // keep createdAt and updatedAt null
     const payload: PharmacyModel = {
       name: v.name!,
       address: v.address || undefined,
@@ -107,13 +143,21 @@ export class Pharmacy implements OnInit {
       longitude: v.longitude ?? null,
       createdAt: null,
       updatedAt: null,
+
+      bannerUrl: null,
+      logoUrl: null,
     };
 
     this.saving = true;
     this.service.create(payload as any).subscribe({
       next: (created) => {
-        // add to list locally (or call loadPharmacies())
         this.pharmacies = [created, ...this.pharmacies];
+
+        // ⭐ default rating for newly created pharmacy
+        if (created?.id != null && !this.rateMap.has(created.id)) {
+          this.rateMap.set(created.id, 0);
+        }
+
         this.isAddModalOpen = false;
         this.saving = false;
         this.cdr.detectChanges();
@@ -128,7 +172,7 @@ export class Pharmacy implements OnInit {
 
   openMedicines(p: PharmacyModel): void {
     if (!p.id) return;
-    this.router.navigate(['/medicines', p.id]);
+    this.router.navigate(['/medications', p.id]);
   }
 
   toggleLike(p: PharmacyModel, ev: MouseEvent): void {

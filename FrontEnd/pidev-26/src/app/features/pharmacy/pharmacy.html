@@ -2,26 +2,33 @@
     <div class="pharmacy-header">
         <h1 class="pharmacy-title">Pharmacies</h1>
 
-        <button nz-button nzType="primary" (click)="openAddModal()">
+        <button nz-button nzType="primary" class="add-btn" (click)="openAddModal()">
             Add pharmacy
         </button>
     </div>
 
-    <div *ngIf="loading" class="pharmacy-muted">Loading…</div>
+    <div *ngIf="loading" class="spinner-wrapper">
+        <nz-spin nzTip="Loading pharmacies..." nzSize="large" style="transform: scale(1.4);">
+        </nz-spin>
+    </div>
     <div *ngIf="errorMsg" class="pharmacy-error">{{ errorMsg }}</div>
 
-    <div *ngIf="!loading && !errorMsg && pharmacies.length === 0" class="pharmacy-muted">
-        No pharmacies found.
+    <div *ngIf="!loading && !errorMsg && pharmacies.length === 0" class="empty-wrapper">
+        <nz-empty nzNotFoundContent="No pharmacies found"></nz-empty>
     </div>
-
     <div class="pharmacy-list" *ngIf="pharmacies.length > 0">
         <div class="pharmacy-card" *ngFor="let p of pharmacies" (click)="openMedicines(p)" role="button" tabindex="0">
+            <div class="pharmacy-banner-bg" *ngIf="p.bannerUrl" [style.backgroundImage]="'url(' + p.bannerUrl + ')'"
+                aria-hidden="true"></div>
             <div class="card-actions" (click)="$event.stopPropagation()">
                 <button nz-button nzType="text" class="like-btn" (click)="toggleLike(p, $event)"
                     [attr.aria-pressed]="p.id ? liked.has(p.id) : false">
                     <nz-icon nzType="heart" [nzTheme]="p.id && liked.has(p.id) ? 'fill' : 'outline'">
                     </nz-icon>
                 </button>
+                <nz-rate class="pharmacy-rate" [ngModel]="p.id ? getRate(p.id) : 0"
+                    (ngModelChange)="p.id && setRate(p.id, $event)">
+                </nz-rate>
 
                 <a nz-dropdown [nzDropdownMenu]="menu" nzTrigger="click" class="dots"
                     (click)="$event.stopPropagation()">
@@ -30,7 +37,9 @@
                 <nz-dropdown-menu #menu="nzDropdownMenu">
                     <ul nz-menu>
                         <li nz-menu-item (click)="favorite(p, $event)">Favorite</li>
-                        <li nz-menu-item (click)="report(p, $event)">Report</li>
+                        <li nz-menu-item class="danger-item" (click)="report(p, $event)">
+                            Report
+                        </li>
                         <li nz-menu-item (click)="edit(p, $event)">Edit</li>
                         <li nz-menu-item class="danger" (click)="delete(p, $event)">Delete</li>
                     </ul>

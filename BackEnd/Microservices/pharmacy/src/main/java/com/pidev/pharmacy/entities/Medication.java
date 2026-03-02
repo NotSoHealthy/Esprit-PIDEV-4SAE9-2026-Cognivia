@@ -23,4 +23,8 @@ public class Medication {
     private Long id;
 
     private String name;
+
+    private TherapeuticClass therapeuticClass;
+    @Column(columnDefinition = "TEXT")
+    private String imageUrl;
 }

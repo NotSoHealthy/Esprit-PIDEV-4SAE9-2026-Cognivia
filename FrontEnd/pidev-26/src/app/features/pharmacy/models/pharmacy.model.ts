@@ -4,6 +4,10 @@ export interface Pharmacy {
   address?: string;
   latitude?: number | null;
   longitude?: number | null;
+  
+  bannerUrl?: string | null;
+  logoUrl?: string | null;
+
   createdAt?: string | null;
   updatedAt?: string | null;
 }
