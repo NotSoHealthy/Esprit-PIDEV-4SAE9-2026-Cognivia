@@ -71,6 +71,12 @@ export class AppLayout implements OnInit {
       icon: 'play-circle',
       roles: ['ROLE_PATIENT'],
     },
+    {
+      link: '/doctor/risk-assessment',
+      label: 'Risk Intelligence',
+      icon: 'line-chart',
+      roles: ['ROLE_DOCTOR', 'ROLE_ADMIN'],
+    },
   ];
   currentRouteLabel = '';
   streakCount = 0;

@@ -1,6 +1,7 @@
 package com.pidev.monitoring.services;
 
 import com.pidev.monitoring.entities.*;
+import com.pidev.monitoring.dto.ExternalMetricsDTO;
 import com.pidev.monitoring.repositories.CognitiveTestRepository;
 import com.pidev.monitoring.repositories.RiskScoreRepository;
 import com.pidev.monitoring.repositories.TestAssignmentRepository;
@@ -143,115 +144,99 @@ public class TestResultService {
     }
 
     /**
-     * UPGRADED: Longitudinal Trend-Based Risk Analysis.
-     *
-     * Instead of a simple `100 - score`, this algorithm:
-     * 1. Fetches the last 5 test results for the patient.
-     * 2. Computes a WEIGHTED average (recent results carry more weight).
-     * 3. Determines TREND DIRECTION by comparing recent vs. older performance.
-     * 4. Adjusts the risk level based on both the weighted average and the trend.
+     * AI-DRIVEN: Longitudinal Time-Series Risk Analysis.
+     * 
+     * Requirement:
+     * 1. Fetch last 30 days of data from Monitoring & Games.
+     * 2. Calculate Rate of Change (Slope).
+     * 3. Generate ClinicalFlag on excessive performance drop.
      */
     private void generateAndSaveRisk(TestResult result) {
         Long patientId = result.getPatientId();
-        if (patientId == null) {
-            patientId = 1L; // Fallback for demo/direct tests
-        }
+        if (patientId == null)
+            patientId = 1L;
 
+        java.time.LocalDateTime thirtyDaysAgo = java.time.LocalDateTime.now().minusDays(30);
+
+        // STAGE 1: Fetch 30-day internal data
+        List<TestResult> thirtyDayResults = testResultRepository
+                .findAllByPatientIdAndTakenAtAfterOrderByTakenAtDesc(patientId, thirtyDaysAgo);
+
+        // STAGE 2: Fetch 30-day external game data (Unity)
+        ExternalMetricsDTO gameMetrics = fetchGameMetricsForPatient(patientId);
+        double gameFactor = (gameMetrics != null) ? gameMetrics.getAverageResponseTime() : 0.0;
+        boolean externalDataUsed = (gameMetrics != null);
+
+        // STAGE 3: Calculate Slope (Rate of Change)
+        double slope = calculatePerformanceSlope(thirtyDayResults);
+
+        // STAGE 4: Calculate Weighted Risk Value
         double currentScore = result.getScore() != null ? result.getScore() : 0.0;
+        double weightedAvg = thirtyDayResults.stream()
+                .mapToDouble(r -> r.getScore() != null ? r.getScore() : 0.0)
+                .average().orElse(currentScore);
 
-        log.info("Fetching recent results for patientId: {}", patientId);
-        // Step 1: Fetch the last 5 results (including the one just saved)
-        List<TestResult> recentResults = testResultRepository
-                .findTop5ByPatientIdOrderByTakenAtDesc(patientId);
+        double baseRisk = 100.0 - weightedAvg;
 
-        // Safety check: ensure we have at least this current result even if DB hasn't
-        // flushed
-        if (recentResults == null || recentResults.isEmpty()) {
-            log.warn("No recent results found in DB for patient {}, using current result only", patientId);
-            recentResults = List.of(result);
+        // Penalty for high response time in Unity games (normalized)
+        if (gameFactor > 5000)
+            baseRisk += 5.0; // Significant delay penalty
+
+        // STAGE 5: Clinical Flagging Logic
+        boolean clinicalFlag = false;
+        if (slope < -15.0 || (baseRisk > 70 && slope < -5.0)) {
+            clinicalFlag = true;
+            log.warn("CLINICAL ALERT: Significant cognitive drop detected for patient {}", patientId);
         }
 
-        log.info("Found {} recent results for analysis", recentResults.size());
+        String riskLevel = (baseRisk > 70) ? "HIGH" : (baseRisk > 30) ? "MEDIUM" : "LOW";
+        String trend = (slope > 2) ? "IMPROVING" : (slope < -2) ? "DECLINING" : "STABLE";
 
-        int scoreCount = recentResults.size();
+        // Fetch previous for comparison
+        Optional<RiskScore> prev = riskScoreRepository.findTopByPatientIdOrderByGeneratedAtDesc(patientId);
 
-        // Step 2: Weighted average — recent scores count more
-        double[] weights = { 3.0, 2.5, 2.0, 1.5, 1.0 };
-        double weightedSum = 0;
-        double totalWeight = 0;
-
-        for (int i = 0; i < recentResults.size(); i++) {
-            double w = (i < weights.length) ? weights[i] : 1.0;
-            double s = recentResults.get(i).getScore() != null ? recentResults.get(i).getScore() : 0.0;
-            weightedSum += s * w;
-            totalWeight += w;
-        }
-
-        double weightedAverage = totalWeight > 0 ? weightedSum / totalWeight : currentScore;
-
-        // Step 3: Trend detection
-        String trendDirection = "STABLE";
-
-        if (scoreCount >= 2) { // Minimal trend detection from 2 sessions
-            double newest = recentResults.get(0).getScore() != null ? recentResults.get(0).getScore() : 0.0;
-            double previous = recentResults.get(1).getScore() != null ? recentResults.get(1).getScore() : 0.0;
-
-            double diff = newest - previous;
-            if (diff > 5.0)
-                trendDirection = "IMPROVING";
-            else if (diff < -5.0)
-                trendDirection = "DECLINING";
-            else
-                trendDirection = "STABLE";
-        }
-
-        // ────────────────────────────────────────────────────
-        // Step 4: Risk calculation with trend adjustment
-        // ────────────────────────────────────────────────────
-        double riskValue = 100.0 - weightedAverage;
-
-        // Trend adjustment: improving patients get a small risk reduction,
-        // declining patients get a risk increase
-        if ("IMPROVING".equals(trendDirection)) {
-            riskValue = Math.max(0, riskValue - 5.0);
-        } else if ("DECLINING".equals(trendDirection)) {
-            riskValue = Math.min(100, riskValue + 5.0);
-        }
-
-        String riskLevel;
-        if (riskValue <= 20) {
-            riskLevel = "LOW";
-        } else if (riskValue <= 50) {
-            riskLevel = "MEDIUM";
-        } else {
-            riskLevel = "HIGH";
-        }
-
-        // Get previous risk for comparison
-        log.info("Fetching previous risk for patientId: {}", patientId);
-        Optional<RiskScore> previousRisk = riskScoreRepository
-                .findTopByPatientIdOrderByGeneratedAtDesc(patientId);
-        Double previousRiskValue = previousRisk.map(RiskScore::getRiskValue).orElse(null);
-
-        // ────────────────────────────────────────────────────
-        // Step 5: Save the enriched risk score
-        // ────────────────────────────────────────────────────
         RiskScore riskScore = RiskScore.builder()
                 .patientId(patientId)
-                .riskValue(Math.round(riskValue * 100.0) / 100.0) // Round to 2 decimals
+                .riskValue(Math.round(baseRisk * 100.0) / 100.0)
                 .riskLevel(riskLevel)
-                .trendDirection(trendDirection)
-                .averageScore(Math.round(weightedAverage * 100.0) / 100.0)
-                .scoreCount(scoreCount)
-                .previousRiskValue(previousRiskValue)
+                .trendDirection(trend)
+                .averageScore(Math.round(weightedAvg * 100.0) / 100.0)
+                .scoreCount(thirtyDayResults.size())
+                .slopeValue(Math.round(slope * 100.0) / 100.0)
+                .clinicalFlag(clinicalFlag)
+                .externalGameDataUsed(externalDataUsed)
+                .previousRiskValue(prev.map(RiskScore::getRiskValue).orElse(null))
                 .build();
 
-        log.info("Saving newly generated risk score...");
         riskScoreRepository.save(riskScore);
+        log.info("AI Analysis Complete for patient {}: Slope={}, Flag={}", patientId, slope, clinicalFlag);
+    }
 
-        log.info("Risk generated for patient {}: risk={}, level={}, trend={}, avg={}, based on {} tests",
-                patientId, riskScore.getRiskValue(), riskLevel, trendDirection,
-                weightedAverage, scoreCount);
+    private ExternalMetricsDTO fetchGameMetricsForPatient(Long patientId) {
+        try {
+            org.springframework.web.reactive.function.client.WebClient webClient = org.springframework.web.reactive.function.client.WebClient
+                    .create("http://localhost:8086");
+            return webClient.get()
+                    .uri("/game-metrics/patient/" + patientId)
+                    .retrieve()
+                    .bodyToMono(ExternalMetricsDTO.class)
+                    .block(java.time.Duration.ofSeconds(2));
+        } catch (Exception e) {
+            log.error("Failed to fetch game metrics: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    private double calculatePerformanceSlope(List<TestResult> results) {
+        if (results == null || results.size() < 2)
+            return 0.0;
+
+        // Simple linear regression approximation: (Newest - Oldest) / Time
+        double newest = results.get(0).getScore() != null ? results.get(0).getScore() : 0.0;
+        double oldest = results.get(results.size() - 1).getScore() != null ? results.get(results.size() - 1).getScore()
+                : 0.0;
+
+        return newest - oldest; // Simplified slope: total change over 30 days
     }
 
     public List<TestResult> getResultsByPatientId(Long patientId) {

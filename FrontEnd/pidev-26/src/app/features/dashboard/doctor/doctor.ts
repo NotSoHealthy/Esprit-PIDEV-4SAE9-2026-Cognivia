@@ -1,5 +1,4 @@
 import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { RiskScoreService } from '../../../core/services/cognitive-tests/risk.service';
@@ -13,7 +12,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-doctor',
   standalone: true,
-  imports: [CommonModule, RouterLink, NzIconModule, FormsModule],
+  imports: [CommonModule, NzIconModule, FormsModule],
   templateUrl: './doctor.html',
   styleUrl: './doctor.css',
 })
@@ -28,6 +27,8 @@ export class Doctor implements OnInit {
   highRiskCount = 0;
   totalTestsToday = 0;
   totalPatients = 0;
+  clinicalFlagCount = 0;
+  today = new Date();
 
   // Patient list for dashboard
   patients: any[] = [];
@@ -40,18 +41,44 @@ export class Doctor implements OnInit {
   }
 
   loadMonitoringData(): void {
-    this.riskService.getAllRisks().subscribe({
-      next: (risks: RiskScore[]) => {
-        this.recentRisks = [...risks].sort((a: RiskScore, b: RiskScore) => {
-          const dateA = a.generatedAt ? new Date(a.generatedAt).getTime() : 0;
-          const dateB = b.generatedAt ? new Date(b.generatedAt).getTime() : 0;
-          return dateB - dateA;
-        }).slice(0, 5);
+    // We need both patients and risks to show the table correctly
+    this.patientService.getAllPatients().subscribe({
+      next: (patients: any[]) => {
+        this.patients = patients;
+        this.totalPatients = patients.length;
 
-        this.highRiskCount = risks.filter((r: RiskScore) => r.riskLevel?.toLowerCase() === 'high').length;
-        this.cdr.detectChanges();
+        // After patients are loaded, get risks and map them
+        this.riskService.getAllRisks().subscribe({
+          next: (risks: RiskScore[]) => {
+            // 1. Update overall stats
+            this.recentRisks = [...risks].sort((a: RiskScore, b: RiskScore) => {
+              const dateA = a.generatedAt ? new Date(a.generatedAt).getTime() : 0;
+              const dateB = b.generatedAt ? new Date(b.generatedAt).getTime() : 0;
+              return dateB - dateA;
+            }).slice(0, 5);
+
+            this.highRiskCount = risks.filter((r: RiskScore) => r.riskLevel?.toLowerCase() === 'high').length;
+            this.clinicalFlagCount = risks.filter((r: RiskScore) => r.clinicalFlag).length;
+
+            // 2. Map the latest risk to each patient for the table
+            this.patients = this.patients.map(p => {
+              // Find the newest risk for this specific patient
+              const patientRisks = risks.filter(r => r.patientId === p.id);
+              const latestRisk = patientRisks.sort((a, b) => {
+                const dateA = a.generatedAt ? new Date(a.generatedAt).getTime() : 0;
+                const dateB = b.generatedAt ? new Date(b.generatedAt).getTime() : 0;
+                return dateB - dateA;
+              })[0];
+
+              return { ...p, currentRisk: latestRisk };
+            });
+
+            this.cdr.detectChanges();
+          },
+          error: (err: any) => console.error('Error loading risks:', err)
+        });
       },
-      error: (err: any) => console.error('Error loading risks:', err)
+      error: (err: any) => console.error('Error loading patients:', err)
     });
 
     this.resultService.getAllResults().subscribe({
@@ -63,15 +90,6 @@ export class Doctor implements OnInit {
         this.cdr.detectChanges();
       },
       error: (err: any) => console.error('Error loading results:', err)
-    });
-
-    this.patientService.getAllPatients().subscribe({
-      next: (patients: any[]) => {
-        this.patients = patients;
-        this.totalPatients = patients.length;
-        this.cdr.detectChanges();
-      },
-      error: (err: any) => console.error('Error loading patients:', err)
     });
   }
 
@@ -107,6 +125,22 @@ export class Doctor implements OnInit {
     }
   }
 
+  getRiskValueClass(value: number | undefined): string {
+    if (!value) return 'text-gray-400';
+    if (value >= 70) return 'text-red-600';
+    if (value >= 40) return 'text-orange-500';
+    return 'text-green-600';
+  }
+
+  getRiskBadgeClass(level: string | undefined): string {
+    switch (level?.toLowerCase()) {
+      case 'high': return 'bg-red-500';
+      case 'medium': return 'bg-orange-400';
+      case 'low': return 'bg-green-500';
+      default: return 'bg-gray-400';
+    }
+  }
+
   getSeverityClass(severity: string): string {
     switch (severity?.toUpperCase()) {
       case 'EXTREME': return 'bg-purple-100 text-purple-700';
@@ -137,6 +171,30 @@ export class Doctor implements OnInit {
         this.isDownloading = false;
         this.cdr.detectChanges();
       }
+    });
+  }
+
+  getSlopeClass(slope: number | undefined): string {
+    if (!slope || Math.abs(slope) <= 2) return 'text-gray-400';
+    return slope > 0 ? 'text-green-500' : 'text-red-500';
+  }
+
+  getSlopeIcon(slope: number | undefined): string {
+    if (!slope || Math.abs(slope) <= 2) return 'minus';
+    return slope > 0 ? 'arrow-up' : 'arrow-down';
+  }
+
+  downloadReport(patientId: number): void {
+    this.resultService.downloadReport(patientId).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Clinical_Report_Patient_${patientId}_${new Date().getTime()}.pdf`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => console.error('Report download failed', err)
     });
   }
 }

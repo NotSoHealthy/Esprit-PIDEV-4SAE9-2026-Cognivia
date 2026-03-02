@@ -31,6 +31,12 @@ import {
   ArrowLeftOutline,
   PlayCircleOutline,
   LineChartOutline,
+  MinusOutline,
+  WarningOutline,
+  FileSearchOutline,
+  CalendarOutline,
+  ClockCircleOutline,
+  RobotOutline,
 } from '@ant-design/icons-angular/icons';
 
 export const appConfig: ApplicationConfig = {
@@ -66,6 +72,12 @@ export const appConfig: ApplicationConfig = {
       ArrowLeftOutline,
       PlayCircleOutline,
       LineChartOutline,
+      MinusOutline,
+      WarningOutline,
+      FileSearchOutline,
+      CalendarOutline,
+      ClockCircleOutline,
+      RobotOutline,
     ]),
   ],
 };

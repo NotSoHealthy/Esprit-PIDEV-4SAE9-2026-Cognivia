@@ -27,4 +27,10 @@ export class TestResultService {
     getResultById(id: number): Observable<TestResult> {
         return this.http.get<TestResult>(`${this.apiUrl}/${id}`);
     }
+
+    downloadReport(patientId: number): Observable<Blob> {
+        return this.http.get(`${API_BASE_URL}/monitoring/api/v1/reports/patient/${patientId}/generate`, {
+            responseType: 'blob'
+        });
+    }
 }

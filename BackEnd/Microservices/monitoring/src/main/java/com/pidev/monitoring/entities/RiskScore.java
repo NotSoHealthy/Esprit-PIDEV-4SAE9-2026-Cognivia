@@ -25,6 +25,9 @@ public class RiskScore {
     private Double averageScore; // Weighted average of last N tests
     private Integer scoreCount; // How many tests this risk is based on
     private Double previousRiskValue; // Previous risk for comparison
+    private Double slopeValue; // Rate of change (Slope)
+    private Boolean clinicalFlag; // Alert flag for the doctor
+    private Boolean externalGameDataUsed;
 
     @Builder.Default
     @Column(nullable = false)
