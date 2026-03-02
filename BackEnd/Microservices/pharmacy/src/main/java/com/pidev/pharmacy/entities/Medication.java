@@ -22,8 +22,10 @@ public class Medication {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String description;
     private String name;
 
+    private MedicationStatus medicationStatus;
     private TherapeuticClass therapeuticClass;
     @Column(columnDefinition = "TEXT")
     private String imageUrl;

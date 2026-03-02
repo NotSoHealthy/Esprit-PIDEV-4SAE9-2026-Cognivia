@@ -79,3 +79,205 @@ h6 {
 #__next {
   isolation: isolate;
 }
+
+
+
+
+/* PHARMACY MODULE TO BE REALLOCATED */
+
+
+.pharmacy-modal-rounded .ant-modal-content {
+  border-radius: 24px !important;
+  overflow: hidden !important;
+}
+
+.pharmacy-modal-rounded .ant-modal-header {
+  border-radius: 24px 24px 0 0 !important;
+  background-color: #4D5CAB !important;
+}
+
+.pharmacy-modal-rounded .ant-modal-title {
+  color: #ffffff !important;
+}
+
+.pharmacy-modal-rounded .ant-modal-close {
+  color: #ffffff !important;
+}
+
+.pharmacy-modal-rounded .ant-modal-close:hover {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.pharmacy-modal-rounded .ant-modal-footer {
+  border-radius: 0 0 24px 24px !important;
+}
+
+/* Input fields rounded */
+.pharmacy-modal-rounded .ant-input,
+.pharmacy-modal-rounded .ant-input-number,
+.pharmacy-modal-rounded .ant-input-number-input,
+.pharmacy-modal-rounded textarea.ant-input {
+  border-radius: 12px !important;
+}
+
+.pharmacy-modal-rounded .ant-input:focus,
+.pharmacy-modal-rounded .ant-input-focused,
+.pharmacy-modal-rounded .ant-input-number:focus,
+.pharmacy-modal-rounded .ant-input-number-focused,
+.pharmacy-modal-rounded textarea.ant-input:focus {
+  border-radius: 12px !important;
+}
+
+/* Upload boxes rounded */
+.pharmacy-modal-rounded .ant-upload.ant-upload-select-picture-card,
+.pharmacy-modal-rounded .ant-upload-list-picture-card-container,
+.pharmacy-modal-rounded .ant-upload-list-picture-card .ant-upload-list-item,
+.pharmacy-modal-rounded .ant-upload-list-picture .ant-upload-list-item {
+  border-radius: 12px !important;
+}
+
+.pharmacy-modal-rounded .ant-upload-list-picture .ant-upload-list-item-thumbnail img {
+  border-radius: 8px !important;
+}
+
+/* Buttons rounded */
+.pharmacy-modal-rounded .ant-btn {
+  border-radius: 10px !important;
+}
+
+/* Radio buttons rounded */
+.pharmacy-modal-rounded .ant-radio-button-wrapper:first-child {
+  border-radius: 10px 0 0 10px !important;
+}
+
+.pharmacy-modal-rounded .ant-radio-button-wrapper:last-child {
+  border-radius: 0 10px 10px 0 !important;
+}
+
+/* Select dropdown rounded */
+.pharmacy-modal-rounded .ant-select-selector {
+  border-radius: 12px !important;
+}
+
+.pharmacy-modal-rounded .ant-select-focused .ant-select-selector {
+  border-radius: 12px !important;
+}
+
+/* ========== PHARMACY MODULE - PRIMARY COLOR #4D5CAB ========== */
+
+.pharmacy-modal-rounded .ant-btn-primary {
+  background-color: #4D5CAB !important;
+  border-color: #4D5CAB !important;
+}
+
+.pharmacy-modal-rounded .ant-btn-primary:hover,
+.pharmacy-modal-rounded .ant-btn-primary:focus {
+  background-color: #3f4ea3 !important;
+  border-color: #3f4ea3 !important;
+}
+
+.pharmacy-modal-rounded .ant-btn-primary:active {
+  background-color: #364292 !important;
+  border-color: #364292 !important;
+}
+
+.pharmacy-modal-rounded .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled) {
+  background-color: #4D5CAB !important;
+  border-color: #4D5CAB !important;
+}
+
+.pharmacy-modal-rounded .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled):hover {
+  background-color: #3f4ea3 !important;
+  border-color: #3f4ea3 !important;
+}
+
+.pharmacy-modal-rounded .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled):before {
+  background-color: #4D5CAB !important;
+}
+
+/* Upload list item icons */
+.pharmacy-modal-rounded .ant-upload-list-item .anticon-paper-clip,
+.pharmacy-modal-rounded .ant-upload-list-item .anticon-loading,
+.pharmacy-modal-rounded .ant-upload-list-item .anticon-close {
+  color: inherit !important;
+}
+
+/* Radio group layout for therapeutic classes */
+.pharmacy-modal-rounded .ant-radio-group-solid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pharmacy-modal-rounded .ant-radio-button-wrapper {
+  margin-right: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.pharmacy-modal-rounded .ant-steps-item-finish .ant-steps-item-icon,
+.pharmacy-modal-rounded .ant-steps-item-active .ant-steps-item-icon {
+  border-color: #4D5CAB !important;
+  background-color: #4D5CAB !important;
+}
+
+.pharmacy-modal-rounded .ant-steps-item-finish .ant-steps-item-icon > .ant-steps-icon,
+.pharmacy-modal-rounded .ant-steps-item-active .ant-steps-item-icon > .ant-steps-icon {
+  color: #ffffff !important;
+}
+
+.pharmacy-modal-rounded .ant-steps-item-finish .ant-steps-item-icon > .ant-steps-icon {
+  color: #4D5CAB !important;
+}
+
+.pharmacy-modal-rounded .ant-steps-item-finish .ant-steps-item-icon {
+  background-color: transparent !important;
+}
+
+.pharmacy-modal-rounded .ant-steps-item-finish > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-title::after {
+  background-color: #4D5CAB !important;
+}
+
+.pharmacy-modal-rounded .ant-form-item-explain-error {
+  color: #ff4d4f !important;
+  font-size: 13px !important;
+  margin-top: 4px !important;
+}
+
+/* Medication FAB (global override to beat component encapsulation) */
+body .add-medication-fab {
+  right: 44px !important;
+  bottom: 44px !important;
+}
+
+body .add-medication-fab .ant-float-btn,
+body .add-medication-fab.ant-float-btn {
+  width: 86px !important;
+  height: 86px !important;
+}
+
+body .add-medication-fab .ant-float-btn-body {
+  border-radius: 999px !important;
+  background-color: #4D5CAB !important;
+}
+
+body .add-medication-fab .ant-float-btn-body:hover {
+  background-color: #3f4ea3 !important;
+}
+
+body .add-medication-fab .ant-float-btn-icon,
+body .add-medication-fab .fab-plus-icon {
+  display: none !important;
+}
+
+body .add-medication-fab .ant-float-btn-body::before {
+  content: '+';
+  color: #fff;
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}

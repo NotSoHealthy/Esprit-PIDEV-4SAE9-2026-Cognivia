@@ -1,0 +1,84 @@
+<div class="stock-cards-container">
+  <!-- Loading spinner -->
+  <div *ngIf="loading" class="spinner-wrapper">
+    <nz-spin nzTip="Loading stocks..." nzSize="large" style="transform: scale(1.4);"></nz-spin>
+  </div>
+
+  <!-- Error message -->
+  <div *ngIf="errorMsg" class="stock-error">{{ errorMsg }}</div>
+
+  <!-- Empty state -->
+  <div *ngIf="!loading && !errorMsg && filteredStocks.length === 0" class="empty-wrapper">
+    <nz-empty nzNotFoundContent="No medication stocks found"></nz-empty>
+  </div>
+
+  <!-- Stock cards -->
+  <div class="stock-grid" *ngIf="paginatedStocks.length > 0">
+    <nz-card
+      *ngFor="let stock of paginatedStocks"
+      class="stock-card"
+      nzHoverable
+      [nzCover]="coverTemplate"
+    >
+      <ng-template #coverTemplate>
+        <div class="stock-cover" *ngIf="getMedicationProp(stock, 'imageUrl'); else noImage">
+          <img [src]="getMedicationProp(stock, 'imageUrl')" [alt]="getMedicationProp(stock, 'name')" />
+          <div class="stock-badge" [class.out-of-stock]="stock.quantity === 0">
+            {{ stock.quantity }} in stock
+          </div>
+        </div>
+      </ng-template>
+
+      <ng-template #noImage>
+        <div class="stock-cover stock-no-image">
+          <nz-icon nzType="picture" nzTheme="outline"></nz-icon>
+          <div class="stock-badge" [class.out-of-stock]="stock.quantity === 0">
+            {{ stock.quantity }} in stock
+          </div>
+        </div>
+      </ng-template>
+
+      <nz-card-meta [nzTitle]="getMedicationProp(stock, 'name')"></nz-card-meta>
+
+      <div class="stock-card-body">
+        <div class="stock-meta-row">
+          <span class="stock-muted">Class:</span>
+          <span>{{ formatTherapeuticClass(getMedicationProp(stock, 'therapeuticClass')) }}</span>
+        </div>
+      </div>
+
+      <div class="stock-card-actions" (click)="$event.stopPropagation()">
+        <button 
+          nz-button 
+          nzShape="round" 
+          nzSize="small" 
+          nzType="primary"
+          (click)="openTransactionModal(stock, $event)"
+        >
+          Adjust Stock
+        </button>
+        <button 
+          nz-button 
+          nzDanger 
+          nzShape="round" 
+          nzSize="small" 
+          (click)="deleteStock(stock, $event)"
+        >
+          Delete
+        </button>
+      </div>
+    </nz-card>
+  </div>
+
+  <div class="pagination-wrapper" *ngIf="totalFilteredStocks > 0">
+    <nz-pagination
+      [nzPageIndex]="pageIndex"
+      [nzTotal]="totalFilteredStocks"
+      [nzPageSize]="pageSize"
+      (nzPageIndexChange)="onPageChange($event)"
+      nzShowSizeChanger
+      [nzPageSizeOptions]="[5, 10, 20, 50]"
+      (nzPageSizeChange)="pageSize = $event; pageIndex = 1"
+    ></nz-pagination>
+  </div>
+</div>

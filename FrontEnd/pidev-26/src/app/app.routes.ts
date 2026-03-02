@@ -32,7 +32,7 @@ export const routes: Routes = [
         path: 'medications/:pharmacyId',
         title: 'Medications',
         loadComponent: () =>
-          import('./features/pharmacy/medication/medication').then((m) => m.Medication),
+          import('./features/pharmacy/medication/medication-page').then((m) => m.MedicationPage),
       },
       
       {

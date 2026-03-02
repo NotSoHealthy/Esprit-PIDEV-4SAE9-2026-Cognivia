@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Getter
@@ -23,7 +21,7 @@ public class Pharmacy {
 
     private String name;
     private String address;
-
+    private String description;
     private Double latitude;
     private Double longitude;
 

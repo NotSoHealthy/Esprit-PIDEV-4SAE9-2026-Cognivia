@@ -1,13 +1,100 @@
+/* Global pharmacy module color */
+:host ::ng-deep {
+  --pharmacy-primary-color: #4D5CAB;
+}
+
 .pharmacy-page {
-  max-width: 900px;
+  max-width: 1400px;
   margin: 24px auto;
   padding: 0 16px;
+}
+
+.pharmacy-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
 }
 
 .pharmacy-title {
   font-size: 28px;
   font-weight: 700;
-  margin-bottom: 16px;
+  margin: 0;
+}
+
+.content-wrapper {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Sidebar styles */
+.sidebar {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 24px;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.sidebar-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.filter-section {
+  margin-bottom: 20px;
+}
+
+.filter-section label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.switch-label {
+  margin-bottom: 10px;
+}
+
+.inventory-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.inventory-toolbar label {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.main-content {
+  min-width: 0; /* Prevent overflow */
+}
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+  padding: 16px 0;
 }
 
 .pharmacy-list {
@@ -20,15 +107,85 @@
   background: #fff;
   border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 12px;
-  padding: 14px 16px;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  position: relative;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  row-gap: 12px;
+  column-gap: 16px;
+  padding: 14px 16px;
+  overflow: hidden;
+}
+
+.pharmacy-card:hover {
+  transform: translateY(-1px);
+  transition: transform 120ms ease;
+}
+
+.pharmacy-banner-bg {
+  grid-column: 1 / -1;
+  width: calc(100% + 32px);
+  margin-left: -16px;
+  margin-right: -16px;
+  height: 150px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin-top: -14px;
+  border-radius: 12px 12px 0 0;
+  position: relative;   /* ✅ makes z-index work */
+  z-index: 1;    
+}
+
+.banner-grayscale {
+  filter: grayscale(100%);
+}
+
+.status-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+}
+
+.badge-open {
+  background: #52c41a;
+  color: #fff;
+}
+
+.badge-closed {
+  background: #d32f2f;
+  color: #fff;
+}
+
+.pharmacy-closed {
+  opacity: 0.7;
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  grid-column: 2;
+  grid-row: 2;
+  position: relative;
+  z-index: 10;
 }
 
 .pharmacy-main {
   display: flex;
   align-items: baseline;
   gap: 12px;
-  flex-wrap: wrap; /* allows address to wrap under on small screens */
+  flex-wrap: wrap;
+  grid-column: 1;
+  grid-row: 2;
 }
 
 .pharmacy-name {
@@ -45,6 +202,7 @@
   font-size: 13px;
   display: flex;
   gap: 6px;
+  grid-column: 1 / -1;
 }
 
 .pharmacy-muted {
@@ -60,25 +218,6 @@
   margin-bottom: 12px;
 }
 
-.pharmacy-card {
-  position: relative;
-  cursor: pointer;
-}
-
-.pharmacy-card:hover {
-  transform: translateY(-1px);
-  transition: transform 120ms ease;
-}
-
-.card-actions {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
 .dots {
   padding: 6px;
   border-radius: 8px;
@@ -86,10 +225,6 @@
 
 .like-btn {
   padding: 0 6px;
-}
-
-:host ::ng-deep .danger {
-  color: #b42318 !important;
 }
 
 .pharmacy-header {
@@ -143,15 +278,7 @@
   background-color: #3f4ea3 !important; /* slightly darker hover */
   border-color: #3f4ea3 !important;
 }
-:host ::ng-deep .danger-item {
-  color: var(--ant-error-color, #ff4d4f) !important;
-}
 
-.pharmacy-card {
-  position: relative;      /* required */
-  overflow: hidden;        /* keeps strip inside rounded corners */
-  background: #fff;
-}
 
 /* Top colored strip */
 .pharmacy-card::before {
@@ -160,6 +287,167 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 18px;            /* thickness of strip */
+  height: 18px;
   background-color: #4D5CAB;
+  border-radius: 12px 12px 0 0;
+    z-index: 5;           /* ✅ on top */
+  pointer-events: none; /* ✅ doesn't block clicks */
+}
+
+/* Multi-step form styles */
+.steps-content {
+  min-height: 200px;
+}
+
+.step-error {
+  background: #fff2e8;
+  border: 1px solid #ffbb96;
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #d4380d;
+  margin-top: 16px;
+}
+/* Responsive layout */
+@media (max-width: 992px) {
+  .content-wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+    margin-bottom: 24px;
+  }
+}
+
+@media (max-width: 576px) {
+  .pharmacy-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .pharmacy-title {
+    font-size: 24px;
+  }
+}
+
+/* Purple theme for tabs */
+:host ::ng-deep .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #4D5CAB !important;
+}
+
+:host ::ng-deep .ant-tabs-ink-bar {
+  background: #4D5CAB !important;
+}
+
+:host ::ng-deep .ant-tabs-tab:hover {
+  color: #4D5CAB !important;
+}
+
+/* Purple theme for filters */
+:host ::ng-deep .sidebar .ant-input,
+:host ::ng-deep .sidebar .ant-picker,
+:host ::ng-deep .sidebar .ant-select-selector,
+:host ::ng-deep .sidebar .ant-switch {
+  border-radius: 10px !important;
+}
+
+:host ::ng-deep .ant-switch-checked {
+  background-color: #4D5CAB !important;
+}
+
+:host ::ng-deep .ant-select-focused .ant-select-selector {
+  border-color: #4D5CAB !important;
+  box-shadow: 0 0 0 2px rgba(77, 92, 171, 0.2) !important;
+}
+
+:host ::ng-deep .ant-picker-focused {
+  border-color: #4D5CAB !important;
+  box-shadow: 0 0 0 2px rgba(77, 92, 171, 0.2) !important;
+}
+
+:host ::ng-deep .ant-input:focus {
+  border-color: #4D5CAB !important;
+  box-shadow: 0 0 0 2px rgba(77, 92, 171, 0.2) !important;
+}
+
+:host ::ng-deep .ant-pagination-item-active {
+  border-color: #4D5CAB !important;
+}
+
+:host ::ng-deep .ant-pagination-item-active a {
+  color: #4D5CAB !important;
+}
+
+:host ::ng-deep .ant-pagination-item,
+:host ::ng-deep .ant-pagination-prev .ant-pagination-item-link,
+:host ::ng-deep .ant-pagination-next .ant-pagination-item-link,
+:host ::ng-deep .ant-pagination-jump-prev .ant-pagination-item-link,
+:host ::ng-deep .ant-pagination-jump-next .ant-pagination-item-link {
+  border-radius: 8px !important;
+}
+.step-complete {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.loading-state,
+.success-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.success-icon,
+.error-icon {
+  display: flex;
+  justify-content: center;
+}
+
+.success-state h3 {
+  margin: 0;
+  color: #52c41a;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.success-state p {
+  margin: 0;
+  color: rgba(0, 0, 0, 0.65);
+  font-size: 14px;
+}
+
+.error-state h3 {
+  margin: 0;
+  color: #ff4d4f;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.error-state p {
+  margin: 0;
+  color: rgba(0, 0, 0, 0.65);
+  font-size: 14px;
+}
+
+nz-form-item {
+  margin-bottom: 16px;
+}
+
+/* ========== FORM ERROR STYLING ========== */
+
+/* Remove error box styling, keep inline errors only */
+.step-error {
+  color: #ff4d4f;
+  font-size: 13px;
+  margin-top: 8px;
+  padding: 0;
+  background: none;
+  border: none;
 }

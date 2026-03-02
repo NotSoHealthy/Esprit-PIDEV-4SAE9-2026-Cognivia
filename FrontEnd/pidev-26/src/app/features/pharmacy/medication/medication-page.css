@@ -1,0 +1,456 @@
+.pharmacy-profile-page {
+  min-height: 100vh;
+}
+
+.back-btn {
+  margin: 16px 0 0 20px;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.65);
+  transition: all 0.3s;
+}
+
+.back-btn:hover {
+  color: #4D5CAB;
+}
+
+.back-btn nz-icon {
+  margin-right: 8px;
+}
+
+.banner {
+  width: 100%;
+  height: 320px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.profile-header {
+  max-width: 1200px;
+  margin: -56px auto 0;
+  padding: 0 20px 20px;
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.logo-wrapper {
+  width: 120px;
+  height: 120px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 4px solid #fff;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.logo-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.logo-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  font-weight: 700;
+  color: #4D5CAB;
+}
+
+.profile-info h1 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.profile-info p {
+  margin: 4px 0 0;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.profile-content {
+  max-width: 1200px;
+  margin: 8px auto 0;
+  padding: 0 20px 30px;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+}
+
+.sidebar {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  padding: 16px;
+  position: sticky;
+  top: 24px;
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sidebar-filters {
+  margin-top: 6px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  padding-top: 14px;
+}
+
+.sidebar-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.sidebar-title-row h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.filter-section {
+  margin-bottom: 14px;
+}
+
+.filter-section label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.main-area {
+  min-width: 0;
+}
+
+.overview-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.overview-header-row h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.add-medication-btn {
+  border-radius: 12px;
+}
+
+.description-box {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.description {
+  margin: 0;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.stock-modal-field {
+  margin-bottom: 14px;
+}
+
+.stock-modal-field label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.medication-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.medication-option-image {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #fff;
+}
+
+.medication-option-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.medication-option-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #4D5CAB;
+  background: rgba(77, 92, 171, 0.1);
+}
+
+.medication-option-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.schedule-section {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.schedule-section h2 {
+  margin: 0 0 20px 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.schedule-mode-selection {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 10px;
+}
+
+.schedule-mode-selection label {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.days-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.time-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  max-width: 520px;
+  margin-bottom: 24px;
+}
+
+.time-field label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.schedule-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.schedule-actions button {
+  min-width: 140px;
+}
+
+.empty-section {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.logs-section {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.logs-section h2 {
+  margin: 0 0 16px 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.logs-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.log-entry {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #fafafa;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.log-entry:hover {
+  background: #f5f5f5;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.log-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-size: 24px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.log-icon.log-in {
+  background: rgba(82, 196, 26, 0.1);
+  color: #52c41a;
+}
+
+.log-icon.log-out {
+  background: rgba(255, 77, 79, 0.1);
+  color: #ff4d4f;
+}
+
+.log-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.log-medication {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+  margin-bottom: 6px;
+}
+
+.log-meta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.log-quantity {
+  font-weight: 500;
+}
+
+.transaction-modal-content {
+  padding: 8px 0;
+}
+
+.transaction-medication,
+.transaction-current-stock {
+  padding: 8px 12px;
+  background: #fafafa;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.transaction-field {
+  margin-bottom: 20px;
+}
+
+.transaction-field label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.quantity-slider {
+  flex: 1;
+}
+
+.quantity-controls button {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.quantity-controls button:not([disabled]):hover {
+  border-color: #4D5CAB;
+  color: #4D5CAB;
+}
+
+.quantity-controls button[disabled] {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+
+.spinner-wrapper {
+  display: flex;
+  justify-content: center;
+  padding-top: 200px;
+}
+
+.page-error {
+  max-width: 1200px;
+  margin: 24px auto;
+  color: #b42318;
+  background: rgba(180, 35, 24, 0.08);
+  border: 1px solid rgba(180, 35, 24, 0.2);
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+:host ::ng-deep .ant-btn-primary {
+  background-color: #4D5CAB !important;
+  border-color: #4D5CAB !important;
+}
+
+:host ::ng-deep .ant-switch-checked {
+  background-color: #4D5CAB !important;
+}
+
+:host ::ng-deep .ant-input,
+:host ::ng-deep .ant-select-selector,
+:host ::ng-deep .ant-picker,
+:host ::ng-deep .ant-switch {
+  border-radius: 10px !important;
+}
+
+@media (max-width: 992px) {
+  .profile-content {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+  }
+
+  .time-controls {
+    grid-template-columns: 1fr;
+  }
+}

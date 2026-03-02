@@ -21,6 +21,7 @@ public class PrescriptionItem {
     @Enumerated(EnumType.STRING)
     private Frequency frequency;
 
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "prescription_id", nullable = false)
     private Prescription prescription;

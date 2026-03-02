@@ -38,10 +38,10 @@ export class MedicationService {
   }
 
   update(id: number, medication: Partial<MedicationModel>): Observable<MedicationModel> {
-    return this.http.put<MedicationModel>(`${this.apiBaseUrl}/medications/${id}`, medication);
+    return this.http.put<MedicationModel>(`${this.apiBaseUrl}/pharmacy/medications/${id}`, medication);
   }
 
   delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiBaseUrl}/medications/${id}`);
+    return this.http.delete<void>(`${this.apiBaseUrl}/pharmacy/medications/${id}`);
   }
 }

@@ -1,105 +1,455 @@
 <div class="pharmacy-page">
-    <div class="pharmacy-header">
-        <h1 class="pharmacy-title">Pharmacies</h1>
+  <div class="pharmacy-header">
+    <h1 class="pharmacy-title">Pharmacies</h1>
 
-        <button nz-button nzType="primary" class="add-btn" (click)="openAddModal()">
-            Add pharmacy
+    <button *ngIf="activeTabIndex === 0" nz-button nzType="primary" class="add-btn" (click)="openAddModal()">
+      Add pharmacy
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="spinner-wrapper">
+    <nz-spin nzTip="Loading pharmacies..." nzSize="large" style="transform: scale(1.4);">
+    </nz-spin>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="!loading && errorMsg" class="pharmacy-error">{{ errorMsg }}</div>
+
+  <div class="content-wrapper" *ngIf="!loading && !errorMsg">
+    <!-- Sidebar filters -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h3>Filters</h3>
+        <button nz-button nzType="link" nzSize="small" (click)="clearActiveFilters()">
+          Clear All
         </button>
-    </div>
+      </div>
 
-    <div *ngIf="loading" class="spinner-wrapper">
-        <nz-spin nzTip="Loading pharmacies..." nzSize="large" style="transform: scale(1.4);">
-        </nz-spin>
-    </div>
-    <div *ngIf="errorMsg" class="pharmacy-error">{{ errorMsg }}</div>
+      <ng-container *ngIf="activeTabIndex === 0; else inventorySidebarFilters">
+        <!-- Search filter -->
+        <div class="filter-section">
+          <label>Search</label>
+          <input
+            nz-input
+            placeholder="Search pharmacies..."
+            [(ngModel)]="searchText"
+            (ngModelChange)="onSearchChange()"
+          />
+        </div>
 
-    <div *ngIf="!loading && !errorMsg && pharmacies.length === 0" class="empty-wrapper">
-        <nz-empty nzNotFoundContent="No pharmacies found"></nz-empty>
-    </div>
-    <div class="pharmacy-list" *ngIf="pharmacies.length > 0">
-        <div class="pharmacy-card" *ngFor="let p of pharmacies" (click)="openMedicines(p)" role="button" tabindex="0">
-            <div class="pharmacy-banner-bg" *ngIf="p.bannerUrl" [style.backgroundImage]="'url(' + p.bannerUrl + ')'"
-                aria-hidden="true"></div>
-            <div class="card-actions" (click)="$event.stopPropagation()">
-                <button nz-button nzType="text" class="like-btn" (click)="toggleLike(p, $event)"
-                    [attr.aria-pressed]="p.id ? liked.has(p.id) : false">
-                    <nz-icon nzType="heart" [nzTheme]="p.id && liked.has(p.id) ? 'fill' : 'outline'">
-                    </nz-icon>
+        <!-- Date filter -->
+        <div class="filter-section">
+          <label>Filter by Date</label>
+          <nz-date-picker
+            [(ngModel)]="selectedDate"
+            (ngModelChange)="onDateChange()"
+            nzPlaceHolder="Select date"
+            style="width: 100%;"
+          ></nz-date-picker>
+        </div>
+
+        <!-- Favorite filter -->
+        <div class="filter-section">
+          <label class="switch-label">Show only favorites</label>
+          <nz-switch [(ngModel)]="favoriteOnly" (ngModelChange)="onFavoriteChange()"></nz-switch>
+        </div>
+
+        <!-- Rating sort -->
+        <div class="filter-section">
+          <label>Sort by Rating</label>
+          <nz-select
+            [(ngModel)]="ratingSortOrder"
+            (ngModelChange)="onRatingSortChange()"
+            nzPlaceHolder="Select sort order"
+            nzAllowClear
+            style="width: 100%;"
+          >
+            <nz-option nzValue="desc" nzLabel="Highest to Lowest"></nz-option>
+            <nz-option nzValue="asc" nzLabel="Lowest to Highest"></nz-option>
+          </nz-select>
+        </div>
+      </ng-container>
+
+      <ng-template #inventorySidebarFilters>
+        <div class="filter-section">
+          <label>Search medication</label>
+          <input
+            nz-input
+            placeholder="Search medications..."
+            [(ngModel)]="inventorySearchText"
+            (ngModelChange)="onInventorySearchChange()"
+          />
+        </div>
+
+        <div class="filter-section">
+          <label>Filter by therapeutic class</label>
+          <nz-select
+            [(ngModel)]="inventoryTherapeuticClass"
+            (ngModelChange)="onInventoryTherapeuticClassChange()"
+            nzPlaceHolder="All classes"
+            nzAllowClear
+            style="width: 100%;"
+          >
+            <nz-option
+              *ngFor="let therapeuticClass of inventoryTherapeuticClassOptions"
+              [nzValue]="therapeuticClass"
+              [nzLabel]="formatTherapeuticClass(therapeuticClass)"
+            ></nz-option>
+          </nz-select>
+        </div>
+
+        <div class="filter-section">
+          <label>Medication in selected pharmacy</label>
+          <nz-select
+            [(ngModel)]="inventoryMedicationName"
+            (ngModelChange)="onInventoryMedicationNameChange()"
+            nzPlaceHolder="All medications"
+            nzAllowClear
+            style="width: 100%;"
+          >
+            <nz-option
+              *ngFor="let medicationName of inventoryMedicationOptions"
+              [nzValue]="medicationName"
+              [nzLabel]="medicationName"
+            ></nz-option>
+          </nz-select>
+        </div>
+
+        <div class="filter-section">
+          <label class="switch-label">Show out of stock</label>
+          <nz-switch
+            [(ngModel)]="inventoryOutOfStockOnly"
+            (ngModelChange)="onInventoryOutOfStockChange()"
+          ></nz-switch>
+        </div>
+      </ng-template>
+    </aside>
+
+    <!-- Main content with tabs -->
+    <main class="main-content">
+      <!-- Tabs -->
+      <nz-tabs [(nzSelectedIndex)]="activeTabIndex" (nzSelectedIndexChange)="onTabChange($event)">
+        <nz-tab nzTitle="Pharmacies">
+          <!-- Empty -->
+          <div *ngIf="paginatedPharmacies.length === 0" class="empty-wrapper">
+            <nz-empty nzNotFoundContent="No pharmacies found"></nz-empty>
+          </div>
+
+          <!-- List -->
+          <div class="pharmacy-list" *ngIf="paginatedPharmacies.length > 0">
+            <div
+              class="pharmacy-card"
+              *ngFor="let p of paginatedPharmacies"
+              (click)="openMedicines(p)"
+              role="button"
+              tabindex="0"
+              [ngClass]="{ 'pharmacy-closed': p.id && pharmacyStatus.get(p.id)?.isClosed }"
+            >
+              <!-- Banner -->
+              <div
+                class="pharmacy-banner-bg"
+                *ngIf="p.bannerUrl"
+                [ngClass]="{ 'banner-grayscale': p.id && !pharmacyStatus.get(p.id)?.isOpen }"
+                [ngStyle]="{
+                  'backgroundImage':
+                    'linear-gradient(to left, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 50%), url(' +
+                    p.bannerUrl +
+                    ')'
+                }"
+                aria-hidden="true"
+              ></div>
+
+              <!-- Status Badge -->
+              <div *ngIf="p.id && (pharmacyStatus.get(p.id)?.isOpen || pharmacyStatus.get(p.id)?.isClosed)" class="status-badge" [ngClass]="{ 'badge-closed': pharmacyStatus.get(p.id)?.isClosed, 'badge-open': pharmacyStatus.get(p.id)?.isOpen }">
+                {{ pharmacyStatus.get(p.id)?.isClosed ? 'CLOSED' : 'OPEN' }}
+              </div>
+
+              <!-- Actions -->
+              <div class="card-actions" (click)="$event.stopPropagation()">
+                <button
+                  nz-button
+                  nzType="text"
+                  class="like-btn"
+                  (click)="toggleLike(p, $event)"
+                  [attr.aria-pressed]="p.id ? liked.has(p.id) : false"
+                >
+                  <nz-icon nzType="heart" [nzTheme]="p.id && liked.has(p.id) ? 'fill' : 'outline'"></nz-icon>
                 </button>
-                <nz-rate class="pharmacy-rate" [ngModel]="p.id ? getRate(p.id) : 0"
-                    (ngModelChange)="p.id && setRate(p.id, $event)">
-                </nz-rate>
 
-                <a nz-dropdown [nzDropdownMenu]="menu" nzTrigger="click" class="dots"
-                    (click)="$event.stopPropagation()">
-                    <nz-icon nzType="more" nzTheme="outline"></nz-icon> </a>
+                <nz-rate
+                  class="pharmacy-rate"
+                  [ngModel]="p.id ? getRate(p.id) : 0"
+                  (ngModelChange)="p.id && setRate(p.id, $event)"
+                ></nz-rate>
+
+                <a nz-dropdown [nzDropdownMenu]="menu" nzTrigger="click" class="dots">
+                  <nz-icon nzType="more" nzTheme="outline"></nz-icon>
+                </a>
 
                 <nz-dropdown-menu #menu="nzDropdownMenu">
-                    <ul nz-menu>
-                        <li nz-menu-item (click)="favorite(p, $event)">Favorite</li>
-                        <li nz-menu-item class="danger-item" (click)="report(p, $event)">
-                            Report
-                        </li>
-                        <li nz-menu-item (click)="edit(p, $event)">Edit</li>
-                        <li nz-menu-item class="danger" (click)="delete(p, $event)">Delete</li>
-                    </ul>
+                  <ul nz-menu>
+                    <li nz-menu-item (click)="editInfo(p, $event)">Edit Info</li>
+                    <li nz-menu-item (click)="changeCoordinates(p, $event)">Change Coordinates</li>
+                    <li nz-menu-item nzDanger (click)="report(p, $event)">Report</li>
+                    <li nz-menu-item nzDanger (click)="delete(p, $event)">Delete</li>
+                  </ul>
                 </nz-dropdown-menu>
-            </div>
+              </div>
 
-            <!-- Main content -->
-            <div class="pharmacy-main">
+              <!-- Main -->
+              <div class="pharmacy-main">
                 <div class="pharmacy-name">{{ p.name }}</div>
 
                 <div class="pharmacy-address" *ngIf="p.address; else noAddress">
-                    {{ p.address }}
+                  {{ p.address }}
                 </div>
                 <ng-template #noAddress>
-                    <div class="pharmacy-address pharmacy-muted">No address</div>
+                  <div class="pharmacy-address pharmacy-muted">No address</div>
                 </ng-template>
-            </div>
+              </div>
 
-            <div class="pharmacy-meta">
+              <div class="pharmacy-meta">
                 <span class="pharmacy-muted">Created:</span>
                 <span>{{ p.createdAt ? (p.createdAt | date: 'mediumDate') : '—' }}</span>
+              </div>
             </div>
+          </div>
+
+          <!-- Pagination -->
+          <div class="pagination-wrapper" *ngIf="totalFiltered > 0">
+            <nz-pagination
+              [nzPageIndex]="pageIndex"
+              [nzTotal]="totalFiltered"
+              [nzPageSize]="pageSize"
+              (nzPageIndexChange)="onPageChange($event)"
+              nzShowSizeChanger
+              [nzPageSizeOptions]="[5, 10, 20, 50]"
+              (nzPageSizeChange)="pageSize = $event; pageIndex = 1"
+            />
+          </div>
+        </nz-tab>
+
+        <nz-tab nzTitle="Inventory">
+          <div *ngIf="!inventoryPharmacyId" class="empty-wrapper">
+            <nz-empty nzNotFoundContent="Select a pharmacy to view inventory"></nz-empty>
+          </div>
+
+          <app-medication
+            *ngIf="inventoryPharmacyId"
+            [embedded]="true"
+            [pharmacyIdInput]="inventoryPharmacyId"
+            [searchText]="inventorySearchText"
+            [therapeuticClassFilter]="inventoryTherapeuticClass"
+            [selectedMedicationName]="inventoryMedicationName"
+            [outOfStockOnly]="inventoryOutOfStockOnly"
+            (medicationsChange)="onInventoryMedicationsChange($event)"
+          ></app-medication>
+        </nz-tab>
+      </nz-tabs>
+    </main>
+  </div>
+
+  <!-- ===================== MODAL ===================== -->
+
+  <nz-modal
+    [(nzVisible)]="isAddModalOpen"
+    [nzTitle]="modalMode === 'add' ? 'Add pharmacy' : modalMode === 'editInfo' ? 'Edit Info' : 'Change Coordinates'"
+    [nzClosable]="!saving"
+    [nzMaskClosable]="!saving"
+    (nzOnCancel)="cancelAdd()"
+    nzClassName="pharmacy-modal-rounded"
+  >
+    <!-- ✅ MODAL CONTENT -->
+    <ng-container *nzModalContent>
+      <nz-steps [nzCurrent]="currentStep" *ngIf="modalMode === 'add'">
+        <nz-step nzTitle="Basic Info" nzDescription="Name, address & images"></nz-step>
+        <nz-step nzTitle="Location" nzDescription="Latitude & longitude"></nz-step>
+        <nz-step nzTitle="Confirm" nzDescription="Complete"></nz-step>
+      </nz-steps>
+
+      <div class="steps-content" [style.marginTop]="modalMode === 'add' ? '24px' : '0'">
+        <!-- STEP 0 - Only show for 'add' and 'editInfo' modes -->
+        <div *ngIf="currentStep === 0 && (modalMode === 'add' || modalMode === 'editInfo')">
+          <form nz-form [formGroup]="addForm">
+            <nz-form-item>
+              <nz-form-label [nzRequired]="true">Name</nz-form-label>
+              <nz-form-control nzErrorTip="Name is required">
+                <input nz-input formControlName="name" placeholder="Pharmacy name" />
+              </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item>
+              <nz-form-label>Address</nz-form-label>
+              <nz-form-control>
+                <input nz-input formControlName="address" placeholder="Address" />
+              </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item>
+              <nz-form-label>Description</nz-form-label>
+              <nz-form-control>
+                <textarea
+                  nz-input
+                  formControlName="description"
+                  rows="3"
+                  placeholder="Pharmacy description"
+                ></textarea>
+              </nz-form-control>
+            </nz-form-item>
+
+            <!-- Banner -->
+            <nz-form-item>
+              <nz-form-label>Banner Image</nz-form-label>
+              <nz-form-control>
+                <nz-upload
+                  [nzFileList]="bannerFileList"
+                  [nzBeforeUpload]="beforeUploadBanner"
+                  (nzOnRemove)="onRemoveBanner()"
+                  nzListType="picture"
+                  nzAccept="image/*"
+                >
+                  <button nz-button>
+                    <nz-icon nzType="upload" nzTheme="outline"></nz-icon>
+                    Upload Banner
+                  </button>
+                </nz-upload>
+              </nz-form-control>
+            </nz-form-item>
+
+            <!-- Logo -->
+            <nz-form-item>
+              <nz-form-label>Logo Image</nz-form-label>
+              <nz-form-control>
+                <nz-upload
+                  [nzFileList]="logoFileList"
+                  [nzBeforeUpload]="beforeUploadLogo"
+                  (nzOnRemove)="onRemoveLogo()"
+                  nzListType="picture"
+                  nzAccept="image/*"
+                >
+                  <button nz-button>
+                    <nz-icon nzType="upload" nzTheme="outline"></nz-icon>
+                    Upload Logo
+                  </button>
+                </nz-upload>
+              </nz-form-control>
+            </nz-form-item>
+
+            <div *ngIf="stepError" class="step-error">
+              {{ stepError }}
+            </div>
+          </form>
         </div>
-    </div>
-    <nz-modal [(nzVisible)]="isAddModalOpen" nzTitle="Add pharmacy" [nzOkLoading]="saving" nzOkText="Create"
-        nzCancelText="Cancel" (nzOnOk)="submitAdd()" (nzOnCancel)="cancelAdd()">
-        <form nz-form [formGroup]="addForm">
-            <nz-form-item>
-                <nz-form-label [nzRequired]="true">Name</nz-form-label>
-                <nz-form-control nzErrorTip="Name is required">
-                    <input nz-input formControlName="name" placeholder="Pharmacy name" />
-                </nz-form-control>
-            </nz-form-item>
 
-            <nz-form-item>
-                <nz-form-label>Address</nz-form-label>
-                <nz-form-control>
-                    <input nz-input formControlName="address" placeholder="Address" />
-                </nz-form-control>
-            </nz-form-item>
-
-            <div class="coords">
-                <nz-form-item>
-                    <nz-form-label>Latitude</nz-form-label>
-                    <nz-form-control>
-                        <input nz-input type="number" formControlName="latitude" placeholder="e.g. 36.8065" />
-                    </nz-form-control>
-                </nz-form-item>
-
-                <nz-form-item>
-                    <nz-form-label>Longitude</nz-form-label>
-                    <nz-form-control>
-                        <input nz-input type="number" formControlName="longitude" placeholder="e.g. 10.1815" />
-                    </nz-form-control>
-                </nz-form-item>
+        <!-- STEP 1 - Only show for 'add' and 'changeCoordinates' modes -->
+        <div *ngIf="currentStep === 1 && (modalMode === 'add' || modalMode === 'changeCoordinates')">
+          <div style="margin-bottom: 16px;">
+            <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+              <button nz-button nzType="primary" (click)="getGeolocation()">
+                <nz-icon nzType="environment" nzTheme="fill"></nz-icon>
+                Get My Location
+              </button>
             </div>
 
-            <div class="hint pharmacy-muted">
-                createdAt and updatedAt will be sent as <b>null</b>.
+            <!-- Map Container -->
+            <div #mapContainer style="width: 100%; height: 400px; border-radius: 8px; border: 1px solid rgba(0, 0, 0, 0.1);"></div>
+
+            <!-- Coordinates Display -->
+            <div style="margin-top: 12px; display: flex; gap: 24px;">
+              <div>
+                <small style="color: rgba(0, 0, 0, 0.45);">Latitude</small>
+                <div style="font-weight: 600; font-size: 14px;">{{ addForm.get('latitude')?.value || '—' }}</div>
+              </div>
+              <div>
+                <small style="color: rgba(0, 0, 0, 0.45);">Longitude</small>
+                <div style="font-weight: 600; font-size: 14px;">{{ addForm.get('longitude')?.value || '—' }}</div>
+              </div>
             </div>
-        </form>
-    </nz-modal>
+          </div>
+
+          <div *ngIf="stepError" class="step-error">
+            {{ stepError }}
+          </div>
+        </div>
+
+        <!-- STEP 2 -->
+        <div *ngIf="currentStep === 2" class="step-complete">
+          <div *ngIf="saving" class="loading-state">
+            <nz-spin nzTip="Creating pharmacy..." nzSize="large"></nz-spin>
+          </div>
+
+          <div *ngIf="!saving && !stepError" class="success-state">
+            <nz-icon
+              nzType="check-circle"
+              nzTheme="fill"
+              style="color: #52c41a; font-size: 48px;"
+            ></nz-icon>
+            <h3>Pharmacy Created Successfully!</h3>
+            <p>Your pharmacy has been added to the system.</p>
+          </div>
+
+          <div *ngIf="stepError" class="error-state">
+            <nz-icon
+              nzType="close-circle"
+              nzTheme="fill"
+              style="color: #ff4d4f; font-size: 48px;"
+            ></nz-icon>
+            <h3>Error Creating Pharmacy</h3>
+            <p>{{ stepError }}</p>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- ✅ CUSTOM FOOTER -->
+    <ng-container *nzModalFooter>
+      <button *ngIf="(modalMode === 'add' && currentStep < 2) || (modalMode !== 'add' && !saving)" nz-button nzType="default" (click)="cancelAdd()">
+        Cancel
+      </button>
+
+      <button
+        *ngIf="modalMode === 'add' && currentStep > 0 && currentStep < 2"
+        nz-button
+        nzType="default"
+        (click)="previousStep()"
+      >
+        Back
+      </button>
+
+      <button
+        *ngIf="modalMode === 'add' && currentStep < 2"
+        nz-button
+        nzType="primary"
+        [nzLoading]="saving"
+        (click)="nextStep()"
+      >
+        {{ currentStep === 1 ? 'Create' : 'Next' }}
+      </button>
+
+      <button
+        *ngIf="modalMode === 'editInfo' && currentStep === 0"
+        nz-button
+        nzType="primary"
+        [nzLoading]="saving"
+        (click)="nextStep()"
+      >
+        Update
+      </button>
+
+      <button
+        *ngIf="modalMode === 'changeCoordinates' && currentStep === 1"
+        nz-button
+        nzType="primary"
+        [nzLoading]="saving"
+        (click)="updateCoordinates()"
+      >
+        Update Coordinates
+      </button>
+
+      <button *ngIf="modalMode === 'add' && currentStep === 2" nz-button nzType="primary" (click)="cancelAdd()">
+        Close
+      </button>
+    </ng-container>
+  </nz-modal>
 </div>

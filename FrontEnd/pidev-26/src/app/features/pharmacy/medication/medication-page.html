@@ -1,0 +1,342 @@
+<div class="pharmacy-profile-page">
+  <div *ngIf="loading" class="spinner-wrapper">
+    <nz-spin nzTip="Loading pharmacy page..." nzSize="large"></nz-spin>
+  </div>
+
+  <div *ngIf="!loading && errorMsg" class="page-error">{{ errorMsg }}</div>
+
+  <ng-container *ngIf="!loading && !errorMsg && pharmacy">
+    <button nz-button nzType="text" class="back-btn" (click)="goBack()">
+      <nz-icon nzType="arrow-left" nzTheme="outline"></nz-icon>
+      Back to Pharmacies
+    </button>
+
+    <div
+      class="banner"
+      [ngStyle]="{
+        backgroundImage: pharmacy.bannerUrl
+          ? 'url(' + pharmacy.bannerUrl + ')'
+          : 'linear-gradient(120deg, #4D5CAB 0%, #7986cb 100%)'
+      }"
+    ></div>
+
+    <div class="profile-header">
+      <div class="logo-wrapper" *ngIf="pharmacy.logoUrl; else noLogo">
+        <img [src]="pharmacy.logoUrl" [alt]="pharmacy.name" />
+      </div>
+      <ng-template #noLogo>
+        <div class="logo-wrapper logo-placeholder">{{ pharmacy.name?.charAt(0) }}</div>
+      </ng-template>
+
+      <div class="profile-info">
+        <h1>{{ pharmacy.name }}</h1>
+        <p>{{ pharmacy.address || 'No address provided.' }}</p>
+      </div>
+    </div>
+
+    <div class="profile-content">
+      <aside class="sidebar">
+        <button nz-button [nzType]="activeSection === 'overview' ? 'primary' : 'default'" (click)="setSection('overview')">
+          Overview
+        </button>
+        <button nz-button [nzType]="activeSection === 'schedule' ? 'primary' : 'default'" (click)="setSection('schedule')">
+          Schedule
+        </button>
+        <button nz-button [nzType]="activeSection === 'reports' ? 'primary' : 'default'" (click)="setSection('reports')">
+          Reports + Rating
+        </button>
+        <button nz-button [nzType]="activeSection === 'logs' ? 'primary' : 'default'" (click)="setSection('logs')">
+          Logs
+        </button>
+
+        <div class="sidebar-filters" *ngIf="activeSection === 'overview'">
+          <div class="sidebar-title-row">
+            <h3>Filters</h3>
+            <button nz-button nzType="link" nzSize="small" (click)="clearOverviewFilters()">Clear</button>
+          </div>
+
+          <div class="filter-section">
+            <label>Search medication</label>
+            <input
+              nz-input
+              placeholder="Search medications..."
+              [(ngModel)]="inventorySearchText"
+            />
+          </div>
+
+          <div class="filter-section">
+            <label>Filter by therapeutic class</label>
+            <nz-select
+              [(ngModel)]="inventoryTherapeuticClass"
+              nzPlaceHolder="All classes"
+              nzAllowClear
+              style="width: 100%;"
+            >
+              <nz-option
+                *ngFor="let therapeuticClass of inventoryTherapeuticClassOptions"
+                [nzValue]="therapeuticClass"
+                [nzLabel]="formatTherapeuticClass(therapeuticClass)"
+              ></nz-option>
+            </nz-select>
+          </div>
+
+          <div class="filter-section">
+            <label>Medication in this pharmacy</label>
+            <nz-select
+              [(ngModel)]="inventoryMedicationName"
+              nzPlaceHolder="All medications"
+              nzAllowClear
+              style="width: 100%;"
+            >
+              <nz-option
+                *ngFor="let medicationName of inventoryMedicationOptions"
+                [nzValue]="medicationName"
+                [nzLabel]="medicationName"
+              ></nz-option>
+            </nz-select>
+          </div>
+
+          <div class="filter-section">
+            <label class="switch-label">Show out of stock</label>
+            <nz-switch [(ngModel)]="inventoryOutOfStockOnly"></nz-switch>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-area">
+        <ng-container [ngSwitch]="activeSection">
+          <section *ngSwitchCase="'overview'" class="overview-section">
+            <div class="overview-header-row">
+              <h2>Overview</h2>
+              <button nz-button nzType="primary" class="add-medication-btn" (click)="openAddMedicationModal()">
+                Add medication
+              </button>
+            </div>
+
+            <div class="description-box">
+              <p class="description">
+                {{ pharmacy.description || 'No pharmacy description available.' }}
+              </p>
+            </div>
+
+            <app-stock-card
+              #stockCards
+              [pharmacyId]="pharmacyId"
+              [searchText]="inventorySearchText"
+              [therapeuticClassFilter]="inventoryTherapeuticClass"
+              [selectedMedicationName]="inventoryMedicationName"
+              [outOfStockOnly]="inventoryOutOfStockOnly"
+              (stocksChange)="onStocksChange($event)"
+              (openTransaction)="openTransactionModal($event)"
+            ></app-stock-card>
+          </section>
+
+          <section *ngSwitchCase="'schedule'" class="schedule-section">
+            <h2>Working Hours</h2>
+            
+            <div class="schedule-mode-selection">
+              <label>Apply schedule to:</label>
+              <nz-radio-group [(ngModel)]="scheduleMode" (ngModelChange)="loadDaySchedule()">
+                <label nz-radio nzValue="all">All days</label>
+                <label nz-radio nzValue="weekdays">Regular days (Mon-Fri)</label>
+                <label nz-radio nzValue="weekends">Weekends (Sat-Sun)</label>
+                <label nz-radio nzValue="individual">Set individually</label>
+              </nz-radio-group>
+            </div>
+
+            <div class="days-row" *ngIf="scheduleMode === 'individual'">
+              <button
+                nz-button
+                *ngFor="let day of daysOfWeek"
+                [nzType]="selectedDay === day.key ? 'primary' : 'default'"
+                (click)="selectDay(day.key)"
+              >
+                {{ day.label }}
+              </button>
+            </div>
+
+            <div class="time-controls">
+              <div class="time-field">
+                <label>Open time</label>
+                <nz-time-picker
+                  [(ngModel)]="currentOpenTime"
+                  nzFormat="HH:mm"
+                ></nz-time-picker>
+              </div>
+
+              <div class="time-field">
+                <label>Close time</label>
+                <nz-time-picker
+                  [(ngModel)]="currentCloseTime"
+                  nzFormat="HH:mm"
+                ></nz-time-picker>
+              </div>
+            </div>
+
+            <div class="schedule-actions">
+              <button 
+                nz-button 
+                nzType="primary" 
+                [nzLoading]="savingSchedule"
+                (click)="submitSchedule()"
+              >
+                Save Schedule
+              </button>
+            </div>
+          </section>
+
+          <section *ngSwitchCase="'reports'" class="empty-section">
+            <nz-empty nzNotFoundContent="Reports + Rating coming soon"></nz-empty>
+          </section>
+
+          <section *ngSwitchCase="'logs'" class="logs-section">
+            <h2>Transaction Logs</h2>
+            <div class="logs-container">
+              <div class="log-entry" *ngFor="let transaction of sortedTransactions">
+                <div class="log-icon" [class.log-in]="transaction.type === 'IN'" [class.log-out]="transaction.type === 'OUT'">
+                  <span *ngIf="transaction.type === 'IN'">+</span>
+                  <span *ngIf="transaction.type === 'OUT'">−</span>
+                </div>
+                <div class="log-details">
+                  <div class="log-medication">{{ getLogActionText(transaction) }}</div>
+                  <div class="log-meta">
+                    <span class="log-date">{{ transaction.transactionAt || transaction.createdAt | date:'short' }}</span>
+                  </div>
+                </div>
+              </div>
+              <nz-empty *ngIf="sortedTransactions.length === 0" nzNotFoundContent="No transactions yet"></nz-empty>
+            </div>
+          </section>
+        </ng-container>
+      </main>
+    </div>
+
+    <!-- Transaction Modal -->
+    <nz-modal
+      [(nzVisible)]="isTransactionModalOpen"
+      nzTitle="Adjust Stock"
+      [nzOkLoading]="submittingTransaction"
+      [nzOkText]="'Record Transaction'"
+      (nzOnOk)="submitTransaction()"
+      (nzOnCancel)="closeTransactionModal()"
+      nzClassName="pharmacy-modal-rounded"
+    >
+      <ng-container *nzModalContent>
+        <div class="transaction-modal-content" *ngIf="selectedStock">
+          <div class="transaction-medication">
+            <strong>Medication:</strong> {{ getSelectedStockMedicationName() }}
+          </div>
+          <div class="transaction-current-stock">
+            <strong>Current Stock:</strong> {{ selectedStock.quantity }}
+          </div>
+
+          <div class="transaction-field">
+            <label>Transaction Type</label>
+            <nz-radio-group [(ngModel)]="transactionType">
+              <label nz-radio nzValue="IN">Add to Stock</label>
+              <label nz-radio nzValue="OUT">Remove from Stock</label>
+            </nz-radio-group>
+          </div>
+
+          <div class="transaction-field">
+            <label>Quantity: {{ transactionQuantity }}</label>
+            <div class="quantity-controls">
+              <button 
+                nz-button 
+                nzType="default" 
+                nzShape="circle" 
+                nzSize="small"
+                (click)="decrementQuantity()"
+                [disabled]="transactionQuantity <= 0"
+              >
+                <nz-icon nzType="minus" nzTheme="outline"></nz-icon>
+              </button>
+              <nz-slider
+                [(ngModel)]="transactionQuantity"
+                [nzMin]="0"
+                [nzMax]="transactionType === 'OUT' ? selectedStock.quantity : 1000"
+                [nzStep]="1"
+                class="quantity-slider"
+              ></nz-slider>
+              <button 
+                nz-button 
+                nzType="default" 
+                nzShape="circle" 
+                nzSize="small"
+                (click)="incrementQuantity()"
+                [disabled]="transactionQuantity >= (transactionType === 'OUT' ? selectedStock.quantity : 1000)"
+              >
+                <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </nz-modal>
+
+    <!-- Add Medication Modal -->
+    <nz-modal
+      [(nzVisible)]="isAddMedicationModalOpen"
+      nzTitle="Add medication"
+      [nzOkLoading]="addingMedicationToStock"
+      [nzFooter]="stockFooterTpl"
+      (nzOnCancel)="closeAddMedicationModal()"
+      nzClassName="pharmacy-modal-rounded"
+    >
+      <ng-container *nzModalContent>
+        <div class="stock-modal-field">
+          <label>Initial quantity</label>
+          <input
+            nz-input
+            type="number"
+            min="0"
+            step="1"
+            inputmode="numeric"
+            placeholder="Enter initial quantity"
+            [(ngModel)]="initialStock"
+            (ngModelChange)="onInitialQuantityChange($event)"
+          />
+        </div>
+
+        <div class="stock-modal-field">
+          <label>Medication</label>
+          <nz-select
+            [(ngModel)]="selectedMedicationId"
+            nzPlaceHolder="Search and select medication"
+            nzShowSearch
+            style="width: 100%;"
+          >
+            <nz-option
+              *ngFor="let medication of allInventoryMedicationOptions"
+              [nzValue]="medication.id"
+              [nzLabel]="medication.name"
+              nzCustomContent
+            >
+              <div class="medication-option">
+                <div class="medication-option-image" *ngIf="medication.imageUrl; else noMedicationImage">
+                  <img [src]="medication.imageUrl" [alt]="medication.name" />
+                </div>
+                <ng-template #noMedicationImage>
+                  <div class="medication-option-image medication-option-placeholder">
+                    {{ medication.name?.charAt(0) || '?' }}
+                  </div>
+                </ng-template>
+                <span class="medication-option-name">{{ medication.name }}</span>
+              </div>
+            </nz-option>
+          </nz-select>
+        </div>
+      </ng-container>
+    </nz-modal>
+
+    <ng-template #stockFooterTpl>
+      <button nz-button nzType="default" (click)="closeAddMedicationModal()">Close</button>
+      <button nz-button nzType="default" (click)="requestAddNewMedication()">
+        Request new medication
+      </button>
+      <button nz-button nzType="primary" [nzLoading]="addingMedicationToStock" (click)="submitAddMedicationToStock()">
+        Submit
+      </button>
+    </ng-template>
+  </ng-container>
+</div>

@@ -18,15 +18,15 @@ getAll(): Observable<Pharmacy[]> {
   }
 
   create(pharmacy: NewPharmacy): Observable<Pharmacy> {
-    return this.http.post<Pharmacy>(`${this.apiBaseUrl}/pharmacy`, pharmacy);
+    return this.http.post<Pharmacy>(`${this.apiBaseUrl}/pharmacy/pharmacies`, pharmacy);
   }
 
   update(id: number, pharmacy: Partial<Pharmacy>): Observable<Pharmacy> {
-    return this.http.put<Pharmacy>(`${this.apiBaseUrl}/pharmacy/${id}`, pharmacy);
+    return this.http.put<Pharmacy>(`${this.apiBaseUrl}/pharmacy/pharmacies/${id}`, pharmacy);
   }
 
   delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiBaseUrl}/pharmacy/${id}`);
+    return this.http.delete<void>(`${this.apiBaseUrl}/pharmacy/pharmacies/${id}`);
   }
    uploadLogo(id: number, file: File): Observable<Pharmacy> {
     const formData = new FormData();
@@ -38,10 +38,7 @@ getAll(): Observable<Pharmacy[]> {
     );
   }
 
-  /**
-   * POST /pharmacy/{id}/upload-images
-   * expects optional form fields: "banner", "logo"
-   */
+
   uploadImages(id: number, opts: { banner?: File; logo?: File }): Observable<Pharmacy> {
     const formData = new FormData();
 

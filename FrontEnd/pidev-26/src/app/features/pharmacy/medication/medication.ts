@@ -1,15 +1,18 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, inject, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { finalize, switchMap } from 'rxjs';
+import { finalize, of, switchMap } from 'rxjs';
 
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzIconModule, NZ_ICONS } from 'ng-zorro-antd/icon';
+import { PictureOutline, UploadOutline, PlusOutline } from '@ant-design/icons-angular/icons';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzFloatButtonModule } from 'ng-zorro-antd/float-button';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzPaginationModule } from 'ng-zorro-antd/pagination';
 
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -34,6 +37,8 @@ export enum TherapeuticClass {
 // Adjust this to match your backend create DTO
 export type NewMedication = {
   name: string;
+  status?: 'PENDING' | 'ACCEPTED' | string;
+  description?: string;
   therapeuticClass: TherapeuticClass;
   pharmacyId: number;
 };
@@ -50,6 +55,8 @@ export type NewMedication = {
     NzSpinModule,
     NzEmptyModule,
     NzFloatButtonModule,
+    NzCardModule,
+    NzPaginationModule,
 
     NzModalModule,
     NzFormModule,
@@ -58,10 +65,20 @@ export type NewMedication = {
     NzUploadModule
 
   ],
+  providers: [
+    {
+      provide: NZ_ICONS,
+      useValue: [
+        PictureOutline,
+        UploadOutline,
+        PlusOutline
+      ]
+    }
+  ],
   templateUrl: './medication.html',
   styleUrl: './medication.css'
 })
-export class Medication implements OnInit {
+export class Medication implements OnInit, OnChanges {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly pharmacyService = inject(PharmacyService);
@@ -69,6 +86,15 @@ export class Medication implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly fb = inject(FormBuilder);
   private readonly msg = inject(NzMessageService);
+
+  @Input() embedded = false;
+  @Input() pharmacyIdInput: number | null = null;
+  @Input() searchText = '';
+  @Input() therapeuticClassFilter = '';
+  @Input() selectedMedicationName = '';
+  @Input() outOfStockOnly = false;
+  @Input() showFloatingAddButton = true;
+  @Output() medicationsChange = new EventEmitter<MedicationModel[]>();
 
   pharmacyId: string | null = null;
   pharmacy: Pharmacy | null = null;
@@ -79,13 +105,20 @@ export class Medication implements OnInit {
 
   // ---------------- Modal + Form ----------------
   isAddModalOpen = false;
+  isDetailsModalOpen = false;
   submitting = false;
+  isEditMode = false;
+  createStatus: 'PENDING' | 'ACCEPTED' = 'ACCEPTED';
+  editingMedicationId: number | null = null;
+  selectedMedication: MedicationModel | null = null;
+  pageIndex = 1;
+  pageSize = 5;
 
   therapeuticOptions = [
-    { label: 'Cholinesterase inhibitor', value: TherapeuticClass.CHOLINESTERASE_INHIBITOR },
-    { label: 'NMDA receptor antagonist', value: TherapeuticClass.NMDA_RECEPTOR_ANTAGONIST },
-    { label: 'Anti-amyloid monoclonal antibody', value: TherapeuticClass.ANTI_AMYLOID_MONOCLONAL_ANTIBODY },
-    { label: 'Combination product', value: TherapeuticClass.COMBINATION_PRODUCT }
+    { label: 'Cholinesterase Inhib.', value: TherapeuticClass.CHOLINESTERASE_INHIBITOR },
+    { label: 'NMDA Antagonist', value: TherapeuticClass.NMDA_RECEPTOR_ANTAGONIST },
+    { label: 'Anti-Amyloid mAb', value: TherapeuticClass.ANTI_AMYLOID_MONOCLONAL_ANTIBODY },
+    { label: 'Combination', value: TherapeuticClass.COMBINATION_PRODUCT }
   ];
 
   // Upload state
@@ -95,6 +128,7 @@ export class Medication implements OnInit {
 
   addForm = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(3)]],
+    description: [''],
     therapeuticClass: [TherapeuticClass.CHOLINESTERASE_INHIBITOR, [Validators.required]]
   });
 
@@ -102,9 +136,98 @@ export class Medication implements OnInit {
     return this.photoTouched && !this.selectedImageFile;
   }
 
+  get filteredMedications(): MedicationModel[] {
+    let filtered = [...this.medications];
+
+    if (this.searchText.trim()) {
+      const query = this.searchText.toLowerCase();
+      filtered = filtered.filter((medication) =>
+        medication.name?.toLowerCase().includes(query)
+      );
+    }
+
+    if (this.therapeuticClassFilter) {
+      filtered = filtered.filter(
+        (medication) => medication.therapeuticClass === this.therapeuticClassFilter
+      );
+    }
+
+    if (this.selectedMedicationName) {
+      filtered = filtered.filter((medication) => medication.name === this.selectedMedicationName);
+    }
+
+    if (this.outOfStockOnly) {
+      filtered = filtered.filter((medication) => {
+        const item = medication as any;
+        const hasOutOfStockFlag = typeof item.outOfStock === 'boolean';
+        if (hasOutOfStockFlag) {
+          return item.outOfStock;
+        }
+
+        const stockQuantity = item.stockQuantity;
+        if (typeof stockQuantity === 'number') {
+          return stockQuantity <= 0;
+        }
+
+        return false;
+      });
+    }
+
+    return filtered;
+  }
+
+  get paginatedMedications(): MedicationModel[] {
+    const start = (this.pageIndex - 1) * this.pageSize;
+    const end = start + this.pageSize;
+    return this.filteredMedications.slice(start, end);
+  }
+
+  get totalFilteredMedications(): number {
+    return this.filteredMedications.length;
+  }
+
+  formatTherapeuticClass(value?: string | null): string {
+    if (!value) return '—';
+    return value
+      .toLowerCase()
+      .split('_')
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+  }
+
+  onPageChange(pageIndex: number): void {
+    this.pageIndex = pageIndex;
+  }
+
   ngOnInit(): void {
-    this.pharmacyId = this.route.snapshot.paramMap.get('pharmacyId');
-    if (this.pharmacyId) this.loadPharmacyAndMedications();
+    this.resolveAndLoad();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (this.embedded && changes['pharmacyIdInput']) {
+      this.resolveAndLoad();
+    }
+
+    if (
+      changes['searchText'] ||
+      changes['therapeuticClassFilter'] ||
+      changes['selectedMedicationName'] ||
+      changes['outOfStockOnly']
+    ) {
+      this.pageIndex = 1;
+    }
+  }
+
+  private resolveAndLoad(): void {
+    const routePharmacyId = this.route.snapshot.paramMap.get('pharmacyId');
+    const effectivePharmacyId = this.embedded
+      ? (this.pharmacyIdInput !== null ? String(this.pharmacyIdInput) : null)
+      : routePharmacyId;
+
+    this.pharmacyId = effectivePharmacyId;
+    if (this.pharmacyId) {
+      this.loadPharmacyAndMedications();
+    }
   }
 
   loadPharmacyAndMedications(): void {
@@ -133,6 +256,8 @@ export class Medication implements OnInit {
     this.medicationService.getByPharmacy(pharmacyId).subscribe({
       next: (medications) => {
         this.medications = medications ?? [];
+        this.medicationsChange.emit(this.medications);
+        this.pageIndex = 1;
         this.loading = false;
         this.loadingMedications = false;
         this.cdr.detectChanges();
@@ -151,13 +276,17 @@ export class Medication implements OnInit {
   }
 
   // ---------------- Open / Close Modal ----------------
-  addMedication(): void {
+  addMedication(status: 'PENDING' | 'ACCEPTED' = 'ACCEPTED'): void {
     this.isAddModalOpen = true;
+    this.isEditMode = false;
+    this.createStatus = status;
+    this.editingMedicationId = null;
     this.submitting = false;
     this.photoTouched = false;
 
     this.addForm.reset({
       name: '',
+      description: '',
       therapeuticClass: TherapeuticClass.CHOLINESTERASE_INHIBITOR
     });
 
@@ -167,6 +296,72 @@ export class Medication implements OnInit {
 
   closeAddModal(): void {
     this.isAddModalOpen = false;
+    this.isEditMode = false;
+    this.createStatus = 'ACCEPTED';
+    this.editingMedicationId = null;
+  }
+
+  openRequestMedicationModal(): void {
+    this.addMedication('PENDING');
+  }
+
+  openDetails(medication: MedicationModel): void {
+    this.selectedMedication = medication;
+    this.isDetailsModalOpen = true;
+  }
+
+  closeDetailsModal(): void {
+    this.isDetailsModalOpen = false;
+    this.selectedMedication = null;
+  }
+
+  editMedication(medication: MedicationModel, event?: MouseEvent): void {
+    event?.stopPropagation();
+    this.isEditMode = true;
+    this.editingMedicationId = medication.id ?? null;
+    this.isAddModalOpen = true;
+    this.photoTouched = false;
+    this.selectedImageFile = null;
+    this.fileList = medication.imageUrl
+      ? [
+          {
+            uid: `med-${medication.id ?? 'preview'}`,
+            name: medication.name,
+            status: 'done',
+            url: medication.imageUrl,
+          } as NzUploadFile,
+        ]
+      : [];
+
+    this.addForm.reset({
+      name: medication.name ?? '',
+      description: medication.description ?? '',
+      therapeuticClass:
+        (medication.therapeuticClass as TherapeuticClass) ?? TherapeuticClass.CHOLINESTERASE_INHIBITOR,
+    });
+  }
+
+  deleteMedication(medication: MedicationModel, event?: MouseEvent): void {
+    event?.stopPropagation();
+    if (!medication.id) return;
+
+    const confirmed = window.confirm(`Delete medication "${medication.name}"?`);
+    if (!confirmed) return;
+
+    this.medicationService.delete(medication.id).subscribe({
+      next: () => {
+        this.msg.success('Medication deleted successfully.');
+        this.medications = this.medications.filter((item) => item.id !== medication.id);
+        this.medicationsChange.emit(this.medications);
+        if (this.pageIndex > 1 && this.paginatedMedications.length === 0) {
+          this.pageIndex = this.pageIndex - 1;
+        }
+      },
+      error: (err) => {
+        console.error(err);
+        this.msg.error('Failed to delete medication.');
+      },
+    });
   }
 
   // ---------------- Upload Rules ----------------
@@ -216,7 +411,7 @@ export class Medication implements OnInit {
       return;
     }
 
-    if (!this.selectedImageFile) {
+    if (!this.isEditMode && !this.selectedImageFile) {
       this.msg.error('Photo is required.');
       this.submitting = false;
       return;
@@ -226,11 +421,54 @@ export class Medication implements OnInit {
 
     const newMedication: NewMedication = {
       name: this.addForm.value.name!,
+      status: this.createStatus,
+      description: this.addForm.value.description || undefined,
       therapeuticClass: this.addForm.value.therapeuticClass!,
       pharmacyId: pharmacyIdNum
     };
 
     const imageFile = this.selectedImageFile;
+
+    if (this.isEditMode && this.editingMedicationId) {
+      const updatePayload: Partial<MedicationModel> = {
+        name: newMedication.name,
+        description: newMedication.description,
+        therapeuticClass: newMedication.therapeuticClass,
+      };
+
+      this.medicationService
+        .update(this.editingMedicationId, updatePayload)
+        .pipe(
+          switchMap((updated) => {
+            if (imageFile) {
+              return this.medicationService.uploadImage(this.editingMedicationId!, imageFile);
+            }
+            return of(updated);
+          }),
+          finalize(() => (this.submitting = false))
+        )
+        .subscribe({
+          next: (updated: MedicationModel) => {
+            this.msg.success('Medication updated successfully!');
+            this.isAddModalOpen = false;
+            this.isEditMode = false;
+            this.editingMedicationId = null;
+
+            this.medications = this.medications.map((item) =>
+              item.id === updated.id ? updated : item
+            );
+            this.medicationsChange.emit(this.medications);
+            this.fileList = [];
+            this.selectedImageFile = null;
+            this.photoTouched = false;
+          },
+          error: (err) => {
+            console.error(err);
+            this.msg.error('Failed to update medication.');
+          },
+        });
+      return;
+    }
 
     this.medicationService
       .create(newMedication as any)
@@ -238,7 +476,7 @@ export class Medication implements OnInit {
         switchMap((created: any) => {
           const id = created?.id as number | undefined;
           if (!id) throw new Error('Created medication has no ID.');
-          return this.medicationService.uploadImage(id, imageFile);
+          return this.medicationService.uploadImage(id, imageFile!);
         }),
         finalize(() => (this.submitting = false))
       )
@@ -248,6 +486,7 @@ export class Medication implements OnInit {
           this.isAddModalOpen = false;
 
           this.medications = [updated, ...this.medications];
+          this.medicationsChange.emit(this.medications);
 
           this.fileList = [];
           this.selectedImageFile = null;
@@ -255,8 +494,10 @@ export class Medication implements OnInit {
 
           this.addForm.reset({
             name: '',
+            description: '',
             therapeuticClass: TherapeuticClass.CHOLINESTERASE_INHIBITOR
           });
+          this.pageIndex = 1;
         },
         error: (err) => {
           console.error(err);

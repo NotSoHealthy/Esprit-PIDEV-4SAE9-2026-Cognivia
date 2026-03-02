@@ -13,7 +13,7 @@ import java.time.Instant;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class MedicationRestock {
+public class InventoryTransaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,7 +21,10 @@ public class MedicationRestock {
 
     private Integer quantity;
 
-    private Instant restockAt;
+    @Enumerated(EnumType.STRING)
+    private TransactionType type; // IN / OUT
+
+    private Instant transactionAt;
     private Instant createdAt;
 
     @ManyToOne(optional = false)
@@ -37,3 +40,4 @@ public class MedicationRestock {
         if (createdAt == null) createdAt = Instant.now();
     }
 }
+

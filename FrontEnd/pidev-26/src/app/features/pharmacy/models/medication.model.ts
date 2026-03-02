@@ -1,8 +1,12 @@
 export interface MedicationModel {
   id?: number;
   name: string;
+  status?: 'PENDING' | 'ACCEPTED' | string;
   imageUrl?: string;
   therapeuticClass?: string;
+  description?: string;
+  stockQuantity?: number;
+  outOfStock?: boolean;
   createdAt?: string | null;
   updatedAt?: string | null;
 }

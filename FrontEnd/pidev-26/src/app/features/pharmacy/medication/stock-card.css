@@ -1,0 +1,134 @@
+.stock-cards-container {
+  padding: 0;
+}
+
+.spinner-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+.stock-error {
+  padding: 24px;
+  text-align: center;
+  color: #ff4d4f;
+}
+
+.empty-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 60px 0;
+}
+
+.stock-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  padding: 0;
+}
+
+@media (max-width: 1400px) {
+  .stock-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 992px) {
+  .stock-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 576px) {
+  .stock-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stock-card {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: default;
+}
+
+.stock-cover {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+}
+
+.stock-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.stock-no-image {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  opacity: 0.15;
+}
+
+.stock-no-image nz-icon {
+  font-size: 64px;
+  color: #d9d9d9;
+}
+
+.stock-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(45, 183, 245, 0.95);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.stock-badge.out-of-stock {
+  background: rgba(255, 77, 79, 0.95);
+}
+
+.stock-card-body {
+  padding: 8px 0;
+}
+
+.stock-meta-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.stock-muted {
+  color: #8c8c8c;
+  font-weight: 500;
+}
+
+.stock-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.stock-card-actions button {
+  flex: 1;
+}
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 32px;
+  padding: 16px 0;
+}
