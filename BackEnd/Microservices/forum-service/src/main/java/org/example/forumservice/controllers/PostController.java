@@ -90,4 +90,11 @@ public class PostController {
         postService.reclassifyAllPosts();
         return ResponseEntity.ok().build();
     }
+
+    private final org.example.forumservice.services.AIService aiService;
+
+    @GetMapping("/{id}/summarize")
+    public ResponseEntity<String> summarizePost(@PathVariable Long id) {
+        return ResponseEntity.ok(aiService.summarizePost(id));
+    }
 }

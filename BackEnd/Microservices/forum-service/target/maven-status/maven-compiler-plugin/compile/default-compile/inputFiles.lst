@@ -1,5 +1,6 @@
 C:\Users\yahya\Desktop\PIDEV-26\BackEnd\Microservices\forum-service\src\main\java\org\example\forumservice\config\DataSourceConfig.java
 C:\Users\yahya\Desktop\PIDEV-26\BackEnd\Microservices\forum-service\src\main\java\org\example\forumservice\controllers\CommentController.java
+C:\Users\yahya\Desktop\PIDEV-26\BackEnd\Microservices\forum-service\src\main\java\org\example\forumservice\controllers\GlobalExceptionHandler.java
 C:\Users\yahya\Desktop\PIDEV-26\BackEnd\Microservices\forum-service\src\main\java\org\example\forumservice\controllers\PostController.java
 C:\Users\yahya\Desktop\PIDEV-26\BackEnd\Microservices\forum-service\src\main\java\org\example\forumservice\controllers\ReactionController.java
 C:\Users\yahya\Desktop\PIDEV-26\BackEnd\Microservices\forum-service\src\main\java\org\example\forumservice\entities\Comment.java

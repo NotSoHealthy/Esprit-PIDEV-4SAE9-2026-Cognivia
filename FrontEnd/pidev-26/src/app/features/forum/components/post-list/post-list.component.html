@@ -7,6 +7,22 @@
                     <h1 class="hero-title">Healthcare Forum</h1>
                     <p class="hero-subtitle">Where caregivers and medical professionals connect, share knowledge, and
                         support each other.</p>
+
+                    <div class="search-container">
+                        <nz-input-group [nzPrefix]="prefixIconSearch" [nzSuffix]="suffixIconClose"
+                            class="search-input-group">
+                            <input type="text" nz-input placeholder="Search discussions, categories, or keywords..."
+                                [(ngModel)]="searchTerm" (ngModelChange)="onSearchTermChange($event)" />
+                        </nz-input-group>
+                        <ng-template #prefixIconSearch>
+                            <span nz-icon nzType="search"></span>
+                        </ng-template>
+                        <ng-template #suffixIconClose>
+                            <span nz-icon nzType="close-circle" nzTheme="fill" *ngIf="searchTerm"
+                                (click)="clearSearch()" class="clear-icon"></span>
+                        </ng-template>
+                    </div>
+
                     <button nz-button nzType="primary" nzSize="large" class="cta-button" routerLink="/posts/new">
                         <span nz-icon nzType="plus"></span> Start a Discussion
                     </button>
@@ -57,13 +73,15 @@
                         <div class="repost-indicator" *ngIf="post.isRepost">
                             <span nz-icon nzType="retweet" class="repost-icon"></span>
                             <span class="repost-text">
-                                Reposted from <span class="original-author">@{{ post.originalUsername }}</span>
+                                Reposted from <span class="original-author"
+                                    [innerHTML]="('@' + post.originalUsername) | highlightSearch:searchTerm"></span>
                             </span>
                         </div>
 
                         <div class="post-card-header">
                             <span class="meta-author">
-                                {{ post.authorFullName || post.username || post.userId || 'Anonymous' }}
+                                <span
+                                    [innerHTML]="(post.authorFullName || post.username || post.userId || 'Anonymous') | highlightSearch:searchTerm"></span>
                                 <span *ngIf="post.authorRole === 'Doctor' || isDoctor(post)" class="verified-badge"
                                     nz-tooltip nzTooltipTitle="Verified Doctor">
                                     <span nz-icon nzType="check-circle" nzTheme="fill"></span>
@@ -104,7 +122,7 @@
 
                         <!-- Title Row -->
                         <div class="post-title-row">
-                            <span class="post-card-title">{{ post.title }}</span>
+                            <span class="post-card-title" [innerHTML]="post.title | highlightSearch:searchTerm"></span>
                             <button nz-button nzType="text" nzSize="small" class="pin-btn" [class.active]="post.pinned"
                                 nz-tooltip [nzTooltipTitle]="post.pinned ? 'Unpin post' : 'Pin post'"
                                 (click)="togglePin(post, $event)">
@@ -113,7 +131,7 @@
                         </div>
 
                         <!-- Content Snippet -->
-                        <div class="post-card-content" [innerHTML]="post.content | highlightMention">
+                        <div class="post-card-content" [innerHTML]="post.content | highlightSearch:searchTerm">
                         </div>
                         <a *ngIf="shouldShowReadMore(post.content)" [routerLink]="['/posts', post.id]"
                             class="read-more-link" (click)="$event.stopPropagation()">Read more...</a>
@@ -124,6 +142,29 @@
                                 (click)="handleTagSelection(keyword); $event.stopPropagation()">
                                 #{{ keyword }}
                             </span>
+                        </div>
+
+                        <!-- AI Summary Display -->
+                        <div class="ai-summary-wrapper" *ngIf="postSummaries.has(post.id)"
+                            (click)="$event.stopPropagation()">
+                            <div class="ai-summary-card">
+                                <div class="summary-header">
+                                    <div class="summary-title">
+                                        <span nz-icon nzType="robot" nzTheme="outline"></span>
+                                        AI INSIGHT
+                                    </div>
+                                    <button nz-button nzType="text" nzSize="small" class="close-summary"
+                                        (click)="toggleSummary($event, post.id)">
+                                        <span nz-icon nzType="close"></span>
+                                    </button>
+                                </div>
+                                <div class="summary-body">
+                                    {{ postSummaries.get(post.id) }}
+                                </div>
+                                <div class="summary-footer">
+                                    Generated by Forum AI • Insights based on post & comments
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Footer Actions Row -->
@@ -147,6 +188,13 @@
                                         Share
                                     </button>
                                 </a>
+                                <span class="meta-divider"></span>
+                                <button nz-button nzType="text" nzSize="small" class="action-btn ai-summarize-btn"
+                                    (click)="toggleSummary($event, post.id)" [nzLoading]="loadingSummaries.has(post.id)"
+                                    nz-tooltip nzTooltipTitle="Summarize post and comments with AI">
+                                    <span nz-icon nzType="robot" nzTheme="outline"></span>
+                                    AI
+                                </button>
                                 <nz-dropdown-menu #shareMenu="nzDropdownMenu">
                                     <ul nz-menu>
                                         <li nz-menu-item (click)="sharePost(post, 'copy', $event)"><span nz-icon
@@ -167,7 +215,7 @@
                                             (click)="like(post, $event)">
                                             <span nz-icon [nzType]="getReactionIcon(getUserReaction(post))"
                                                 [nzTheme]="getUserReaction(post) ? 'fill' : 'outline'"></span>
-                                            {{ getUserReaction(post) || 'Reaction' }}
+                                            Reaction
                                         </button>
 
                                         <!-- Reaction Picker (Facebook style) -->
@@ -202,28 +250,28 @@
                                             </div>
                                         </div>
                                     </div>
-
-                                    <!-- Facebook Style Reaction Summary -->
-                                    <div class="reaction-summary" *ngIf="getTotalReactions(post) > 0"
-                                        (click)="showReactionDetails(post, $event)">
-                                        <div class="emoji-stack">
-                                            <span class="summary-emoji" *ngIf="post.likeCount">👍</span>
-                                            <span class="summary-emoji" *ngIf="post.dislikeCount">👎</span>
-                                            <span class="summary-emoji" *ngIf="post.loveCount">❤️</span>
-                                            <span class="summary-emoji" *ngIf="post.hahaCount">😂</span>
-                                            <span class="summary-emoji" *ngIf="post.wowCount">😮</span>
-                                            <span class="summary-emoji" *ngIf="post.sadCount">😢</span>
-                                            <span class="summary-emoji" *ngIf="post.angryCount">😡</span>
-                                        </div>
-                                        <span class="total-count">{{ getTotalReactions(post) }}</span>
-                                    </div>
                                 </span>
                             </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Empty State -->
+                            <!-- Reaction Summary on the right -->
+                            <div class="reaction-summary" *ngIf="getTotalReactions(post) > 0"
+                                (click)="showReactionDetails(post, $event)">
+                                <div class="emoji-stack">
+                                    <span class="summary-emoji" *ngIf="post.likeCount">👍</span>
+                                    <span class="summary-emoji" *ngIf="post.dislikeCount">👎</span>
+                                    <span class="summary-emoji" *ngIf="post.loveCount">❤️</span>
+                                    <span class="summary-emoji" *ngIf="post.hahaCount">😂</span>
+                                    <span class="summary-emoji" *ngIf="post.wowCount">💡</span>
+                                    <span class="summary-emoji" *ngIf="post.sadCount">😢</span>
+                                    <span class="summary-emoji" *ngIf="post.angryCount">⚠️</span>
+                                </div>
+                                <span class="total-count">{{ getTotalReactions(post) }}</span>
+                            </div>
+                        </div> <!-- post-card-footer -->
+                    </div> <!-- post-card-body -->
+                </div> <!-- post-card -->
+
+                <!-- Empty State inside posts-column -->
                 <div *ngIf="!loading && (!filteredPosts || filteredPosts.length === 0)" class="empty-state">
                     <nz-empty [nzNotFoundContent]="emptyTpl">
                         <ng-template #emptyTpl>
@@ -236,12 +284,12 @@
                     </nz-empty>
                 </div>
 
-                <!-- Loading State -->
+                <!-- Loading State inside posts-column -->
                 <div *ngIf="loading" class="loading-state">
                     <nz-spin nzSimple nzSize="large"></nz-spin>
                 </div>
 
-                <!-- Pagination Controls -->
+                <!-- Pagination Controls inside posts-column -->
                 <div class="pagination-container" *ngIf="!loading && totalPosts > 0">
                     <button nz-button nzType="default" (click)="prevPage()" [disabled]="isFirstPage">
                         <span nz-icon nzType="left"></span> Previous
@@ -253,9 +301,9 @@
                         Next <span nz-icon nzType="right"></span>
                     </button>
                 </div>
-            </div>
+            </div> <!-- posts-column -->
 
-            <!-- Sidebar -->
+            <!-- Sidebar inside content-grid -->
             <aside class="sidebar-column">
                 <!-- Word Map Widget -->
                 <app-word-map [selectedTag]="selectedTag" (tagSelected)="handleTagSelection($event)"></app-word-map>
@@ -276,8 +324,7 @@
                         <li><span class="check-icon">✓</span> Support one another</li>
                     </ul>
                 </div>
-
             </aside>
-        </div>
-    </div>
-</div>
+        </div> <!-- content-grid -->
+    </div> <!-- forum-container -->
+</div> <!-- forum-page -->

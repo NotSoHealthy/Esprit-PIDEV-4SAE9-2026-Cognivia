@@ -64,6 +64,8 @@ import {
   UndoOutline,
   TwitterOutline,
   WhatsAppOutline,
+  RobotOutline,
+  RobotFill,
 } from '@ant-design/icons-angular/icons';
 
 export const appConfig: ApplicationConfig = {
@@ -132,6 +134,8 @@ export const appConfig: ApplicationConfig = {
       UndoOutline,
       TwitterOutline,
       WhatsAppOutline,
+      RobotOutline,
+      RobotFill,
     ]),
   ],
 };

@@ -32,6 +32,22 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         Page<Post> findByKeywordWithPinnedFirst(@Param("userId") String userId, @Param("keyword") String keyword,
                         Pageable pageable);
 
+        @Query("SELECT p FROM Post p " +
+                        "LEFT JOIN PinnedPost pp ON p.id = pp.post.id AND pp.userId = :userId " +
+                        "WHERE p.banned = false AND (" +
+                        "LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+                        "LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+                        "LOWER(p.category) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+                        "LOWER(p.username) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+                        "LOWER(p.originalUsername) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+                        "EXISTS (SELECT 1 FROM p.keywords k WHERE LOWER(k) LIKE LOWER(CONCAT('%', :keyword, '%'))) OR "
+                        +
+                        "EXISTS (SELECT 1 FROM p.comments c WHERE LOWER(c.content) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(c.username) LIKE LOWER(CONCAT('%', :keyword, '%')))"
+                        +
+                        ") " +
+                        "ORDER BY (CASE WHEN pp.id IS NOT NULL THEN 0 ELSE 1 END) ASC, p.createdAt DESC")
+        Page<Post> searchPosts(@Param("userId") String userId, @Param("keyword") String keyword, Pageable pageable);
+
         @Query("SELECT DISTINCT p FROM Post p JOIN Report r ON p.id = r.post.id ORDER BY p.createdAt DESC")
         Page<Post> findAllReportedPosts(Pageable pageable);
 }

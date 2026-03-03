@@ -14,6 +14,28 @@ $radius-md: var(--border-radius-base);
 $shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
 $shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
 
+// ----- Search Highlighting & Dynamic Content Styles -----
+:host ::ng-deep {
+    .search-highlight {
+        background-color: #ffd700 !important; // Gold/Yellow
+        color: #000000 !important;
+        font-weight: bold;
+        padding: 0 2px;
+        border-radius: 2px;
+        box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+    }
+
+    .mention {
+        color: #3b429f !important;
+        font-weight: 700 !important;
+    }
+
+    .hashtag {
+        color: #5c63d8 !important;
+        font-weight: 600 !important;
+    }
+}
+
 .forum-page {
     min-height: 100vh;
     background: var(--bg-app);
@@ -83,6 +105,64 @@ $shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
         margin: 0 0 20px;
         line-height: 1.6;
         max-width: 420px;
+    }
+
+    .search-container {
+        max-width: 500px;
+        margin-bottom: 24px;
+        position: relative;
+        z-index: 2;
+
+        .search-input-group {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+
+            &:hover,
+            &-focused {
+                background: rgba(255, 255, 255, 0.15);
+                border-color: rgba(255, 255, 255, 0.4);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            }
+
+            input {
+                background: transparent !important;
+                border: none;
+                color: white;
+                height: 48px;
+                font-size: 1rem;
+                padding-left: 12px;
+
+                &::placeholder {
+                    color: rgba(255, 255, 255, 0.6);
+                }
+
+                &:focus {
+                    box-shadow: none;
+                }
+            }
+
+            .ant-input-prefix {
+                color: rgba(255, 255, 255, 0.8);
+                font-size: 1.2rem;
+                margin-right: 8px;
+            }
+
+            .clear-icon {
+                color: rgba(255, 255, 255, 0.5);
+                cursor: pointer;
+                font-size: 1rem;
+                transition: color 0.2s;
+
+                &:hover {
+                    color: white;
+                }
+            }
+        }
     }
 
     .cta-button {
@@ -588,7 +668,7 @@ $shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
     .footer-actions-left {
         display: flex;
         align-items: center;
-        gap: 20px;
+        gap: 8px; // Reduced gap for more compact feel
     }
 }
 
@@ -714,10 +794,100 @@ $shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
 
     .total-count {
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: #64748b;
+        color: #475569; // Darker slate for visibility
         margin-left: 2px;
+        font-weight: 700; // Bold count
+        font-size: 0.85rem;
+    }
+}
+
+// ----- AI Summarization Styles -----
+.ai-summarize-btn {
+    color: #5c63d8 !important;
+    font-weight: 700 !important;
+    transition: all 0.2s ease;
+    padding: 0 8px !important;
+    height: 28px !important;
+    font-size: 0.8rem !important;
+
+    &:hover {
+        background: rgba(92, 99, 216, 0.08) !important;
+        transform: translateY(-1px);
+    }
+
+    .anticon {
+        font-size: 0.9rem;
+    }
+}
+
+.ai-summary-wrapper {
+    margin: 16px 0;
+    animation: slideIn 0.3s ease-out;
+}
+
+.ai-summary-card {
+    background: linear-gradient(to bottom right, #f8fafc, #eff6ff);
+    border: 1px solid rgba(92, 99, 216, 0.15);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 20px rgba(92, 99, 216, 0.06);
+    position: relative;
+    border-left: 4px solid #5c63d8;
+
+    .summary-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+
+        .summary-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: #3b429f;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .close-summary {
+            color: #64748b;
+
+            &:hover {
+                color: #ef4444;
+                background: rgba(239, 68, 68, 0.05);
+            }
+        }
+    }
+
+    .summary-body {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: #1e293b;
+        font-style: italic;
+        padding-bottom: 12px;
+        white-space: pre-line;
+    }
+
+    .summary-footer {
+        font-size: 0.7rem;
+        color: #94a3b8;
+        border-top: 1px solid rgba(0, 0, 0, 0.04);
+        padding-top: 8px;
+        font-weight: 500;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 

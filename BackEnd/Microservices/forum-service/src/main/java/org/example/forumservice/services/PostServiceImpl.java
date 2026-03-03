@@ -43,7 +43,7 @@ public class PostServiceImpl implements PostService {
         Page<Post> postPage;
 
         if (keyword != null && !keyword.trim().isEmpty()) {
-            postPage = postRepository.findByKeywordWithPinnedFirst(userId, keyword, pageable);
+            postPage = postRepository.searchPosts(userId, keyword, pageable);
         } else if (category == null || category.equalsIgnoreCase("all")) {
             postPage = postRepository.findAllWithPinnedFirst(userId, pageable);
         } else {

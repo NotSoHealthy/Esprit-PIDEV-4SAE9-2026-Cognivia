@@ -135,4 +135,8 @@ export class ForumService {
 
         return this.http.post<Post>(`${this.apiUrl}/${postId}/repost`, {}, { params });
     }
+
+    getPostSummary(postId: number): Observable<string> {
+        return this.http.get(`${this.apiUrl}/${postId}/summarize`, { responseType: 'text' });
+    }
 }

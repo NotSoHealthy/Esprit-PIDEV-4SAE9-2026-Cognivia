@@ -3,6 +3,7 @@ org\example\forumservice\controllers\ReactionController.class
 org\example\forumservice\controllers\CommentController.class
 org\example\forumservice\services\CommentServiceImpl.class
 org\example\forumservice\repositories\PinnedPostRepository.class
+org\example\forumservice\controllers\GlobalExceptionHandler.class
 org\example\forumservice\services\PostService.class
 org\example\forumservice\entities\Comment.class
 org\example\forumservice\entities\PinnedPost.class
@@ -23,3 +24,4 @@ org\example\forumservice\services\ReactionServiceImpl.class
 org\example\forumservice\services\UserLookupService$UserProfile.class
 org\example\forumservice\services\UserLookupService.class
 org\example\forumservice\services\ReactionService.class
+org\example\forumservice\services\AnalysisService.class

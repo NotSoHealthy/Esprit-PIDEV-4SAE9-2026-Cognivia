@@ -12,7 +12,7 @@ import { Post } from '../../models/post.model';
 import { KeycloakService } from '../../../../core/auth/keycloak.service';
 import { ReactionType, Reaction } from '../../models/reaction.model';
 import { TimeAgoPipe } from '../../../../shared/pipes/time-ago.pipe';
-import { HighlightMentionPipe } from '../../../../shared/pipes/highlight-mention.pipe';
+import { HighlightSearchPipe } from '../../../../shared/pipes/highlight-search.pipe';
 import { ReactionDetailsComponent } from '../reaction-details/reaction-details.component';
 import { WordMapComponent } from '../word-map/word-map.component';
 import { NzListModule } from 'ng-zorro-antd/list';
@@ -23,6 +23,10 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { FormsModule } from '@angular/forms';
 
 @Component({
     selector: 'app-post-list',
@@ -42,8 +46,10 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
         NzModalModule,
         NzDropDownModule,
         NzSpinModule,
+        NzInputModule,
+        FormsModule,
         TimeAgoPipe,
-        HighlightMentionPipe,
+        HighlightSearchPipe,
         RouterLink,
         WordMapComponent
     ],
@@ -58,6 +64,12 @@ export class PostListComponent implements OnInit {
     currentUserId: string = '';
     currentUsername: string = '';
     selectedTag: string = '';
+    searchTerm: string = '';
+    private searchSubject = new Subject<string>();
+
+    // AI Summary state
+    postSummaries: Map<number, string> = new Map();
+    loadingSummaries: Set<number> = new Set();
 
     // Pagination
     currentPage: number = 0;
@@ -88,13 +100,38 @@ export class PostListComponent implements OnInit {
     ngOnInit(): void {
         this.currentUserId = this.keycloakService.getUserId() || '';
         this.currentUsername = (this.keycloakService.getUsername() as string) || '';
+
+        // Setup search debouncing
+        this.searchSubject.pipe(
+            debounceTime(400),
+            distinctUntilChanged()
+        ).subscribe(term => {
+            this.handleSearch(term);
+        });
+
         // Wrap in setTimeout to avoid ExpressionChangedAfterItHasBeenCheckedError
         setTimeout(() => this.loadPosts());
     }
 
+    onSearchTermChange(term: string): void {
+        this.searchSubject.next(term);
+    }
+
+    handleSearch(term: string): void {
+        this.searchTerm = term;
+        this.currentPage = 0; // Reset to first page when searching
+        this.loadPosts();
+    }
+
+    clearSearch(): void {
+        this.searchTerm = '';
+        this.handleSearch('');
+    }
+
     loadPosts(): void {
         setTimeout(() => this.loading = true);
-        this.forumService.getAllPosts(this.currentPage, this.pageSize, this.selectedCategory, this.selectedTag).subscribe({
+        const searchKeyword = this.searchTerm || this.selectedTag;
+        this.forumService.getAllPosts(this.currentPage, this.pageSize, this.selectedCategory, searchKeyword).subscribe({
             next: (response: any) => {
                 // Handle Spring Page response
                 if (response && response.content) {
@@ -108,15 +145,38 @@ export class PostListComponent implements OnInit {
                     this.filteredPosts = [];
                     this.totalPosts = 0;
                 }
-                this.loading = false;
-                this.cdr.detectChanges();
-            },
-            error: (e: any) => {
-                console.error('Error fetching posts', e);
-                this.loading = false;
                 this.cdr.detectChanges();
             }
         });
+    }
+
+    summarizePost(event: Event, postId: number): void {
+        event.stopPropagation();
+        if (this.loadingSummaries.has(postId)) return;
+
+        this.loadingSummaries.add(postId);
+        this.forumService.getPostSummary(postId).subscribe({
+            next: (summary) => {
+                this.postSummaries.set(postId, summary);
+                this.loadingSummaries.delete(postId);
+                this.cdr.detectChanges();
+            },
+            error: (err) => {
+                console.error('Error generating summary', err);
+                this.message.error('AI summary temporarily unavailable');
+                this.loadingSummaries.delete(postId);
+                this.cdr.detectChanges();
+            }
+        });
+    }
+
+    toggleSummary(event: Event, postId: number): void {
+        event.stopPropagation();
+        if (this.postSummaries.has(postId)) {
+            this.postSummaries.delete(postId);
+        } else {
+            this.summarizePost(event, postId);
+        }
     }
 
     nextPage(): void {
