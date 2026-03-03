@@ -77,7 +77,7 @@ export class PostListComponent implements OnInit {
     totalPosts: number = 0;
     isFirstPage: boolean = true;
     isLastPage: boolean = false;
-    loading: boolean = false;
+    loading: boolean = true;
 
     categories = [
         { key: 'all', label: 'All Topics' },
@@ -109,8 +109,8 @@ export class PostListComponent implements OnInit {
             this.handleSearch(term);
         });
 
-        // Wrap in setTimeout to avoid ExpressionChangedAfterItHasBeenCheckedError
-        setTimeout(() => this.loadPosts());
+        // Load initial posts
+        this.loadPosts();
     }
 
     onSearchTermChange(term: string): void {
@@ -129,23 +129,33 @@ export class PostListComponent implements OnInit {
     }
 
     loadPosts(): void {
-        setTimeout(() => this.loading = true);
+        this.loading = true;
         const searchKeyword = this.searchTerm || this.selectedTag;
         this.forumService.getAllPosts(this.currentPage, this.pageSize, this.selectedCategory, searchKeyword).subscribe({
             next: (response: any) => {
-                // Handle Spring Page response
-                if (response && response.content) {
-                    this.posts = response.content;
-                    this.filteredPosts = [...this.posts];
-                    this.totalPosts = response.totalElements;
-                    this.isFirstPage = response.first;
-                    this.isLastPage = response.last;
-                } else {
-                    this.posts = [];
-                    this.filteredPosts = [];
-                    this.totalPosts = 0;
-                }
-                this.cdr.detectChanges();
+                // Defer state assignment to next microtask to avoid NG0100 on posts.length
+                Promise.resolve().then(() => {
+                    if (response && response.content) {
+                        this.posts = response.content;
+                        this.filteredPosts = [...this.posts];
+                        this.totalPosts = response.totalElements;
+                        this.isFirstPage = response.first;
+                        this.isLastPage = response.last;
+                    } else {
+                        this.posts = [];
+                        this.filteredPosts = [];
+                        this.totalPosts = 0;
+                    }
+                    this.loading = false;
+                    this.cdr.detectChanges();
+                });
+            },
+            error: (err) => {
+                console.error('Error loading posts', err);
+                Promise.resolve().then(() => {
+                    this.loading = false;
+                    this.cdr.detectChanges();
+                });
             }
         });
     }

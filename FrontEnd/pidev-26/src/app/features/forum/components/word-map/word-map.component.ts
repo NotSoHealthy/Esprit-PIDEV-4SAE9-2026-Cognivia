@@ -161,21 +161,24 @@ export class WordMapComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.loadWordCloud();
+    setTimeout(() => this.loadWordCloud());
   }
 
   loadWordCloud(): void {
     this.forumService.getWordCloud().subscribe({
       next: (data) => {
-        this.keywords = Object.entries(data)
-          .map(([text, count]) => ({
-            text,
-            count: count as number
-          }))
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 25); // Show top 25 keywords
-        this.maxCount = Math.max(...this.keywords.map(k => k.count), 1);
-        this.cdr.detectChanges();
+        // Defer to next microtask to avoid NG0100 on keywords.length
+        Promise.resolve().then(() => {
+          this.keywords = Object.entries(data)
+            .map(([text, count]) => ({
+              text,
+              count: count as number
+            }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 25); // Show top 25 keywords
+          this.maxCount = Math.max(...this.keywords.map(k => k.count), 1);
+          this.cdr.detectChanges();
+        });
       },
       error: (err) => console.error('Error fetching word cloud:', err)
     });
