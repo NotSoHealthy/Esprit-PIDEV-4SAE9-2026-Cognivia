@@ -3,10 +3,11 @@
 :root {
     --cognivia-blue: #6BAED6;
     --cognivia-teal: #4CB3A3;
-    --cognivia-bg: #FFFFFF;
+    --cognivia-bg: #F5F7FA;
     --cognivia-slate: #6E7580;
-    --cognivia-input-bg: #F7F7F7;
+    --cognivia-input-bg: #FFFFFF;
     --cognivia-border: #E5E5E5;
+    --header-height: 72px;
 }
 
 body {
@@ -14,60 +15,110 @@ body {
     background-color: var(--cognivia-bg) !important;
     color: var(--cognivia-slate) !important;
     margin: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    padding: 0;
     min-height: 100vh;
 }
 
+/* Header Styles */
+.cognivia-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--header-height);
+    background: white;
+    border-bottom: 2px solid var(--cognivia-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    z-index: 1000;
+}
+
+.header-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    transition: transform 0.2s;
+}
+
+.header-logo:hover {
+    transform: scale(1.02);
+}
+
+.logo-img {
+    height: 32px;
+    width: auto;
+}
+
+.logo-text {
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--cognivia-blue);
+    letter-spacing: -0.05em;
+    text-transform: lowercase;
+}
+
+.header-lang {
+    font-size: 11px;
+    font-weight: 900;
+    color: var(--cognivia-slate);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: default;
+}
+
+.lang-arrow {
+    width: 10px;
+    height: 6px;
+    opacity: 0.5;
+}
+
+/* Layout Adjustments */
 #kc-container-wrapper {
     width: 100%;
+    margin-top: var(--header-height);
     display: flex;
     justify-content: center;
-    padding: 2rem;
+    align-items: center;
+    min-height: calc(100vh - var(--header-height));
+    padding: 40px 20px;
+    box-sizing: border-box;
 }
 
 #kc-header {
     display: none;
-    /* Hide default header */
 }
 
-/* Form Card */
 #kc-content {
     width: 100%;
-    max-width: 400px;
+    max-width: 440px;
 }
 
-#kc-content-wrapper {
-    background: transparent;
-}
-
-.login-pf-page .card-pf {
+.card-pf {
     border: none !important;
     box-shadow: none !important;
-    padding: 0 !important;
     background: transparent !important;
+    margin: 0 !important;
 }
 
 h1#kc-page-title {
     text-align: center;
-    font-size: 1.5rem;
+    font-size: 2.25rem;
     font-weight: 900;
     text-transform: uppercase;
-    letter-spacing: -0.025em;
-    margin-bottom: 2rem;
+    letter-spacing: -0.01em;
+    margin-bottom: 2.5rem;
     color: var(--cognivia-slate);
 }
 
-/* Inputs */
+/* Form Elements */
 .form-group {
-    margin-bottom: 1rem;
-}
-
-label {
-    display: none;
-    /* We use placeholders */
+    margin-bottom: 1.25rem;
 }
 
 input[type="text"],
@@ -76,17 +127,24 @@ input[type="email"] {
     width: 100%;
     background-color: var(--cognivia-input-bg) !important;
     border: 2px solid var(--cognivia-border) !important;
-    border-radius: 0.75rem !important;
-    padding: 0.75rem 1rem !important;
-    font-size: 0.875rem !important;
+    border-radius: 1rem !important;
+    padding: 1.15rem 1.25rem !important;
+    font-size: 1.1rem !important;
     font-weight: 500 !important;
     outline: none !important;
-    transition: border-color 0.2s;
+    transition: all 0.2s;
     box-sizing: border-box;
+    color: var(--cognivia-slate) !important;
+}
+
+input::placeholder {
+    color: #A0A5B0 !important;
+    opacity: 1;
 }
 
 input:focus {
     border-color: var(--cognivia-blue) !important;
+    box-shadow: 0 0 0 4px rgba(107, 174, 214, 0.1) !important;
 }
 
 /* Buttons */
@@ -94,86 +152,140 @@ input:focus {
     width: 100%;
     background-color: var(--cognivia-blue) !important;
     border: none !important;
-    border-radius: 0.75rem !important;
-    padding: 1rem !important;
+    border-radius: 1rem !important;
+    padding: 1.25rem !important;
     color: white !important;
-    font-size: 0.875rem !important;
+    font-size: 1.125rem !important;
     font-weight: 900 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.05em !important;
     cursor: pointer !important;
-    box-shadow: 0 4px 0 0 #4A90B8 !important;
+    box-shadow: 0 5px 0 0 #4A90B8 !important;
     transition: all 0.1s !important;
-    margin-top: 1rem !important;
+    margin-top: 1.5rem !important;
 }
 
 .btn-primary:active {
-    transform: translateY(2px);
+    transform: translateY(3px);
     box-shadow: 0 2px 0 0 #4A90B8 !important;
 }
 
-/* Social Buttons Layer */
+/* Social Providers */
 #kc-social-providers {
-    margin-top: 2rem;
+    margin-top: 3.5rem;
     border-top: 2px solid var(--cognivia-border);
-    padding-top: 2rem;
+    padding-top: 2.5rem;
+    position: relative;
+}
+
+.separator {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--cognivia-bg);
+    padding: 0 20px;
+    font-size: 14px;
+    font-weight: 900;
+    color: #D1D5DB;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
 }
 
 #kc-social-providers ul {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+    gap: 1.25rem;
     padding: 0;
     list-style: none;
+    margin: 0;
 }
 
 .zocial {
     background: white !important;
     border: 2px solid var(--cognivia-border) !important;
-    border-radius: 0.75rem !important;
-    padding: 0.75rem !important;
-    box-shadow: 0 4px 0 0 var(--cognivia-border) !important;
+    border-radius: 1rem !important;
+    padding: 1.15rem !important;
+    box-shadow: 0 5px 0 0 var(--cognivia-border) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     text-decoration: none !important;
     color: var(--cognivia-slate) !important;
     font-weight: 900 !important;
-    font-size: 0.65rem !important;
+    font-size: 1rem !important;
     text-transform: uppercase !important;
     letter-spacing: 0.05em !important;
     transition: all 0.1s !important;
+    gap: 12px;
+}
+
+.zocial:hover {
+    background: #F9FAFB !important;
 }
 
 .zocial:active {
-    transform: translateY(2px);
+    transform: translateY(3px);
     box-shadow: 0 2px 0 0 var(--cognivia-border) !important;
 }
 
-/* Footer links */
+.zocial img {
+    height: 20px;
+    width: auto;
+}
+
+/* Footer / Auth Links */
 #kc-registration {
     text-align: center;
-    margin-top: 2rem;
-    font-size: 0.75rem;
-    font-weight: 700;
+    margin-top: 3rem;
+    font-size: 1rem;
+    font-weight: 900;
     text-transform: uppercase;
+    color: var(--cognivia-slate);
 }
 
 #kc-registration a {
     color: var(--cognivia-blue);
     text-decoration: none;
     margin-left: 0.5rem;
+    transition: opacity 0.2s;
 }
 
-.login-pf-settings {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.75rem;
-    font-weight: 700;
-    margin-top: 0.5rem;
+#kc-registration a:hover {
+    opacity: 0.8;
 }
 
-.login-pf-settings a {
-    color: var(--cognivia-blue);
+.forgot-password-link {
+    display: block;
+    text-align: right;
+    margin-top: 10px;
+}
+
+.forgot-password-link a {
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--cognivia-slate);
+    opacity: 0.4;
     text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+.forgot-password-link a:hover {
+    opacity: 1;
+    color: var(--cognivia-blue);
+}
+
+/* Alerts */
+.alert-error {
+    background: #FEE2E2;
+    border: 2px solid #F87171;
+    color: #991B1B;
+    border-radius: 1rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-align: center;
 }
