@@ -1,0 +1,179 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;900&display=swap');
+
+:root {
+    --cognivia-blue: #6BAED6;
+    --cognivia-teal: #4CB3A3;
+    --cognivia-bg: #FFFFFF;
+    --cognivia-slate: #6E7580;
+    --cognivia-input-bg: #F7F7F7;
+    --cognivia-border: #E5E5E5;
+}
+
+body {
+    font-family: 'Outfit', sans-serif !important;
+    background-color: var(--cognivia-bg) !important;
+    color: var(--cognivia-slate) !important;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+#kc-container-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 2rem;
+}
+
+#kc-header {
+    display: none;
+    /* Hide default header */
+}
+
+/* Form Card */
+#kc-content {
+    width: 100%;
+    max-width: 400px;
+}
+
+#kc-content-wrapper {
+    background: transparent;
+}
+
+.login-pf-page .card-pf {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    background: transparent !important;
+}
+
+h1#kc-page-title {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.025em;
+    margin-bottom: 2rem;
+    color: var(--cognivia-slate);
+}
+
+/* Inputs */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+label {
+    display: none;
+    /* We use placeholders */
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+    width: 100%;
+    background-color: var(--cognivia-input-bg) !important;
+    border: 2px solid var(--cognivia-border) !important;
+    border-radius: 0.75rem !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    outline: none !important;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+input:focus {
+    border-color: var(--cognivia-blue) !important;
+}
+
+/* Buttons */
+.btn-primary {
+    width: 100%;
+    background-color: var(--cognivia-blue) !important;
+    border: none !important;
+    border-radius: 0.75rem !important;
+    padding: 1rem !important;
+    color: white !important;
+    font-size: 0.875rem !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 0 0 #4A90B8 !important;
+    transition: all 0.1s !important;
+    margin-top: 1rem !important;
+}
+
+.btn-primary:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 0 #4A90B8 !important;
+}
+
+/* Social Buttons Layer */
+#kc-social-providers {
+    margin-top: 2rem;
+    border-top: 2px solid var(--cognivia-border);
+    padding-top: 2rem;
+}
+
+#kc-social-providers ul {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    padding: 0;
+    list-style: none;
+}
+
+.zocial {
+    background: white !important;
+    border: 2px solid var(--cognivia-border) !important;
+    border-radius: 0.75rem !important;
+    padding: 0.75rem !important;
+    box-shadow: 0 4px 0 0 var(--cognivia-border) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-decoration: none !important;
+    color: var(--cognivia-slate) !important;
+    font-weight: 900 !important;
+    font-size: 0.65rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    transition: all 0.1s !important;
+}
+
+.zocial:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 0 var(--cognivia-border) !important;
+}
+
+/* Footer links */
+#kc-registration {
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+#kc-registration a {
+    color: var(--cognivia-blue);
+    text-decoration: none;
+    margin-left: 0.5rem;
+}
+
+.login-pf-settings {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-top: 0.5rem;
+}
+
+.login-pf-settings a {
+    color: var(--cognivia-blue);
+    text-decoration: none;
+}
