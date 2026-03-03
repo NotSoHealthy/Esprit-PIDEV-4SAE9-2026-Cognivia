@@ -206,6 +206,7 @@ export class Equipment implements OnInit {
               this.equipmentService.update({
                 id: this.editingEquipmentId!,
                 ...this.newEquipment,
+                status: this.newEquipment.status,
                 imageUrl
               })
             )
@@ -225,7 +226,8 @@ export class Equipment implements OnInit {
         // No new image selected, update without changing image
         this.equipmentService.update({
           id: this.editingEquipmentId,
-          ...this.newEquipment
+          ...this.newEquipment,
+          status: this.newEquipment.status
         }).subscribe({
           next: () => {
             this.isSaving = false;
@@ -246,6 +248,7 @@ export class Equipment implements OnInit {
           switchMap((imageUrl) =>
             this.equipmentService.create({
               ...this.newEquipment,
+              status: 'AVAILABLE',
               imageUrl
             })
           )

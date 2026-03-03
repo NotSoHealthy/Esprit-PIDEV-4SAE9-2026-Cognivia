@@ -19,7 +19,8 @@ import {
   TagOutline,
   HeartOutline,
   ArrowLeftOutline,
-  ToolOutline
+  ToolOutline,
+  ContainerOutline
 } from '@ant-design/icons-angular/icons';
 
 export const appConfig: ApplicationConfig = {
@@ -43,7 +44,8 @@ export const appConfig: ApplicationConfig = {
       TagOutline,
       HeartOutline,
       ArrowLeftOutline,
-      ToolOutline
+      ToolOutline,
+      ContainerOutline
     ]),
   ],
 };

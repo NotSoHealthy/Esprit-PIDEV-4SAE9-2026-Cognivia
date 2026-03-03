@@ -1,0 +1,459 @@
+<section class="complaint-page" aria-labelledby="complaint-title">
+  <header class="complaint-header">
+    <div>
+      @if (isAdmin()) {
+        <h1 id="complaint-title" class="complaint-title">All Reports</h1>
+        <p class="complaint-subtitle">Review and manage all submitted complaints</p>
+      } @else {
+        <h1 id="complaint-title" class="complaint-title">My Reports</h1>
+        <p class="complaint-subtitle">View and manage your submitted complaints</p>
+      }
+    </div>
+    @if (!isAdmin()) {
+      <button type="button" class="back-button" (click)="goBackToCareTeam()">
+        ← Back to Care Team
+      </button>
+    }
+  </header>
+
+  @if (loading()) {
+    <div class="complaint-state" role="status" aria-live="polite">
+      Loading complaints...
+    </div>
+  } @else if (error()) {
+    <div class="complaint-state complaint-error" role="alert">{{ error() }}</div>
+  } @else if (complaints().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <h2 class="empty-title">No complaints yet</h2>
+      <p class="empty-message">
+        @if (isAdmin()) {
+          No complaints have been submitted.
+        } @else {
+          You haven't submitted any complaints. When you do, they'll appear here.
+        }
+      </p>
+    </div>
+  } @else {
+    @if (isAdmin()) {
+      <!-- Admin View: All Complaints Grid -->
+      <div class="complaints-grid">
+        @for (complaint of complaints(); track complaint.id) {
+          <article
+            class="complaint-card-admin clickable-card"
+            role="button"
+            tabindex="0"
+            (click)="openDetailOverlay(complaint)"
+            (keydown.enter)="openDetailOverlay(complaint)"
+            (keydown.space)="openDetailOverlay(complaint); $event.preventDefault()"
+            [attr.aria-label]="'View details for ' + getCategoryLabel(complaint.category)"
+          >
+            <div class="complaint-card-header">
+              <h3 class="complaint-subject">{{ getCategoryLabel(complaint.category) }}</h3>
+              <span
+                class="status-badge"
+                [ngClass]="getStatusClass(complaint.status || ComplaintStatus.SUBMITTED)"
+              >
+                {{ getStatusLabel(complaint.status || ComplaintStatus.SUBMITTED) }}
+              </span>
+            </div>
+            <div class="complaint-metadata">
+              <span class="complaint-badge">{{ getPriorityLabel(complaint.priority) }}</span>
+              <span class="complaint-badge">{{ getRoleLabel(complaint.targetUserRole) }}</span>
+            </div>
+            <p class="complaint-description">
+              {{ complaint.description || 'No description provided' }}
+            </p>
+            <div class="complaint-footer">
+              <div class="complaint-dates">
+                <span class="complaint-date">
+                  Submitted: {{ complaint.createdAt ? (complaint.createdAt | date: 'medium') : 'N/A' }}
+                </span>
+                @if (complaint.status === ComplaintStatus.DISMISSED && complaint.resolvedAt) {
+                  <span class="complaint-date">
+                    Resolved: {{ complaint.resolvedAt | date: 'medium' }}
+                  </span>
+                } @else if (complaint.reviewedAt) {
+                  <span class="complaint-date">
+                    Reviewed: {{ complaint.reviewedAt | date: 'medium' }}
+                  </span>
+                }
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    } @else {
+      <!-- Patient View: Their Complaints List -->
+      <div class="complaints-list">
+        @for (complaint of complaints(); track complaint.id) {
+          <article
+            class="complaint-card clickable-card"
+            role="button"
+            tabindex="0"
+            (click)="openDetailOverlay(complaint)"
+            (keydown.enter)="openDetailOverlay(complaint)"
+            (keydown.space)="openDetailOverlay(complaint); $event.preventDefault()"
+            [attr.aria-label]="'View details for ' + getCategoryLabel(complaint.category)"
+          >
+            <div class="complaint-card-header">
+              <h3 class="complaint-subject">{{ getCategoryLabel(complaint.category) }}</h3>
+              <span
+                class="status-badge"
+                [ngClass]="getStatusClass(complaint.status || ComplaintStatus.SUBMITTED)"
+              >
+                {{ getStatusLabel(complaint.status || ComplaintStatus.SUBMITTED) }}
+              </span>
+            </div>
+            <div class="complaint-metadata">
+              <span class="complaint-badge">{{ getPriorityLabel(complaint.priority) }}</span>
+              <span class="complaint-badge">{{ getRoleLabel(complaint.targetUserRole) }}</span>
+            </div>
+            <p class="complaint-description">
+              {{ complaint.description || 'No description provided' }}
+            </p>
+            <div class="complaint-footer">
+              <span class="complaint-date">
+                Submitted:
+                {{ complaint.createdAt ? (complaint.createdAt | date: 'medium') : 'N/A' }}
+              </span>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  }
+</section>
+
+<!-- Retract Confirmation Modal -->
+@if (showRetractConfirmation()) {
+  <div class="modal-overlay confirmation-overlay" (click)="closeRetractConfirmation()" role="dialog" aria-modal="true">
+    <div class="modal modal-compact" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Delete Report</h2>
+        <button
+          class="icon-button"
+          type="button"
+          (click)="closeRetractConfirmation()"
+          aria-label="Close"
+        >
+          ×
+        </button>
+      </div>
+
+      <p class="modal-text">
+        Are you sure you want to delete <strong>{{ complaintNameToDelete() }}</strong>? This action cannot be undone.
+      </p>
+
+      @if (error()) {
+        <p class="form-error">{{ error() }}</p>
+      }
+
+      <div class="modal-actions">
+        <button class="secondary-button" type="button" (click)="closeRetractConfirmation()">
+          Cancel
+        </button>
+        <button
+          class="danger-button"
+          type="button"
+          (click)="confirmRetract()"
+          [disabled]="deleting() !== null"
+        >
+          {{ deleting() !== null ? 'Deleting...' : 'Delete' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Detail Overlay Modal (Admin View) -->
+@if (showDetailOverlay() && isAdmin()) {
+  <div class="modal-overlay" (click)="closeDetailOverlay()" role="dialog" aria-modal="true">
+    <div class="modal modal-large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Report Details</h2>
+        <button
+          class="icon-button"
+          type="button"
+          (click)="closeDetailOverlay()"
+          aria-label="Close"
+        >
+          ×
+        </button>
+      </div>
+
+      @if (detailLoading()) {
+        <p class="modal-text">Loading details...</p>
+      } @else {
+        <div class="detail-content detail-content-admin">
+          @if (selectedComplaint(); as complaint) {
+            <div class="detail-column">
+              <div class="detail-section">
+                <h3 class="detail-label">From</h3>
+                <p class="detail-value">{{ detailSubmitterName() }}</p>
+              </div>
+
+              <div class="detail-section">
+                <h3 class="detail-label">About</h3>
+                <p class="detail-value">{{ detailTargetName() }}</p>
+              </div>
+
+              <div class="detail-section">
+                <h3 class="detail-label">Category</h3>
+                <p class="detail-value">{{ getCategoryLabel(complaint.category) }}</p>
+              </div>
+
+              <div class="detail-section">
+                <h3 class="detail-label">Priority</h3>
+                <p class="detail-value">{{ getPriorityLabel(complaint.priority) }}</p>
+              </div>
+
+              <div class="detail-section">
+                <h3 class="detail-label">Status</h3>
+                <p class="detail-value" [ngClass]="getStatusClass(complaint.status || ComplaintStatus.SUBMITTED)">
+                  {{ getStatusLabel(complaint.status || ComplaintStatus.SUBMITTED) }}
+                </p>
+              </div>
+            </div>
+
+            <div class="detail-column">
+              <div class="detail-section">
+                <h3 class="detail-label">Description</h3>
+                <p class="detail-value">{{ complaint.description || 'No description provided' }}</p>
+              </div>
+
+              @if (complaint.evidenceUrl) {
+                <div class="detail-section">
+                  <h3 class="detail-label">Evidence</h3>
+                  <img
+                    [src]="complaint.evidenceUrl"
+                    alt="Complaint evidence"
+                    class="evidence-image"
+                  />
+                </div>
+              }
+
+              <div class="detail-section">
+                <h3 class="detail-label">Submitted</h3>
+                <p class="detail-value">
+                  {{ complaint.createdAt | date: 'medium' }}
+                </p>
+              </div>
+
+              @if (complaint.status === ComplaintStatus.DISMISSED && complaint.resolvedAt) {
+                <div class="detail-section">
+                  <h3 class="detail-label">Resolved</h3>
+                  <p class="detail-value">
+                    {{ complaint.resolvedAt | date: 'medium' }}
+                  </p>
+                </div>
+                @if (complaint.resolutionDecision) {
+                  <div class="detail-section">
+                    <h3 class="detail-label">Resolution Decision</h3>
+                    <p class="detail-value">{{ complaint.resolutionDecision }}</p>
+                  </div>
+                }
+              } @else if (complaint.reviewedAt) {
+                <div class="detail-section">
+                  <h3 class="detail-label">Reviewed</h3>
+                  <p class="detail-value">
+                    {{ complaint.reviewedAt | date: 'medium' }}
+                  </p>
+                </div>
+              }
+            </div>
+
+            @if (error()) {
+              <p class="form-error">{{ error() }}</p>
+            }
+          }
+        </div>
+      }
+
+      <div class="modal-actions">
+        <button class="secondary-button" type="button" (click)="closeDetailOverlay()">
+          Close
+        </button>
+        @if (selectedComplaint()?.status === ComplaintStatus.SUBMITTED) {
+          <button
+            class="danger-button"
+            type="button"
+            (click)="openDismissDecisionModal()"
+            [disabled]="dismissingComplaintId() !== null"
+          >
+            {{ dismissingComplaintId() !== null ? 'Dismissing...' : 'Dismiss Report' }}
+          </button>
+          <button
+            class="primary-button"
+            type="button"
+            (click)="validateComplaint()"
+            [disabled]="validatingComplaintId() !== null"
+          >
+            {{ validatingComplaintId() !== null ? 'Validating...' : 'Validate Report' }}
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Detail Overlay Modal (Patient View) -->
+@if (showDetailOverlay() && !isAdmin()) {
+  <div class="modal-overlay" (click)="closeDetailOverlay()" role="dialog" aria-modal="true">
+    <div class="modal modal-large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Report Details</h2>
+        <button
+          class="icon-button"
+          type="button"
+          (click)="closeDetailOverlay()"
+          aria-label="Close"
+        >
+          ×
+        </button>
+      </div>
+
+      @if (selectedComplaint(); as complaint) {
+        <div class="detail-content detail-content-patient">
+          <div class="detail-column">
+            <div class="detail-section">
+              <h3 class="detail-label">Category</h3>
+              <p class="detail-value">{{ getCategoryLabel(complaint.category) }}</p>
+            </div>
+
+            <div class="detail-section">
+              <h3 class="detail-label">Priority</h3>
+              <p class="detail-value">{{ getPriorityLabel(complaint.priority) }}</p>
+            </div>
+
+            <div class="detail-section">
+              <h3 class="detail-label">Status</h3>
+              <p class="detail-value" [ngClass]="getStatusClass(complaint.status || ComplaintStatus.SUBMITTED)">
+                {{ getStatusLabel(complaint.status || ComplaintStatus.SUBMITTED) }}
+              </p>
+            </div>
+
+            <div class="detail-section">
+              <h3 class="detail-label">Reported About</h3>
+              <p class="detail-value">{{ getRoleLabel(complaint.targetUserRole) }}</p>
+            </div>
+          </div>
+
+          <div class="detail-column">
+            <div class="detail-section">
+              <h3 class="detail-label">Description</h3>
+              <p class="detail-value">{{ complaint.description || 'No description provided' }}</p>
+            </div>
+
+            @if (complaint.evidenceUrl) {
+              <div class="detail-section">
+                <h3 class="detail-label">Evidence</h3>
+                <img
+                  [src]="complaint.evidenceUrl"
+                  alt="Complaint evidence"
+                  class="evidence-image"
+                />
+              </div>
+            }
+
+            <div class="detail-section">
+              <h3 class="detail-label">Submitted</h3>
+              <p class="detail-value">
+                {{ complaint.createdAt | date: 'medium' }}
+              </p>
+            </div>
+
+            @if (complaint.status === ComplaintStatus.DISMISSED && complaint.resolvedAt) {
+              <div class="detail-section">
+                <h3 class="detail-label">Resolved</h3>
+                <p class="detail-value">
+                  {{ complaint.resolvedAt | date: 'medium' }}
+                </p>
+              </div>
+              @if (complaint.resolutionDecision) {
+                <div class="detail-section">
+                  <h3 class="detail-label">Resolution Decision</h3>
+                  <p class="detail-value">{{ complaint.resolutionDecision }}</p>
+                </div>
+              }
+            } @else if (complaint.reviewedAt) {
+              <div class="detail-section">
+                <h3 class="detail-label">Reviewed</h3>
+                <p class="detail-value">
+                  {{ complaint.reviewedAt | date: 'medium' }}
+                </p>
+              </div>
+            }
+          </div>
+
+          @if (error()) {
+            <p class="form-error">{{ error() }}</p>
+          }
+        </div>
+      }
+
+      <div class="modal-actions">
+        <button class="secondary-button" type="button" (click)="closeDetailOverlay()">
+          Close
+        </button>
+        <button
+          class="danger-button"
+          type="button"
+          (click)="retractComplaintFromDetail()"
+          [disabled]="deleting() !== null"
+        >
+          {{ deleting() !== null ? 'Deleting...' : '🗑️ Retract' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Dismiss Decision Modal (Admin View) -->
+@if (showDismissDecisionModal() && isAdmin()) {
+  <div class="modal-overlay confirmation-overlay" (click)="closeDismissDecisionModal()" role="dialog" aria-modal="true">
+    <div class="modal modal-compact" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Dismiss Report</h2>
+        <button
+          class="icon-button"
+          type="button"
+          (click)="closeDismissDecisionModal()"
+          aria-label="Close"
+        >
+          ×
+        </button>
+      </div>
+
+      <p class="modal-text">
+        Enter a resolution decision before dismissing this complaint.
+      </p>
+
+      <textarea
+        class="dismiss-decision-input"
+        rows="4"
+        [value]="dismissDecision()"
+        (input)="dismissDecision.set($any($event.target).value)"
+        placeholder="Write the reason for dismissal..."
+      ></textarea>
+
+      @if (error()) {
+        <p class="form-error">{{ error() }}</p>
+      }
+
+      <div class="modal-actions">
+        <button class="secondary-button" type="button" (click)="closeDismissDecisionModal()">
+          Cancel
+        </button>
+        <button
+          class="danger-button"
+          type="button"
+          (click)="dismissComplaint()"
+          [disabled]="dismissingComplaintId() !== null"
+        >
+          {{ dismissingComplaintId() !== null ? 'Dismissing...' : 'Confirm Dismiss' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

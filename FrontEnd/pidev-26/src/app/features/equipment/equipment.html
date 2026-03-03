@@ -209,20 +209,6 @@
               required
             />
           </div>
-
-          <div class="form-field">
-            <label for="equipment-status">Status</label>
-            <select
-              id="equipment-status"
-              name="status"
-              [(ngModel)]="newEquipment.status"
-              required
-            >
-              <option value="AVAILABLE">Available</option>
-              <option value="MAINTENANCE">Maintenance</option>
-              <option value="RESERVED">Reserved</option>
-            </select>
-          </div>
         </div>
 
         <p class="form-error" *ngIf="formError">{{ formError }}</p>

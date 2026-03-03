@@ -23,6 +23,19 @@ export const routes: Routes = [
         loadComponent: () => import('./features/profile/profile').then((m) => m.Profile),
       },
       {
+        path: 'careteam',
+        title: 'Care Team',
+        canMatch: [roleGuard(['ROLE_PATIENT'])],
+        loadComponent: () =>
+          import('./features/complaint/careteam/careteam').then((m) => m.Careteam),
+      },
+      {
+        path: 'complaint',
+        title: 'My Reports',
+        canMatch: [roleGuard(['ROLE_PATIENT', 'ROLE_ADMIN'])],
+        loadComponent: () => import('./features/complaint/complaint').then((m) => m.Complaint),
+      },
+      {
         path: 'equipment',
         canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
         loadComponent: () => import('./features/equipment/equipment').then((m) => m.Equipment),

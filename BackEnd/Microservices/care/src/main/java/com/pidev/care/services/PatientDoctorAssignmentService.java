@@ -49,4 +49,8 @@ public class PatientDoctorAssignmentService implements IService<PatientDoctorAss
     public List<PatientDoctorAssignment> getByDoctorId(Long doctorId) {
         return patientDoctorAssignmentRepository.findByDoctorId(doctorId);
     }
+
+    public PatientDoctorAssignment getByPatientId(Long patientId) {
+        return patientDoctorAssignmentRepository.findByPatientId(patientId);
+    }
 }
