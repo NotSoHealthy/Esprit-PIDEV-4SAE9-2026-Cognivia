@@ -242,4 +242,9 @@ public class TestResultService {
     public List<TestResult> getResultsByPatientId(Long patientId) {
         return testResultRepository.findByPatientId(patientId);
     }
+
+    public TestResult getResultByAssignmentId(Long assignmentId) {
+        return testResultRepository.findByAssignmentId(assignmentId)
+                .orElse(null); // Return null instead of throwing if no result yet
+    }
 }

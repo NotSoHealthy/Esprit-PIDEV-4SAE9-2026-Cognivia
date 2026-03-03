@@ -1,5 +1,5 @@
 <#import "template.ftl" as layout>
-<@layout.registrationLayout displayInfo=social.displayInfo showAnotherWayIfPresent=true bodyClass="login-page">
+<@layout.registrationLayout displayInfo=((social.displayInfo)?? && social.displayInfo) showAnotherWayIfPresent=true bodyClass="login-page">
     <#if section = "header">
         ${msg("loginTitleHtml",(realm.displayNameHtml!''))}
     <#elseif section = "form">

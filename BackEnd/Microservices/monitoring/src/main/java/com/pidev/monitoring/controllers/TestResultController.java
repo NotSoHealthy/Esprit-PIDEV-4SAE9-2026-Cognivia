@@ -35,4 +35,9 @@ public class TestResultController {
     public TestResult getResultById(@PathVariable Long id) {
         return testResultService.getResultById(id);
     }
+
+    @GetMapping("/assignment/{assignmentId}")
+    public TestResult getResultByAssignment(@PathVariable Long assignmentId) {
+        return testResultService.getResultByAssignmentId(assignmentId);
+    }
 }

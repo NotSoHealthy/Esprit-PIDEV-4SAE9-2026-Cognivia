@@ -12,4 +12,6 @@ public interface TestResultRepository extends JpaRepository<TestResult, Long> {
     List<TestResult> findTop5ByPatientIdOrderByTakenAtDesc(Long patientId);
 
     List<TestResult> findAllByPatientIdAndTakenAtAfterOrderByTakenAtDesc(Long patientId, java.time.LocalDateTime date);
+
+    java.util.Optional<TestResult> findByAssignmentId(Long assignmentId);
 }
