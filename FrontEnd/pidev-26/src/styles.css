@@ -1,6 +1,46 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import 'tailwindcss';
+
+@theme {
+  --color-cognivia-blue: #6BAED6;
+  --color-cognivia-teal: #4CB3A3;
+  --color-cognivia-bg: #F5F5F5;
+  --color-cognivia-slate: #6E7580;
+  --color-cognivia-coral: #F1A9A0;
+
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-gradient-flow: gradient-flow 15s ease infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-20px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 /*
   Josh's Custom CSS Reset
   https://www.joshwcomeau.com/css/custom-css-reset/
