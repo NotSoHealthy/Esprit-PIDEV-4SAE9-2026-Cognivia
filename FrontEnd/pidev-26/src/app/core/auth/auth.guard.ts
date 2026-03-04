@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { CanMatchFn, Router } from '@angular/router';
+import { CanActivateFn, CanMatchFn, Router } from '@angular/router';
 
 import { KeycloakService } from './keycloak.service';
 
@@ -8,6 +8,13 @@ export const authGuard: CanMatchFn = () => {
   const keycloak = inject(KeycloakService);
 
   return keycloak.isLoggedIn();
+};
+
+export const homeRedirectGuard: CanActivateFn = () => {
+  const router = inject(Router);
+  const keycloak = inject(KeycloakService);
+
+  return keycloak.isLoggedIn() ? router.parseUrl('/dashboard') : true;
 };
 
 export const roleGuard = (roles: string[]): CanMatchFn => {

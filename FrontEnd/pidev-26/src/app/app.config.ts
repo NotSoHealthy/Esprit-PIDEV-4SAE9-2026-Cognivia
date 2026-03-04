@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, importProvidersFrom, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 
@@ -9,7 +9,10 @@ import { provideTranslateService, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader, provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 
 import { API_BASE_URL } from './core/api/api.tokens';
+import { IMGBB_API_KEY } from './core/media/imgbb.tokens';
+import { GEMINI_API_KEY, GEMINI_MODEL } from './core/ai/gemini.tokens';
 import { environment } from '../environments/environment';
+
 import { provideNzIcons } from 'ng-zorro-antd/icon';
 import {
   AppstoreOutline,
@@ -22,7 +25,6 @@ import {
   FileTextOutline,
   HeartOutline,
   HeartFill,
-  MoreOutline,
   PlusOutline,
   MinusOutline,
   PictureOutline,
@@ -38,6 +40,9 @@ import {
   LoadingOutline,
   EnvironmentOutline,
   PhoneOutline,
+  ClearOutline,
+  PlusCircleOutline,
+  CalendarOutline,
   DislikeOutline,
   LikeFill,
   DislikeFill,
@@ -52,6 +57,7 @@ import {
   FrownOutline,
   FrownFill,
   AlertFill,
+  MoreOutline,
   CheckCircleFill,
   ProfileOutline,
   SettingOutline,
@@ -90,7 +96,6 @@ import {
   LineChartOutline,
   WarningOutline,
   FileSearchOutline,
-  CalendarOutline,
   ClockCircleOutline,
   RobotOutline,
   CoffeeOutline,
@@ -98,18 +103,54 @@ import {
   LikeOutline,
   SaveOutline,
 
+  ContainerOutline,
+  ShopOutline,
 } from '@ant-design/icons-angular/icons';
+
+// ✅ ADD THESE
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideAnimations(),
     provideRouter(routes),
+
     {
       provide: API_BASE_URL,
-      useValue: environment.apiBaseUrl,
+      useValue: (() => {
+        const runtime = (globalThis as any)?.__env ?? null;
+        const v = runtime?.apiBaseUrl;
+        return (typeof v === 'string' && v.trim()) || environment.apiBaseUrl;
+      })(),
     },
+    {
+      provide: IMGBB_API_KEY,
+      useValue: (() => {
+        const runtime = (globalThis as any)?.__env ?? null;
+        const v = runtime?.imgbbApiKey;
+        return (typeof v === 'string' && v.trim()) || environment.imgbbApiKey;
+      })(),
+    },
+    {
+      provide: GEMINI_API_KEY,
+      useValue: (() => {
+        const runtime = (globalThis as any)?.__env ?? null;
+        const v = runtime?.geminiApiKey;
+        return (typeof v === 'string' && v.trim()) || environment.geminiApiKey;
+      })(),
+    },
+    {
+      provide: GEMINI_MODEL,
+      useValue: (() => {
+        const runtime = (globalThis as any)?.__env ?? null;
+        const v = runtime?.geminiModel;
+        return (typeof v === 'string' && v.trim()) || environment.geminiModel;
+      })(),
+    },
+
     provideHttpClient(withInterceptors([authInterceptor])),
+
     provideNzIcons([
       AppstoreOutline,
       UserOutline,
@@ -137,6 +178,10 @@ export const appConfig: ApplicationConfig = {
       LoadingOutline,
       EnvironmentOutline,
       PhoneOutline,
+      SearchOutline,
+      PlusOutline,
+      EditOutline,
+      DeleteOutline,
       LikeOutline,
       DislikeOutline,
       LikeFill,
@@ -145,8 +190,6 @@ export const appConfig: ApplicationConfig = {
       ArrowRightOutline,
       ArrowLeftOutline,
       ClockCircleOutline,
-      DeleteOutline,
-      EditOutline,
       PushpinOutline,
       PushpinFill,
       HeartOutline,
@@ -189,31 +232,25 @@ export const appConfig: ApplicationConfig = {
       RobotFill,
       FormOutline,
       HistoryOutline,
-      PlusOutline,
-      AlertOutline,
-      CheckCircleOutline,
       InfoCircleOutline,
       RightOutline,
       ToolOutline,
-      SearchOutline,
-      EditOutline,
-      DeleteOutline,
       InboxOutline,
       BookOutline,
       DownloadOutline,
-      ArrowLeftOutline,
       PlayCircleOutline,
-      LineChartOutline,
       MinusOutline,
-      WarningOutline,
       FileSearchOutline,
       CalendarOutline,
-      ClockCircleOutline,
-      RobotOutline,
       CoffeeOutline,
       StopOutline,
       SaveOutline,
+      ContainerOutline,
+      ShopOutline,
     ]),
+
+    // ✅ IMPORTANT: make NzModalService available
+    importProvidersFrom(NzModalModule),
     provideTranslateService({
       defaultLanguage: 'en',
       loader: {

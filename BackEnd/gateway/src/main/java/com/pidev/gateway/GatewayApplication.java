@@ -32,6 +32,12 @@ public class GatewayApplication {
         @Bean
         public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
                 return builder.routes()
+                                // ===== APPOINTMENTS : /appointments/** -> lb://APPOINTMENT-SERVICE with
+                                // RewritePath to /api/appointments/**
+                                .route("appointment-service",
+                                                r -> r.path("/appointments/**")
+                                                                .filters(f -> f.stripPrefix(1))
+                                                                .uri("lb://APPOINTMENT-SERVICE"))
                                 .route("care",
                                                 r -> r.path("/care/**")
                                                                 .filters(f -> f.stripPrefix(1))
@@ -43,6 +49,7 @@ public class GatewayApplication {
                                 .route("posts",
                                                 r -> r.path("/posts/**")
                                                                 .uri("lb://FORUM-SERVICE"))
+
                                 .route("pharmacy",
                                                 r -> r.path("/pharmacy/**")
                                                                 .filters(f -> f.stripPrefix(1))
@@ -54,6 +61,11 @@ public class GatewayApplication {
                                                 r -> r.path("/games/**")
                                                                 .filters(f -> f.stripPrefix(1))
                                                                 .uri("lb://games"))
+                                .route("SurveillanceAndEquipment",
+                                                r -> r.path("/Equipment/**")
+                                                                .filters(f -> f.stripPrefix(1))
+                                                                .uri("lb://SurveillanceAndEquipment"))
                                 .build();
+
         }
 }

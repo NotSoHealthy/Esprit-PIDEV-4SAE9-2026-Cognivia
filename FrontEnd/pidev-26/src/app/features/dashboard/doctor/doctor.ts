@@ -1,3 +1,8 @@
+
+import { TasksPage } from '../../tasks/tasks.page';
+
+
+
 import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -13,7 +18,7 @@ import { SignatureModalComponent } from '../../../shared/components/signature-mo
 @Component({
   selector: 'app-doctor',
   standalone: true,
-  imports: [CommonModule, NzIconModule, FormsModule, SignatureModalComponent],
+  imports: [CommonModule, NzIconModule, FormsModule, SignatureModalComponent, TasksPage],
   templateUrl: './doctor.html',
   styleUrl: './doctor.css',
 })

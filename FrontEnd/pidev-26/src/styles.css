@@ -1,4 +1,21 @@
 @import 'tailwindcss';
+@import 'quill/dist/quill.snow.css';
+@import 'tui-image-editor/dist/tui-image-editor.css';
+@import 'tui-color-picker/dist/tui-color-picker.css';
+@import 'leaflet/dist/leaflet.css';
+@import 'leaflet-draw/dist/leaflet.draw.css';
+
+/* TUI Image Editor overlay tweaks (rendered via Angular CDK Overlay). */
+.tui-image-editor-overlay-backdrop {
+  background: transparent;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+/* Hide the library header only inside our overlay panel. */
+.tui-image-editor-overlay-panel .tui-image-editor-header {
+  display: none !important;
+}
 
 :root {
   /* Global Theme (Cognitive Tests) */
@@ -31,11 +48,11 @@
 }
 
 @theme {
-  --color-cognivia-blue: #6BAED6;
-  --color-cognivia-teal: #4CB3A3;
-  --color-cognivia-bg: #F5F5F5;
-  --color-cognivia-slate: #6E7580;
-  --color-cognivia-coral: #F1A9A0;
+  --color-cognivia-blue: #6baed6;
+  --color-cognivia-teal: #4cb3a3;
+  --color-cognivia-bg: #f5f5f5;
+  --color-cognivia-slate: #6e7580;
+  --color-cognivia-coral: #f1a9a0;
 
   --animate-float: float 6s ease-in-out infinite;
   --animate-gradient-flow: gradient-flow 15s ease infinite;
@@ -85,6 +102,10 @@
   margin-right: 1rem !important;
 }
 
+th {
+  user-select: none;
+}
+
 *,
 *::before,
 *::after {
@@ -105,7 +126,15 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   background-color: var(--bg-app);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
   color: var(--text-main);
 }
 

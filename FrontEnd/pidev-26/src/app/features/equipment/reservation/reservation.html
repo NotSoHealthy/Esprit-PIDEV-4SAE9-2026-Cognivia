@@ -1,0 +1,337 @@
+<div class="reservation-page">
+  <div class="page-header">
+    <button class="back-button" type="button" (click)="goBackToEquipment()">
+      <nz-icon nzType="arrow-left" nzTheme="outline"></nz-icon>
+      <span>Back to Equipment</span>
+    </button>
+    <button class="assign-button" type="button" (click)="openAssignModal()" [disabled]="loading">
+      <nz-icon nzType="user-add" nzTheme="outline"></nz-icon>
+      <span>Assign</span>
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <nz-icon nzType="loading" nzTheme="outline"></nz-icon>
+    <p>Loading reservations...</p>
+  </div>
+
+  <div *ngIf="!loading && equipment" class="equipment-header">
+    <div class="equipment-header-content">
+      <div class="equipment-image-container">
+        <img 
+          *ngIf="equipment.imageUrl" 
+          [src]="equipment.imageUrl" 
+          [alt]="equipment.name"
+          class="equipment-header-image"
+        />
+        <div *ngIf="!equipment.imageUrl" class="equipment-image-placeholder">
+          <nz-icon nzType="picture" nzTheme="outline"></nz-icon>
+        </div>
+      </div>
+      <div class="equipment-info">
+        <h2>{{ equipment.name }}</h2>
+        <p class="equipment-description">{{ equipment.description }}</p>
+        <div class="equipment-meta">
+          <div class="meta-item">
+            <nz-icon nzType="heart" nzTheme="outline"></nz-icon>
+            <span class="condition-badge">Condition: {{ equipment.conditionScore }}</span>
+          </div>
+          <div class="meta-item">
+            <nz-icon nzType="tag" nzTheme="outline"></nz-icon>
+            <span 
+              class="status-badge"
+              [ngClass]="{
+                'status-available': equipment.status === 'AVAILABLE',
+                'status-maintenance': equipment.status === 'MAINTENANCE',
+                'status-unavailable': equipment.status === 'UNAVAILABLE'
+              }"
+            >
+              {{ equipment.status }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!loading" class="reservations-container">
+    <div *ngIf="reservations.length === 0" class="empty-inline">
+      No reservations yet.
+    </div>
+    <div class="reservations-grid" *ngIf="reservations.length > 0">
+      <div 
+        *ngFor="let reservation of reservations" 
+        class="reservation-card"
+        [ngClass]="getStatusClass(reservation.status)"
+      >
+        <div class="card-header">
+          <div class="card-title">
+            <nz-icon nzType="user" nzTheme="outline"></nz-icon>
+            <h3>{{ getPatientName(reservation.patientId) }}</h3>
+          </div>
+          <div class="card-actions">
+            <span class="status-badge-card" [ngClass]="getStatusClass(reservation.status)">
+              {{ reservation.status }}
+            </span>
+            <div class="dropdown-container">
+              <button
+                type="button"
+                class="card-menu-button"
+                (click)="toggleDropdown(reservation.id)"
+                [attr.aria-expanded]="openDropdownId === reservation.id"
+                aria-label="Reservation actions"
+              >
+                <nz-icon nzType="ellipsis" nzTheme="outline"></nz-icon>
+              </button>
+              <div
+                class="dropdown-menu"
+                *ngIf="openDropdownId === reservation.id"
+                (click)="$event.stopPropagation()"
+              >
+                <button
+                  type="button"
+                  class="dropdown-item delete-item"
+                  (click)="deleteReservation(reservation); closeDropdown()"
+                >
+                  <nz-icon nzType="delete" nzTheme="outline"></nz-icon>
+                  <span>Delete</span>
+                </button>
+                <button
+                  type="button"
+                  class="dropdown-item edit-item"
+                  (click)="openEditModal(reservation); closeDropdown()"
+                >
+                  <nz-icon nzType="edit" nzTheme="outline"></nz-icon>
+                  <span>Edit</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="reservation-timeline">
+            <div class="timeline-item start">
+              <div class="timeline-dot"></div>
+              <div class="timeline-content">
+                <span class="timeline-label">Reserved On</span>
+                <span class="timeline-date">{{ formatDate(reservation.reservationDate) }}</span>
+              </div>
+            </div>
+
+            <div class="timeline-connector"></div>
+
+            <div class="timeline-item end">
+              <div class="timeline-dot"></div>
+              <div class="timeline-content">
+                <span class="timeline-label">Return Date</span>
+                <span class="timeline-date">{{ formatDate(reservation.returnDate) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="duration-badge">
+            <nz-icon nzType="clock-circle" nzTheme="outline"></nz-icon>
+            <span>{{ getReservationDuration(reservation) }}</span>
+          </div>
+
+          <div class="assigned-by">
+            <p class="assigned-label">Assigned By</p>
+            <p class="assigned-value">{{ getAssignerName(reservation) }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" *ngIf="isAssignModalOpen" (click)="closeAssignModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Assign Reservation</h2>
+        <button class="icon-button" type="button" (click)="closeAssignModal()">×</button>
+      </div>
+
+      <div class="modal-body">
+        <div *ngIf="assignStep === 'patient'">
+          <div class="patient-search">
+            <input
+              type="text"
+              placeholder="Search patients by name"
+              [(ngModel)]="patientSearch"
+            />
+          </div>
+
+          <div *ngIf="isLoadingPatients" class="modal-loading">Loading patients...</div>
+
+          <div *ngIf="!isLoadingPatients && filteredPatients.length === 0" class="modal-empty">
+            No patients found.
+          </div>
+
+          <p class="patient-label" *ngIf="!isLoadingPatients && filteredPatients.length > 0"><nz-icon nzType="user" nzTheme="outline"></nz-icon>Patients:</p>
+          <div class="patient-list" *ngIf="!isLoadingPatients && filteredPatients.length > 0">
+            <button
+              type="button"
+              class="patient-item"
+              *ngFor="let patient of filteredPatients; index as i"
+              (click)="selectPatient(patient)"
+              [class.selected]="selectedPatient?.id === patient.id"
+            >
+              <span class="patient-index">{{ i + 1 }}.</span>
+              <span class="patient-name">{{ patient.firstName }} {{ patient.lastName }}</span>
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="assignStep === 'dates'">
+          <div class="form-row">
+            <div class="form-field">
+              <label for="reservationDate">Reservation Date *</label>
+              <nz-date-picker
+                id="reservationDate"
+                [(ngModel)]="reservationDate"
+                (ngModelChange)="clearAssignError()"
+                nzPlaceHolder="Select date"
+              ></nz-date-picker>
+            </div>
+            <div class="form-field">
+              <label for="returnDate">Return Date *</label>
+              <nz-date-picker
+                id="returnDate"
+                [(ngModel)]="returnDate"
+                (ngModelChange)="clearAssignError()"
+                nzPlaceHolder="Select date"
+              ></nz-date-picker>
+            </div>
+          </div>
+
+          <div *ngIf="getAssignValidationError() as validationError" class="error-message">
+            <nz-icon nzType="exclamation-circle" nzTheme="fill"></nz-icon>
+            <span>{{ validationError }}</span>
+          </div>
+          <div *ngIf="assignError" class="error-message">
+            <nz-icon nzType="exclamation-circle" nzTheme="fill"></nz-icon>
+            <span>{{ assignError }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button
+          type="button"
+          class="secondary-button"
+          *ngIf="assignStep === 'dates'"
+          (click)="goToPatientStep()"
+        >
+          Back
+        </button>
+        <button
+          type="button"
+          class="primary-button"
+          *ngIf="assignStep === 'patient'"
+          [disabled]="!selectedPatient"
+          (click)="goToDateStep()"
+        >
+          Next
+        </button>
+        <button
+          type="button"
+          class="primary-button"
+          *ngIf="assignStep === 'dates'"
+          [disabled]="!!getAssignValidationError() || isAssigning"
+          (click)="assignReservation()"
+        >
+          {{ isAssigning ? 'Assigning...' : 'Assign' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Reservation Modal -->
+  <div class="modal-overlay" *ngIf="isEditModalOpen" (click)="closeEditModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Edit Reservation</h2>
+        <button class="icon-button" type="button" (click)="closeEditModal()">×</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Patient Section -->
+        <div class="section-title">Select Patient</div>
+        <div class="patient-search">
+          <input
+            type="text"
+            placeholder="Search patients..."
+            [(ngModel)]="editPatientSearch"
+            (ngModelChange)="clearEditError()"
+            class="search-input"
+          />
+        </div>
+
+        <div class="patient-list">
+          <div
+            *ngFor="let patient of editFilteredPatients"
+            (click)="selectEditPatient(patient)"
+            [ngClass]="{ 'selected': editSelectedPatient?.id === patient.id }"
+            class="patient-item"
+          >
+            <nz-icon nzType="user" nzTheme="outline"></nz-icon>
+            <div class="patient-item-info">
+              <p class="patient-item-name">{{ patient.firstName }} {{ patient.lastName }}</p>
+              <p class="patient-item-id">ID: {{ patient.id }}</p>
+            </div>
+            <nz-icon *ngIf="editSelectedPatient?.id === patient.id" nzType="check" nzTheme="outline" class="check-icon"></nz-icon>
+          </div>
+        </div>
+
+        <!-- Dates Section -->
+        <div class="section-title">Edit Dates</div>
+        <div class="date-inputs">
+          <div class="date-picker-group">
+            <label>Reservation Date</label>
+            <nz-date-picker
+              [(ngModel)]="editReservationDate"
+              (ngModelChange)="clearEditError()"
+              nzPlaceHolder="Select date"
+            ></nz-date-picker>
+          </div>
+
+          <div class="date-picker-group">
+            <label>Return Date</label>
+            <nz-date-picker
+              [(ngModel)]="editReturnDate"
+              (ngModelChange)="clearEditError()"
+              nzPlaceHolder="Select date"
+            ></nz-date-picker>
+          </div>
+        </div>
+
+        <!-- Validation and error messages -->
+        <div *ngIf="getEditValidationError() as validationError" class="error-message">
+          <nz-icon nzType="exclamation-circle" nzTheme="fill"></nz-icon>
+          <span>{{ validationError }}</span>
+        </div>
+        <div *ngIf="editError" class="error-message">
+          <nz-icon nzType="exclamation-circle" nzTheme="fill"></nz-icon>
+          <span>{{ editError }}</span>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="closeEditModal()"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="primary-button"
+          [disabled]="!editSelectedPatient || !!getEditValidationError() || isEditing"
+          (click)="updateReservation()"
+        >
+          {{ isEditing ? 'Updating...' : 'Edit' }}
+        </button>
+      </div>
+    </div>
+  </div>

@@ -29,7 +29,7 @@ import { StreakFlameComponent } from '../../shared/components/streak-flame/strea
     NzIconModule,
     NzDropdownModule,
     NzMenuModule,
-    StreakFlameComponent
+    StreakFlameComponent,
   ],
   templateUrl: './app-layout.html',
   styleUrl: './app-layout.css',
@@ -49,12 +49,20 @@ export class AppLayout implements OnInit {
       roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_PATIENT', 'ROLE_ADMIN', 'ROLE_PHARMACY'],
     },
     {
-      link: '/patient-management',
-      label: 'Patient Management',
-      icon: 'user-add',
+      link: '/tasks',
+      label: 'Tasks',
+      icon: 'check',
+      roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_PATIENT', 'ROLE_ADMIN'],
+    },
+    {
+      link: '/appointments',
+      label: 'Appointments',
+      icon: 'calendar',
       roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'],
     },
     {
+      // ✅ Patient removed if you want only doctor/caregiver/admin
+
       link: '/admin/tests',
       label: 'Tests',
       icon: 'form',
@@ -71,6 +79,11 @@ export class AppLayout implements OnInit {
       label: 'Prescriptions',
       icon: 'file-text',
       roles: ['ROLE_DOCTOR', 'ROLE_PHARMACY', 'ROLE_ADMIN', 'ROLE_CAREGIVER'],
+    }, {
+      link: '/calendar',
+      label: 'Calendar',
+      icon: 'calendar',
+      roles: ['ROLE_CAREGIVER'],
     },
     {
       link: '/user/tests',
@@ -108,7 +121,20 @@ export class AppLayout implements OnInit {
       icon: 'warning',
       roles: ['ROLE_ADMIN'],
     },
+    {
+      link: '/equipment',
+      label: 'Equipment',
+      icon: 'shop',
+      roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'],
+    },
+    {
+      link: '/complaint',
+      label: 'Reports',
+      icon: 'container',
+      roles: ['ROLE_ADMIN'],
+    },
   ];
+
   currentRouteLabel = '';
   streakCount = 0;
   ngOnInit(): void {
@@ -131,20 +157,22 @@ export class AppLayout implements OnInit {
       this.fetchStreak();
 
       // Also poll every 30 seconds so the flame stays in sync
-      interval(30_000).pipe(
-        takeUntilDestroyed(this.destroyRef),
-        switchMap(() => {
-          const pid = this.keycloak.getUserId();
-          return pid ? this.streakService.getStreak(pid) : [];
-        }),
-      ).subscribe(s => this.streakCount = s.currentStreak);
+      interval(30_000)
+        .pipe(
+          takeUntilDestroyed(this.destroyRef),
+          switchMap(() => {
+            const pid = this.keycloak.getUserId();
+            return pid ? this.streakService.getStreak(pid) : [];
+          }),
+        )
+        .subscribe((s) => (this.streakCount = s.currentStreak));
     }
   }
 
   private fetchStreak(): void {
     const patientId = this.keycloak.getUserId();
     if (patientId) {
-      this.streakService.getStreak(patientId).subscribe(s => {
+      this.streakService.getStreak(patientId).subscribe((s) => {
         this.streakCount = s.currentStreak;
       });
     }
@@ -167,13 +195,13 @@ export class AppLayout implements OnInit {
       return;
     }
 
-    // Fallback: map URL segment to configured nav labels.
     const pathOnly = this.router.url.split('?')[0]?.split('#')[0] ?? '';
     const firstSegment = pathOnly.split('/').filter(Boolean)[0] ?? '';
     const routePath = firstSegment ? `/${firstSegment}` : '';
     const matchingRoute = this.routes.find((route) => route.link === routePath);
 
-    this.currentRouteLabel = matchingRoute?.label ?? this.formatRouteLabel(this.router.url);
+    this.currentRouteLabel =
+      matchingRoute?.label ?? this.formatRouteLabel(this.router.url);
   }
 
   private formatRouteLabel(url: string): string {

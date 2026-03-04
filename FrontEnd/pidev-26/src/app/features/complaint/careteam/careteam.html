@@ -1,0 +1,204 @@
+<section class="careteam-page" aria-labelledby="careteam-title">
+	<header class="careteam-header">
+		<h1 id="careteam-title" class="careteam-title">My Care Team</h1>
+		<p class="careteam-subtitle">Your assigned doctor and caregivers</p>
+	</header>
+
+	@if (loading()) {
+		<div class="careteam-state" role="status" aria-live="polite">Loading your care team...</div>
+	} @else if (error()) {
+		<div class="careteam-state careteam-error" role="alert">{{ error() }}</div>
+	} @else {
+		<div class="careteam-grid">
+			<article class="careteam-card" aria-labelledby="doctor-card-title">
+				<div class="card-header">
+					<h2 id="doctor-card-title">Assigned Doctor</h2>
+					<span class="role-badge">Doctor</span>
+				</div>
+
+				@if (doctor()) {
+					<div class="person-name">{{ getDoctorFullName() || 'Unknown Doctor' }}</div>
+					<dl class="person-details">
+						<div class="detail-row">
+							<dt>Specialty</dt>
+							<dd>{{ doctor()!.specialty || 'Not specified' }}</dd>
+						</div>
+						<div class="detail-row">
+							<dt>License Number</dt>
+							<dd>{{ doctor()!.licenseNumber || 'Not specified' }}</dd>
+						</div>
+					</dl>
+					<button
+						type="button"
+						class="report-button"
+						(click)="openReportModal(doctor()!.id, UserRole.ROLE_DOCTOR, getDoctorFullName())"
+					>
+						<span class="button-label-with-icon">
+							<svg class="careteam-button-icon" viewBox="0 0 24 24" aria-hidden="true">
+								<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"></path>
+							</svg>
+							Report
+						</span>
+					</button>
+				} @else {
+					<p class="empty-text">No doctor is assigned to your profile yet.</p>
+				}
+			</article>
+
+			<article class="careteam-card" aria-labelledby="caregiver-card-title">
+				<div class="card-header">
+					<h2 id="caregiver-card-title">Caregivers</h2>
+					<span class="role-badge">Caregiver</span>
+				</div>
+
+				@if (caregivers().length > 0) {
+					<ul class="caregiver-list">
+						@for (caregiver of caregivers(); track caregiver.id) {
+							<li class="caregiver-item">
+								<div>
+									<p class="person-name">{{ getCaregiverFullName(caregiver) || 'Unknown Caregiver' }}</p>
+									<p class="caregiver-type">{{ caregiver.type || 'Type not specified' }}</p>
+								</div>
+								<button
+									type="button"
+									class="report-button"
+									(click)="openReportModal(caregiver.id, UserRole.ROLE_CAREGIVER, getCaregiverFullName(caregiver))"
+								>
+									<span class="button-label-with-icon">
+										<svg class="careteam-button-icon" viewBox="0 0 24 24" aria-hidden="true">
+											<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"></path>
+										</svg>
+										Report
+									</span>
+								</button>
+							</li>
+						}
+					</ul>
+				} @else {
+					<p class="empty-text">No caregivers are linked to your profile yet.</p>
+				}
+			</article>
+		</div>
+	}
+
+	<div class="careteam-actions">
+		<button type="button" class="view-reports-button" routerLink="/complaint">
+			<span class="button-label-with-icon">
+				<svg class="careteam-button-icon" viewBox="0 0 24 24" aria-hidden="true">
+					<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm0-4H8V8h8v2z"></path>
+				</svg>
+				View Reports
+			</span>
+		</button>
+	</div>
+
+	<!-- Report Modal -->
+	@if (isReportModalOpen()) {
+		<div class="modal-overlay" (click)="closeReportModal()">
+			<div class="modal-content" (click)="$event.stopPropagation()">
+				<div class="modal-header">
+					<h2>Report {{ reportTargetName() }}</h2>
+					<button type="button" class="close-button" (click)="closeReportModal()">×</button>
+				</div>
+
+				<div class="modal-body">
+					@if (reportError()) {
+						<div class="error-message">{{ reportError() }}</div>
+					}
+
+					<div class="form-field">
+						<label for="complaint-category">Category *</label>
+						<select
+							id="complaint-category"
+							[(ngModel)]="reportCategory"
+							class="form-select"
+						>
+							<option [value]="null">Select a category</option>
+							<option [value]="ComplaintCategory.PROFESSIONAL_MISCONDUCT">
+								Professional Misconduct
+							</option>
+							<option [value]="ComplaintCategory.NEGLIGENCE">Negligence</option>
+							<option [value]="ComplaintCategory.RUDE_BEHAVIOR">Rude Behavior</option>
+							<option [value]="ComplaintCategory.DELAY_IN_SERVICE">Delay in Service</option>
+							<option [value]="ComplaintCategory.MEDICATION_ERROR">Medication Error</option>
+							<option [value]="ComplaintCategory.OTHER">Other</option>
+						</select>
+					</div>
+
+					@if (reportCategory() === ComplaintCategory.OTHER) {
+						<div class="form-field">
+							<label for="complaint-other-category">Please describe the issue *</label>
+							<input
+								type="text"
+								id="complaint-other-category"
+								[value]="reportCustomCategory()"
+								(input)="onCustomCategoryChange($any($event).target.value)"
+								class="form-input"
+								placeholder="Describe the type of issue..."
+								maxlength="100"
+							/>
+							<span class="char-count">
+								{{ reportCustomCategory().length }}/100
+							</span>
+						</div>
+					}
+
+					<div class="form-field">
+						<label for="complaint-priority">Priority *</label>
+						<select
+							id="complaint-priority"
+							[(ngModel)]="reportPriority"
+							class="form-select"
+						>
+							<option [value]="null">Select priority level</option>
+							<option [value]="ComplaintPriority.LOW">Low</option>
+							<option [value]="ComplaintPriority.MEDIUM">Medium</option>
+							<option [value]="ComplaintPriority.HIGH">High</option>
+							<option [value]="ComplaintPriority.URGENT">Urgent</option>
+						</select>
+					</div>
+
+					<div class="form-field">
+						<label for="complaint-description">Description *</label>
+						<textarea
+							id="complaint-description"
+							[value]="reportDescription()"
+							(input)="onDescriptionChange($any($event).target.value)"
+							class="form-textarea"
+							rows="5"
+							placeholder="Describe the issue..."
+						></textarea>
+					</div>
+
+					<div class="form-field">
+						<label for="complaint-evidence">Evidence (Optional)</label>
+						<input
+							type="file"
+							id="complaint-evidence"
+							accept="image/*"
+							(change)="onEvidenceSelected($event)"
+							class="form-file"
+						/>
+						@if (reportEvidencePreview()) {
+							<img [src]="reportEvidencePreview()" alt="Evidence preview" class="evidence-preview" />
+						}
+					</div>
+				</div>
+
+				<div class="modal-footer">
+					<button type="button" class="cancel-button" (click)="closeReportModal()">
+						Cancel
+					</button>
+					<button
+						type="button"
+						class="submit-button"
+						(click)="submitReport()"
+						[disabled]="isSubmittingReport()"
+					>
+						{{ isSubmittingReport() ? 'Submitting...' : 'Submit Report' }}
+					</button>
+				</div>
+			</div>
+		</div>
+	}
+</section>

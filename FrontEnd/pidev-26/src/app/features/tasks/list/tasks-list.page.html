@@ -1,0 +1,96 @@
+<div class="tasks-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <h1 class="page-title">Tasks</h1>
+      <p class="page-subtitle">Manage patient care tasks</p>
+    </div>
+
+    <div class="page-actions">
+      <button class="btn-secondary" type="button" (click)="loadAll()">
+        <span class="btn-icon">⟳</span>
+        Reload
+      </button>
+    </div>
+  </div>
+
+  <!-- Message -->
+  <div class="alert" *ngIf="message">
+    {{ message }}
+  </div>
+
+  <!-- Table Card -->
+  <div class="card" *ngIf="tasks.length > 0">
+    <div class="card-header">
+      <div class="card-title">Tasks List</div>
+      <div class="card-hint">{{ tasks.length }} item(s)</div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="tasks-table">
+        <thead>
+          <tr>
+            <th class="col-id">ID</th>
+            <th>Patient</th>
+            <th>User</th>
+            <th>Task</th>
+            <th class="col-due">Due</th>
+            <th class="col-done">Done</th>
+            <th class="col-actions">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let t of tasks">
+            <td class="cell-muted">
+              <span class="id-pill">#{{ t.id }}</span>
+            </td>
+
+            <td>
+              <span class="meta-pill">
+                <span class="meta-icon">👤</span>
+                Patient {{ t.patientId }}
+              </span>
+            </td>
+
+            <td>
+              <span class="meta-pill">
+                <span class="meta-icon">🧑‍⚕️</span>
+                User {{ t.userId }}
+              </span>
+            </td>
+
+            <td class="task-cell">
+              <div class="task-title">{{ t.task }}</div>
+            </td>
+
+            <td class="cell-muted">
+              <div class="due">
+                {{ t.dueAt | date:'MMM d, y · h:mm a' }}
+              </div>
+            </td>
+
+            <td>
+              <span class="status-pill" [class.done]="t.isDone" [class.todo]="!t.isDone">
+                {{ t.isDone ? 'Completed' : 'Pending' }}
+              </span>
+            </td>
+
+            <td class="actions">
+              <button class="icon-btn danger" type="button" (click)="remove(t.id)" title="Delete">
+                🗑
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="tasks.length === 0">
+    <div class="empty-icon">📋</div>
+    <div class="empty-title">No tasks</div>
+    <div class="empty-sub">Click “Reload” or create tasks from the tasks dashboard.</div>
+  </div>
+</div>

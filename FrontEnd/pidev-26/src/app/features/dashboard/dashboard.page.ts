@@ -35,7 +35,7 @@ export class DashboardPage implements OnInit {
         .replace(/^role_/, '');
     const roles = new Set(this.keycloak.getRealmRoles().map(normalize));
 
-    if (roles.has('doctor')) {
+    if (roles.has('doctor') || roles.has('caregiver') || roles.has('admin')) {
       this.dashboardComponent = Doctor;
       return;
     }

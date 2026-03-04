@@ -17,7 +17,10 @@ public class VisitReport {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     private Long id;
+    @Column(columnDefinition = "TEXT")
     private String content;
+    @Enumerated(EnumType.STRING)
+    private ReportStatus status;
     private Instant createdAt;
     private Instant updatedAt;
     private Long visitId;

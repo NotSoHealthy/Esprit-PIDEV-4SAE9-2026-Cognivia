@@ -23,11 +23,8 @@ public class Visit {
     private LocalDate date;
     private Instant createdAt;
     @ManyToOne
-    @com.fasterxml.jackson.annotation.JsonIgnore
     private Caregiver caregiver;
-
     @ManyToOne
-    @com.fasterxml.jackson.annotation.JsonIgnore
     private Patient patient;
     @ManyToOne
     private Doctor doctor;
@@ -37,5 +34,9 @@ public class Visit {
         if (createdAt == null) {
             createdAt = Instant.now();
         }
+        if (status == null) {
+            status = VisitStatus.SCHEDULED;
+        }
     }
+
 }

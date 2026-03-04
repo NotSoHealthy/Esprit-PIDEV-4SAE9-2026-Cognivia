@@ -1,16 +1,42 @@
-<div class="flex flex-col gap-2 rounded-2xl bg-white p-4">
+<div class="flex flex-col gap-2">
   <div class="flex items-center gap-3 mb-4">
     <input
       nz-input
       class="md:max-w-90 rounded-md!"
-      placeholder="Search by date, status, or id"
+      placeholder="Search by date, status, id, or name"
       [(ngModel)]="searchValue"
       (ngModelChange)="applySearch()"
     />
     <button nz-button nzType="default" (click)="resetSearch()" [disabled]="!searchValue">
       Reset
     </button>
+
+    @if (currentUserRole == 'doctor') {
+      <button
+        nz-button
+        nzType="primary"
+        (click)="generateAiAnalysis()"
+        [nzLoading]="isGeneratingAiAnalysis"
+        [disabled]="isGeneratingAiAnalysis || !visits?.length"
+      >
+        AI analysis
+      </button>
+    }
   </div>
+
+  @if (currentUserRole == 'doctor') {
+    @if (aiAnalysisError) {
+      <div class="mb-4 rounded-md border border-red-200 bg-white p-3 text-red-700">
+        {{ aiAnalysisError }}
+      </div>
+    }
+    @if (aiAnalysisText) {
+      <div class="mb-4 rounded-md border border-gray-200 bg-white p-4">
+        <div class="font-semibold mb-2">AI analysis</div>
+        <quill-view [content]="aiAnalysisText" format="html" theme="snow" [sanitize]="true" />
+      </div>
+    }
+  }
 
   <nz-table
     #visitsTable
@@ -22,8 +48,13 @@
   >
     <thead>
       <tr>
-        <th [nzShowSort]="true" [nzSortFn]="sortVisitId">Visit ID</th>
+        @if (currentUserRole == 'admin') {
+          <th [nzShowSort]="true" [nzSortFn]="sortVisitId">Visit ID</th>
+        }
         <th [nzShowSort]="true" [nzSortFn]="sortVisitDate">Scheduled</th>
+        @if (currentUserRole != 'caregiver') {
+          <th>Caregiver</th>
+        }
         <th
           [nzShowSort]="true"
           [nzSortFn]="sortVisitStatus"
@@ -38,12 +69,17 @@
     </thead>
     <tbody>
       @for (visit of visitsTable.data; track getVisitId(visit)) {
-        <tr>
-          <td>#{{ getVisitId(visit) }}</td>
+        <tr (click)="onVisitRowClick(visit)" [class.cursor-pointer]="canOpenReportPage(visit)">
+          @if (currentUserRole == 'admin') {
+            <td>#{{ getVisitId(visit) }}</td>
+          }
           <td>{{ formatDateTime(getVisitDate(visit)) }}</td>
+          @if (currentUserRole != 'caregiver') {
+            <td>{{ getCaregiverName(visit) | titlecase }}</td>
+          }
           <td>
             <nz-tag [nzColor]="getStatusColor(getVisitStatus(visit))">
-              {{ getVisitStatus(visit) || 'UNKNOWN' }}
+              {{ getVisitStatus(visit) || 'UNKNOWN' | titlecase }}
             </nz-tag>
           </td>
         </tr>
