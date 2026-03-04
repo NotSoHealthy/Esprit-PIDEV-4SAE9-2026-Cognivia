@@ -80,6 +80,8 @@ export class Careteam implements OnInit {
       patient: this.careteamService.getPatientById(patientId),
     }).subscribe({
       next: ({ assignment, patient }) => {
+        // Note: assignment.doctor is null because backend doesn't return it.
+        // Doctor relationship needs to be fetched from backend endpoint.
         this.doctor.set(assignment?.doctor ?? null);
         this.caregivers.set(Array.isArray(patient?.caregiverList) ? patient.caregiverList : []);
         this.loading.set(false);
