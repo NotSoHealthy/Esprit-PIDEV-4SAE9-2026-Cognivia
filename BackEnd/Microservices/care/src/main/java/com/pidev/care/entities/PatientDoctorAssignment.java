@@ -21,7 +21,6 @@ public class PatientDoctorAssignment {
     private Instant createdAt;
     private Boolean active;
     @ManyToOne
-    @JsonIgnore
     private Doctor doctor;
     @ManyToOne
     private Patient patient;
