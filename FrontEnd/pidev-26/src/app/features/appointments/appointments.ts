@@ -293,7 +293,7 @@ export class Appointments implements OnInit, AfterViewInit {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="x-apple-disable-message-reformatting" />
   <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
-  <title>Confirmation de Rendez-vous — NephroSpaidi</title>
+  <title>Confirmation de Rendez-vous — cognivia</title>
   <!--[if mso]>
   <noscript>
     <xml><o:OfficeDocumentSettings>
@@ -320,7 +320,7 @@ export class Appointments implements OnInit, AfterViewInit {
 
   <!-- Preheader text (invisible) -->
   <div style="display:none;max-height:0;overflow:hidden;opacity:0;font-size:1px;line-height:1px;color:transparent;">
-    ✅ Votre rendez-vous chez NephroSpaidi est confirmé — Consultez les détails ci-dessous.
+    ✅ Votre rendez-vous chez cognivia est confirmé — Consultez les détails ci-dessous.
   </div>
 
   <!-- Wrapper table -->
@@ -345,7 +345,7 @@ export class Appointments implements OnInit, AfterViewInit {
                     <table role="presentation" cellpadding="0" cellspacing="0">
                       <tr>
                         <td style="background:rgba(255,255,255,0.18);border-radius:8px;padding:6px 10px;display:inline-block;">
-                          <span style="font-size:13px;font-weight:700;color:#ffffff;letter-spacing:.3px;">🩺 NephroSpaidi</span>
+                          <span style="font-size:13px;font-weight:700;color:#ffffff;letter-spacing:.3px;">🩺 cognivia</span>
                         </td>
                       </tr>
                     </table>
@@ -515,10 +515,10 @@ export class Appointments implements OnInit, AfterViewInit {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td valign="middle">
-                    <div style="font-size:13px;font-weight:700;color:#344054;">🩺 NephroSpaidi</div>
+                    <div style="font-size:13px;font-weight:700;color:#344054;">🩺 cognivia</div>
                     <div style="font-size:12px;color:#98a2b3;margin-top:3px;line-height:1.5;">
                       Ceci est un message automatique — merci de ne pas y répondre directement.<br/>
-                      © ${new Date().getFullYear()} NephroSpaidi. Tous droits réservés.
+                      © ${new Date().getFullYear()} cognivia. Tous droits réservés.
                     </div>
                   </td>
                   <td align="right" valign="middle">
@@ -538,7 +538,7 @@ export class Appointments implements OnInit, AfterViewInit {
 
         <!-- Bottom note -->
         <div style="margin-top:16px;font-size:11px;color:#98a2b3;text-align:center;line-height:1.6;">
-          Vous recevez cet email car vous avez pris un rendez-vous via NephroSpaidi.<br/>
+          Vous recevez cet email car vous avez pris un rendez-vous via cognivia.<br/>
           <a href="#" style="color:#1677ff;text-decoration:none;">Politique de confidentialité</a>
           &nbsp;·&nbsp;
           <a href="#" style="color:#1677ff;text-decoration:none;">Nous contacter</a>

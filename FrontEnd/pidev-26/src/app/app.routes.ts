@@ -101,7 +101,8 @@ export const routes: Routes = [
         title: 'Patients',
         canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
         loadChildren: () =>
-          import('./features/patient-management/patient-list.route').then((m) => m.routes),},
+          import('./features/patient-management/patient-list.route').then((m) => m.routes),
+      },
       {
 
         path: 'tasks',
@@ -125,7 +126,7 @@ export const routes: Routes = [
         canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
         loadComponent: () =>
           import('./features/appointments/appointments').then(m => m.Appointments),
-}
+      },
       {
         path: 'calendar',
         title: 'Calendar',
