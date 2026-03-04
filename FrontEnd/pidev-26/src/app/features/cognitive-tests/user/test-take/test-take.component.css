@@ -1,0 +1,98 @@
+.user-container {
+    padding: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+}
+
+.questionnaire-card {
+    width: 100%;
+    max-width: 800px;
+    padding: 2.5rem;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(77, 92, 171, 0.1);
+}
+
+.progress-bar {
+    height: 10px;
+    background: #F2F6FE;
+    border-radius: 20px;
+    margin-bottom: 2.5rem;
+    overflow: hidden;
+}
+
+.progress {
+    height: 100%;
+    background: #4D5CAB;
+    transition: width 0.4s ease;
+}
+
+.q-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #F2F6FE;
+    padding-bottom: 1.5rem;
+}
+
+.q-body {
+    min-height: 200px;
+    margin-bottom: 2rem;
+}
+
+.options-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.option-card {
+    padding: 1.25rem 1.5rem;
+    background: #F2F6FE;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #4b5563;
+    transition: all 0.2s;
+}
+
+.option-card:hover {
+    background: #e5edff;
+    border-color: #B4BEF0;
+}
+
+.option-card.selected {
+    background: #4D5CAB;
+    color: white;
+    border-color: #4D5CAB;
+}
+
+textarea {
+    width: 100%;
+    min-height: 180px;
+    background: #F2F6FE;
+    color: #1a1a1a;
+    border: 2px solid #B4BEF0;
+    border-radius: 12px;
+    padding: 1.25rem;
+    font-family: inherit;
+    font-size: 1.1rem;
+    resize: vertical;
+}
+
+.q-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+}
+
+.btn-success {
+    background: #10b981;
+    color: white;
+}

@@ -1,0 +1,200 @@
+	at freemarker.core.UnifiedCall.accept(UnifiedCall.java:84)
+	at freemarker.core.Environment.visit(Environment.java:335)
+	at freemarker.core.Environment.visit(Environment.java:341)
+	at freemarker.core.Environment.process(Environment.java:314)
+	at freemarker.template.Template.process(Template.java:383)
+	at org.keycloak.theme.freemarker.DefaultFreeMarkerProvider.processTemplate(DefaultFreeMarkerProvider.java:50)
+	at org.keycloak.forms.login.freemarker.FreeMarkerLoginFormsProvider.processTemplate(FreeMarkerLoginFormsProvider.java:624)
+	at org.keycloak.forms.login.freemarker.FreeMarkerLoginFormsProvider.createResponse(FreeMarkerLoginFormsProvider.java:342)
+	at org.keycloak.forms.login.freemarker.FreeMarkerLoginFormsProvider.createLoginUsernamePassword(FreeMarkerLoginFormsProvider.java:638)
+	at org.keycloak.authentication.authenticators.browser.UsernamePasswordForm.challenge(UsernamePasswordForm.java:131)
+	at org.keycloak.authentication.authenticators.browser.UsernamePasswordForm.authenticate(UsernamePasswordForm.java:118)
+	at org.keycloak.authentication.DefaultAuthenticationFlow.processSingleFlowExecutionModel(DefaultAuthenticationFlow.java:472)
+	at org.keycloak.authentication.DefaultAuthenticationFlow.processFlow(DefaultAuthenticationFlow.java:275)
+	at org.keycloak.authentication.DefaultAuthenticationFlow.processSingleFlowExecutionModel(DefaultAuthenticationFlow.java:407)
+	at org.keycloak.authentication.DefaultAuthenticationFlow.processFlow(DefaultAuthenticationFlow.java:297)
+	at org.keycloak.authentication.AuthenticationProcessor.authenticateOnly(AuthenticationProcessor.java:1118)
+	at org.keycloak.authentication.AuthenticationProcessor.authenticate(AuthenticationProcessor.java:956)
+	at org.keycloak.protocol.AuthorizationEndpointBase.handleBrowserAuthenticationRequest(AuthorizationEndpointBase.java:149)
+	at org.keycloak.protocol.oidc.endpoints.AuthorizationEndpoint.buildAuthorizationCodeAuthorizationResponse(AuthorizationEndpoint.java:404)
+	at org.keycloak.protocol.oidc.endpoints.AuthorizationEndpoint.process(AuthorizationEndpoint.java:236)
+	at org.keycloak.protocol.oidc.endpoints.AuthorizationEndpoint.buildGet(AuthorizationEndpoint.java:120)
+	at org.keycloak.protocol.oidc.endpoints.AuthorizationEndpoint$quarkusrestinvoker$buildGet_6f60a9d6a638ecbdbc87e15ef419b51708795641.invoke(Unknown Source)
+	at org.jboss.resteasy.reactive.server.handlers.InvocationHandler.handle(InvocationHandler.java:29)
+	at io.quarkus.resteasy.reactive.server.runtime.QuarkusResteasyReactiveRequestContext.invokeHandler(QuarkusResteasyReactiveRequestContext.java:183)
+	at org.jboss.resteasy.reactive.common.core.AbstractResteasyReactiveContext.run(AbstractResteasyReactiveContext.java:147)
+	at io.quarkus.vertx.core.runtime.VertxCoreRecorder$15.runWith(VertxCoreRecorder.java:645)
+	at org.jboss.threads.EnhancedQueueExecutor$Task.doRunWith(EnhancedQueueExecutor.java:2651)
+	at org.jboss.threads.EnhancedQueueExecutor$Task.run(EnhancedQueueExecutor.java:2630)
+	at org.jboss.threads.EnhancedQueueExecutor.runThreadBody(EnhancedQueueExecutor.java:1622)
+	at org.jboss.threads.EnhancedQueueExecutor$ThreadBody.run(EnhancedQueueExecutor.java:1589)
+	at org.jboss.threads.DelegatingRunnable.run(DelegatingRunnable.java:11)
+	at org.jboss.threads.ThreadLocalResettingRunnable.run(ThreadLocalResettingRunnable.java:11)
+	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+
+2026-03-03 21:23:52,717 ERROR [org.keycloak.forms.login.freemarker.FreeMarkerLoginFormsProvider] (executor-thread-1) Failed to process template: org.keycloak.theme.FreeMarkerException: Failed to process template login.ftl
+	at org.keycloak.theme.freemarker.DefaultFreeMarkerProvider.processTemplate(DefaultFreeMarkerProvider.java:53)
+	at org.keycloak.forms.login.freemarker.FreeMarkerLoginFormsProvider.processTemplate(FreeMarkerLoginFormsProvider.java:624)
+	at org.keycloak.forms.login.freemarker.FreeMarkerLoginFormsProvider.createResponse(FreeMarkerLoginFormsProvider.java:342)
+	at org.keycloak.forms.login.freemarker.FreeMarkerLoginFormsProvider.createLoginUsernamePassword(FreeMarkerLoginFormsProvider.java:638)
+	at org.keycloak.authentication.authenticators.browser.UsernamePasswordForm.challenge(UsernamePasswordForm.java:131)
+	at org.keycloak.authentication.authenticators.browser.UsernamePasswordForm.authenticate(UsernamePasswordForm.java:118)
+	at org.keycloak.authentication.DefaultAuthenticationFlow.processSingleFlowExecutionModel(DefaultAuthenticationFlow.java:472)
+	at org.keycloak.authentication.DefaultAuthenticationFlow.processFlow(DefaultAuthenticationFlow.java:275)
+	at org.keycloak.authentication.DefaultAuthenticationFlow.processSingleFlowExecutionModel(DefaultAuthenticationFlow.java:407)
+	at org.keycloak.authentication.DefaultAuthenticationFlow.processFlow(DefaultAuthenticationFlow.java:297)
+	at org.keycloak.authentication.AuthenticationProcessor.authenticateOnly(AuthenticationProcessor.java:1118)
+	at org.keycloak.authentication.AuthenticationProcessor.authenticate(AuthenticationProcessor.java:956)
+	at org.keycloak.protocol.AuthorizationEndpointBase.handleBrowserAuthenticationRequest(AuthorizationEndpointBase.java:149)
+	at org.keycloak.protocol.oidc.endpoints.AuthorizationEndpoint.buildAuthorizationCodeAuthorizationResponse(AuthorizationEndpoint.java:404)
+	at org.keycloak.protocol.oidc.endpoints.AuthorizationEndpoint.process(AuthorizationEndpoint.java:236)
+	at org.keycloak.protocol.oidc.endpoints.AuthorizationEndpoint.buildGet(AuthorizationEndpoint.java:120)
+	at org.keycloak.protocol.oidc.endpoints.AuthorizationEndpoint$quarkusrestinvoker$buildGet_6f60a9d6a638ecbdbc87e15ef419b51708795641.invoke(Unknown Source)
+	at org.jboss.resteasy.reactive.server.handlers.InvocationHandler.handle(InvocationHandler.java:29)
+	at io.quarkus.resteasy.reactive.server.runtime.QuarkusResteasyReactiveRequestContext.invokeHandler(QuarkusResteasyReactiveRequestContext.java:183)
+	at org.jboss.resteasy.reactive.common.core.AbstractResteasyReactiveContext.run(AbstractResteasyReactiveContext.java:147)
+	at io.quarkus.vertx.core.runtime.VertxCoreRecorder$15.runWith(VertxCoreRecorder.java:645)
+	at org.jboss.threads.EnhancedQueueExecutor$Task.doRunWith(EnhancedQueueExecutor.java:2651)
+	at org.jboss.threads.EnhancedQueueExecutor$Task.run(EnhancedQueueExecutor.java:2630)
+	at org.jboss.threads.EnhancedQueueExecutor.runThreadBody(EnhancedQueueExecutor.java:1622)
+	at org.jboss.threads.EnhancedQueueExecutor$ThreadBody.run(EnhancedQueueExecutor.java:1589)
+	at org.jboss.threads.DelegatingRunnable.run(DelegatingRunnable.java:11)
+	at org.jboss.threads.ThreadLocalResettingRunnable.run(ThreadLocalResettingRunnable.java:11)
+	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: freemarker.core.InvalidReferenceException: The following has evaluated to null or missing:
+==> section  [in template "login.ftl" at line 3, column 10]
+
+----
+Tip: If the failing expression is known to legally refer to something that's sometimes null or missing, either specify a default value like myOptionalVar!myDefault, or use <#if myOptionalVar??>when-present<#else>when-missing</#if>. (These only cover the last step of the expression; to cover the whole expression, use parenthesis: (myOptionalVar.foo)!myDefault, (myOptionalVar.foo)??
+----
+
+----
+FTL stack trace ("~" means nesting-related):
+	- Failed at: #if section = "header"  [in template "login.ftl" at line 3, column 5]
+	~ Reached through: #nested "header"  [in template "template.ftl" in macro "registrationLayout" at line 56, column 21]
+	~ Reached through: @layout.registrationLayout displayInf...  [in template "login.ftl" at line 2, column 1]
+----
+	at freemarker.core.InvalidReferenceException.getInstance(InvalidReferenceException.java:134)
+	at freemarker.core.EvalUtil.compare(EvalUtil.java:198)
+	at freemarker.core.EvalUtil.compare(EvalUtil.java:115)
+	at freemarker.core.ComparisonExpression.evalToBoolean(ComparisonExpression.java:78)
+	at freemarker.core.IfBlock.accept(IfBlock.java:49)
+	at freemarker.core.Environment.visit(Environment.java:371)
+	at freemarker.core.Environment.invokeNestedContent(Environment.java:621)
+	at freemarker.core.BodyInstruction.accept(BodyInstruction.java:60)
+	at freemarker.core.Environment.visit(Environment.java:371)
+	at freemarker.core.Environment.invokeMacroOrFunctionCommonPart(Environment.java:877)
+	at freemarker.core.Environment.invokeMacro(Environment.java:813)
+	at freemarker.core.UnifiedCall.accept(UnifiedCall.java:84)
+	at freemarker.core.Environment.visit(Environment.java:335)
+	at freemarker.core.Environment.visit(Environment.java:341)
+	at freemarker.core.Environment.process(Environment.java:314)
+	at freemarker.template.Template.process(Template.java:383)
+	at org.keycloak.theme.freemarker.DefaultFreeMarkerProvider.processTemplate(DefaultFreeMarkerProvider.java:50)
+	... 28 more
+
+2026-03-03 21:23:52,717 ERROR [org.keycloak.headers.DefaultSecurityHeadersProvider] (executor-thread-1) MediaType not set on path /realms/pidev/protocol/openid-connect/auth, with response status 500
+2026-03-03 21:23:52,718 ERROR [org.keycloak.services.error.KeycloakErrorHandler] (executor-thread-1) Uncaught server error: jakarta.ws.rs.InternalServerErrorException: HTTP 500 Internal Server Error
+	at org.keycloak.headers.DefaultSecurityHeadersProvider.addHeaders(DefaultSecurityHeadersProvider.java:80)
+	at org.keycloak.services.filters.KeycloakSecurityHeadersFilter.filter(KeycloakSecurityHeadersFilter.java:44)
+	at org.jboss.resteasy.reactive.server.handlers.ResourceResponseFilterHandler.handle(ResourceResponseFilterHandler.java:25)
+	at io.quarkus.resteasy.reactive.server.runtime.QuarkusResteasyReactiveRequestContext.invokeHandler(QuarkusResteasyReactiveRequestContext.java:192)
+	at org.jboss.resteasy.reactive.common.core.AbstractResteasyReactiveContext.run(AbstractResteasyReactiveContext.java:147)
+	at io.quarkus.vertx.core.runtime.VertxCoreRecorder$15.runWith(VertxCoreRecorder.java:645)
+	at org.jboss.threads.EnhancedQueueExecutor$Task.doRunWith(EnhancedQueueExecutor.java:2651)
+	at org.jboss.threads.EnhancedQueueExecutor$Task.run(EnhancedQueueExecutor.java:2630)
+	at org.jboss.threads.EnhancedQueueExecutor.runThreadBody(EnhancedQueueExecutor.java:1622)
+	at org.jboss.threads.EnhancedQueueExecutor$ThreadBody.run(EnhancedQueueExecutor.java:1589)
+	at org.jboss.threads.DelegatingRunnable.run(DelegatingRunnable.java:11)
+	at org.jboss.threads.ThreadLocalResettingRunnable.run(ThreadLocalResettingRunnable.java:11)
+	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+
+2026-03-03 22:04:58,375 WARN  [org.keycloak.protocol.oidc.endpoints.request.AuthorizationEndpointRequestParserProcessor] (executor-thread-1) Parameter 'client_id' not present or present multiple times in the HTTP request parameters
+2026-03-03 22:04:58,456 WARN  [org.keycloak.events] (executor-thread-1) type="REGISTER_ERROR", realmId="ea1a30b5-1569-44fb-8274-6ffe226e1d9c", realmName="pidev", clientId="null", userId="null", ipAddress="172.18.0.1", error="invalid_request", reason="Parameter 'client_id' not present or present multiple times in the HTTP request parameters"
+2026-03-03 22:05:00,621 WARN  [org.keycloak.protocol.oidc.endpoints.request.AuthorizationEndpointRequestParserProcessor] (executor-thread-1) Parameter 'client_id' not present or present multiple times in the HTTP request parameters
+2026-03-03 22:05:00,623 WARN  [org.keycloak.events] (executor-thread-1) type="REGISTER_ERROR", realmId="ea1a30b5-1569-44fb-8274-6ffe226e1d9c", realmName="pidev", clientId="null", userId="null", ipAddress="172.18.0.1", error="invalid_request", reason="Parameter 'client_id' not present or present multiple times in the HTTP request parameters"
+2026-03-03 22:05:24,732 INFO  [com.arjuna.ats.jbossatx] (Shutdown thread) ARJUNA032014: Stopping transaction recovery manager
+2026-03-03 22:05:24,939 INFO  [io.quarkus] (Shutdown thread) Keycloak stopped in 0.563s
+Running the server in development mode. DO NOT use this configuration in production.
+2026-03-03 23:27:55,890 INFO  [org.infinispan.CONTAINER] (main) Virtual threads support enabled
+2026-03-03 23:27:59,044 INFO  [org.hibernate.orm.jdbc.batch] (JPA Startup Thread) HHH100501: Automatic JDBC statement batching enabled (maximum batch size 32)
+2026-03-03 23:28:00,415 INFO  [org.infinispan.CONTAINER] (main) ISPN000556: Starting user marshaller 'org.infinispan.commons.marshall.ImmutableProtoStreamMarshaller'
+2026-03-03 23:28:01,044 INFO  [org.keycloak.connections.infinispan.DefaultInfinispanConnectionProviderFactory] (main) Node name: node_795860, Site name: null
+2026-03-03 23:28:02,228 INFO  [org.keycloak.exportimport.dir.DirImportProvider] (main) Importing from directory /opt/keycloak/bin/../data/import
+2026-03-03 23:28:09,300 INFO  [org.keycloak.exportimport.singlefile.SingleFileImportProvider] (main) Full importing from file /opt/keycloak/bin/../data/import/realm.json
+2026-03-03 23:28:13,623 INFO  [org.keycloak.exportimport.util.ImportUtils] (main) Realm 'pidev' already exists. Import skipped
+2026-03-03 23:28:13,626 INFO  [org.keycloak.services] (main) KC-SERVICES0030: Full model import requested. Strategy: IGNORE_EXISTING
+2026-03-03 23:28:13,627 INFO  [org.keycloak.services] (main) KC-SERVICES0032: Import finished successfully
+2026-03-03 23:28:14,567 INFO  [io.quarkus] (main) Keycloak 26.5.3 on JVM (powered by Quarkus 3.27.2) started in 25.089s. Listening on: http://0.0.0.0:8180
+2026-03-03 23:28:14,568 INFO  [io.quarkus] (main) Profile dev activated. 
+2026-03-03 23:28:14,568 INFO  [io.quarkus] (main) Installed features: [agroal, cdi, hibernate-orm, jdbc-postgresql, keycloak, narayana-jta, opentelemetry, reactive-routes, rest, rest-jackson, smallrye-context-propagation, vertx]
+2026-03-03 23:33:44,485 WARN  [org.keycloak.protocol.oidc.endpoints.request.AuthorizationEndpointRequestParserProcessor] (executor-thread-1) Parameter 'client_id' not present or present multiple times in the HTTP request parameters
+2026-03-03 23:33:44,496 WARN  [org.keycloak.events] (executor-thread-1) type="REGISTER_ERROR", realmId="ea1a30b5-1569-44fb-8274-6ffe226e1d9c", realmName="pidev", clientId="null", userId="null", ipAddress="172.18.0.1", error="invalid_request", reason="Parameter 'client_id' not present or present multiple times in the HTTP request parameters"
+2026-03-03 23:36:02,506 WARN  [org.keycloak.protocol.oidc.endpoints.request.AuthorizationEndpointRequestParserProcessor] (executor-thread-2) Parameter 'client_id' not present or present multiple times in the HTTP request parameters
+2026-03-03 23:36:02,510 WARN  [org.keycloak.events] (executor-thread-2) type="REGISTER_ERROR", realmId="ea1a30b5-1569-44fb-8274-6ffe226e1d9c", realmName="pidev", clientId="null", userId="null", ipAddress="172.18.0.1", error="invalid_request", reason="Parameter 'client_id' not present or present multiple times in the HTTP request parameters"
+2026-03-03 23:40:41,020 WARN  [org.keycloak.protocol.oidc.endpoints.request.AuthorizationEndpointRequestParserProcessor] (executor-thread-2) Parameter 'client_id' not present or present multiple times in the HTTP request parameters
+2026-03-03 23:40:41,023 WARN  [org.keycloak.events] (executor-thread-2) type="REGISTER_ERROR", realmId="ea1a30b5-1569-44fb-8274-6ffe226e1d9c", realmName="pidev", clientId="null", userId="null", ipAddress="172.18.0.1", error="invalid_request", reason="Parameter 'client_id' not present or present multiple times in the HTTP request parameters"
+2026-03-03 23:59:33,361 WARN  [org.keycloak.events] (executor-thread-2) type="REGISTER_ERROR", realmId="a12a5362-590b-4210-b980-5c8a2bb7bc03", realmName="master", clientId="security-admin-console", userId="null", ipAddress="172.18.0.1", error="registration_disabled", code_id="OFYRXmuddADC4hzLuuVZ8g-P"
+2026-03-04 00:29:16,949 INFO  [com.arjuna.ats.jbossatx] (Shutdown thread) ARJUNA032014: Stopping transaction recovery manager
+2026-03-04 00:29:17,191 INFO  [io.quarkus] (Shutdown thread) Keycloak stopped in 0.583s
+Running the server in development mode. DO NOT use this configuration in production.
+2026-03-04 00:29:27,070 INFO  [org.infinispan.CONTAINER] (main) Virtual threads support enabled
+2026-03-04 00:29:31,867 INFO  [org.hibernate.orm.jdbc.batch] (JPA Startup Thread) HHH100501: Automatic JDBC statement batching enabled (maximum batch size 32)
+2026-03-04 00:29:33,415 INFO  [org.infinispan.CONTAINER] (main) ISPN000556: Starting user marshaller 'org.infinispan.commons.marshall.ImmutableProtoStreamMarshaller'
+2026-03-04 00:29:33,982 INFO  [org.keycloak.connections.infinispan.DefaultInfinispanConnectionProviderFactory] (main) Node name: node_313376, Site name: null
+2026-03-04 00:29:35,140 INFO  [org.keycloak.exportimport.dir.DirImportProvider] (main) Importing from directory /opt/keycloak/bin/../data/import
+2026-03-04 00:29:40,671 INFO  [org.keycloak.exportimport.singlefile.SingleFileImportProvider] (main) Full importing from file /opt/keycloak/bin/../data/import/realm.json
+2026-03-04 00:29:46,401 INFO  [org.keycloak.exportimport.util.ImportUtils] (main) Realm 'pidev' already exists. Import skipped
+2026-03-04 00:29:46,405 INFO  [org.keycloak.services] (main) KC-SERVICES0030: Full model import requested. Strategy: IGNORE_EXISTING
+2026-03-04 00:29:46,406 INFO  [org.keycloak.services] (main) KC-SERVICES0032: Import finished successfully
+2026-03-04 00:29:48,261 INFO  [io.quarkus] (main) Keycloak 26.5.3 on JVM (powered by Quarkus 3.27.2) started in 29.096s. Listening on: http://0.0.0.0:8180
+2026-03-04 00:29:48,262 INFO  [io.quarkus] (main) Profile dev activated. 
+2026-03-04 00:29:48,263 INFO  [io.quarkus] (main) Installed features: [agroal, cdi, hibernate-orm, jdbc-postgresql, keycloak, narayana-jta, opentelemetry, reactive-routes, rest, rest-jackson, smallrye-context-propagation, vertx]
+2026-03-04 00:31:37,536 INFO  [com.arjuna.ats.jbossatx] (Shutdown thread) ARJUNA032014: Stopping transaction recovery manager
+2026-03-04 00:31:38,002 INFO  [io.quarkus] (Shutdown thread) Keycloak stopped in 0.534s
+Running the server in development mode. DO NOT use this configuration in production.
+2026-03-04 00:31:45,596 INFO  [org.infinispan.CONTAINER] (main) Virtual threads support enabled
+2026-03-04 00:31:49,849 INFO  [org.hibernate.orm.jdbc.batch] (JPA Startup Thread) HHH100501: Automatic JDBC statement batching enabled (maximum batch size 32)
+2026-03-04 00:31:51,564 INFO  [org.infinispan.CONTAINER] (main) ISPN000556: Starting user marshaller 'org.infinispan.commons.marshall.ImmutableProtoStreamMarshaller'
+2026-03-04 00:31:52,220 INFO  [org.keycloak.connections.infinispan.DefaultInfinispanConnectionProviderFactory] (main) Node name: node_457752, Site name: null
+2026-03-04 00:31:53,298 INFO  [org.keycloak.exportimport.dir.DirImportProvider] (main) Importing from directory /opt/keycloak/bin/../data/import
+2026-03-04 00:32:10,109 INFO  [org.keycloak.exportimport.singlefile.SingleFileImportProvider] (main) Full importing from file /opt/keycloak/bin/../data/import/realm.json
+2026-03-04 00:32:20,987 INFO  [org.keycloak.exportimport.util.ImportUtils] (main) Realm 'pidev' already exists. Import skipped
+2026-03-04 00:32:20,991 INFO  [org.keycloak.services] (main) KC-SERVICES0030: Full model import requested. Strategy: IGNORE_EXISTING
+2026-03-04 00:32:20,992 INFO  [org.keycloak.services] (main) KC-SERVICES0032: Import finished successfully
+2026-03-04 00:32:22,040 INFO  [io.quarkus] (main) Keycloak 26.5.3 on JVM (powered by Quarkus 3.27.2) started in 42.864s. Listening on: http://0.0.0.0:8180
+2026-03-04 00:32:22,042 INFO  [io.quarkus] (main) Profile dev activated. 
+2026-03-04 00:32:22,042 INFO  [io.quarkus] (main) Installed features: [agroal, cdi, hibernate-orm, jdbc-postgresql, keycloak, narayana-jta, opentelemetry, reactive-routes, rest, rest-jackson, smallrye-context-propagation, vertx]
+2026-03-04 00:33:59,802 INFO  [com.arjuna.ats.jbossatx] (Shutdown thread) ARJUNA032014: Stopping transaction recovery manager
+2026-03-04 00:34:00,295 INFO  [io.quarkus] (Shutdown thread) Keycloak stopped in 0.544s
+Running the server in development mode. DO NOT use this configuration in production.
+2026-03-04 00:34:10,534 INFO  [org.infinispan.CONTAINER] (main) Virtual threads support enabled
+2026-03-04 00:34:13,018 INFO  [org.hibernate.orm.jdbc.batch] (JPA Startup Thread) HHH100501: Automatic JDBC statement batching enabled (maximum batch size 32)
+2026-03-04 00:34:13,924 INFO  [org.infinispan.CONTAINER] (main) ISPN000556: Starting user marshaller 'org.infinispan.commons.marshall.ImmutableProtoStreamMarshaller'
+2026-03-04 00:34:14,414 INFO  [org.keycloak.connections.infinispan.DefaultInfinispanConnectionProviderFactory] (main) Node name: node_403709, Site name: null
+2026-03-04 00:34:15,356 INFO  [org.keycloak.exportimport.dir.DirImportProvider] (main) Importing from directory /opt/keycloak/bin/../data/import
+2026-03-04 00:34:20,000 INFO  [org.keycloak.exportimport.singlefile.SingleFileImportProvider] (main) Full importing from file /opt/keycloak/bin/../data/import/realm.json
+2026-03-04 00:34:23,824 INFO  [org.keycloak.exportimport.util.ImportUtils] (main) Realm 'pidev' already exists. Import skipped
+2026-03-04 00:34:23,828 INFO  [org.keycloak.services] (main) KC-SERVICES0030: Full model import requested. Strategy: IGNORE_EXISTING
+2026-03-04 00:34:23,829 INFO  [org.keycloak.services] (main) KC-SERVICES0032: Import finished successfully
+2026-03-04 00:34:24,638 INFO  [io.quarkus] (main) Keycloak 26.5.3 on JVM (powered by Quarkus 3.27.2) started in 19.920s. Listening on: http://0.0.0.0:8180
+2026-03-04 00:34:24,638 INFO  [io.quarkus] (main) Profile dev activated. 
+2026-03-04 00:34:24,638 INFO  [io.quarkus] (main) Installed features: [agroal, cdi, hibernate-orm, jdbc-postgresql, keycloak, narayana-jta, opentelemetry, reactive-routes, rest, rest-jackson, smallrye-context-propagation, vertx]
+2026-03-04 00:37:45,638 INFO  [com.arjuna.ats.jbossatx] (Shutdown thread) ARJUNA032014: Stopping transaction recovery manager
+2026-03-04 00:37:46,035 INFO  [io.quarkus] (Shutdown thread) Keycloak stopped in 0.435s
+Running the server in development mode. DO NOT use this configuration in production.
+2026-03-04 00:37:52,874 INFO  [org.infinispan.CONTAINER] (main) Virtual threads support enabled
+2026-03-04 00:37:57,853 INFO  [org.hibernate.orm.jdbc.batch] (JPA Startup Thread) HHH100501: Automatic JDBC statement batching enabled (maximum batch size 32)
+2026-03-04 00:37:59,016 INFO  [org.infinispan.CONTAINER] (main) ISPN000556: Starting user marshaller 'org.infinispan.commons.marshall.ImmutableProtoStreamMarshaller'
+2026-03-04 00:37:59,539 INFO  [org.keycloak.connections.infinispan.DefaultInfinispanConnectionProviderFactory] (main) Node name: node_705325, Site name: null
+2026-03-04 00:38:00,595 INFO  [org.keycloak.exportimport.dir.DirImportProvider] (main) Importing from directory /opt/keycloak/bin/../data/import
+2026-03-04 00:38:05,430 INFO  [org.keycloak.exportimport.singlefile.SingleFileImportProvider] (main) Full importing from file /opt/keycloak/bin/../data/import/realm.json
+2026-03-04 00:38:09,638 INFO  [org.keycloak.exportimport.util.ImportUtils] (main) Realm 'pidev' already exists. Import skipped
+2026-03-04 00:38:09,642 INFO  [org.keycloak.services] (main) KC-SERVICES0030: Full model import requested. Strategy: IGNORE_EXISTING
+2026-03-04 00:38:09,643 INFO  [org.keycloak.services] (main) KC-SERVICES0032: Import finished successfully
+2026-03-04 00:38:10,503 INFO  [io.quarkus] (main) Keycloak 26.5.3 on JVM (powered by Quarkus 3.27.2) started in 23.348s. Listening on: http://0.0.0.0:8180
+2026-03-04 00:38:10,503 INFO  [io.quarkus] (main) Profile dev activated. 
+2026-03-04 00:38:10,503 INFO  [io.quarkus] (main) Installed features: [agroal, cdi, hibernate-orm, jdbc-postgresql, keycloak, narayana-jta, opentelemetry, reactive-routes, rest, rest-jackson, smallrye-context-propagation, vertx]

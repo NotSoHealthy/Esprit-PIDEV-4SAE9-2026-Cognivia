@@ -1,13 +1,15 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject,NgZone } from '@angular/core';
 import Keycloak from 'keycloak-js';
+import { LanguageService } from '../services/language.service';
 
 @Injectable({ providedIn: 'root' })
 export class KeycloakService {
+  private readonly languageService = inject(LanguageService);
   private keycloak: Keycloak;
   private readonly unverifiedAlertKey = 'pidev.auth.alert.unverified';
   private readonly unverifiedLogoutAttemptAtKey = 'pidev.auth.unverified.logout.at';
 
-  constructor() {
+  constructor(private readonly ngZone: NgZone) {
     this.keycloak = new Keycloak({
       url: 'http://localhost:8180',
       realm: 'pidev',
@@ -16,10 +18,12 @@ export class KeycloakService {
   }
 
   async init(): Promise<boolean> {
-    const authenticated = await this.keycloak.init({
-      onLoad: 'check-sso', // or 'login-required'
-      pkceMethod: 'S256',
-      checkLoginIframe: false, // simpler for dev
+    const authenticated = await this.ngZone.run(async () => {
+      return await this.keycloak.init({
+        onLoad: 'check-sso', // or 'login-required'
+        pkceMethod: 'S256',
+        checkLoginIframe: false, // simpler for dev
+      });
     });
 
     if (authenticated && this.hasRealmRole('ROLE_UNVERIFIED')) {
@@ -52,12 +56,20 @@ export class KeycloakService {
     return authenticated;
   }
 
-  login(redirectUri = window.location.origin): Promise<void> {
-    return this.keycloak.login({ redirectUri });
+  async login(redirectUri = window.location.origin): Promise<void> {
+    const locale = this.languageService.getLanguage();
+    const loginUrl = await this.keycloak.createLoginUrl({ redirectUri, locale });
+    const url = new URL(loginUrl);
+    url.searchParams.set('kc_locale', locale);
+    window.location.href = url.toString();
   }
 
-  register(redirectUri = window.location.origin): Promise<void> {
-    return this.keycloak.register({ redirectUri });
+  async register(redirectUri = window.location.origin): Promise<void> {
+    const locale = this.languageService.getLanguage();
+    const registerUrl = await this.keycloak.createRegisterUrl({ redirectUri, locale });
+    const url = new URL(registerUrl);
+    url.searchParams.set('kc_locale', locale);
+    window.location.href = url.toString();
   }
 
   logout(redirectUri = window.location.origin): Promise<void> {
@@ -75,7 +87,9 @@ export class KeycloakService {
   }
 
   async updateToken(minValiditySeconds = 30): Promise<void> {
-    await this.keycloak.updateToken(minValiditySeconds);
+    await this.ngZone.run(async () => {
+      await this.keycloak.updateToken(minValiditySeconds);
+    });
   }
 
   getUserId(): string | undefined {

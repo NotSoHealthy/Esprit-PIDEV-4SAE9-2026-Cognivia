@@ -2,6 +2,7 @@ package com.pidev.care.controllers;
 
 import com.pidev.care.dto.PatientDto;
 import com.pidev.care.entities.Patient;
+import com.pidev.care.entities.Severity;
 import com.pidev.care.services.PatientService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,12 @@ public class PatientController {
     @GetMapping
     public List<Patient> getAllPatients() {
         return patientService.getAll();
+    }
+
+    /** Filter patients by severity level e.g. GET /patient?severity=HIGH */
+    @GetMapping(params = "severity")
+    public List<Patient> getPatientsBySeverity(@RequestParam Severity severity) {
+        return patientService.getBySeverity(severity);
     }
 
     @GetMapping("/{id}")
@@ -41,7 +48,9 @@ public class PatientController {
     }
 
     @PostMapping
-    public Patient createPatient(@RequestBody Patient patient) {return patientService.create(patient);}
+    public Patient createPatient(@RequestBody Patient patient) {
+        return patientService.create(patient);
+    }
 
     @PostMapping("/register/{userId}")
     public Patient registerPatient(@PathVariable UUID userId, @RequestBody Patient patient) {
@@ -60,5 +69,7 @@ public class PatientController {
     }
 
     @DeleteMapping("/{id}")
-    public void deletePatient(@PathVariable Long id) {patientService.delete(id);}
+    public void deletePatient(@PathVariable Long id) {
+        patientService.delete(id);
+    }
 }

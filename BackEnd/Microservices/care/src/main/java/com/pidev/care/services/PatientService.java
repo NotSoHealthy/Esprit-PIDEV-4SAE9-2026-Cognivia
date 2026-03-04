@@ -57,17 +57,19 @@ public class PatientService implements IService<Patient> {
     }
 
     public Patient getByUserId(UUID userId) {
-        return patientRepository.findByUserId(userId)
-            .map(patient -> {
-                Patient result = new Patient();
-                result.setId(patient.getId());
-                result.setUserId(patient.getUserId());
-                result.setFirstName(patient.getFirstName());
-                result.setLastName(patient.getLastName());
-                result.setDateOfBirth(patient.getDateOfBirth());
-                return result;
-            })
-            .orElse(null);
+        List<Patient> patients = patientRepository.findByUserId(userId);
+        if (patients.isEmpty()) {
+            return null;
+        }
+        if (patients.size() > 1) {
+            // Log a warning or take action as per the implementation plan
+            System.err.println("WARNING: Multiple patients found for userId: " + userId + ". Returning the first one.");
+        }
+        return patients.get(0);
+    }
+
+    public List<Patient> getBySeverity(Severity severity) {
+        return patientRepository.findBySeverity(severity);
     }
 
     public List<Patient> getByDoctorId(Long doctorId) {

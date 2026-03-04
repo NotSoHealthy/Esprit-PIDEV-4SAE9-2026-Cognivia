@@ -1,0 +1,144 @@
+<div class="admin-container">
+  <!-- Title Section -->
+  <div class="header">
+    <div class="title-section">
+      <h1>Cognitive Tests</h1>
+      <p class="subtitle">Design and assign assessments to patients</p>
+    </div>
+    <button class="btn btn-primary" [routerLink]="['/admin/tests/new']">+ Create New Test</button>
+  </div>
+
+  <!-- Search & Sort Bar -->
+  <div class="controls-bar glass">
+    <div class="search-box">
+      <nz-icon nzType="search" />
+      <input type="text" [(ngModel)]="searchTerm" placeholder="Search by title or description..." />
+    </div>
+    <div class="sort-box">
+      <label>Sort by:</label>
+      <select [(ngModel)]="sortBy" class="sort-select">
+        <option value="title">Alphabetical</option>
+        <option value="questions">Question Count</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="test-grid">
+    @for (test of filteredTests; track test.id; let i = $index) {
+    <div class="test-card glass fade-in-up" [style.animation-delay]="(i * 0.1) + 's'">
+      <div class="card-header">
+        <h3>{{ test.title }}</h3>
+        <span class="q-badge">{{ test.questions.length }} Questions</span>
+      </div>
+      <p class="description">{{ test.description }}</p>
+      <div class="card-footer">
+        <div class="actions">
+          <button class="btn btn-icon edit" [routerLink]="['/admin/tests/edit', test.id]" title="Edit Test">
+            <nz-icon nzType="edit" />
+          </button>
+          <button class="btn btn-icon assign" (click)="openAssignModal(test)" title="Assign Test">
+            <nz-icon nzType="book" />
+          </button>
+          <button class="btn btn-icon delete" (click)="deleteTest(test.id)" title="Delete Test">
+            <nz-icon nzType="delete" />
+          </button>
+        </div>
+      </div>
+    </div>
+    }
+    @if (filteredTests.length === 0) {
+    <div class="empty-state">
+      <nz-icon nzType="inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;" />
+      <p>No tests found matching your criteria.</p>
+    </div>
+    }
+  </div>
+</div>
+
+<!-- Assignment Modal -->
+@if (showAssignModal && selectedTest) {
+<div class="modal-overlay" (click)="closeAssignModal()">
+  <div class="modal-panel glass" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Assign Test</h2>
+      <span class="modal-subtitle">{{ selectedTest.title }}</span>
+      <button class="close-btn" (click)="closeAssignModal()">✕</button>
+    </div>
+
+    <!-- Assignment Type toggle -->
+    <div class="field-group">
+      <label class="field-label">Assignment Mode</label>
+      <div class="toggle-row">
+        <label class="toggle-option" [class.active]="assignmentType === 'GENERAL'">
+          <input type="radio" name="assignType" value="GENERAL" [(ngModel)]="assignmentType" />
+          🌐 General (by Severity)
+        </label>
+        <label class="toggle-option" [class.active]="assignmentType === 'TARGETED'">
+          <input type="radio" name="assignType" value="TARGETED" [(ngModel)]="assignmentType" />
+          🎯 Targeted (specific patient)
+        </label>
+      </div>
+    </div>
+
+    <!-- TARGETED: Patient dropdown -->
+    @if (assignmentType === 'TARGETED') {
+    <div class="field-group">
+      <label class="field-label" for="patientSelect">Select Patient</label>
+      <select id="patientSelect" class="form-select" [(ngModel)]="selectedPatientId">
+        <option [ngValue]="undefined" disabled>-- Choose a patient --</option>
+        @for (p of patients; track p.id) {
+        <option [ngValue]="p.id">{{ getPatientDisplayName(p) }}</option>
+        }
+      </select>
+    </div>
+    }
+
+    <!-- GENERAL: Severity selector -->
+    @if (assignmentType === 'GENERAL') {
+    <div class="field-group">
+      <label class="field-label">Target Severity Group</label>
+      <div class="severity-row">
+        @for (sev of severityOptions; track sev) {
+        <label class="severity-chip" [class.active]="selectedSeverity === sev" [class]="'sev-' + sev.toLowerCase()">
+          <input type="radio" name="severity" [value]="sev" [(ngModel)]="selectedSeverity" />
+          {{ sev }}
+        </label>
+        }
+      </div>
+    </div>
+    }
+
+    <!-- Common: Frequency & Due Date -->
+    <div class="field-row">
+      <div class="field-group">
+        <label class="field-label" for="freqSelect">Frequency</label>
+        <select id="freqSelect" class="form-select" [(ngModel)]="selectedFrequency">
+          @for (freq of frequencyOptions; track freq) {
+          <option [ngValue]="freq">{{ freq }}</option>
+          }
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="dueDateInput">Due Date (optional)</label>
+        <input id="dueDateInput" type="datetime-local" class="form-input" [(ngModel)]="dueAt" />
+      </div>
+    </div>
+
+    <!-- Feedback -->
+    @if (assignError) {
+    <div class="alert alert-error">{{ assignError }}</div>
+    }
+    @if (assignSuccess) {
+    <div class="alert alert-success">✅ Test assigned successfully!</div>
+    }
+
+    <!-- Actions -->
+    <div class="modal-actions">
+      <button class="btn btn-secondary" (click)="closeAssignModal()">Cancel</button>
+      <button class="btn btn-primary" (click)="submitAssignment()" [disabled]="isAssigning">
+        {{ isAssigning ? 'Assigning...' : 'Assign Test' }}
+      </button>
+    </div>
+  </div>
+</div>
+}

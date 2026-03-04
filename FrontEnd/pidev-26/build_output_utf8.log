@@ -1,0 +1,227 @@
+﻿
+> pidev-26@0.0.0 build
+> ng build
+
+[33mΓ¥»[39m Building...
+[32mΓ£ö[39m Building...
+Application bundle generation failed. [4.693 seconds] - 2026-02-18T15:01:02.305Z
+
+npm : [1m[31m[31mX 
+[41;31m[[41;97mERROR[41;31m][0m 
+[1mTS2307: Cannot find module 
+'../../constants/api.constants' or its 
+corresponding type declarations.[0m 
+[1m[35m[plugin angular-compiler][0m
+At line:1 char:1
++ npm run build > build_output.log 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified 
+   : ([1m[31m[31mX...r-compiler][0m:S  
+  tring) [], RemoteException
+    + FullyQualifiedErrorId : NativeComman 
+   dError
+ 
+
+    src/app/core/services/cognitive-tests/a
+ssignment.service.ts:5:29:
+[37m      5 Γöé import { API_BASE_URL } 
+from 
+[32m'../../constants/api.constants'[37m;
+        Γò╡                              
+[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m 
+[1mTS2307: Cannot find module 
+'../../constants/api.constants' or its 
+corresponding type declarations.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/core/services/cognitive-tests/r
+esult.service.ts:5:29:
+[37m      5 Γöé import { API_BASE_URL } 
+from 
+[32m'../../constants/api.constants'[37m;
+        Γò╡                              
+[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m 
+[1mTS2307: Cannot find module 
+'../../constants/api.constants' or its 
+corresponding type declarations.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/core/services/cognitive-tests/r
+isk.service.ts:4:29:
+[37m      4 Γöé import { RISK_API_URL } 
+from 
+[32m'../../constants/api.constants'[37m;
+        Γò╡                              
+[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m 
+[1mTS2307: Cannot find module 
+'../../constants/api.constants' or its 
+corresponding type declarations.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/core/services/cognitive-tests/t
+est.service.ts:6:29:
+[37m      6 Γöé import { API_BASE_URL } 
+from 
+[32m'../../constants/api.constants'[37m;
+        Γò╡                              
+[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m 
+[1mTS2307: Cannot find module 
+'../../../services/test.service' or its 
+corresponding type declarations.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/features/cognitive-tests/admin/
+question-management/question-management.com
+ponent.ts:5:37:
+[37m      5 Γöé import { 
+CognitiveTestService } from 
+[32m'../../../services/test.service'[37m;
+        Γò╡                                
+      
+[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m 
+[1mTS2307: Cannot find module 
+'../../../models/cognitive-test.model' or 
+its corresponding type declarations.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/features/cognitive-tests/admin/
+question-management/question-management.com
+ponent.ts:6:30:
+[37m      6 Γöé import { CognitiveTest } 
+from [32m'../../../models/cognitive-test.m
+odel'[37m;
+        Γò╡                               
+[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m 
+[1mTS2307: Cannot find module 
+'../../../models/test-question.model' or 
+its corresponding type declarations.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/features/cognitive-tests/admin/
+question-management/question-management.com
+ponent.ts:7:29:
+[37m      7 Γöé import { TestQuestion } 
+from [32m'../../../models/test-question.mo
+del'[37m;
+        Γò╡                              [
+32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0
+m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m 
+[1mTS2307: Cannot find module 
+'../../../models/question-type.enum' or 
+its corresponding type declarations.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/features/cognitive-tests/admin/
+question-management/question-management.com
+ponent.ts:8:29:
+[37m      8 Γöé import { QuestionType } 
+from [32m'../../../models/question-type.en
+um'[37m;
+        Γò╡                              [
+32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m 
+[1mNG2003: No suitable injection token 
+for parameter 'testService' of class 
+'QuestionManagementComponent'.
+  Consider using the @Inject decorator to 
+specify an injection token.[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/features/cognitive-tests/admin/
+question-management/question-management.com
+ponent.ts:57:16:
+[37m      57 Γöé         private 
+[32mtestService[37m: CognitiveTestService
+         Γò╡                 
+[32m~~~~~~~~~~~[0m
+
+  This type does not have a value, so it 
+cannot be used as injection token.
+
+    src/app/features/cognitive-tests/admin/
+question-management/question-management.com
+ponent.ts:57:29:
+[37m      57 Γöé         private 
+testService: [32mCognitiveTestService[37m
+         Γò╡                              
+[32m~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m 
+[1mTS7006: Parameter 'data' implicitly 
+has an 'any' type.[0m [1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/features/cognitive-tests/admin/
+question-management/question-management.com
+ponent.ts:66:60:
+[37m      66 Γöé ...vice.getTestById(this.
+testId).subscribe([32mdata[37m => 
+this.test = data);
+         Γò╡                               
+             [32m~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m 
+[1mCould not resolve 
+"../../constants/api.constants"[0m
+
+    src/app/core/services/cognitive-tests/r
+esult.service.ts:5:29:
+[37m      5 Γöé import { API_BASE_URL } 
+from 
+[32m'../../constants/api.constants'[37m;
+        Γò╡                              
+[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m 
+[1mCould not resolve 
+"../../constants/api.constants"[0m
+
+    src/app/core/services/cognitive-tests/r
+isk.service.ts:4:29:
+[37m      4 Γöé import { RISK_API_URL } 
+from 
+[32m'../../constants/api.constants'[37m;
+        Γò╡                              
+[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m 
+[1mCould not resolve 
+"../../constants/api.constants"[0m
+
+    src/app/core/services/cognitive-tests/t
+est.service.ts:6:29:
+[37m      6 Γöé import { API_BASE_URL } 
+from 
+[32m'../../constants/api.constants'[37m;
+        Γò╡                              
+[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
