@@ -248,3 +248,24 @@
 .details-description p {
   margin-top: 6px;
 }
+
+/* Error text styling - RED TEXT UNDER FIELD */
+.error-text {
+  color: #d32f2f;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+  font-weight: 500;
+}
+
+.field-error {
+  border-color: #d32f2f !important;
+}
+
+:host ::ng-deep .field-error.ant-input {
+  border-color: #d32f2f !important;
+}
+
+:host ::ng-deep .field-error.ant-select-selector {
+  border-color: #d32f2f !important;
+}

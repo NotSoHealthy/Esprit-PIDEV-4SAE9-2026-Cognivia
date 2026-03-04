@@ -19,6 +19,7 @@
       class="stock-card"
       nzHoverable
       [nzCover]="coverTemplate"
+      (click)="openStockHistoryModal(stock)"
     >
       <ng-template #coverTemplate>
         <div class="stock-cover" *ngIf="getMedicationProp(stock, 'imageUrl'); else noImage">

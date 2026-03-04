@@ -8,5 +8,4 @@ public enum Frequency {
     EVERY_8_HOURS,
     EVERY_12_HOURS,
     WEEKLY,
-    AS_NEEDED
 }

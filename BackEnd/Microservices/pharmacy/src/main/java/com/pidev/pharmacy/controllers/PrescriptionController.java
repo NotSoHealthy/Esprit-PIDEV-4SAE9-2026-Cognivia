@@ -1,6 +1,8 @@
 package com.pidev.pharmacy.controllers;
 
+import com.pidev.pharmacy.dto.PrescriptionPharmacyRecommendationDTO;
 import com.pidev.pharmacy.entities.Prescription;
+import com.pidev.pharmacy.entities.PrescriptionItem;
 import com.pidev.pharmacy.services.PrescriptionService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +24,23 @@ public class PrescriptionController {
     @GetMapping
     public List<Prescription> getAllPrescriptions() {
         return prescriptionService.getAll();
+    }
+
+    @GetMapping("/code-suggestions")
+    public List<String> getCodeSuggestions(@RequestParam(name = "query", required = false) String query) {
+        return prescriptionService.searchCodes(query);
+    }
+
+    @GetMapping("/recommendations")
+    public ResponseEntity<List<PrescriptionPharmacyRecommendationDTO>> getRecommendationsByCode(@RequestParam String code) {
+        try {
+            List<PrescriptionPharmacyRecommendationDTO> recommendations =
+                    prescriptionService.recommendPharmaciesByPrescriptionCode(code);
+            return ResponseEntity.ok(recommendations);
+        } catch (RuntimeException ex) {
+            log.warn("Unable to load recommendations for code {}: {}", code, ex.getMessage());
+            return ResponseEntity.ok(List.of());
+        }
     }
 
     @GetMapping("/{id}")
@@ -49,6 +68,48 @@ public class PrescriptionController {
     public ResponseEntity<Void> deletePrescription(@PathVariable Long id) {
         prescriptionService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Get all items in a prescription
+     */
+    @GetMapping("/{id}/items")
+    public List<PrescriptionItem> getPrescriptionItems(@PathVariable Long id) {
+        return prescriptionService.getPrescriptionItems(id);
+    }
+
+    /**
+     * Add medication to prescription
+     */
+    @PostMapping("/{prescriptionId}/add-medication/{medicationId}")
+    public ResponseEntity<Prescription> addMedicationToPrescription(
+            @PathVariable Long prescriptionId,
+            @PathVariable Long medicationId,
+            @RequestParam Integer quantity,
+            @RequestParam(required = false) String frequency) {
+        try {
+            Prescription updated = prescriptionService.addItem(prescriptionId, medicationId, quantity, frequency);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            log.error("Error adding medication to prescription", e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    /**
+     * Remove medication from prescription
+     */
+    @DeleteMapping("/{prescriptionId}/remove-medication/{medicationId}")
+    public ResponseEntity<Prescription> removeMedicationFromPrescription(
+            @PathVariable Long prescriptionId,
+            @PathVariable Long medicationId) {
+        try {
+            Prescription updated = prescriptionService.removeItem(prescriptionId, medicationId);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            log.error("Error removing medication from prescription", e);
+            return ResponseEntity.notFound().build();
+        }
     }
 
     /**

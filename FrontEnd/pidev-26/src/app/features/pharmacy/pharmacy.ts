@@ -31,14 +31,27 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
+import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
+import { NzDrawerModule } from 'ng-zorro-antd/drawer';
 import { PharmacyService } from './services/pharmacy.service';
+import { MedicationService } from './services/medication.service';
+import { DeepSeekService } from './services/deepseek.service';
+import { AgentMessageService } from './services/agent-message.service';
+import { AgentLogService } from './services/agent-log.service';
 import { WorkingHoursService } from './services/working-hours.service';
+import { RatingService } from './services/rating.service';
+import { ReportService } from './services/report.service';
 import { Pharmacy as PharmacyModel } from './models/pharmacy.model';
 import { MedicationModel } from './models/medication.model';
+import { Rating } from './models/rating.model';
+import { Report, ReportReason } from './models/report.model';
+import { AgentMessage } from './models/agent-message.model';
+import { AgentLog } from './models/agent-log.model';
 import { FormsModule } from '@angular/forms';
 import { NzRateModule } from 'ng-zorro-antd/rate';
 import { PictureTwoTone } from '@ant-design/icons-angular/icons';
 import { Medication } from './medication/medication';
+import { KeycloakService } from '../../core/auth/keycloak.service';
 
 
 @Component({
@@ -65,6 +78,8 @@ import { Medication } from './medication/medication';
     NzSelectModule,
     NzDatePickerModule,
     NzSwitchModule,
+    NzCheckboxModule,
+    NzDrawerModule,
     Medication,
   ],
    providers: [
@@ -94,11 +109,18 @@ export class Pharmacy implements OnInit, AfterViewInit {
 
   private readonly service = inject(PharmacyService);
   private readonly workingHoursService = inject(WorkingHoursService);
+  private readonly ratingService = inject(RatingService);
+  private readonly reportService = inject(ReportService);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly fb = inject(FormBuilder);
   private readonly msg = inject(NzMessageService);
   private readonly ngZone = inject(NgZone);
+  private readonly keycloakService = inject(KeycloakService);
+  private readonly medicationService = inject(MedicationService);
+  private readonly deepSeekService = inject(DeepSeekService);
+  private readonly agentMessageService = inject(AgentMessageService);
+  private readonly agentLogService = inject(AgentLogService);
 
   map: L.Map | null = null;
   marker: L.Marker | null = null;
@@ -109,7 +131,29 @@ export class Pharmacy implements OnInit, AfterViewInit {
 
   liked = new Set<number>();
   rateMap = new Map<number, number>();
+  private ratingByPharmacy = new Map<number, Rating>();
+  private readonly currentUsername = this.keycloakService.getEmail() ?? '';
   pharmacyStatus = new Map<number, { isOpen: boolean; isClosed: boolean }>();
+
+  isRatingModalOpen = false;
+  selectedRatingPharmacy: PharmacyModel | null = null;
+  pendingRatingValue = 0;
+  pendingRatingComment = '';
+  submittingRating = false;
+
+  isReportModalOpen = false;
+  selectedReportPharmacy: PharmacyModel | null = null;
+  selectedReportReason: ReportReason | null = null;
+  reportDescription = '';
+  submittingReport = false;
+  readonly reportReasonOptions: Array<{ value: ReportReason; label: string }> = [
+    { value: ReportReason.FALSE_LOCATION, label: 'False location' },
+    { value: ReportReason.BAD_SERVICE, label: 'Bad service' },
+    { value: ReportReason.STOCK_INCONSISTENCY, label: 'Stock inconsistency' },
+    { value: ReportReason.FAKE_PHARMACY, label: 'Fake pharmacy' },
+    { value: ReportReason.WRONG_CONTACT_INFO, label: 'Wrong contact info' },
+    { value: ReportReason.OTHER, label: 'Other' },
+  ];
 
   // Filter and pagination state
   searchText = '';
@@ -125,6 +169,33 @@ export class Pharmacy implements OnInit, AfterViewInit {
   inventoryMedicationName = '';
   inventoryOutOfStockOnly = false;
   inventoryMedications: MedicationModel[] = [];
+
+  // Requested medications state
+  requestedMedications: MedicationModel[] = [];
+  requestedLoading = false;
+  requestedPageIndex = 1;
+  requestedPageSize = 10;
+  requestedSearchText = '';
+  requestedTherapeuticClass = '';
+  requestedMainView: 'requests' | 'agent-logs' = 'requests';
+  agentMode = false;
+  autoDeleteReviewRequired = false;
+  agentMessages = new Map<number, AgentMessage>(); // medicationId -> AgentMessage
+
+  // Agent logs state
+  agentLogs: AgentLog[] = [];
+  agentLogsLoading = false;
+
+  // Medication detail modal state
+  isMedicationDetailModalOpen = false;
+  selectedMedicationForDetail: MedicationModel | null = null;
+
+  // AI Drawer state
+  aiDrawerVisible = false;
+  aiDrawerLoading = false;
+  aiOverviewData: any = null;
+  parsedAIData: any = null;
+  selectedMedicationForAI: MedicationModel | null = null;
 
   // modal state
   isAddModalOpen = false;
@@ -142,11 +213,12 @@ export class Pharmacy implements OnInit, AfterViewInit {
   logoFile: File | null = null;
 
   addForm = this.fb.group({
-    name: ['', [Validators.required]],
-    address: [''],
-    description: [''],
-    latitude: [null as number | null],
-    longitude: [null as number | null],
+    name: ['', [Validators.required, Validators.minLength(3)]],
+    description: ['', [Validators.required, Validators.minLength(10)]],
+    contactInfo: ['', [Validators.required, Validators.minLength(5)]],
+    address: ['', [Validators.required, Validators.minLength(5)]],
+    latitude: [null as number | null, [Validators.required]],
+    longitude: [null as number | null, [Validators.required]],
   });
 
   ngOnInit(): void {
@@ -304,9 +376,373 @@ export class Pharmacy implements OnInit, AfterViewInit {
 
   onTabChange(tabIndex: number): void {
     this.activeTabIndex = tabIndex;
-    if (tabIndex === 1 && !this.inventoryPharmacyId && this.pharmacies.length > 0) {
-      this.inventoryPharmacyId = this.pharmacies[0].id ?? null;
+    
+    // Tab 0: Pharmacies list
+    if (tabIndex === 0) {
+      this.loadPharmacies();
     }
+    
+    // Tab 1: Inventory medications
+    if (tabIndex === 1) {
+      if (!this.inventoryPharmacyId && this.pharmacies.length > 0) {
+        this.inventoryPharmacyId = this.pharmacies[0].id ?? null;
+      }
+      // Trigger inventory refresh via change detection
+      this.loadInventoryMedications();
+    }
+    
+    // Tab 2: Requested medications
+    if (tabIndex === 2) {
+      this.requestedMainView = 'requests';
+      // Load agent mode from global config when entering requested medications tab
+      this.service.getAgentMode().subscribe({
+        next: (config) => {
+          this.agentMode = config.agentModeEnabled;
+        },
+        error: (err: any) => {
+          console.error('Failed to load agent mode config:', err);
+        }
+      });
+      
+      // Load auto-delete review required setting
+      this.service.getAutoDeleteReviewRequired().subscribe({
+        next: (config) => {
+          this.autoDeleteReviewRequired = config.autoDeleteReviewRequired;
+        },
+        error: (err: any) => {
+          console.error('Failed to load auto-delete config:', err);
+        }
+      });
+      
+      this.loadRequestedMedications();
+      this.loadAgentLogs();
+    }
+  }
+
+  setRequestedMainView(view: 'requests' | 'agent-logs'): void {
+    this.requestedMainView = view;
+    if (view === 'agent-logs') {
+      this.loadAgentLogs();
+    }
+  }
+
+  getAgentActionLabel(actionType: string): string {
+    switch (actionType) {
+      case 'DELETE':
+        return 'DELETE';
+      case 'PATCH_AND_ACCEPT':
+        return 'PATCH & ACCEPT';
+      case 'ACCEPT':
+        return 'ACCEPT';
+      case 'REVIEW_REQUIRED':
+        return 'REVIEW REQUIRED';
+      default:
+        return actionType;
+    }
+  }
+
+  getAgentActionColor(actionType: string): string {
+    switch (actionType) {
+      case 'DELETE':
+        return '#ff4d4f';
+      case 'PATCH_AND_ACCEPT':
+        return '#faad14';
+      case 'ACCEPT':
+        return '#52c41a';
+      case 'REVIEW_REQUIRED':
+        return '#1890ff';
+      default:
+        return '#d9d9d9';
+    }
+  }
+
+  onAgentModeToggle(): void {
+    // Send agent mode preference to backend (global setting)
+    this.service.updateAgentMode(this.agentMode).subscribe({
+      next: () => {
+        console.log('Agent mode setting saved:', this.agentMode);
+      },
+      error: (err: any) => {
+        console.error('Failed to save agent mode setting:', err);
+      }
+    });
+  }
+
+  onAutoDeleteReviewRequiredToggle(): void {
+    // Send auto-delete review required setting to backend
+    this.service.updateAutoDeleteReviewRequired(this.autoDeleteReviewRequired).subscribe({
+      next: () => {
+        console.log('Auto-delete review required setting saved:', this.autoDeleteReviewRequired);
+        this.msg.success(`Auto-delete review required ${this.autoDeleteReviewRequired ? 'enabled' : 'disabled'}`);
+      },
+      error: (err: any) => {
+        console.error('Failed to save auto-delete setting:', err);
+        this.msg.error('Failed to save setting');
+      }
+    });
+  }
+
+  loadAgentLogs(): void {
+    this.agentLogsLoading = true;
+    this.agentLogService.getAllLogs().subscribe({
+      next: (logs) => {
+        this.agentLogs = logs;
+        this.agentLogsLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err: any) => {
+        console.error('Failed to load agent logs:', err);
+        this.agentLogsLoading = false;
+        this.msg.error('Failed to load agent logs');
+      }
+    });
+  }
+
+  deleteAgentLog(log: AgentLog, event?: MouseEvent): void {
+    event?.stopPropagation();
+    
+    if (!log.id) return;
+
+    this.agentLogService.deleteLog(log.id).subscribe({
+      next: () => {
+        this.msg.success('Agent log deleted successfully');
+        this.agentLogs = this.agentLogs.filter(l => l.id !== log.id);
+        this.cdr.detectChanges();
+        // Refresh lists after deleting log
+        this.loadRequestedMedications();
+      },
+      error: (err: any) => {
+        console.error('Failed to delete agent log:', err);
+        this.msg.error('Failed to delete agent log');
+      }
+    });
+  }
+
+  undoAgentAction(log: AgentLog, event?: MouseEvent): void {
+    event?.stopPropagation();
+    
+    if (!log.id) return;
+
+    this.agentLogService.undoAction(log.id).subscribe({
+      next: () => {
+        this.msg.success('Action undone successfully');
+        this.loadAgentLogs();
+        this.loadRequestedMedications();
+        // Refresh inventory if in that tab
+        if (this.activeTabIndex === 1) {
+          this.loadInventoryMedications();
+        }
+      },
+      error: (err: any) => {
+        console.error('Failed to undo action:', err);
+        this.msg.error('Failed to undo action');
+      }
+    });
+  }
+
+  private loadInventoryMedications(): void {
+    // This will trigger the Medication component to re-load
+    if (this.inventoryPharmacyId) {
+      this.cdr.detectChanges();
+    }
+  }
+
+  formatAgentLogAction(actionType: string): string {
+    switch (actionType) {
+      case 'ACCEPTED': return 'Accepted';
+      case 'REJECTED': return 'Rejected';
+      case 'MODIFIED': return 'Modified & Accepted';
+      case 'REVIEW_REJECTED': return 'Rejected (Review Required)';
+      default: return actionType;
+    }
+  }
+
+  getAgentLogActionColor(actionType: string): string {
+    switch (actionType) {
+      case 'ACCEPTED': return '#52c41a';
+      case 'REJECTED': return '#ff4d4f';
+      case 'MODIFIED': return '#faad14';
+      case 'REVIEW_REJECTED': return '#ff4d4f';
+      default: return '#d9d9d9';
+    }
+  }
+
+  // ========== Requested Medications ==========
+
+  loadRequestedMedications(): void {
+    this.requestedLoading = true;
+    this.medicationService.getPendingMedications().subscribe({
+      next: (medications) => {
+        this.requestedMedications = medications ?? [];
+        this.requestedLoading = false;
+        this.cdr.detectChanges();
+        
+        // Always load agent messages for requested medications
+        this.loadAgentMessages();
+      },
+      error: (err) => {
+        console.error(err);
+        this.requestedLoading = false;
+      },
+    });
+  }
+
+  loadAgentMessages(): void {
+    this.requestedMedications.forEach(med => {
+      if (med.id) {
+        this.agentMessageService.getMessageForMedication(med.id).subscribe({
+          next: (message) => {
+            if (med.id) {
+              this.agentMessages.set(med.id, message);
+            }
+          },
+          error: (err) => {
+            // Silently ignore if no message found
+            console.debug('No agent message for medication', med.id, err);
+          }
+        });
+      }
+    });
+  }
+
+  get paginatedRequestedMedications(): MedicationModel[] {
+    let filtered = [...this.requestedMedications];
+
+    // Search filter
+    if (this.requestedSearchText.trim()) {
+      const search = this.requestedSearchText.toLowerCase();
+      filtered = filtered.filter(
+        (m) =>
+          m.name?.toLowerCase().includes(search) ||
+          m.description?.toLowerCase().includes(search)
+      );
+    }
+
+    // Therapeutic class filter
+    if (this.requestedTherapeuticClass) {
+      filtered = filtered.filter(
+        (m) => m.therapeuticClass === this.requestedTherapeuticClass
+      );
+    }
+
+    const start = (this.requestedPageIndex - 1) * this.requestedPageSize;
+    return filtered.slice(start, start + this.requestedPageSize);
+  }
+
+  acceptMedicationRequest(medication: MedicationModel): void {
+    if (!medication.id) return;
+    this.medicationService.acceptMedicationRequest(medication.id).subscribe({
+      next: () => {
+        this.msg.success(`"${medication.name}" accepted`);
+        this.loadRequestedMedications();
+        this.loadAgentLogs();
+        // Refresh inventory if in that tab
+        if (this.activeTabIndex === 1) {
+          this.loadInventoryMedications();
+        }
+      },
+      error: (err) => {
+        console.error(err);
+        this.msg.error('Failed to accept medication request');
+      },
+    });
+  }
+
+  patchAndAcceptMedication(medication: MedicationModel): void {
+    if (!medication.id) return;
+
+    // Call backend endpoint that patches and accepts in one transaction
+    this.medicationService.patchAndAcceptMedication(medication.id).subscribe({
+      next: () => {
+        this.msg.success(`"${medication.name}" patched and accepted`);
+        this.loadRequestedMedications();
+        this.loadAgentLogs();
+        // Refresh inventory if in that tab
+        if (this.activeTabIndex === 1) {
+          this.loadInventoryMedications();
+        }
+      },
+      error: (err) => {
+        console.error(err);
+        this.msg.error('Failed to patch and accept medication');
+      },
+    });
+  }
+
+  rejectMedicationRequest(medication: MedicationModel): void {
+    if (!medication.id) return;
+    this.medicationService.delete(medication.id).subscribe({
+      next: () => {
+        this.msg.success(`"${medication.name}" rejected`);
+        this.loadRequestedMedications();
+        this.loadAgentLogs();
+      },
+      error: (err) => {
+        console.error(err);
+        this.msg.error('Failed to reject medication request');
+      },
+    });
+  }
+
+  openMedicationDetail(medication: MedicationModel): void {
+    this.selectedMedicationForDetail = medication;
+    this.isMedicationDetailModalOpen = true;
+  }
+
+  closeMedicationDetailModal(): void {
+    this.isMedicationDetailModalOpen = false;
+    this.selectedMedicationForDetail = null;
+  }
+
+  openAIOverview(medication: MedicationModel, event?: MouseEvent): void {
+    event?.stopPropagation();
+    if (!medication.id) return;
+    
+    this.selectedMedicationForAI = medication;
+    this.aiDrawerVisible = true;
+    this.aiDrawerLoading = true;
+    this.aiOverviewData = null;
+    this.parsedAIData = null;
+
+    this.deepSeekService.giveMedicationAiOverview(medication.id).subscribe({
+      next: (data) => {
+        this.aiOverviewData = data;
+        this.parsedAIData = this.parseAIResponse(data);
+        this.aiDrawerLoading = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.msg.error('Failed to load AI overview');
+        this.aiDrawerLoading = false;
+        this.closeAIDrawer();
+      },
+    });
+  }
+
+  parseAIResponse(data: any): any {
+    try {
+      if (!data || !data.raw) return null;
+      
+      // Extract JSON from markdown code block
+      const raw = data.raw;
+      const jsonMatch = raw.match(/```json\s*([\s\S]*?)\s*```/);
+      
+      if (jsonMatch && jsonMatch[1]) {
+        return JSON.parse(jsonMatch[1].trim());
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Failed to parse AI response:', error);
+      return null;
+    }
+  }
+
+  closeAIDrawer(): void {
+    this.aiDrawerVisible = false;
+    this.selectedMedicationForAI = null;
+    this.aiOverviewData = null;
+    this.parsedAIData = null;
   }
 
   ngAfterViewInit(): void {
@@ -317,40 +753,28 @@ export class Pharmacy implements OnInit, AfterViewInit {
     this.loading = true;
     this.errorMsg = null;
 
-    const startTime = Date.now();
-
     this.service.getAll().subscribe({
       next: (list) => {
-        const elapsed = Date.now() - startTime;
-        const remaining = Math.max(1000 - elapsed, 0);
-
-        setTimeout(() => {
-          this.pharmacies = list ?? [];
-          if (!this.inventoryPharmacyId && this.pharmacies.length > 0) {
-            this.inventoryPharmacyId = this.pharmacies[0].id ?? null;
+        this.pharmacies = list ?? [];
+        this.loadRatingsState();
+        if (!this.inventoryPharmacyId && this.pharmacies.length > 0) {
+          this.inventoryPharmacyId = this.pharmacies[0].id ?? null;
+        }
+        
+        // Load status for each pharmacy
+        this.pharmacies.forEach(pharmacy => {
+          if (pharmacy.id) {
+            this.loadPharmacyStatus(pharmacy.id);
           }
-          
-          // Load status for each pharmacy
-          this.pharmacies.forEach(pharmacy => {
-            if (pharmacy.id) {
-              this.loadPharmacyStatus(pharmacy.id);
-            }
-          });
-          
-          this.loading = false;
-          this.cdr.detectChanges();
-        }, remaining);
+        });
+        
+        this.loading = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error(err);
-
-        const elapsed = Date.now() - startTime;
-        const remaining = Math.max(1000 - elapsed, 0);
-
-        setTimeout(() => {
-          this.errorMsg = 'Failed to load pharmacies';
-          this.loading = false;
-        }, remaining);
+        this.errorMsg = 'Failed to load pharmacies';
+        this.loading = false;
       },
     });
   }
@@ -405,13 +829,129 @@ export class Pharmacy implements OnInit, AfterViewInit {
     return { isOpen, isClosed: false };
   }
 
-  getRate(id: number): number {
-    return this.rateMap.get(id) ?? 0;
+  private loadRatingsState(): void {
+    if (!this.currentUsername) {
+      return;
+    }
+
+    this.ratingService.getAll().subscribe({
+      next: (ratings) => {
+        this.rateMap.clear();
+        this.liked.clear();
+        this.ratingByPharmacy.clear();
+
+        const ratingsByPharmacy = new Map<number, Rating[]>();
+        (ratings ?? []).forEach((rating) => {
+          const pharmacyId = (rating.pharmacy as any)?.id;
+          if (!pharmacyId) return;
+
+          if (!ratingsByPharmacy.has(pharmacyId)) {
+            ratingsByPharmacy.set(pharmacyId, []);
+          }
+          ratingsByPharmacy.get(pharmacyId)!.push(rating);
+
+          if (rating.username === this.currentUsername) {
+            this.ratingByPharmacy.set(pharmacyId, rating);
+            // Only set rating if it exists and is valid
+            const validRating = rating.rating && rating.rating > 0 ? rating.rating : 0;
+            if (validRating > 0) {
+              this.rateMap.set(pharmacyId, validRating);
+            }
+            if (rating.isFavorite) {
+              this.liked.add(pharmacyId);
+            }
+          }
+        });
+
+        this.pharmacies.forEach((pharmacy) => {
+          if (!pharmacy.id) return;
+          // Only calculate average if this pharmacy doesn't already have current user's rating
+          if (this.rateMap.has(pharmacy.id)) return;
+          
+          const pharmacyRatings = (ratingsByPharmacy.get(pharmacy.id) ?? [])
+            .map((rating) => Number(rating.rating ?? 0))
+            .filter((value) => value > 0);
+          if (pharmacyRatings.length > 0) {
+            const average =
+              pharmacyRatings.reduce((sum, value) => sum + value, 0) / pharmacyRatings.length;
+            this.rateMap.set(pharmacy.id, Math.round(average));
+          } else {
+            // Ensure null/undefined ratings still get initialized to 0
+            if (!this.rateMap.has(pharmacy.id)) {
+              this.rateMap.set(pharmacy.id, 0);
+            }
+          }
+        });
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Failed to load rating state:', err);
+      },
+    });
   }
 
-  setRate(id: number, value: number): void {
-    this.rateMap.set(id, Math.round(value));
-    this.cdr.detectChanges();
+  getRate(id: number): number {
+    const rate = this.rateMap.get(id);
+    return rate === undefined || rate === null ? 0 : rate;
+  }
+
+  setRate(pharmacy: PharmacyModel, value: number): void {
+    if (!pharmacy.id) return;
+    this.selectedRatingPharmacy = pharmacy;
+    this.pendingRatingValue = Math.max(1, Math.min(5, Math.round(value || 0)));
+    const existing = this.ratingByPharmacy.get(pharmacy.id);
+    this.pendingRatingComment = existing?.comment ?? '';
+    this.isRatingModalOpen = true;
+  }
+
+  cancelRatingModal(): void {
+    this.isRatingModalOpen = false;
+    this.selectedRatingPharmacy = null;
+    this.pendingRatingValue = 0;
+    this.pendingRatingComment = '';
+  }
+
+  submitRating(): void {
+    if (!this.selectedRatingPharmacy?.id) return;
+    if (!this.currentUsername) {
+      this.msg.error('Unable to get current user email from authentication.');
+      return;
+    }
+    if (this.pendingRatingValue < 1 || this.pendingRatingValue > 5) {
+      this.msg.error('Please choose a rating between 1 and 5.');
+      return;
+    }
+
+    const pharmacyId = this.selectedRatingPharmacy.id;
+    const existing = this.ratingByPharmacy.get(pharmacyId);
+    const payload: Rating = {
+      rating: this.pendingRatingValue,
+      username: this.currentUsername,
+      comment: this.pendingRatingComment?.trim() || null,
+      isFavorite: existing?.isFavorite ?? false,
+      pharmacy: { id: pharmacyId },
+    };
+
+    this.submittingRating = true;
+
+    const request = existing?.id
+      ? this.ratingService.update(existing.id, payload)
+      : this.ratingService.create(payload);
+
+    request.subscribe({
+      next: () => {
+        this.submittingRating = false;
+        this.msg.success('Rating submitted successfully');
+        this.cancelRatingModal();
+        this.loadRatingsState();
+      },
+      error: (err) => {
+        console.error(err);
+        this.submittingRating = false;
+        this.msg.error('Failed to submit rating');
+      },
+    });
   }
 
   openAddModal(): void {
@@ -428,8 +968,9 @@ export class Pharmacy implements OnInit, AfterViewInit {
     this.logoFile = null;
     this.addForm.reset({
       name: '',
-      address: '',
       description: '',
+      contactInfo: '',
+      address: '',
       latitude: null,
       longitude: null,
     });
@@ -498,9 +1039,16 @@ export class Pharmacy implements OnInit, AfterViewInit {
   nextStep(): void {
     if (this.currentStep === 0) {
       // Validate step 1
-      if (this.addForm.get('name')!.invalid) {
-        this.addForm.get('name')!.markAsTouched();
-        this.stepError = 'Please enter a pharmacy name';
+      this.addForm.get('name')?.markAsTouched();
+      this.addForm.get('description')?.markAsTouched();
+      this.addForm.get('contactInfo')?.markAsTouched();
+
+      if (
+        this.addForm.get('name')?.invalid ||
+        this.addForm.get('description')?.invalid ||
+        this.addForm.get('contactInfo')?.invalid
+      ) {
+        this.stepError = 'Please fill all required fields correctly';
         return;
       }
       this.stepError = null;
@@ -516,8 +1064,14 @@ export class Pharmacy implements OnInit, AfterViewInit {
       this.initializeMap();
     } else if (this.currentStep === 1) {
       // Validate step 2
+      this.addForm.get('address')?.markAsTouched();
       const lat = this.addForm.get('latitude')!.value;
       const lng = this.addForm.get('longitude')!.value;
+
+      if (this.addForm.get('address')?.invalid) {
+        this.stepError = 'Please fill all required fields correctly';
+        return;
+      }
 
       if (lat === null || lng === null) {
         this.stepError = 'Please enter both latitude and longitude';
@@ -545,6 +1099,13 @@ export class Pharmacy implements OnInit, AfterViewInit {
   updateCoordinates(): void {
     if (!this.editingPharmacy || !this.editingPharmacy.id) return;
 
+    this.addForm.get('address')?.markAsTouched();
+
+    if (this.addForm.get('address')?.invalid) {
+      this.stepError = 'Please fill all required fields correctly';
+      return;
+    }
+
     const lat = this.addForm.get('latitude')!.value;
     const lng = this.addForm.get('longitude')!.value;
 
@@ -562,12 +1123,12 @@ export class Pharmacy implements OnInit, AfterViewInit {
     this.stepError = null;
 
     const payload = {
-      ...this.editingPharmacy,
+      address: this.addForm.get('address')?.value || undefined,
       latitude: lat,
       longitude: lng,
     };
 
-    this.service.update(this.editingPharmacy.id, payload as any).subscribe({
+    this.service.updateLocation(this.editingPharmacy.id, payload).subscribe({
       next: (updated) => {
         const index = this.pharmacies.findIndex(p => p.id === this.editingPharmacy!.id);
         if (index !== -1) {
@@ -597,6 +1158,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
       name: v.name!,
       address: v.address || undefined,
       description: v.description || undefined,
+      contactInfo: v.contactInfo || undefined,
       latitude: v.latitude ?? null,
       longitude: v.longitude ?? null,
       createdAt: null,
@@ -613,35 +1175,40 @@ export class Pharmacy implements OnInit, AfterViewInit {
           return;
         }
 
-        // Upload banner if provided
-        const uploadBanner = this.bannerFile
-          ? this.service.uploadImages(created.id, { banner: this.bannerFile })
-          : null;
+        const pharmacyId = created.id; // Store ID to properly narrow type
 
-        // Upload logo if provided
-        const uploadLogo = this.logoFile
-          ? this.service.uploadImages(created.id, { logo: this.logoFile })
-          : null;
+        // Upload both banner and logo in a single call if either is provided
+        const hasImages = this.bannerFile || this.logoFile;
 
-        const uploads = [uploadBanner, uploadLogo].filter(
-          (u) => u !== null
-        );
-
-        if (uploads.length === 0) {
+        if (!hasImages) {
           this.finishPharmacyCreation(created);
           return;
         }
 
-        // Wait for all uploads
-        Promise.all(
-          uploads.map((upload) =>
-            upload!.toPromise().catch((err) => {
-              console.error('Upload error:', err);
-              return null;
-            })
-          )
-        ).then(() => {
-          this.finishPharmacyCreation(created);
+        // Single upload call with both banner and logo
+        this.service.uploadImages(pharmacyId, {
+          banner: this.bannerFile || undefined,
+          logo: this.logoFile || undefined
+        }).subscribe({
+          next: () => {
+            // Re-fetch the pharmacy to get updated banner/logo URLs
+            this.service.getById(pharmacyId).subscribe({
+              next: (refreshed) => {
+                this.finishPharmacyCreation(refreshed);
+                // Trigger change detection after pharmacy is refreshed with image URLs
+                this.cdr.detectChanges();
+              },
+              error: (err) => {
+                console.error('Failed to refresh pharmacy after image upload:', err);
+                this.finishPharmacyCreation(created);
+              }
+            });
+          },
+          error: (err) => {
+            console.error('Upload error:', err);
+            this.msg.error('Failed to upload images');
+            this.finishPharmacyCreation(created);
+          }
         });
       },
       error: (err) => {
@@ -681,43 +1248,45 @@ export class Pharmacy implements OnInit, AfterViewInit {
     const v = this.addForm.getRawValue();
 
     const payload: PharmacyModel = {
-      ...this.editingPharmacy,
       name: v.name!,
-      address: v.address || undefined,
       description: v.description || undefined,
-      latitude: this.editingPharmacy.latitude,
-      longitude: this.editingPharmacy.longitude,
+      contactInfo: v.contactInfo || undefined,
     };
 
-    this.service.update(pharmacyId, payload as any).subscribe({
+    this.service.updateInfo(pharmacyId, payload).subscribe({
       next: (updated) => {
-        // Upload banner if provided
-        const uploadBanner = this.bannerFile
-          ? this.service.uploadImages(pharmacyId, { banner: this.bannerFile })
-          : null;
+        // Upload both banner and logo in a single call if either is provided
+        const hasImages = this.bannerFile || this.logoFile;
 
-        // Upload logo if provided
-        const uploadLogo = this.logoFile
-          ? this.service.uploadImages(pharmacyId, { logo: this.logoFile })
-          : null;
-
-        const uploads = [uploadBanner, uploadLogo].filter((u) => u !== null);
-
-        if (uploads.length === 0) {
+        if (!hasImages) {
           this.finishPharmacyUpdate(updated);
           return;
         }
 
-        // Wait for all uploads
-        Promise.all(
-          uploads.map((upload) =>
-            upload!.toPromise().catch((err) => {
-              console.error('Upload error:', err);
-              return null;
-            })
-          )
-        ).then(() => {
-          this.finishPharmacyUpdate(updated);
+        // Single upload call with both banner and logo
+        this.service.uploadImages(pharmacyId, {
+          banner: this.bannerFile || undefined,
+          logo: this.logoFile || undefined
+        }).subscribe({
+          next: () => {
+            // Re-fetch the pharmacy to get updated banner/logo URLs
+            this.service.getById(pharmacyId).subscribe({
+              next: (refreshed) => {
+                this.finishPharmacyUpdate(refreshed);
+                // Trigger change detection after pharmacy is refreshed with image URLs
+                this.cdr.detectChanges();
+              },
+              error: (err) => {
+                console.error('Failed to refresh pharmacy after image upload:', err);
+                this.finishPharmacyUpdate(updated);
+              }
+            });
+          },
+          error: (err) => {
+            console.error('Upload error:', err);
+            this.msg.error('Failed to upload images');
+            this.finishPharmacyUpdate(updated);
+          }
         });
       },
       error: (err) => {
@@ -891,8 +1460,39 @@ export class Pharmacy implements OnInit, AfterViewInit {
   toggleLike(p: PharmacyModel, ev: MouseEvent): void {
     ev.stopPropagation();
     if (!p.id) return;
-    if (this.liked.has(p.id)) this.liked.delete(p.id);
-    else this.liked.add(p.id);
+    if (!this.currentUsername) {
+      this.msg.error('Unable to get current user email from authentication.');
+      return;
+    }
+
+    const existing = this.ratingByPharmacy.get(p.id);
+    const newFavoriteValue = !this.liked.has(p.id);
+
+    // Set rating to 0 if no valid rating exists, otherwise keep existing rating
+    const payload: Rating = {
+      rating: existing?.rating && existing.rating > 0 ? existing.rating : 0,
+      username: this.currentUsername,
+      comment: existing?.comment ?? null,
+      isFavorite: newFavoriteValue,
+      pharmacy: { id: p.id },
+    };
+
+    const request = existing?.id
+      ? this.ratingService.update(existing.id, payload)
+      : this.ratingService.create(payload);
+
+    request.subscribe({
+      next: () => {
+        if (newFavoriteValue) this.liked.add(p.id!);
+        else this.liked.delete(p.id!);
+        this.msg.success(newFavoriteValue ? 'Added to favorites' : 'Removed from favorites');
+        this.loadRatingsState();
+      },
+      error: (err) => {
+        console.error(err);
+        this.msg.error('Failed to update favorite');
+      },
+    });
   }
 
   favorite(p: PharmacyModel, ev?: MouseEvent): void {
@@ -902,7 +1502,54 @@ export class Pharmacy implements OnInit, AfterViewInit {
 
   report(p: PharmacyModel, ev?: MouseEvent): void {
     ev?.stopPropagation();
-    console.log('Report', p);
+    if (!p.id) return;
+    this.selectedReportPharmacy = p;
+    this.selectedReportReason = null;
+    this.reportDescription = '';
+    this.isReportModalOpen = true;
+  }
+
+  cancelReportModal(): void {
+    this.isReportModalOpen = false;
+    this.selectedReportPharmacy = null;
+    this.selectedReportReason = null;
+    this.reportDescription = '';
+  }
+
+  selectReportReason(reason: ReportReason): void {
+    this.selectedReportReason = reason;
+  }
+
+  submitReport(): void {
+    if (!this.selectedReportPharmacy?.id) return;
+    if (!this.selectedReportReason) {
+      this.msg.error('Please select a report reason.');
+      return;
+    }
+    if (!this.currentUsername) {
+      this.msg.error('Unable to get current user email from authentication.');
+      return;
+    }
+
+    this.submittingReport = true;
+
+    this.reportService.create({
+      reason: this.selectedReportReason,
+      description: this.reportDescription?.trim() || null,
+      username: this.currentUsername,
+      pharmacy: { id: this.selectedReportPharmacy.id },
+    } as Report).subscribe({
+      next: () => {
+        this.submittingReport = false;
+        this.msg.success('Report submitted successfully');
+        this.cancelReportModal();
+      },
+      error: (err) => {
+        console.error(err);
+        this.submittingReport = false;
+        this.msg.error('Failed to submit report');
+      },
+    });
   }
 
   editInfo(p: PharmacyModel, ev?: MouseEvent): void {
@@ -942,8 +1589,9 @@ export class Pharmacy implements OnInit, AfterViewInit {
 
     this.addForm.reset({
       name: p.name || '',
-      address: p.address || '',
       description: p.description || '',
+      contactInfo: p.contactInfo || '',
+      address: p.address || '',
       latitude: p.latitude || null,
       longitude: p.longitude || null,
     });
@@ -961,8 +1609,9 @@ export class Pharmacy implements OnInit, AfterViewInit {
     this.stepError = null;
     this.addForm.reset({
       name: p.name || '',
-      address: p.address || '',
       description: p.description || '',
+      contactInfo: p.contactInfo || '',
+      address: p.address || '',
       latitude: p.latitude || null,
       longitude: p.longitude || null,
     });
@@ -985,6 +1634,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
         this.pharmacies = this.pharmacies.filter(ph => ph.id !== pharmacyId);
         this.rateMap.delete(pharmacyId);
         this.liked.delete(pharmacyId);
+        this.ratingByPharmacy.delete(pharmacyId);
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -993,5 +1643,20 @@ export class Pharmacy implements OnInit, AfterViewInit {
         this.msg.error('Failed to delete pharmacy');
       },
     });
+  }
+
+  // Validation error display helpers
+  getFieldError(fieldName: string): string | null {
+    const control = this.addForm.get(fieldName);
+    if (!control || !control.touched || !control.errors) return null;
+
+    if (control.errors['required']) return 'This field is required';
+    if (control.errors['minlength']) return `Minimum ${control.errors['minlength'].requiredLength} characters required`;
+    return null;
+  }
+
+  isFieldInvalid(fieldName: string): boolean {
+    const control = this.addForm.get(fieldName);
+    return !!(control && control.invalid && (control.dirty || control.touched));
   }
 }

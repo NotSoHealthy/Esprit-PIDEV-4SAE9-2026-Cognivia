@@ -3,6 +3,7 @@ export interface Pharmacy {
   name: string;
   address?: string;
   description?: string;
+  contactInfo?: string;
   latitude?: number | null;
   longitude?: number | null;
 

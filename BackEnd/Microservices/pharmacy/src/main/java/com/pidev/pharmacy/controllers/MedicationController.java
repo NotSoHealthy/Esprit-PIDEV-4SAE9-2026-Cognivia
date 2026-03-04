@@ -25,6 +25,26 @@ public class MedicationController {
         return medicationService.getAll();
     }
 
+    @GetMapping("/pending")
+    public List<Medication> getPendingMedications() {
+        return medicationService.getPendingMedications();
+    }
+
+    @GetMapping("/accepted")
+    public List<Medication> getAcceptedMedications() {
+        return medicationService.getAcceptedMedications();
+    }
+
+    @PutMapping("/{id}/accept")
+    public Medication acceptMedication(@PathVariable Long id) {
+        return medicationService.acceptMedication(id);
+    }
+
+    @PutMapping("/{id}/patch-and-accept")
+    public Medication patchAndAcceptMedication(@PathVariable Long id) {
+        return medicationService.patchAndAcceptMedication(id);
+    }
+
     @GetMapping("/{id}")
     public Medication getMedicationById(@PathVariable Long id) {
         return medicationService.getById(id);

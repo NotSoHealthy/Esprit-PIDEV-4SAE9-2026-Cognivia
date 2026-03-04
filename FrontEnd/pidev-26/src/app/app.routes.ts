@@ -34,6 +34,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/pharmacy/medication/medication-page').then((m) => m.MedicationPage),
       },
+      {
+        path: 'prescriptions',
+        title: 'Prescriptions',
+        canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_PHARMACY', 'ROLE_ADMIN'])],
+        loadComponent: () =>
+          import('./features/prescription/prescription').then((m) => m.PrescriptionComponent),
+      },
       
       {
         path: 'patient-management',

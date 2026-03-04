@@ -1,4 +1,5 @@
 package com.pidev.pharmacy.entities;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,6 +23,7 @@ public class PrescriptionItem {
     private Frequency frequency;
 
 
+    @JsonBackReference
     @ManyToOne(optional = false)
     @JoinColumn(name = "prescription_id", nullable = false)
     private Prescription prescription;

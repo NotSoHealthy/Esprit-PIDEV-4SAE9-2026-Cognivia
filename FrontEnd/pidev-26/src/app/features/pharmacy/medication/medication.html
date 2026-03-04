@@ -52,6 +52,17 @@
       </div>
 
       <div class="medication-card-actions" (click)="$event.stopPropagation()">
+        <button 
+          *ngIf="showAIButton" 
+          nz-button 
+          nzType="primary" 
+          nzShape="round" 
+          nzSize="small" 
+          (click)="onAIButtonClick(medication, $event)"
+          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;"
+        >
+          AI Overview
+        </button>
         <button nz-button nzShape="round" nzSize="small" (click)="editMedication(medication, $event)">
           Edit
         </button>
@@ -105,34 +116,30 @@
         <nz-form-item>
           <nz-form-label [nzRequired]="true" nzFor="name">Name</nz-form-label>
 
-          <nz-form-control nzHasFeedback [nzErrorTip]="nameErrorTpl">
+          <nz-form-control>
             <input
               id="name"
               nz-input
               formControlName="name"
               placeholder="e.g. Donepezil"
+              [class.field-error]="isFieldInvalid('name')"
             />
-
-            <ng-template #nameErrorTpl>
-              <ng-container *ngIf="addForm.controls.name.hasError('required')">
-                Name is required.
-              </ng-container>
-              <ng-container *ngIf="addForm.controls.name.hasError('minlength')">
-                Name must be at least 3 characters.
-              </ng-container>
-            </ng-template>
+            <div *ngIf="getFieldError('name')" class="error-text">{{ getFieldError('name') }}</div>
           </nz-form-control>
         </nz-form-item>
 
+        <!-- Description -->
         <nz-form-item>
-          <nz-form-label>Description</nz-form-label>
+          <nz-form-label [nzRequired]="true">Description</nz-form-label>
           <nz-form-control>
             <textarea
               nz-input
               formControlName="description"
               rows="3"
               placeholder="Medication description"
+              [class.field-error]="isFieldInvalid('description')"
             ></textarea>
+            <div *ngIf="getFieldError('description')" class="error-text">{{ getFieldError('description') }}</div>
           </nz-form-control>
         </nz-form-item>
 
@@ -150,6 +157,7 @@
                 {{ option.label }}
               </label>
             </nz-radio-group>
+            <div *ngIf="getFieldError('therapeuticClass')" class="error-text">{{ getFieldError('therapeuticClass') }}</div>
           </nz-form-control>
         </nz-form-item>
 
@@ -157,10 +165,7 @@
         <nz-form-item>
           <nz-form-label [nzRequired]="!isEditMode">Photo</nz-form-label>
 
-          <nz-form-control
-            [nzErrorTip]="photoErrorTpl"
-            nzHasFeedback
-          >
+          <nz-form-control>
             <nz-upload
               [nzFileList]="fileList"
               [nzBeforeUpload]="beforeUpload"
@@ -173,12 +178,7 @@
                 Upload Photo
               </button>
             </nz-upload>
-
-            <ng-template #photoErrorTpl>
-              <ng-container *ngIf="photoMissing">
-                Photo is required for new medications.
-              </ng-container>
-            </ng-template>
+            <div *ngIf="photoMissing && !isEditMode" class="error-text">Photo is required for new medications</div>
           </nz-form-control>
         </nz-form-item>
       </form>

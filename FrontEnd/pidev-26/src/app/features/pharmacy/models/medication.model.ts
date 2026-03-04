@@ -2,6 +2,7 @@ export interface MedicationModel {
   id?: number;
   name: string;
   status?: 'PENDING' | 'ACCEPTED' | string;
+  medicationStatus?: 'PENDING' | 'ACCEPTED' | string;
   imageUrl?: string;
   therapeuticClass?: string;
   description?: string;

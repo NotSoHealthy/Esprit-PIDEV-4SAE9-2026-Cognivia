@@ -1,6 +1,8 @@
 package com.pidev.pharmacy.controllers;
 
 
+import com.pidev.pharmacy.dto.PharmacyUpdateInfoDTO;
+import com.pidev.pharmacy.dto.PharmacyUpdateLocationDTO;
 import com.pidev.pharmacy.entities.Pharmacy;
 import com.pidev.pharmacy.services.PharmacyService;
 import lombok.AllArgsConstructor;
@@ -90,6 +92,32 @@ public class PharmacyController {
         } catch (IOException e) {
             log.error("Error uploading pharmacy images", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PatchMapping("/{id}/update-info")
+    public ResponseEntity<Pharmacy> updatePharmacyInfo(
+            @PathVariable Long id,
+            @RequestBody PharmacyUpdateInfoDTO dto) {
+        try {
+            Pharmacy pharmacy = pharmacyService.updatePharmacyInfo(id, dto);
+            return ResponseEntity.ok(pharmacy);
+        } catch (Exception e) {
+            log.error("Error updating pharmacy info", e);
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PatchMapping("/{id}/update-location")
+    public ResponseEntity<Pharmacy> updatePharmacyLocation(
+            @PathVariable Long id,
+            @RequestBody PharmacyUpdateLocationDTO dto) {
+        try {
+            Pharmacy pharmacy = pharmacyService.updatePharmacyLocation(id, dto);
+            return ResponseEntity.ok(pharmacy);
+        } catch (Exception e) {
+            log.error("Error updating pharmacy location", e);
+            return ResponseEntity.notFound().build();
         }
     }
 }

@@ -50,7 +50,7 @@
   position: relative;
   border-radius: 12px;
   overflow: hidden;
-  cursor: default;
+  cursor: pointer;
 }
 
 .stock-cover {

@@ -1,0 +1,372 @@
+<div class="prescription-page">
+  <!-- Header -->
+  <div class="prescription-header">
+    <h1 class="prescription-title">Prescriptions</h1>
+    <button *ngIf="activeTabIndex === 0" nz-button nzType="primary" class="add-btn" (click)="openAddModal()">
+      Add prescription
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="spinner-wrapper">
+    <nz-spin nzTip="Loading prescriptions..." nzSize="large" style="transform: scale(1.4);">
+    </nz-spin>
+  </div>
+
+  <!-- Main content with tabs -->
+  <div class="content-wrapper" *ngIf="!loading">
+    <nz-tabs [(nzSelectedIndex)]="activeTabIndex" (nzSelectedIndexChange)="activeTabIndex = $event">
+      <!-- Prescriptions Tab -->
+      <nz-tab nzTitle="Prescriptions">
+        <!-- Empty state -->
+        <div *ngIf="prescriptions.length === 0" class="empty-wrapper">
+          <nz-empty nzNotFoundContent="No prescriptions found"></nz-empty>
+        </div>
+
+        <!-- Prescriptions list -->
+        <div class="prescriptions-list" *ngIf="prescriptions.length > 0">
+          <div
+            *ngFor="let prescription of prescriptions"
+            class="prescription-card"
+            [ngClass]="{ 'prescription-expanded': isPrescriptionExpanded(prescription.id) }"
+          >
+            <!-- Main prescription header (collapsed view) -->
+            <div class="prescription-header-row" (click)="togglePrescriptionExpand(prescription.id)">
+              <div class="prescription-main-info">
+                <div class="prescription-id">Prescription ID: {{ prescription.code || prescription.id }}</div>
+                <div class="prescription-description">{{ prescription.description }}</div>
+                <div class="prescription-patient">Patient: {{ prescription.patientName }}</div>
+              </div>
+
+              <div class="prescription-actions">
+                <button
+                  nz-button
+                  nzType="text"
+                  nz-dropdown
+                  [nzDropdownMenu]="prescriptionMenu"
+                  (click)="$event.stopPropagation()"
+                  class="actions-menu-btn"
+                >
+                  <nz-icon nzType="more" nzTheme="outline"></nz-icon>
+                </button>
+                <nz-dropdown-menu #prescriptionMenu="nzDropdownMenu">
+                  <ul nz-menu>
+                    <li nz-menu-item (click)="openEditModal(prescription, $event)">Edit</li>
+                    <li nz-menu-item class="menu-delete" (click)="deletePrescription(prescription, $event)">Delete</li>
+                  </ul>
+                </nz-dropdown-menu>
+                <nz-icon
+                  [nzType]="isPrescriptionExpanded(prescription.id) ? 'up' : 'down'"
+                  nzTheme="outline"
+                  class="expand-icon"
+                ></nz-icon>
+              </div>
+            </div>
+
+            <!-- Expanded view with items -->
+            <div *ngIf="isPrescriptionExpanded(prescription.id)" class="prescription-details">
+              <nz-divider></nz-divider>
+
+              <!-- Prescription details -->
+              <div class="details-section">
+                <div class="detail-row">
+                  <span class="detail-label">Doctor:</span>
+                  <span class="detail-value">{{ prescription.doctorName }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Created:</span>
+                  <span class="detail-value">{{ formatDate(prescription.createdAt) }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Expires:</span>
+                  <span class="detail-value">{{ formatDate(prescription.expiresAt) }}</span>
+                </div>
+              </div>
+
+              <!-- Prescription items table -->
+              <div class="items-section">
+                <h3>Medications</h3>
+                <div class="items-table-wrapper">
+                  <div class="items-table-header">
+                    <div class="items-table-cell">Medication</div>
+                    <div class="items-table-cell">Quantity</div>
+                    <div class="items-table-cell">Frequency</div>
+                  </div>
+                  <div *ngFor="let item of prescription.items" class="items-table-row">
+                    <div class="items-table-cell medication-cell">
+                      <div class="medication-list-image" *ngIf="item.medication?.imageUrl; else noListMedicationImage">
+                        <img [src]="item.medication?.imageUrl" [alt]="getMedicationLabel(item.medication)" />
+                      </div>
+                      <ng-template #noListMedicationImage>
+                        <div class="medication-list-image medication-option-placeholder">
+                          {{ getMedicationLabel(item.medication)?.charAt(0) || '?' }}
+                        </div>
+                      </ng-template>
+                      <span>{{ getMedicationLabel(item.medication) }}</span>
+                    </div>
+                    <div class="items-table-cell">{{ item.quantity }}</div>
+                    <div class="items-table-cell">{{ frequencyLabels[item.frequency] }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nz-tab>
+
+      <!-- Insights Tab -->
+      <nz-tab nzTitle="Insights & Recommendations">
+        <div class="stats-content">
+          <h3>Most requested medicines</h3>
+          <div *ngIf="medicineRequestStats.length > 0; else noStats" class="stats-grid">
+            <div class="pie-chart" [style.background]="medicinePieGradient"></div>
+            <div class="stats-legend">
+              <div *ngFor="let item of medicineRequestStats" class="legend-row">
+                <span class="legend-color" [style.background]="item.color"></span>
+                <span class="legend-name">{{ item.name }}</span>
+                <span class="legend-value">{{ item.count }} ({{ item.percentage | number:'1.0-1' }}%)</span>
+              </div>
+            </div>
+          </div>
+          <ng-template #noStats>
+            <nz-empty nzNotFoundContent="No prescription statistics yet"></nz-empty>
+          </ng-template>
+
+          <nz-divider></nz-divider>
+
+          <div class="recommendation-section">
+            <h3>Find pharmacies by Prescription ID</h3>
+
+            <nz-select
+              class="recommendation-code-select"
+              [(ngModel)]="selectedPrescriptionCode"
+              [ngModelOptions]="{ standalone: true }"
+              nzPlaceHolder="Search Prescription ID"
+              nzShowSearch
+              nzAllowClear
+              (nzOnSearch)="onPrescriptionCodeSearch($event)"
+              (ngModelChange)="onRecommendationCodeChange($event)"
+            >
+              <nz-option
+                *ngFor="let code of prescriptionCodeOptions"
+                [nzValue]="code"
+                [nzLabel]="code"
+              ></nz-option>
+            </nz-select>
+
+            <div *ngIf="recommendationLoading" class="recommendation-loading">
+              <nz-spin nzTip="Loading pharmacy recommendations..."></nz-spin>
+            </div>
+
+            <div
+              *ngIf="!recommendationLoading && selectedPrescriptionCode && currentRecommendation"
+              class="recommendation-carousel"
+            >
+              <button
+                nz-button
+                nzType="default"
+                class="carousel-arrow"
+                (click)="previousRecommendation()"
+                [disabled]="recommendedPharmacies.length <= 1"
+              >
+                ‹
+              </button>
+
+              <div class="recommendation-card">
+                <div class="recommendation-image" *ngIf="getRecommendationImage(currentRecommendation!); else noRecommendationImage">
+                  <img [src]="getRecommendationImage(currentRecommendation!)!" [alt]="currentRecommendation!.pharmacyName" />
+                </div>
+                <ng-template #noRecommendationImage>
+                  <div class="recommendation-image recommendation-placeholder">
+                    {{ currentRecommendation!.pharmacyName?.charAt(0) || '?' }}
+                  </div>
+                </ng-template>
+
+                <div class="recommendation-info">
+                  <h4>{{ currentRecommendation!.pharmacyName }}</h4>
+                  <p class="recommendation-address">{{ currentRecommendation!.address || 'Address not available' }}</p>
+                  <p class="recommendation-contact">{{ currentRecommendation!.contactInfo || 'Contact not available' }}</p>
+                  <div class="recommendation-metrics">
+                    <span class="metric-chip">Matches: {{ currentRecommendation!.matchCount }}/{{ currentRecommendation!.totalMedications }}</span>
+                    <span class="metric-chip">Units: {{ currentRecommendation!.totalAvailableQuantity }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                nz-button
+                nzType="default"
+                class="carousel-arrow"
+                (click)="nextRecommendation()"
+                [disabled]="recommendedPharmacies.length <= 1"
+              >
+                ›
+              </button>
+            </div>
+
+            <div
+              *ngIf="!recommendationLoading && selectedPrescriptionCode && recommendedPharmacies.length > 0"
+              class="carousel-progress"
+            >
+              {{ recommendationIndex + 1 }} / {{ recommendedPharmacies.length }}
+            </div>
+
+            <div
+              *ngIf="!recommendationLoading && selectedPrescriptionCode && recommendedPharmacies.length === 0"
+              class="recommendation-empty"
+            >
+              <nz-empty nzNotFoundContent="No pharmacy recommendation found for this prescription"></nz-empty>
+            </div>
+          </div>
+        </div>
+      </nz-tab>
+    </nz-tabs>
+  </div>
+
+  <!-- Add Prescription Modal -->
+  <nz-modal
+    [(nzVisible)]="isAddModalOpen"
+    [nzTitle]="isEditMode ? 'Edit Prescription' : 'Add Prescription'"
+    nzWidth="800px"
+    [nzOkLoading]="savingPrescription"
+    (nzOnOk)="savePrescription()"
+    (nzOnCancel)="isAddModalOpen = false"
+    nzClassName="pharmacy-modal-rounded"
+  >
+    <ng-container *nzModalContent>
+      <form [formGroup]="addPrescriptionForm">
+        <!-- Patient Name -->
+        <nz-form-item>
+          <nz-form-label nzRequired>Patient Name</nz-form-label>
+          <nz-form-control>
+            <input
+              nz-input
+              formControlName="patientName"
+              placeholder="Enter patient name"
+              [class.field-error]="isFieldInvalid('patientName')"
+            />
+            <div *ngIf="getFieldError('patientName')" class="error-text">{{ getFieldError('patientName') }}</div>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Description -->
+        <nz-form-item>
+          <nz-form-label nzRequired>Description</nz-form-label>
+          <nz-form-control>
+            <textarea
+              nz-input
+              formControlName="description"
+              placeholder="Enter prescription description"
+              rows="3"
+              [class.field-error]="isFieldInvalid('description')"
+            ></textarea>
+            <div *ngIf="getFieldError('description')" class="error-text">{{ getFieldError('description') }}</div>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Expires At -->
+        <nz-form-item>
+          <nz-form-label nzRequired>Expires At</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker
+              formControlName="expiresAt"
+              nzPlaceHolder="Select expiration date"
+              style="width: 100%;"
+            ></nz-date-picker>
+            <div *ngIf="getFieldError('expiresAt')" class="error-text">{{ getFieldError('expiresAt') }}</div>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Prescription Items -->
+        <div class="prescription-items-section">
+          <h3>Medications <span style="color: #d32f2f;">*</span></h3>
+
+          <div formArrayName="prescriptionItems">
+            <div
+              *ngFor="let item of prescriptionItems.controls; let i = index"
+              class="prescription-item-form"
+              [formGroupName]="i"
+            >
+              <!-- Medication dropdown -->
+              <div class="item-field">
+                <label>Medication <span style="color: #d32f2f;">*</span></label>
+                <nz-select
+                  formControlName="medication"
+                  nzPlaceHolder="Select medication"
+                  [compareWith]="compareMedications"
+                  [class.field-error]="isItemFieldInvalid(i, 'medication')"
+                >
+                  <nz-option
+                    *ngFor="let med of medications"
+                    [nzValue]="med"
+                    [nzLabel]="med.name"
+                    nzCustomContent
+                  >
+                    <div class="medication-option">
+                      <div class="medication-option-image" *ngIf="med.imageUrl; else noMedicationImage">
+                        <img [src]="med.imageUrl" [alt]="med.name" />
+                      </div>
+                      <ng-template #noMedicationImage>
+                        <div class="medication-option-image medication-option-placeholder">
+                          {{ med.name?.charAt(0) || '?' }}
+                        </div>
+                      </ng-template>
+                      <span class="medication-option-name">{{ med.name }}</span>
+                    </div>
+                  </nz-option>
+                </nz-select>
+                <div *ngIf="getItemError(i, 'medication')" class="error-text">{{ getItemError(i, 'medication') }}</div>
+              </div>
+
+              <!-- Quantity -->
+              <div class="item-field narrow">
+                <label>Quantity <span style="color: #d32f2f;">*</span></label>
+                <input
+                  nz-input
+                  type="number"
+                  formControlName="quantity"
+                  min="1"
+                  [class.field-error]="isItemFieldInvalid(i, 'quantity')"
+                />
+                <div *ngIf="getItemError(i, 'quantity')" class="error-text">{{ getItemError(i, 'quantity') }}</div>
+              </div>
+
+              <!-- Frequency -->
+              <div class="item-field">
+                <label>Frequency <span style="color: #d32f2f;">*</span></label>
+                <nz-select
+                  formControlName="frequency"
+                  nzPlaceHolder="Select frequency"
+                  [class.field-error]="isItemFieldInvalid(i, 'frequency')"
+                >
+                  <nz-option *ngFor="let freq of frequencyOptions" [nzValue]="freq.value" [nzLabel]="freq.label">
+                  </nz-option>
+                </nz-select>
+                <div *ngIf="getItemError(i, 'frequency')" class="error-text">{{ getItemError(i, 'frequency') }}</div>
+              </div>
+
+              <!-- Remove button -->
+              <button
+                type="button"
+                nz-button
+                nzDanger
+                nzType="link"
+                class="remove-item-btn"
+                (click)="removePrescriptionItem(i)"
+                [disabled]="prescriptionItems.length === 1"
+              >
+                <nz-icon nzType="delete" nzTheme="outline"></nz-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- Add item button -->
+          <button type="button" nz-button nzType="dashed" class="add-item-btn" (click)="addPrescriptionItem()">
+            <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
+            Add Medication
+          </button>
+        </div>
+      </form>
+    </ng-container>
+  </nz-modal>
+</div>

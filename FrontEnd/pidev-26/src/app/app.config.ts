@@ -22,7 +22,9 @@ import {
   PlusOutline,
   MinusOutline,
   PictureOutline,
-  ArrowLeftOutline
+  ArrowLeftOutline,
+  StarFill,
+  GlobalOutline
 } from '@ant-design/icons-angular/icons';
 
 export const appConfig: ApplicationConfig = {
@@ -49,8 +51,9 @@ export const appConfig: ApplicationConfig = {
       ArrowLeftOutline,
       PictureOutline,
       PlusOutline,
-      MinusOutline
-      
+      MinusOutline,
+      StarFill,
+      GlobalOutline
     ]),
   ],
 };

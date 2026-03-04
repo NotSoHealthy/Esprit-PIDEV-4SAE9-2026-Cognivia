@@ -37,7 +37,7 @@ export enum TherapeuticClass {
 // Adjust this to match your backend create DTO
 export type NewMedication = {
   name: string;
-  status?: 'PENDING' | 'ACCEPTED' | string;
+  medicationStatus?: 'PENDING' | 'ACCEPTED' | string;
   description?: string;
   therapeuticClass: TherapeuticClass;
   pharmacyId: number;
@@ -94,7 +94,9 @@ export class Medication implements OnInit, OnChanges {
   @Input() selectedMedicationName = '';
   @Input() outOfStockOnly = false;
   @Input() showFloatingAddButton = true;
+  @Input() showAIButton = false; // New: show AI button in medication cards
   @Output() medicationsChange = new EventEmitter<MedicationModel[]>();
+  @Output() aiButtonClicked = new EventEmitter<MedicationModel>(); // New: emit when AI button is clicked
 
   pharmacyId: string | null = null;
   pharmacy: Pharmacy | null = null;
@@ -128,7 +130,7 @@ export class Medication implements OnInit, OnChanges {
 
   addForm = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(3)]],
-    description: [''],
+    description: ['', [Validators.required, Validators.minLength(5)]],
     therapeuticClass: [TherapeuticClass.CHOLINESTERASE_INHIBITOR, [Validators.required]]
   });
 
@@ -255,7 +257,10 @@ export class Medication implements OnInit, OnChanges {
     this.loadingMedications = true;
     this.medicationService.getByPharmacy(pharmacyId).subscribe({
       next: (medications) => {
-        this.medications = medications ?? [];
+        this.medications = (medications ?? []).filter(m => {
+          const status = m.medicationStatus || m.status;
+          return !status || status === 'ACCEPTED';
+        });
         this.medicationsChange.emit(this.medications);
         this.pageIndex = 1;
         this.loading = false;
@@ -308,6 +313,11 @@ export class Medication implements OnInit, OnChanges {
   openDetails(medication: MedicationModel): void {
     this.selectedMedication = medication;
     this.isDetailsModalOpen = true;
+  }
+
+  onAIButtonClick(medication: MedicationModel, event: MouseEvent): void {
+    event.stopPropagation();
+    this.aiButtonClicked.emit(medication);
   }
 
   closeDetailsModal(): void {
@@ -421,7 +431,7 @@ export class Medication implements OnInit, OnChanges {
 
     const newMedication: NewMedication = {
       name: this.addForm.value.name!,
-      status: this.createStatus,
+      medicationStatus: this.createStatus,
       description: this.addForm.value.description || undefined,
       therapeuticClass: this.addForm.value.therapeuticClass!,
       pharmacyId: pharmacyIdNum
@@ -504,5 +514,20 @@ export class Medication implements OnInit, OnChanges {
           this.msg.error('Failed to create medication or upload image.');
         }
       });
+  }
+
+  // Validation error display helpers
+  getFieldError(fieldName: string): string | null {
+    const control = this.addForm.get(fieldName);
+    if (!control || !control.touched || !control.errors) return null;
+
+    if (control.errors['required']) return 'This field is required';
+    if (control.errors['minlength']) return `Minimum ${control.errors['minlength'].requiredLength} characters required`;
+    return null;
+  }
+
+  isFieldInvalid(fieldName: string): boolean {
+    const control = this.addForm.get(fieldName);
+    return !!(control && control.invalid && (control.dirty || control.touched));
   }
 }

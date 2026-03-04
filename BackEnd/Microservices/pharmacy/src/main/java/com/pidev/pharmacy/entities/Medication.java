@@ -25,7 +25,11 @@ public class Medication {
     private String description;
     private String name;
 
-    private MedicationStatus medicationStatus;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "VARCHAR(255)")
+    private MedicationStatus medicationStatus = MedicationStatus.ACCEPTED;
+
+    @Enumerated(EnumType.STRING)
     private TherapeuticClass therapeuticClass;
     @Column(columnDefinition = "TEXT")
     private String imageUrl;

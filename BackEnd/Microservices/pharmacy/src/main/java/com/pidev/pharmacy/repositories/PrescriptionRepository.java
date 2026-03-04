@@ -12,4 +12,10 @@ public interface PrescriptionRepository extends JpaRepository<Prescription, Long
 
     List<Prescription> findByExpiresAtAfter(Instant now);   // active
     List<Prescription> findByExpiresAtBefore(Instant now);  // expired
+
+    boolean existsByCode(String code);
+
+    Optional<Prescription> findByCodeIgnoreCase(String code);
+
+    List<Prescription> findTop10ByCodeContainingIgnoreCaseOrderByCreatedAtDesc(String code);
 }

@@ -1,4 +1,6 @@
 package com.pidev.pharmacy.services;
+import com.pidev.pharmacy.dto.PharmacyUpdateInfoDTO;
+import com.pidev.pharmacy.dto.PharmacyUpdateLocationDTO;
 import com.pidev.pharmacy.entities.Pharmacy;
 import com.pidev.pharmacy.repositories.PharmacyRepository;
 import com.pidev.pharmacy.utils.ImageUtils;
@@ -88,5 +90,41 @@ public class PharmacyService implements IService<Pharmacy> {
         }
 
         return pharmacyRepository.save(pharmacy);
+    }
+
+    @Transactional
+    public Pharmacy updatePharmacyInfo(Long id, PharmacyUpdateInfoDTO dto) {
+        Pharmacy existing = getById(id);
+        if (dto.getName() != null) {
+            existing.setName(dto.getName());
+        }
+        if (dto.getAddress() != null) {
+            existing.setAddress(dto.getAddress());
+        }
+        if (dto.getDescription() != null) {
+            existing.setDescription(dto.getDescription());
+        }
+        if (dto.getBannerUrl() != null) {
+            existing.setBannerUrl(dto.getBannerUrl());
+        }
+        if (dto.getLogoUrl() != null) {
+            existing.setLogoUrl(dto.getLogoUrl());
+        }
+        return pharmacyRepository.save(existing);
+    }
+
+    @Transactional
+    public Pharmacy updatePharmacyLocation(Long id, PharmacyUpdateLocationDTO dto) {
+        Pharmacy existing = getById(id);
+        if (dto.getAddress() != null) {
+            existing.setAddress(dto.getAddress());
+        }
+        if (dto.getLongitude() != null) {
+            existing.setLongitude(dto.getLongitude());
+        }
+        if (dto.getLatitude() != null) {
+            existing.setLatitude(dto.getLatitude());
+        }
+        return pharmacyRepository.save(existing);
     }
 }

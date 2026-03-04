@@ -25,6 +25,8 @@ public class Pharmacy {
     private Double latitude;
     private Double longitude;
 
+    private String contactInfo;
+
     @Column(columnDefinition = "TEXT")
     private String bannerUrl;
 

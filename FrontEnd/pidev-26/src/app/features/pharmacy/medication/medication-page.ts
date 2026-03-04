@@ -14,6 +14,9 @@ import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzSliderModule } from 'ng-zorro-antd/slider';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
+import { NzPaginationModule } from 'ng-zorro-antd/pagination';
+import { NzRateModule } from 'ng-zorro-antd/rate';
 import { NzMessageService } from 'ng-zorro-antd/message';
 
 import { PharmacyService } from '../services/pharmacy.service';
@@ -21,12 +24,17 @@ import { MedicationService } from '../services/medication.service';
 import { MedicationStockService } from '../services/medication-stock.service';
 import { InventoryTransactionService } from '../services/inventory-transaction.service';
 import { WorkingHoursService } from '../services/working-hours.service';
+import { RatingService } from '../services/rating.service';
+import { ReportService } from '../services/report.service';
 import { Pharmacy } from '../models/pharmacy.model';
 import { MedicationModel } from '../models/medication.model';
 import { MedicationStock } from '../models/medication-stock.model';
 import { InventoryTransaction } from '../models/inventory-transaction.model';
 import { DayOfWeek, WorkingHours } from '../models/working-hours.model';
+import { Rating } from '../models/rating.model';
+import { Report } from '../models/report.model';
 import { StockCard } from './stock-card';
+import { Medication } from './medication';
 
 type Section = 'overview' | 'schedule' | 'reports' | 'logs';
 type ScheduleMode = 'all' | 'weekdays' | 'weekends' | 'individual';
@@ -48,7 +56,11 @@ type ScheduleMode = 'all' | 'weekdays' | 'weekends' | 'individual';
     NzSliderModule,
     NzRadioModule,
     NzIconModule,
+    NzTooltipModule,
+    NzPaginationModule,
+    NzRateModule,
     StockCard,
+    Medication,
   ],
   templateUrl: './medication-page.html',
   styleUrl: './medication-page.css',
@@ -61,10 +73,13 @@ export class MedicationPage implements OnInit {
   private readonly medicationStockService = inject(MedicationStockService);
   private readonly transactionService = inject(InventoryTransactionService);
   private readonly workingHoursService = inject(WorkingHoursService);
+  private readonly ratingService = inject(RatingService);
+  private readonly reportService = inject(ReportService);
   private readonly msg = inject(NzMessageService);
   private readonly cdr = inject(ChangeDetectorRef);
 
   @ViewChild('stockCards') stockCards?: StockCard;
+  @ViewChild('medicationComponent') medicationComponent?: Medication;
 
   pharmacyId: number | null = null;
   pharmacy: Pharmacy | null = null;
@@ -81,6 +96,14 @@ export class MedicationPage implements OnInit {
   allInventoryMedications: MedicationModel[] = [];
   stocks: MedicationStock[] = [];
   transactions: InventoryTransaction[] = [];
+  ratings: Rating[] = [];
+  ratingDistribution: Array<{ stars: number; count: number; percentage: number }> = [];
+  reports: Report[] = [];
+
+  ratingPageIndex = 1;
+  ratingPageSize = 5;
+  reportPageIndex = 1;
+  reportPageSize = 5;
 
   isTransactionModalOpen = false;
   selectedStock: MedicationStock | null = null;
@@ -92,6 +115,15 @@ export class MedicationPage implements OnInit {
   selectedMedicationId: number | null = null;
   initialStock: number | null = null;
   addingMedicationToStock = false;
+
+  isStockHistoryModalOpen = false;
+  selectedHistoryStock: MedicationStock | null = null;
+  stockHistorySeries: Array<{ label: string; value: number }> = [];
+
+  // Validation error messages
+  medicationSelectError: string | null = null;
+  initialStockError: string | null = null;
+  transactionQuantityError: string | null = null;
 
   readonly daysOfWeek: Array<{ key: DayOfWeek; label: string }> = [
     { key: DayOfWeek.MONDAY, label: 'Monday' },
@@ -123,10 +155,12 @@ export class MedicationPage implements OnInit {
     this.loadInventoryCatalog();
     this.loadWorkingHours();
     this.loadTransactions();
+    this.loadRatings();
+    this.loadReports();
   }
 
   private loadInventoryCatalog(): void {
-    this.medicationService.getAll().subscribe({
+    this.medicationService.getAcceptedMedications().subscribe({
       next: (medications) => {
         this.allInventoryMedications = medications ?? [];
       },
@@ -159,6 +193,10 @@ export class MedicationPage implements OnInit {
     if (section === 'schedule') {
       this.loadWorkingHours();
     }
+    if (section === 'reports') {
+      this.loadRatings();
+      this.loadReports();
+    }
   }
 
   clearOverviewFilters(): void {
@@ -181,6 +219,79 @@ export class MedicationPage implements OnInit {
 
   onStocksChange(stocks: MedicationStock[]): void {
     this.stocks = stocks ?? [];
+  }
+
+  openStockHistoryModal(stock: MedicationStock): void {
+    this.selectedHistoryStock = stock;
+    this.stockHistorySeries = this.buildStockHistorySeries(stock);
+    this.isStockHistoryModalOpen = true;
+  }
+
+  closeStockHistoryModal(): void {
+    this.isStockHistoryModalOpen = false;
+    this.selectedHistoryStock = null;
+    this.stockHistorySeries = [];
+  }
+
+  private buildStockHistorySeries(stock: MedicationStock): Array<{ label: string; value: number }> {
+    const medicationId = (stock.medication as any)?.id;
+    const medicationName = (stock.medication as any)?.name || 'Medication';
+    if (!medicationId) {
+      return [{ label: 'Current', value: stock.quantity ?? 0 }];
+    }
+
+    const related = [...this.transactions]
+      .filter((transaction) => (transaction.medication as any)?.id === medicationId)
+      .sort((a, b) => {
+        const timeA = new Date(a.transactionAt || a.createdAt || 0).getTime();
+        const timeB = new Date(b.transactionAt || b.createdAt || 0).getTime();
+        return timeB - timeA;
+      });
+
+    let rollingQuantity = stock.quantity ?? 0;
+    const reversePoints: Array<{ timestamp: string; value: number }> = [
+      { timestamp: 'Now', value: rollingQuantity },
+    ];
+
+    related.forEach((transaction) => {
+      const amount = Number(transaction.quantity ?? 0);
+      if (transaction.type === 'IN') {
+        rollingQuantity = Math.max(0, rollingQuantity - amount);
+      } else {
+        rollingQuantity += amount;
+      }
+
+      const timestamp = transaction.transactionAt || transaction.createdAt || '';
+      reversePoints.push({ timestamp, value: rollingQuantity });
+    });
+
+    return reversePoints.reverse().map((point, index) => ({
+      label: point.timestamp === 'Now'
+        ? 'Now'
+        : new Date(point.timestamp).toLocaleDateString(),
+      value: point.value,
+    })).map((point, index) => ({
+      label: index === 0 ? `${medicationName} start` : point.label,
+      value: point.value,
+    }));
+  }
+
+  get stockHistoryPolylinePoints(): string {
+    const points = this.stockHistorySeries;
+    if (points.length === 0) return '';
+    if (points.length === 1) return '40,160 560,160';
+
+    const minValue = Math.min(...points.map((point) => point.value));
+    const maxValue = Math.max(...points.map((point) => point.value));
+    const range = Math.max(1, maxValue - minValue);
+
+    return points
+      .map((point, index) => {
+        const x = 40 + (index * (520 / Math.max(1, points.length - 1)));
+        const y = 180 - (((point.value - minValue) / range) * 140);
+        return `${x},${y}`;
+      })
+      .join(' ');
   }
 
   get inventoryTherapeuticClassOptions(): string[] {
@@ -239,8 +350,15 @@ export class MedicationPage implements OnInit {
       return;
     }
 
+    // Check if medication already exists in stock
+    const medicationExists = this.stocks.some(s => s.medication?.id === this.selectedMedicationId);
+    if (medicationExists) {
+      this.msg.error('This medication already exists in your inventory. Use "Adjust Stock" to modify the quantity.');
+      return;
+    }
+
     if (this.initialStock === null || this.initialStock < 0) {
-      this.msg.error('Please enter a valid initial quantity.');
+      this.msg.error('Please enter a valid initial quantity (minimum 0).');
       return;
     }
 
@@ -284,7 +402,9 @@ export class MedicationPage implements OnInit {
 
   requestAddNewMedication(): void {
     this.isAddMedicationModalOpen = false;
-    this.msg.info('Please contact an administrator to add new medications to the catalog.');
+    if (this.medicationComponent) {
+      this.medicationComponent.openRequestMedicationModal();
+    }
   }
 
   selectDay(day: DayOfWeek): void {
@@ -466,6 +586,99 @@ export class MedicationPage implements OnInit {
     });
   }
 
+  loadRatings(): void {
+    if (!this.pharmacyId) return;
+
+    this.ratingService.getByPharmacy(this.pharmacyId).subscribe({
+      next: (ratings) => {
+        this.ratings = ratings ?? [];
+        this.ratingPageIndex = 1;
+        this.updateRatingDistribution();
+      },
+      error: (err) => {
+        console.error(err);
+        this.ratings = [];
+        this.updateRatingDistribution();
+      },
+    });
+  }
+
+  private updateRatingDistribution(): void {
+    const distribution = [
+      { stars: 5, count: 0, percentage: 0 },
+      { stars: 4, count: 0, percentage: 0 },
+      { stars: 3, count: 0, percentage: 0 },
+      { stars: 2, count: 0, percentage: 0 },
+      { stars: 1, count: 0, percentage: 0 },
+    ];
+
+    const validRatings = this.ratings
+      .map((rating) => Math.round(Number(rating.rating ?? 0)))
+      .filter((value) => value > 0 && value <= 5);
+
+    const totalCount = validRatings.length;
+
+    if (totalCount > 0) {
+      validRatings.forEach((ratingValue) => {
+        const index = 5 - ratingValue;
+        if (index >= 0 && index < 5) {
+          distribution[index].count++;
+        }
+      });
+
+      distribution.forEach((item) => {
+        item.percentage = (item.count / totalCount) * 100;
+      });
+    }
+
+    this.ratingDistribution = distribution;
+  }
+
+  loadReports(): void {
+    if (!this.pharmacyId) return;
+
+    this.reportService.getByPharmacy(this.pharmacyId).subscribe({
+      next: (reports) => {
+        this.reports = reports ?? [];
+        this.reportPageIndex = 1;
+      },
+      error: (err) => {
+        console.error(err);
+        this.reports = [];
+      },
+    });
+  }
+
+  deleteRating(rating: Rating): void {
+    if (!rating.id) return;
+
+    this.ratingService.delete(rating.id).subscribe({
+      next: () => {
+        this.msg.success('Rating deleted');
+        this.loadRatings();
+      },
+      error: (err) => {
+        console.error(err);
+        this.msg.error('Failed to delete rating');
+      },
+    });
+  }
+
+  deleteReport(report: Report): void {
+    if (!report.id) return;
+
+    this.reportService.delete(report.id).subscribe({
+      next: () => {
+        this.msg.success('Report deleted');
+        this.loadReports();
+      },
+      error: (err) => {
+        console.error(err);
+        this.msg.error('Failed to delete report');
+      },
+    });
+  }
+
   openTransactionModal(stock: MedicationStock): void {
     this.selectedStock = stock;
     this.transactionQuantity = 0;
@@ -501,6 +714,12 @@ export class MedicationPage implements OnInit {
 
     if (this.transactionQuantity <= 0) {
       this.msg.error('Quantity must be greater than 0');
+      return;
+    }
+
+    // Check if OUT transaction would exceed current stock
+    if (this.transactionType === 'OUT' && this.transactionQuantity > (this.selectedStock.quantity || 0)) {
+      this.msg.error(`Cannot remove more than current stock (${this.selectedStock.quantity})`);
       return;
     }
 
@@ -543,6 +762,57 @@ export class MedicationPage implements OnInit {
     });
   }
 
+  get sortedRatings(): Rating[] {
+    // Filter out ratings with 0 value
+    return [...this.ratings]
+      .filter((rating) => {
+        const ratingValue = Number(rating.rating ?? 0);
+        return ratingValue > 0;
+      })
+      .sort((a, b) => (b.id ?? 0) - (a.id ?? 0));
+  }
+
+  get paginatedRatings(): Rating[] {
+    const start = (this.ratingPageIndex - 1) * this.ratingPageSize;
+    return this.sortedRatings.slice(start, start + this.ratingPageSize);
+  }
+
+  get sortedReports(): Report[] {
+    return [...this.reports].sort((a, b) => (b.id ?? 0) - (a.id ?? 0));
+  }
+
+  get paginatedReports(): Report[] {
+    const start = (this.reportPageIndex - 1) * this.reportPageSize;
+    return this.sortedReports.slice(start, start + this.reportPageSize);
+  }
+
+  get averageRating(): number {
+    const valid = this.ratings
+      .map((rating) => Number(rating.rating ?? 0))
+      .filter((value) => value > 0);
+    if (valid.length === 0) return 0;
+    return valid.reduce((sum, value) => sum + value, 0) / valid.length;
+  }
+
+  get totalRatingsCount(): number {
+    return this.ratings
+      .map((rating) => Number(rating.rating ?? 0))
+      .filter((value) => value > 0).length;
+  }
+
+  get favoritesCount(): number {
+    return this.ratings.filter((rating) => !!rating.isFavorite).length;
+  }
+
+  formatReportReason(reason?: string | null): string {
+    if (!reason) return '—';
+    return reason
+      .toLowerCase()
+      .split('_')
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+  }
+
   getMedicationName(transaction: InventoryTransaction): string {
     return (transaction.medication as any)?.name || 'Unknown';
   }
@@ -558,6 +828,49 @@ export class MedicationPage implements OnInit {
 
   getSelectedStockMedicationName(): string {
     return (this.selectedStock?.medication as any)?.name || 'Unknown';
+  }
+
+  getHistoryStockMedicationName(): string {
+    return (this.selectedHistoryStock?.medication as any)?.name || 'Unknown';
+  }
+  
+  // Validation helper methods
+  validateMedicationSelect(): string | null {
+    if (!this.selectedMedicationId) {
+      return 'Please select a medication';
+    }
+    const medicationExists = this.stocks.some(s => s.medication?.id === this.selectedMedicationId);
+    if (medicationExists) {
+      return 'This medication already exists in inventory';
+    }
+    return null;
+  }
+  
+  validateInitialStock(): string | null {
+    if (this.initialStock === null) {
+      return 'Please enter a quantity';
+    }
+    if (this.initialStock < 0) {
+      return 'Quantity cannot be negative';
+    }
+    return null;
+  }
+  
+  validateTransactionQuantity(): string | null {
+    if (this.transactionQuantity <= 0) {
+      return 'Quantity must be greater than 0';
+    }
+    if (this.transactionType === 'OUT' && this.transactionQuantity > (this.selectedStock?.quantity || 0)) {
+      return `Cannot remove more than current stock (${this.selectedStock?.quantity || 0})`;
+    }
+    return null;
+  }
+
+  openGoogleMaps(): void {
+    if (this.pharmacy && this.pharmacy.latitude && this.pharmacy.longitude) {
+      const url = `https://www.google.com/maps?q=${this.pharmacy.latitude},${this.pharmacy.longitude}`;
+      window.open(url, '_blank');
+    }
   }
 
   goBack(): void {

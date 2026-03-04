@@ -44,4 +44,20 @@ export class MedicationService {
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiBaseUrl}/pharmacy/medications/${id}`);
   }
+
+  getPendingMedications(): Observable<MedicationModel[]> {
+    return this.http.get<MedicationModel[]>(`${this.apiBaseUrl}/pharmacy/medications/pending`);
+  }
+
+  getAcceptedMedications(): Observable<MedicationModel[]> {
+    return this.http.get<MedicationModel[]>(`${this.apiBaseUrl}/pharmacy/medications/accepted`);
+  }
+
+  acceptMedicationRequest(id: number): Observable<MedicationModel> {
+    return this.http.put<MedicationModel>(`${this.apiBaseUrl}/pharmacy/medications/${id}/accept`, {});
+  }
+
+  patchAndAcceptMedication(id: number): Observable<MedicationModel> {
+    return this.http.put<MedicationModel>(`${this.apiBaseUrl}/pharmacy/medications/${id}/patch-and-accept`, {});
+  }
 }

@@ -40,6 +40,7 @@ export class StockCard implements OnInit {
   @Input() outOfStockOnly = false;
   @Output() stocksChange = new EventEmitter<MedicationStock[]>();
   @Output() openTransaction = new EventEmitter<MedicationStock>();
+  @Output() openStockHistory = new EventEmitter<MedicationStock>();
 
   loading = false;
   errorMsg: string | null = null;
@@ -159,6 +160,10 @@ export class StockCard implements OnInit {
   openTransactionModal(stock: MedicationStock, event: Event): void {
     event.stopPropagation();
     this.openTransaction.emit(stock);
+  }
+
+  openStockHistoryModal(stock: MedicationStock): void {
+    this.openStockHistory.emit(stock);
   }
 
   getMedicationProp(stock: MedicationStock, prop: string): any {

@@ -70,6 +70,23 @@
   color: rgba(0, 0, 0, 0.65);
 }
 
+.location-btn {
+  margin-top: 8px;
+  padding: 4px 12px;
+  font-size: 14px;
+  color: #4D5CAB;
+  transition: all 0.3s;
+}
+
+.location-btn:hover {
+  color: #7986cb;
+  background-color: rgba(77, 92, 171, 0.08);
+}
+
+.location-btn nz-icon {
+  margin-right: 6px;
+}
+
 .profile-content {
   max-width: 1200px;
   margin: 8px auto 0;
@@ -441,8 +458,273 @@
   border-radius: 10px !important;
 }
 
+.reports-section {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.reports-section h2 {
+  margin: 0 0 16px 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.reports-title {
+  margin-top: 24px !important;
+}
+
+.rating-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 400px) 1fr;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+
+.rating-stats {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.rating-stat-item {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: #fafafa;
+}
+
+.rating-stat-label {
+  display: block;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.rating-stat-value {
+  display: block;
+  margin-top: 4px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.rating-distribution {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+  background: #fafafa;
+}
+
+.rating-bar-item {
+  display: grid;
+  grid-template-columns: 50px 1fr 40px;
+  gap: 10px;
+  align-items: center;
+}
+
+.rating-bar-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.rating-bar-label .stars-label {
+  min-width: 12px;
+}
+
+.rating-bar-label nz-icon {
+  font-size: 14px;
+  color: #faad14;
+}
+
+.rating-bar-track {
+  height: 20px;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.rating-bar-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+  border-radius: 10px;
+}
+
+.rating-bar-fill.bar-5 {
+  background: linear-gradient(90deg, #52c41a 0%, #73d13d 100%);
+}
+
+.rating-bar-fill.bar-4 {
+  background: linear-gradient(90deg, #95de64 0%, #b7eb8f 100%);
+}
+
+.rating-bar-fill.bar-3 {
+  background: linear-gradient(90deg, #faad14 0%, #ffc53d 100%);
+}
+
+.rating-bar-fill.bar-2 {
+  background: linear-gradient(90deg, #ff7a45 0%, #ff9c6e 100%);
+}
+
+.rating-bar-fill.bar-1 {
+  background: linear-gradient(90deg, #ff4d4f 0%, #ff7875 100%);
+}
+
+.rating-bar-count {
+  text-align: right;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.entity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.entity-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  background: #fafafa;
+}
+
+.entity-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.rating-user-line {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.colon-separator {
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.rating-stars-line {
+  margin-bottom: 8px;
+}
+
+.rating-comment {
+  margin-top: 8px;
+  color: rgba(0, 0, 0, 0.7);
+  font-style: italic;
+}
+
+.entity-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.entity-meta {
+  margin-top: 4px;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.entity-description {
+  margin-top: 8px;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.error-text {
+  color: #d32f2f;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+  font-weight: 500;
+}
+
+.stock-history-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.stock-history-title {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.stock-chart-wrapper {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+  background: #fff;
+  padding: 10px;
+}
+
+.stock-line-chart {
+  width: 100%;
+  height: 220px;
+}
+
+.chart-axis {
+  stroke: rgba(0, 0, 0, 0.25);
+  stroke-width: 1;
+}
+
+.chart-line {
+  fill: none;
+  stroke: #4D5CAB;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.stock-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.stock-history-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.history-date {
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.history-value {
+  font-weight: 600;
+}
+
 @media (max-width: 992px) {
   .profile-content {
+    grid-template-columns: 1fr;
+  }
+
+  .rating-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .rating-stats {
     grid-template-columns: 1fr;
   }
 

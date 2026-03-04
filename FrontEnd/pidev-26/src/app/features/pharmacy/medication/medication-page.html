@@ -31,6 +31,16 @@
       <div class="profile-info">
         <h1>{{ pharmacy.name }}</h1>
         <p>{{ pharmacy.address || 'No address provided.' }}</p>
+        <button 
+          *ngIf="pharmacy.latitude && pharmacy.longitude" 
+          nz-button 
+          nzType="text" 
+          class="location-btn" 
+          (click)="openGoogleMaps()"
+          nz-tooltip="Open location in Google Maps">
+          <nz-icon nzType="global" nzTheme="outline"></nz-icon>
+          View on Map
+        </button>
       </div>
     </div>
 
@@ -128,6 +138,7 @@
               [outOfStockOnly]="inventoryOutOfStockOnly"
               (stocksChange)="onStocksChange($event)"
               (openTransaction)="openTransactionModal($event)"
+              (openStockHistory)="openStockHistoryModal($event)"
             ></app-stock-card>
           </section>
 
@@ -185,8 +196,107 @@
             </div>
           </section>
 
-          <section *ngSwitchCase="'reports'" class="empty-section">
-            <nz-empty nzNotFoundContent="Reports + Rating coming soon"></nz-empty>
+          <section *ngSwitchCase="'reports'" class="reports-section">
+            <h2>Ratings</h2>
+
+            <div class="rating-overview">
+              <div class="rating-stats">
+                <div class="rating-stat-item">
+                  <span class="rating-stat-label">Average rating</span>
+                  <span class="rating-stat-value">{{ averageRating | number:'1.1-2' }}</span>
+                </div>
+                <div class="rating-stat-item">
+                  <span class="rating-stat-label">Total ratings</span>
+                  <span class="rating-stat-value">{{ totalRatingsCount }}</span>
+                </div>
+                <div class="rating-stat-item">
+                  <span class="rating-stat-label">Favorites</span>
+                  <span class="rating-stat-value">{{ favoritesCount }}</span>
+                </div>
+              </div>
+
+              <div class="rating-distribution">
+                <div class="rating-bar-item" *ngFor="let dist of ratingDistribution">
+                  <div class="rating-bar-label">
+                    <span class="stars-label">{{ dist.stars }}</span>
+                    <nz-icon nzType="star" nzTheme="fill"></nz-icon>
+                  </div>
+                  <div class="rating-bar-track">
+                    <div 
+                      class="rating-bar-fill" 
+                      [style.width.%]="dist.percentage"
+                      [class.bar-5]="dist.stars === 5"
+                      [class.bar-4]="dist.stars === 4"
+                      [class.bar-3]="dist.stars === 3"
+                      [class.bar-2]="dist.stars === 2"
+                      [class.bar-1]="dist.stars === 1"
+                    ></div>
+                  </div>
+                  <div class="rating-bar-count">{{ dist.count }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="entity-list" *ngIf="paginatedRatings.length > 0; else noRatings">
+              <div class="entity-item" *ngFor="let rating of paginatedRatings">
+                <div class="entity-main">
+                  <div class="rating-user-line">
+                    <strong>{{ rating.username || 'Unknown user' }}</strong>
+                    <span class="colon-separator">:</span>
+                  </div>
+                  <div class="rating-stars-line">
+                    <nz-rate [ngModel]="rating.rating || 0" nzDisabled></nz-rate>
+                  </div>
+                  <div class="rating-comment" *ngIf="rating.comment">
+                    {{ rating.comment }}
+                  </div>
+                </div>
+                <button nz-button nzType="default" nzDanger (click)="deleteRating(rating)">Delete</button>
+              </div>
+            </div>
+
+            <div class="pagination-wrapper" *ngIf="sortedRatings.length > ratingPageSize">
+              <nz-pagination
+                [nzPageIndex]="ratingPageIndex"
+                [nzTotal]="sortedRatings.length"
+                [nzPageSize]="ratingPageSize"
+                (nzPageIndexChange)="ratingPageIndex = $event"
+                [nzShowSizeChanger]="false"
+              ></nz-pagination>
+            </div>
+
+            <ng-template #noRatings>
+              <nz-empty nzNotFoundContent="No ratings yet"></nz-empty>
+            </ng-template>
+
+            <h2 class="reports-title">Reports</h2>
+
+            <div class="entity-list" *ngIf="paginatedReports.length > 0; else noReports">
+              <div class="entity-item" *ngFor="let report of paginatedReports">
+                <div class="entity-main">
+                  <div class="entity-title-row">
+                    <strong>{{ formatReportReason(report.reason) }}</strong>
+                  </div>
+                  <div class="entity-meta">Reported by: {{ report.username || 'Unknown user' }}</div>
+                  <div class="entity-description">{{ report.description || 'No additional information provided.' }}</div>
+                </div>
+                <button nz-button nzType="default" nzDanger (click)="deleteReport(report)">Delete</button>
+              </div>
+            </div>
+
+            <div class="pagination-wrapper" *ngIf="reports.length > reportPageSize">
+              <nz-pagination
+                [nzPageIndex]="reportPageIndex"
+                [nzTotal]="reports.length"
+                [nzPageSize]="reportPageSize"
+                (nzPageIndexChange)="reportPageIndex = $event"
+                [nzShowSizeChanger]="false"
+              ></nz-pagination>
+            </div>
+
+            <ng-template #noReports>
+              <nz-empty nzNotFoundContent="No reports yet"></nz-empty>
+            </ng-template>
           </section>
 
           <section *ngSwitchCase="'logs'" class="logs-section">
@@ -269,6 +379,7 @@
                 <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
               </button>
             </div>
+            <div *ngIf="validateTransactionQuantity()" class="error-text">{{ validateTransactionQuantity() }}</div>
           </div>
         </div>
       </ng-container>
@@ -296,6 +407,7 @@
             [(ngModel)]="initialStock"
             (ngModelChange)="onInitialQuantityChange($event)"
           />
+          <div *ngIf="validateInitialStock()" class="error-text">{{ validateInitialStock() }}</div>
         </div>
 
         <div class="stock-modal-field">
@@ -325,6 +437,7 @@
               </div>
             </nz-option>
           </nz-select>
+          <div *ngIf="validateMedicationSelect()" class="error-text">{{ validateMedicationSelect() }}</div>
         </div>
       </ng-container>
     </nz-modal>
@@ -338,5 +451,47 @@
         Submit
       </button>
     </ng-template>
+
+    <!-- Stock History Modal -->
+    <nz-modal
+      [(nzVisible)]="isStockHistoryModalOpen"
+      nzTitle="Stock Maintenance History"
+      [nzFooter]="null"
+      (nzOnCancel)="closeStockHistoryModal()"
+      nzClassName="pharmacy-modal-rounded"
+      nzWidth="760px"
+    >
+      <ng-container *nzModalContent>
+        <div class="stock-history-modal" *ngIf="selectedHistoryStock">
+          <div class="stock-history-title">
+            <strong>Medication:</strong> {{ getHistoryStockMedicationName() }}
+          </div>
+
+          <div class="stock-chart-wrapper" *ngIf="stockHistorySeries.length > 0">
+            <svg viewBox="0 0 600 220" class="stock-line-chart" preserveAspectRatio="none">
+              <line x1="40" y1="180" x2="560" y2="180" class="chart-axis"></line>
+              <line x1="40" y1="20" x2="40" y2="180" class="chart-axis"></line>
+              <polyline [attr.points]="stockHistoryPolylinePoints" class="chart-line"></polyline>
+            </svg>
+          </div>
+
+          <div class="stock-history-list">
+            <div class="stock-history-row" *ngFor="let point of stockHistorySeries">
+              <span class="history-date">{{ point.label }}</span>
+              <span class="history-value">Stock: {{ point.value }}</span>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </nz-modal>
+
+    <!-- Hidden Medication component for the request form -->
+    <app-medication
+      #medicationComponent
+      [embedded]="true"
+      [pharmacyIdInput]="pharmacyId"
+      [showFloatingAddButton]="false"
+      style="display: none;"
+    ></app-medication>
   </ng-container>
 </div>

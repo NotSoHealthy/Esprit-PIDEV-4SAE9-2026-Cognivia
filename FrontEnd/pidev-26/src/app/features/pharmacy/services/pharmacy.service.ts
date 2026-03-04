@@ -25,6 +25,26 @@ getAll(): Observable<Pharmacy[]> {
     return this.http.put<Pharmacy>(`${this.apiBaseUrl}/pharmacy/pharmacies/${id}`, pharmacy);
   }
 
+  updateInfo(
+    id: number,
+    payload: Pick<Pharmacy, 'name' | 'description' | 'contactInfo'>
+  ): Observable<Pharmacy> {
+    return this.http.patch<Pharmacy>(
+      `${this.apiBaseUrl}/pharmacy/pharmacies/${id}/update-info`,
+      payload
+    );
+  }
+
+  updateLocation(
+    id: number,
+    payload: Pick<Pharmacy, 'address' | 'latitude' | 'longitude'>
+  ): Observable<Pharmacy> {
+    return this.http.patch<Pharmacy>(
+      `${this.apiBaseUrl}/pharmacy/pharmacies/${id}/update-location`,
+      payload
+    );
+  }
+
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiBaseUrl}/pharmacy/pharmacies/${id}`);
   }
@@ -48,6 +68,32 @@ getAll(): Observable<Pharmacy[]> {
     return this.http.post<Pharmacy>(
       `${this.apiBaseUrl}/pharmacy/pharmacies/${id}/upload-images`,
       formData
+    );
+  }
+
+  getAgentMode(): Observable<{ agentModeEnabled: boolean }> {
+    return this.http.get<{ agentModeEnabled: boolean }>(
+      `${this.apiBaseUrl}/pharmacy/config/agent-mode`
+    );
+  }
+
+  updateAgentMode(enabled: boolean): Observable<{ agentModeEnabled: boolean }> {
+    return this.http.put<{ agentModeEnabled: boolean }>(
+      `${this.apiBaseUrl}/pharmacy/config/agent-mode`,
+      { agentModeEnabled: enabled }
+    );
+  }
+
+  getAutoDeleteReviewRequired(): Observable<{ autoDeleteReviewRequired: boolean }> {
+    return this.http.get<{ autoDeleteReviewRequired: boolean }>(
+      `${this.apiBaseUrl}/pharmacy/config/auto-delete-review-required`
+    );
+  }
+
+  updateAutoDeleteReviewRequired(enabled: boolean): Observable<{ autoDeleteReviewRequired: boolean }> {
+    return this.http.put<{ autoDeleteReviewRequired: boolean }>(
+      `${this.apiBaseUrl}/pharmacy/config/auto-delete-review-required`,
+      { autoDeleteReviewRequired: enabled }
     );
   }
 }
