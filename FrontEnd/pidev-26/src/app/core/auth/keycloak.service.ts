@@ -96,6 +96,27 @@ export class KeycloakService {
     return this.keycloak.tokenParsed?.sub;
   }
 
+  getNumericUserId(): number | null {
+    const tokenParsed = this.keycloak.tokenParsed as Record<string, unknown> | undefined;
+    if (!tokenParsed) return null;
+
+    const candidateValues = [
+      tokenParsed['id'],
+      tokenParsed['userId'],
+      tokenParsed['adminId'],
+      tokenParsed['sub'],
+    ];
+
+    for (const value of candidateValues) {
+      const parsedValue = Number(value);
+      if (Number.isFinite(parsedValue) && parsedValue > 0) {
+        return parsedValue;
+      }
+    }
+
+    return null;
+  }
+
   getUsername(): string | undefined {
     return this.keycloak.tokenParsed?.['preferred_username'] as string | undefined;
   }

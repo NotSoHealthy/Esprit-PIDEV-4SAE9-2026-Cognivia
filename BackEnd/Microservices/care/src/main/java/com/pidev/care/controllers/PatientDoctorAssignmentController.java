@@ -38,4 +38,9 @@ public class PatientDoctorAssignmentController {
     public void deletePatientDoctorAssignment(@PathVariable Long id) {
         patientDoctorAssignmentService.delete(id);
     }
+
+    @GetMapping("/patient/{patientId}")
+    public PatientDoctorAssignment getByPatientId(@PathVariable Long patientId) {
+        return patientDoctorAssignmentService.getByPatientId(patientId);
+    }
 }

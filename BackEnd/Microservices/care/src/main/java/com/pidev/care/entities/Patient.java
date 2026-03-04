@@ -1,4 +1,4 @@
-package com.pidev.care.entities;
+ package com.pidev.care.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;

@@ -96,6 +96,18 @@ export class AppLayout implements OnInit {
       icon: 'warning',
       roles: ['ROLE_ADMIN'],
     },
+    {
+      link: '/equipment',
+      label: 'Equipment',
+      icon: 'shop',
+      roles: ['ROLE_DOCTOR','ROLE_CAREGIVER' , 'ROLE_ADMIN'],
+    },
+    {
+      link: '/complaint',
+      label: 'Reports',
+      icon: 'container',
+      roles: ['ROLE_ADMIN'],
+    }
   ];
   currentRouteLabel = '';
   streakCount = 0;

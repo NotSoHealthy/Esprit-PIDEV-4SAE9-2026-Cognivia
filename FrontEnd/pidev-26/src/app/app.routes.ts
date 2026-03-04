@@ -64,6 +64,34 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'careteam',
+        title: 'Care Team',
+        canMatch: [roleGuard(['ROLE_PATIENT'])],
+        loadComponent: () =>
+          import('./features/complaint/careteam/careteam').then((m) => m.Careteam),
+      },
+      {
+        path: 'complaint',
+        title: 'My Reports',
+        canMatch: [roleGuard(['ROLE_PATIENT', 'ROLE_ADMIN'])],
+        loadComponent: () => import('./features/complaint/complaint').then((m) => m.Complaint),
+      },
+      {
+        path: 'equipment',
+        canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
+        loadComponent: () => import('./features/equipment/equipment').then((m) => m.Equipment),
+      },
+      {
+        path: 'equipment/maintenance',
+        canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
+        loadComponent: () => import('./features/equipment/maintenance/maintenance').then((m) => m.Maintenance),
+      },
+      {
+        path: 'equipment/reservation',
+        canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
+        loadComponent: () => import('./features/equipment/reservation/reservation').then((m) => m.Reservation),
+      },
+      {
         path: 'patient-management',
         title: 'Patients',
         canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],

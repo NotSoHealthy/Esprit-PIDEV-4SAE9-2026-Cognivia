@@ -1,0 +1,286 @@
+<div class="maintenance-page">
+  <div class="page-header">
+    <button class="back-button" type="button" (click)="goBackToEquipment()">
+      <nz-icon nzType="arrow-left" nzTheme="outline"></nz-icon>
+      <span>Back to Equipment</span>
+    </button>
+    <h1 class="page-title">Maintenance Schedule</h1>
+    <button class="schedule-button" type="button" (click)="openScheduleModal()">
+      <nz-icon nzType="calendar" nzTheme="outline"></nz-icon>
+      <span>Schedule Maintenance</span>
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="loading">Loading maintenance records...</div>
+
+  <div *ngIf="!loading && equipment" class="equipment-header">
+    <div class="equipment-image-container">
+      <img 
+        *ngIf="equipment.imageUrl" 
+        [src]="equipment.imageUrl" 
+        [alt]="equipment.name"
+        class="equipment-header-image"
+      />
+      <div *ngIf="!equipment.imageUrl" class="equipment-image-placeholder">
+        No Image
+      </div>
+    </div>
+    <div class="equipment-info">
+      <h2>{{ equipment.name }}</h2>
+      <p class="equipment-description">{{ equipment.description }}</p>
+      <div class="equipment-meta">
+        <span class="condition-badge">Condition: {{ equipment.conditionScore }}</span>
+        <span 
+          class="status-badge"
+          [ngClass]="{
+            'status-available': equipment.status === 'AVAILABLE',
+            'status-maintenance': equipment.status === 'MAINTENANCE',
+            'status-unavailable': equipment.status === 'UNAVAILABLE'
+          }"
+        >
+          {{ equipment.status }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && maintenances.length === 0" class="no-records">
+    <nz-icon nzType="calendar" nzTheme="outline"></nz-icon>
+    <p>No maintenance schedules found for this equipment.</p>
+    <button class="primary-button" type="button" (click)="openScheduleModal()">
+      Schedule First Maintenance
+    </button>
+  </div>
+
+  <div *ngIf="!loading && maintenances.length > 0" class="maintenance-list">
+    <div 
+      *ngFor="let maintenance of maintenances" 
+      class="maintenance-card"
+      [ngClass]="getStatusClass(maintenance.status)"
+    >
+      <div class="maintenance-header">
+        <div class="maintenance-title">
+          <nz-icon nzType="tool" nzTheme="outline"></nz-icon>
+          <h3>{{ maintenance.description }}</h3>
+        </div>
+        <div class="maintenance-actions">
+          <button 
+            class="icon-button" 
+            type="button" 
+            (click)="openEditModal(maintenance)"
+            aria-label="Edit"
+          >
+            <nz-icon nzType="edit" nzTheme="outline"></nz-icon>
+          </button>
+          <button 
+            class="icon-button delete-icon" 
+            type="button" 
+            (click)="openDeleteModal(maintenance)"
+            aria-label="Delete"
+          >
+            <nz-icon nzType="delete" nzTheme="outline"></nz-icon>
+          </button>
+        </div>
+      </div>
+      <div class="maintenance-details">
+        <div class="detail-row">
+          <label>Scheduled Time:</label>
+          <span>{{ maintenance.maintenanceTime | date: 'medium' }}</span>
+        </div>
+        <div class="detail-row" *ngIf="maintenance.maintenanceCompletionTime">
+          <label>Completion Time:</label>
+          <span>{{ maintenance.maintenanceCompletionTime | date: 'medium' }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Status:</label>
+          <span class="status-label" [ngClass]="getStatusClass(maintenance.status)">
+            {{ maintenance.status }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schedule Maintenance Modal -->
+  <div class="modal-overlay" *ngIf="isScheduleModalOpen" (click)="closeScheduleModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Schedule Maintenance</h2>
+        <button class="icon-button" type="button" (click)="closeScheduleModal()">×</button>
+      </div>
+      <div *ngIf="overlapError" class="error-message">
+        <nz-icon nzType="exclamation-circle" nzTheme="fill"></nz-icon>
+        <span>{{ overlapError }}</span>
+      </div>
+      <div *ngIf="getScheduleValidationError() as scheduleValidationError" class="error-message">
+        <nz-icon nzType="exclamation-circle" nzTheme="fill"></nz-icon>
+        <span>{{ scheduleValidationError }}</span>
+      </div>
+      <form class="modal-form" #scheduleForm="ngForm" (ngSubmit)="scheduleForm.form.valid && scheduleMaintenance()">
+        <div class="form-row">
+          <div class="form-field">
+            <label for="maintenanceDate">Scheduled Date *</label>
+            <nz-date-picker 
+              id="maintenanceDate"
+              [(ngModel)]="newMaintenance.maintenanceDate"
+              (ngModelChange)="clearScheduleError()"
+              name="maintenanceDate"
+              nzPlaceHolder="Select date"
+              required
+            ></nz-date-picker>
+          </div>
+          <div class="form-field">
+            <label for="maintenanceTime">Scheduled Time *</label>
+            <nz-time-picker 
+              id="maintenanceTime"
+              [(ngModel)]="newMaintenance.maintenanceTime"
+              (ngModelChange)="clearScheduleError()"
+              name="maintenanceTime"
+              nzPlaceHolder="Select time"
+              [nzUse12Hours]="true"
+              nzFormat="hh:mm a"
+              required
+            ></nz-time-picker>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label for="completionDate">Completion Date</label>
+            <nz-date-picker 
+              id="completionDate"
+              [(ngModel)]="newMaintenance.completionDate"
+              (ngModelChange)="clearScheduleError()"
+              name="completionDate"
+              nzPlaceHolder="Select date"
+            ></nz-date-picker>
+          </div>
+          <div class="form-field">
+            <label for="completionTime">Completion Time</label>
+            <nz-time-picker 
+              id="completionTime"
+              [(ngModel)]="newMaintenance.completionTime"
+              (ngModelChange)="clearScheduleError()"
+              name="completionTime"
+              nzPlaceHolder="Select time"
+              [nzUse12Hours]="true"
+              nzFormat="hh:mm a"
+            ></nz-time-picker>
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="description">Description *</label>
+          <textarea 
+            id="description"
+            [(ngModel)]="newMaintenance.description"
+            name="description"
+            rows="4"
+            required
+          ></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="secondary-button" (click)="closeScheduleModal()" [disabled]="isScheduling">Cancel</button>
+          <button type="submit" class="primary-button" [disabled]="!scheduleForm.form.valid || isScheduling || !!getScheduleValidationError()">{{ isScheduling ? 'Scheduling...' : 'Schedule' }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Maintenance Modal -->
+  <div class="modal-overlay" *ngIf="isEditModalOpen" (click)="closeEditModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Edit Maintenance</h2>
+        <button class="icon-button" type="button" (click)="closeEditModal()">×</button>
+      </div>
+      <div *ngIf="overlapErrorEdit" class="error-message">
+        <nz-icon nzType="exclamation-circle" nzTheme="fill"></nz-icon>
+        <span>{{ overlapErrorEdit }}</span>
+      </div>
+      <div *ngIf="getEditValidationError() as editValidationError" class="error-message">
+        <nz-icon nzType="exclamation-circle" nzTheme="fill"></nz-icon>
+        <span>{{ editValidationError }}</span>
+      </div>
+      <form class="modal-form" #editForm="ngForm" (ngSubmit)="editForm.form.valid && updateMaintenance()" *ngIf="maintenanceToEdit">
+        <div class="form-row">
+          <div class="form-field">
+            <label for="editMaintenanceDate">Scheduled Date *</label>
+            <nz-date-picker 
+              id="editMaintenanceDate"
+              [(ngModel)]="editMaintenance.maintenanceDate"
+              (ngModelChange)="clearEditError()"
+              name="maintenanceDate"
+              nzPlaceHolder="Select date"
+              required
+            ></nz-date-picker>
+          </div>
+          <div class="form-field">
+            <label for="editMaintenanceTime">Scheduled Time *</label>
+            <nz-time-picker 
+              id="editMaintenanceTime"
+              [(ngModel)]="editMaintenance.maintenanceTime"
+              (ngModelChange)="clearEditError()"
+              name="maintenanceTime"
+              nzPlaceHolder="Select time"
+              [nzUse12Hours]="true"
+              nzFormat="hh:mm a"
+              required
+            ></nz-time-picker>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label for="editCompletionDate">Completion Date</label>
+            <nz-date-picker 
+              id="editCompletionDate"
+              [(ngModel)]="editMaintenance.completionDate"
+              (ngModelChange)="clearEditError()"
+              name="completionDate"
+              nzPlaceHolder="Select date"
+            ></nz-date-picker>
+          </div>
+          <div class="form-field">
+            <label for="editCompletionTime">Completion Time</label>
+            <nz-time-picker 
+              id="editCompletionTime"
+              [(ngModel)]="editMaintenance.completionTime"
+              (ngModelChange)="clearEditError()"
+              name="completionTime"
+              nzPlaceHolder="Select time"
+              [nzUse12Hours]="true"
+              nzFormat="hh:mm a"
+            ></nz-time-picker>
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="editDescription">Description *</label>
+          <textarea 
+            id="editDescription"
+            [(ngModel)]="editMaintenance.description"
+            name="description"
+            rows="4"
+            required
+          ></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="secondary-button" (click)="closeEditModal()" [disabled]="isUpdating">Cancel</button>
+          <button type="submit" class="primary-button" [disabled]="!editForm.form.valid || isUpdating || !!getEditValidationError()">{{ isUpdating ? 'Updating...' : 'Update' }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="isDeleteModalOpen" (click)="closeDeleteModal()">
+    <div class="modal modal-compact" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Delete Maintenance</h2>
+        <button class="icon-button" type="button" (click)="closeDeleteModal()">×</button>
+      </div>
+      <p class="modal-text">Are you sure you want to delete this maintenance record?</p>
+      <div class="modal-actions">
+        <button type="button" class="secondary-button" (click)="closeDeleteModal()">Cancel</button>
+        <button type="button" class="danger-button" (click)="deleteMaintenance()">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>

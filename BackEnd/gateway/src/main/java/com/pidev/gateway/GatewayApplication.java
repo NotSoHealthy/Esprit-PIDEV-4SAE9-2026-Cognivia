@@ -50,6 +50,10 @@ public class GatewayApplication {
                                                 r -> r.path("/games/**")
                                                                 .filters(f -> f.stripPrefix(1))
                                                                 .uri("lb://games"))
+                                .route("SurveillanceAndEquipment",
+                                                r->r.path("/Equipment/**")
+                                                                .filters(f -> f.stripPrefix(1))
+                                                                .uri("lb://SurveillanceAndEquipment"))
                                 .build();
         }
 }

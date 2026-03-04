@@ -26,6 +26,9 @@
       <nz-dropdown-menu #menu="nzDropdownMenu">
         <ul nz-menu class="min-w-48">
           <li nz-menu-item routerLink="/profile">Profile</li>
+          <li nz-menu-item *ngIf="userRole === 'ROLE_PATIENT'" routerLink="/careteam">
+            View care team
+          </li>
           <li nz-menu-item>Settings</li>
           <li nz-menu-divider></li>
           <li nz-menu-item (click)="logout()">Sign out</li>

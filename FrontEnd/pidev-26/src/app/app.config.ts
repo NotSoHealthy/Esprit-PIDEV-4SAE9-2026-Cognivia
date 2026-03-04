@@ -86,6 +86,8 @@ import {
   RobotOutline,
   CoffeeOutline,
   StopOutline,
+  ContainerOutline,
+  ShopOutline
 } from '@ant-design/icons-angular/icons';
 
 export const appConfig: ApplicationConfig = {
@@ -181,6 +183,14 @@ export const appConfig: ApplicationConfig = {
       RobotOutline,
       CoffeeOutline,
       StopOutline,
+      MedicineBoxOutline,
+      BookOutline,
+      TagOutline,
+      HeartOutline,
+      ArrowLeftOutline,
+      ToolOutline,
+      ContainerOutline,
+      ShopOutline
     ]),
     provideTranslateService({
       defaultLanguage: 'en',
