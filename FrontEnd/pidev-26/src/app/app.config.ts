@@ -6,6 +6,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { API_BASE_URL } from './core/api/api.tokens';
 import { IMGBB_API_KEY } from './core/media/imgbb.tokens';
+import { GEMINI_API_KEY, GEMINI_MODEL } from './core/ai/gemini.tokens';
 import { environment } from '../environments/environment';
 import { provideNzIcons } from 'ng-zorro-antd/icon';
 import {
@@ -29,6 +30,14 @@ export const appConfig: ApplicationConfig = {
     {
       provide: IMGBB_API_KEY,
       useValue: environment.imgbbApiKey,
+    },
+    {
+      provide: GEMINI_API_KEY,
+      useValue: environment.geminiApiKey,
+    },
+    {
+      provide: GEMINI_MODEL,
+      useValue: environment.geminiModel,
     },
     provideHttpClient(withInterceptors([authInterceptor])),
     provideNzIcons([

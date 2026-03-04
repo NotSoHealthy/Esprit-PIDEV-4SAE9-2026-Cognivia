@@ -43,6 +43,11 @@ public class VisitController {
         return visitService.update(id, visit);
     }
 
+    @PutMapping("/mark-completed/{id}")
+    public Void markVisitAsCompleted(@PathVariable Long id) {
+        return visitService.markVisitAsCompleted(id);
+    }
+
     @DeleteMapping("/{id}")
     public void deleteVisit(@PathVariable Long id) {
         visitService.delete(id);

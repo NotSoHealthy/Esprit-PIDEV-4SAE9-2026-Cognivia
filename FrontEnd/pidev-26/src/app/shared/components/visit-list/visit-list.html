@@ -10,7 +10,33 @@
     <button nz-button nzType="default" (click)="resetSearch()" [disabled]="!searchValue">
       Reset
     </button>
+
+    @if (currentUserRole == 'doctor') {
+      <button
+        nz-button
+        nzType="primary"
+        (click)="generateAiAnalysis()"
+        [nzLoading]="isGeneratingAiAnalysis"
+        [disabled]="isGeneratingAiAnalysis || !visits?.length"
+      >
+        AI analysis
+      </button>
+    }
   </div>
+
+  @if (currentUserRole == 'doctor') {
+    @if (aiAnalysisError) {
+      <div class="mb-4 rounded-md border border-red-200 bg-white p-3 text-red-700">
+        {{ aiAnalysisError }}
+      </div>
+    }
+    @if (aiAnalysisText) {
+      <div class="mb-4 rounded-md border border-gray-200 bg-white p-4">
+        <div class="font-semibold mb-2">AI analysis</div>
+        <quill-view [content]="aiAnalysisText" format="html" theme="snow" [sanitize]="true" />
+      </div>
+    }
+  }
 
   <nz-table
     #visitsTable

@@ -19,6 +19,7 @@ import { QuillModule } from 'ngx-quill';
 import { firstValueFrom } from 'rxjs';
 
 import { ImgbbImageService } from '../../../core/media/imgbb-image.service';
+import { GeminiService } from '../../../core/ai/gemini.service';
 
 @Component({
   selector: 'app-report-editor',
@@ -41,6 +42,7 @@ export class ReportEditor implements OnDestroy {
 
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly overlay = inject(Overlay);
+  private readonly gemini = inject(GeminiService);
 
   private _content = '';
 
@@ -58,6 +60,10 @@ export class ReportEditor implements OnDestroy {
 
   reportContent = '';
   isUploadingImage = false;
+
+  isGeneratingDraft = false;
+  aiDraft: string | null = null;
+  aiErrorMessage: string | null = null;
 
   isImageEditorOpen = false;
   isPreparingImageEditor = false;
@@ -104,6 +110,131 @@ export class ReportEditor implements OnDestroy {
     this.contentChange.emit(this.reportContent);
   }
 
+  async generateDraft(): Promise<void> {
+    if (this.readOnly) return;
+    if (this.isUploadingImage) return;
+    if (this.isGeneratingDraft) return;
+
+    const userText = String(this.reportContent ?? '').trim();
+    if (!userText) {
+      this.aiErrorMessage = 'Write a few notes first, then generate a draft.';
+      this.aiDraft = null;
+      try {
+        this.cdr.detectChanges();
+      } catch {
+        // ignore
+      }
+      return;
+    }
+
+    this.isGeneratingDraft = true;
+    this.aiErrorMessage = null;
+    try {
+      this.cdr.detectChanges();
+    } catch {
+      // ignore
+    }
+
+    try {
+      const systemInstruction =
+        'You help caregivers write clear, concise visit reports. ' +
+        'Do not invent facts. If details are missing, keep it generic. ' +
+        'Return ONLY HTML suitable for a rich text editor (use paragraphs and lists). ' +
+        'No Markdown and no code fences.';
+
+      const prompt =
+        'Create a polished visit report draft from these caregiver notes:\n\n' + userText;
+
+      const rawDraft = await this.gemini.generateText(prompt, {
+        systemInstruction,
+        temperature: 0.4,
+        maxOutputTokens: 800,
+      });
+
+      const draft = this.normalizeAiDraftToHtml(rawDraft);
+
+      if (!draft) {
+        this.aiErrorMessage = 'AI returned an empty draft. Try again.';
+        this.aiDraft = null;
+        return;
+      }
+
+      this.aiDraft = draft;
+    } catch (e: any) {
+      this.aiDraft = null;
+      this.aiErrorMessage =
+        e?.error?.message || e?.message || 'Failed to generate a draft. Check Gemini API key.';
+    } finally {
+      this.isGeneratingDraft = false;
+      try {
+        this.cdr.detectChanges();
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  private normalizeAiDraftToHtml(value: string): string {
+    const trimmed = String(value ?? '').trim();
+    if (!trimmed) return '';
+
+    // Strip common Markdown code fences.
+    const withoutFences = trimmed
+      .replace(/^```(?:html)?\s*/i, '')
+      .replace(/\s*```\s*$/i, '')
+      .trim();
+
+    if (!withoutFences) return '';
+
+    // If it already looks like HTML, keep it as-is.
+    if (/<\s*\/?\s*[a-z][^>]*>/i.test(withoutFences)) {
+      return withoutFences;
+    }
+
+    const escapeHtml = (s: string) =>
+      s
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    // Convert plain text into paragraphs.
+    const paragraphs = withoutFences
+      .split(/\n\s*\n+/)
+      .map((p) => p.trim())
+      .filter(Boolean)
+      .map((p) => `<p>${escapeHtml(p).replace(/\n+/g, '<br />')}</p>`);
+
+    return paragraphs.join('');
+  }
+
+  acceptDraft(): void {
+    if (this.readOnly) return;
+    if (!this.aiDraft) return;
+
+    this.aiErrorMessage = null;
+    this.reportContent = this.aiDraft;
+    this._content = this.reportContent;
+    this.contentChange.emit(this.reportContent);
+    this.aiDraft = null;
+
+    try {
+      this.cdr.detectChanges();
+    } catch {
+      // ignore
+    }
+  }
+
+  refuseDraft(): void {
+    this.aiDraft = null;
+    try {
+      this.cdr.detectChanges();
+    } catch {
+      // ignore
+    }
+  }
+
   ngOnDestroy(): void {
     this.destroyTuiEditor();
     this.destroyOverlay();
@@ -141,6 +272,9 @@ export class ReportEditor implements OnDestroy {
 
   private selectLocalImage(): void {
     if (this.readOnly) {
+      return;
+    }
+    if (this.isGeneratingDraft) {
       return;
     }
     if (this.isUploadingImage || this.isImageEditorOpen) {

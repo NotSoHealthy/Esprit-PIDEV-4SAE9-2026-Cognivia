@@ -8,6 +8,7 @@ import {
   catchError,
   distinctUntilChanged,
   finalize,
+  firstValueFrom,
   forkJoin,
   map,
   of,
@@ -16,6 +17,7 @@ import {
 } from 'rxjs';
 
 import { API_BASE_URL } from '../../../core/api/api.tokens';
+import { CurrentUserService } from '../../../core/user/current-user.service';
 import { ReportEditor } from '../report-editor/report-editor';
 import { getSeverityColor } from '../../../shared/utils/patient.utils';
 
@@ -32,6 +34,7 @@ export class VisitReportPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly currentUserService = inject(CurrentUserService);
 
   visitId: string | null = null;
   visit: any | null = null;
@@ -41,8 +44,22 @@ export class VisitReportPage implements OnInit {
   isLoading = false;
   isSaving = false;
   isSubmitting = false;
+  isCompleting = false;
   errorMessage: string | null = null;
   saveErrorMessage: string | null = null;
+
+  get isDoctorViewer(): boolean {
+    const kind = this.currentUserService.user()?.kind ?? 'unknown';
+    return kind === 'doctor' || kind === 'admin';
+  }
+
+  get canViewReport(): boolean {
+    // Caregivers can always access (draft/edit flow).
+    if (!this.isDoctorViewer) return true;
+
+    // Doctors/admins can view only when submitted.
+    return this.isValidated;
+  }
 
   get patientNameForHeader(): string {
     const patientName = this.getPatientName(this.visit);
@@ -113,6 +130,9 @@ export class VisitReportPage implements OnInit {
   }
 
   save(): void {
+    if (this.isDoctorViewer) {
+      return;
+    }
     if (!this.visitId) {
       this.saveErrorMessage = 'Missing visit id.';
       return;
@@ -185,11 +205,18 @@ export class VisitReportPage implements OnInit {
   }
 
   submit(): void {
+    if (this.isDoctorViewer) {
+      return;
+    }
     if (!this.visitId) {
       this.saveErrorMessage = 'Missing visit id.';
       return;
     }
     if (!this.canEdit || this.isValidated) {
+      return;
+    }
+    if (!this.isVisitCompleted) {
+      this.saveErrorMessage = 'You must complete the visit before submitting the report.';
       return;
     }
 
@@ -258,13 +285,102 @@ export class VisitReportPage implements OnInit {
       });
   }
 
+  async completeVisit(): Promise<void> {
+    if (this.isDoctorViewer) {
+      return;
+    }
+    if (!this.visitId) {
+      this.saveErrorMessage = 'Missing visit id.';
+      return;
+    }
+    if (!this.canEdit || this.isValidated) {
+      return;
+    }
+    if (this.isVisitCompleted) {
+      this.saveErrorMessage = 'This visit is already completed.';
+      return;
+    }
+    if (this.isCompleting) return;
+
+    this.isCompleting = true;
+    this.saveErrorMessage = null;
+    try {
+      this.cdr.detectChanges();
+    } catch {
+      // ignore
+    }
+
+    try {
+      const patientId = this.getPatientId(this.visit);
+      if (!patientId) {
+        this.saveErrorMessage = 'Missing patient id for this visit.';
+        return;
+      }
+
+      const hasPerimeter = await this.hasHousePerimeter(patientId);
+      if (!hasPerimeter) {
+        this.saveErrorMessage = 'Patient has no house perimeter configured.';
+        return;
+      }
+
+      const pos = await this.getCurrentUserPosition();
+      const isInside = await this.isPointInsidePerimeter(patientId, pos.longitude, pos.latitude);
+      if (!isInside) {
+        this.saveErrorMessage =
+          "You must be inside the patient's house to mark this visit as completed.";
+        return;
+      }
+
+      await this.markVisitCompleted(this.visitId);
+
+      if (this.visit) {
+        this.visit.status = 'completed';
+      }
+
+      this.saveErrorMessage = 'Visit marked as completed.';
+    } catch (err: any) {
+      // eslint-disable-next-line no-console
+      console.error('Error completing visit:', err);
+      this.saveErrorMessage = this.formatHttpError(err) ?? 'Failed to mark visit as completed.';
+    } finally {
+      this.isCompleting = false;
+      try {
+        this.cdr.detectChanges();
+      } catch {
+        // ignore
+      }
+    }
+  }
+
   get canEdit(): boolean {
     if (!this.visit) return false;
     if (this.isValidated) return false;
-    if (!this.isScheduledStatus(this.getVisitStatus(this.visit))) return false;
+    if (!this.isEditableVisitStatus(this.getVisitStatus(this.visit))) return false;
     const when = this.getVisitDate(this.visit);
     if (!when) return false;
     return this.isSameDay(when, new Date());
+  }
+
+  get isVisitCompleted(): boolean {
+    if (!this.visit) return false;
+    return this.isCompletedVisitStatus(this.getVisitStatus(this.visit));
+  }
+
+  private isEditableVisitStatus(status: string): boolean {
+    // Allow editing when the visit is planned/scheduled, and also when it was
+    // completed but still on the same day (handled by `canEdit`).
+    const s = String(status ?? '')
+      .trim()
+      .toLowerCase();
+
+    return this.isScheduledStatus(s) || this.isCompletedVisitStatus(s);
+  }
+
+  private isCompletedVisitStatus(status: string): boolean {
+    const s = String(status ?? '')
+      .trim()
+      .toLowerCase();
+    return s.includes('completed') || s.includes('done') || s.includes('finished');
   }
 
   get isValidated(): boolean {
@@ -385,6 +501,100 @@ export class VisitReportPage implements OnInit {
       report?.data?.text ??
       '';
     return String(direct ?? '');
+  }
+
+  private getPatientId(visit: any): string | null {
+    const id =
+      visit?.patient?.id ??
+      visit?.patientId ??
+      visit?.patient?.patientId ??
+      visit?.data?.patientId ??
+      null;
+    if (id === null || id === undefined) return null;
+    return String(id);
+  }
+
+  private async hasHousePerimeter(patientId: string): Promise<boolean> {
+    try {
+      await firstValueFrom(
+        this.http.get<any>(`${this.apiBaseUrl}/monitoring/house-perimeters`, {
+          params: { patientId },
+        }),
+      );
+      return true;
+    } catch (err: any) {
+      if (err?.status === 404) return false;
+      throw err;
+    }
+  }
+
+  private getCurrentUserPosition(): Promise<{ latitude: number; longitude: number }> {
+    return new Promise((resolve, reject) => {
+      if (typeof navigator === 'undefined' || !navigator.geolocation) {
+        reject(new Error('Geolocation is not available in this browser.'));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const latitude = pos?.coords?.latitude;
+          const longitude = pos?.coords?.longitude;
+          if (typeof latitude !== 'number' || typeof longitude !== 'number') {
+            reject(new Error('Failed to read current location coordinates.'));
+            return;
+          }
+          resolve({ latitude, longitude });
+        },
+        (err) => reject(err),
+        {
+          enableHighAccuracy: true,
+          timeout: 8000,
+          maximumAge: 60_000,
+        },
+      );
+    });
+  }
+
+  private async isPointInsidePerimeter(
+    patientId: string,
+    longitude: number,
+    latitude: number,
+  ): Promise<boolean> {
+    const res = await firstValueFrom(
+      this.http.get<any>(
+        `${this.apiBaseUrl}/monitoring/house-perimeters/contains-point/${encodeURIComponent(
+          patientId,
+        )}`,
+        {
+          params: {
+            longitude: String(longitude),
+            latitude: String(latitude),
+          },
+        },
+      ),
+    );
+
+    if (typeof res === 'boolean') return res;
+    if (typeof res?.contains === 'boolean') return res.contains;
+    if (typeof res?.inside === 'boolean') return res.inside;
+    if (typeof res?.data === 'boolean') return res.data;
+    return !!res;
+  }
+
+  private async markVisitCompleted(visitId: string): Promise<void> {
+    // Prefer PUT (idempotent). Fallback to POST if backend expects it.
+    try {
+      await firstValueFrom(
+        this.http.put<void>(`${this.apiBaseUrl}/care/visit/mark-completed/${visitId}`, null),
+      );
+      return;
+    } catch (err: any) {
+      if (err?.status !== 405) throw err;
+    }
+
+    await firstValueFrom(
+      this.http.post<void>(`${this.apiBaseUrl}/care/visit/mark-completed/${visitId}`, null),
+    );
   }
 
   private getPatientName(visit: any): string {

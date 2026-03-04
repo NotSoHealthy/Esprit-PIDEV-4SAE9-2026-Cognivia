@@ -8,3 +8,4 @@ echo.
 echo [gateway] stopped. Press any key to close tab.
 popd
 pause >nul
+agaga

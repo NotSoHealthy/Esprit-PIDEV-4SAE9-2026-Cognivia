@@ -15,9 +15,10 @@ public interface HousePerimeterRepository extends JpaRepository<HousePerimeter, 
     // ST_GeomFromEWKT parses the text — no binary binding issues
     @Query(value = "SELECT EXISTS (" +
             "  SELECT 1 FROM house_perimeter hp " +
-            "  WHERE ST_Contains(hp.geom, ST_GeomFromEWKT(:pointEwkt))" +
+            "  WHERE hp.patient_id = :patientId " +
+            "  AND ST_Covers(hp.geom, ST_GeomFromEWKT(:pointEwkt))" +
             ")", nativeQuery = true)
-    boolean existsContainingPoint(@Param("pointEwkt") String pointEwkt);
+    boolean existsContainingPoint(@Param("pointEwkt") String pointEwkt, @Param("patientId") Long patientId);
 
     Optional<HousePerimeter> findByPatientId(Long patientId);
 }

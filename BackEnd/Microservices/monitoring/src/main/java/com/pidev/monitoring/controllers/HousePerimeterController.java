@@ -36,6 +36,15 @@ public class HousePerimeterController {
         return housePerimeterService.getByPatientId(patientId);
     }
 
+    @GetMapping("/contains-point/{patientId}")
+    public boolean containsPoint(
+            @PathVariable Long patientId,
+            @RequestParam double longitude,
+            @RequestParam double latitude
+    ) {
+        return housePerimeterService.isPointInsidePerimeter(longitude, latitude, patientId);
+    }
+
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public HousePerimeter createHousePerimeter(

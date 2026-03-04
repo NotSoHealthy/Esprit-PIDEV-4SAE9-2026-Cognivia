@@ -55,6 +55,11 @@ public class HousePerimeterService {
         housePerimeterRepository.deleteById(id);
     }
 
+    public boolean isPointInsidePerimeter(double longitude, double latitude, Long patientId) {
+        String pointEwkt = String.format(java.util.Locale.US, "SRID=4326;POINT(%f %f)", longitude, latitude);
+        return housePerimeterRepository.existsContainingPoint(pointEwkt, patientId);
+    }
+
     private Polygon parsePolygon(String geoJson) {
         if (geoJson == null || geoJson.isBlank()) {
             throw new IllegalArgumentException("geoJson is required");

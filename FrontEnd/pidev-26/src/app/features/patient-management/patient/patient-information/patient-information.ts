@@ -39,6 +39,10 @@ export class PatientInformation implements OnInit, AfterViewInit, OnDestroy {
   private isLoadingPerimeter = false;
   private isSavingPerimeter = false;
 
+  private currentUserMarker: L.CircleMarker | null = null;
+  private currentUserWatchId: number | null = null;
+  private locateControl: L.Control | null = null;
+
   get severity(): string | null {
     const p = this.patient as any;
     return p?.severity ?? p?.severityLevel ?? p?.severityStatus ?? null;
@@ -88,7 +92,30 @@ export class PatientInformation implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.currentUserWatchId !== null) {
+      try {
+        navigator.geolocation.clearWatch(this.currentUserWatchId);
+      } catch {
+        // ignore
+      }
+      this.currentUserWatchId = null;
+    }
+
     if (this.map) {
+      try {
+        this.locateControl?.remove();
+      } catch {
+        // ignore
+      }
+      this.locateControl = null;
+
+      try {
+        this.currentUserMarker?.remove();
+      } catch {
+        // ignore
+      }
+      this.currentUserMarker = null;
+
       this.map.remove();
       this.map = null;
     }
@@ -217,6 +244,9 @@ export class PatientInformation implements OnInit, AfterViewInit, OnDestroy {
 
     this.map = map;
 
+    // Add a locate button (snap to GPS) control.
+    this.addLocateControl(map);
+
     // Load saved perimeter from backend (if present).
     this.loadPerimeterFromApi();
 
@@ -234,8 +264,80 @@ export class PatientInformation implements OnInit, AfterViewInit, OnDestroy {
       }
     }
 
+    // Always try to show the current caregiver GPS position as a dot for reference.
+    // If we already used user location as a fallback center, also center once on the first fix.
+    const centerOnFirstFix =
+      this.drawnItems.getLayers().length === 0 && !this.getInitialHomeLatLng();
+    this.startUserLocationTracking(map, centerOnFirstFix);
+
     // Ensure correct sizing after render.
     setTimeout(() => map.invalidateSize(), 0);
+  }
+
+  private addLocateControl(map: L.Map): void {
+    if (this.locateControl) return;
+
+    const LocateControl = (L.Control as any).extend({
+      options: { position: 'topright' },
+      onAdd: () => {
+        const container = L.DomUtil.create('div', 'leaflet-bar');
+        const button = L.DomUtil.create('a', '', container) as HTMLAnchorElement;
+
+        button.href = '#';
+        button.title = 'Snap to your location';
+        button.setAttribute('role', 'button');
+        button.setAttribute('aria-label', 'Snap to your location');
+        button.style.fontSize = '1.5rem';
+        button.innerHTML = '⌖';
+
+        L.DomEvent.disableClickPropagation(container);
+        L.DomEvent.on(button, 'click', L.DomEvent.stop);
+        L.DomEvent.on(button, 'click', () => this.snapMapToUserLocation(map));
+
+        return container;
+      },
+    });
+
+    const control: L.Control = new LocateControl();
+    control.addTo(map);
+    this.locateControl = control;
+  }
+
+  private snapMapToUserLocation(map: L.Map): void {
+    // Prefer centering to the live marker if we already have it.
+    const markerLatLng = this.currentUserMarker?.getLatLng?.();
+    if (markerLatLng) {
+      try {
+        map.setView(markerLatLng, Math.max(map.getZoom(), 18));
+      } catch {
+        // ignore
+      }
+      return;
+    }
+
+    // Otherwise request a one-time position fix.
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos?.coords?.latitude;
+        const lng = pos?.coords?.longitude;
+        if (typeof lat !== 'number' || typeof lng !== 'number') return;
+        const latLng: L.LatLngExpression = [lat, lng];
+        try {
+          map.setView(latLng, Math.max(map.getZoom(), 18));
+        } catch {
+          // ignore
+        }
+      },
+      () => {
+        // ignore
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 8000,
+        maximumAge: 10_000,
+      },
+    );
   }
 
   private updateDrawToolAvailability(): void {
@@ -283,6 +385,54 @@ export class PatientInformation implements OnInit, AfterViewInit, OnDestroy {
         maximumAge: 60_000,
       },
     );
+  }
+
+  private startUserLocationTracking(map: L.Map, centerOnFirstFix: boolean): void {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return;
+    if (this.currentUserWatchId !== null) return;
+
+    let hasCentered = false;
+
+    try {
+      this.currentUserWatchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          const lat = pos?.coords?.latitude;
+          const lng = pos?.coords?.longitude;
+          if (typeof lat !== 'number' || typeof lng !== 'number') return;
+
+          const latLng: L.LatLngExpression = [lat, lng];
+
+          if (!this.currentUserMarker) {
+            // Default Leaflet circleMarker styling; keep it minimal.
+            this.currentUserMarker = L.circleMarker(latLng, {
+              radius: 6,
+              weight: 2,
+            }).addTo(map);
+          } else {
+            this.currentUserMarker.setLatLng(latLng);
+          }
+
+          if (centerOnFirstFix && !hasCentered) {
+            hasCentered = true;
+            try {
+              map.setView(latLng, Math.max(map.getZoom(), 18));
+            } catch {
+              // ignore
+            }
+          }
+        },
+        () => {
+          // Ignore errors (permission denied, timeout, etc.).
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 8000,
+          maximumAge: 10_000,
+        },
+      );
+    } catch {
+      this.currentUserWatchId = null;
+    }
   }
 
   private housePerimetersBaseUrl(): string {

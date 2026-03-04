@@ -1,6 +1,7 @@
 package com.pidev.care.services;
 
 import com.pidev.care.entities.Visit;
+import com.pidev.care.entities.VisitStatus;
 import com.pidev.care.repositories.VisitRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,16 @@ public class VisitService implements IService<Visit> {
         existing.setPatient(entity.getPatient());
 
         return visitRepository.save(existing);
+    }
+
+    public Void markVisitAsCompleted(Long id) {
+        Visit existing = visitRepository.findById(id).orElse(null);
+        if (existing == null) {
+            throw new IllegalArgumentException("Visit not found");
+        }
+        existing.setStatus(VisitStatus.COMPLETED);
+        visitRepository.save(existing);
+        return null;
     }
 
     @Override

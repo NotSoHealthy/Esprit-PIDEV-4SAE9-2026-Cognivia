@@ -40,7 +40,7 @@ export const routes: Routes = [
       {
         path: 'visit/:visitId/report',
         title: 'Visit Report',
-        canMatch: [roleGuard(['ROLE_CAREGIVER'])],
+        canMatch: [roleGuard(['ROLE_CAREGIVER', 'ROLE_DOCTOR', 'ROLE_ADMIN'])],
         loadComponent: () =>
           import('./features/caregiver/visit-report/visit-report.page').then(
             (m) => m.VisitReportPage,
