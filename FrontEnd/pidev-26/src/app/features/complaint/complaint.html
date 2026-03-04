@@ -354,7 +354,20 @@
 
               @if (complaint.evidenceUrl) {
                 <div class="detail-section">
-                  <h3 class="detail-label">Evidence</h3>
+                  <div class="evidence-header">
+                    <h3 class="detail-label">Evidence</h3>
+                    <button
+                      type="button"
+                      class="download-button"
+                      (click)="downloadEvidence(complaint)"
+                      [attr.aria-label]="'Download evidence image'"
+                      title="Download evidence"
+                    >
+                      <svg class="download-icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"></path>
+                      </svg>
+                    </button>
+                  </div>
                   <img
                     [src]="complaint.evidenceUrl"
                     alt="Complaint evidence"
@@ -521,7 +534,20 @@
 
             @if (complaint.evidenceUrl) {
               <div class="detail-section">
-                <h3 class="detail-label">Evidence</h3>
+                <div class="evidence-header">
+                  <h3 class="detail-label">Evidence</h3>
+                  <button
+                    type="button"
+                    class="download-button"
+                    (click)="downloadEvidence(complaint)"
+                    [attr.aria-label]="'Download evidence image'"
+                    title="Download evidence"
+                  >
+                    <svg class="download-icon" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"></path>
+                    </svg>
+                  </button>
+                </div>
                 <img
                   [src]="complaint.evidenceUrl"
                   alt="Complaint evidence"

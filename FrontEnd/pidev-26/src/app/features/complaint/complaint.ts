@@ -615,4 +615,43 @@ export class Complaint implements OnInit {
     this.error.set('Unable to determine admin id for this action.');
     return null;
   }
+
+  downloadEvidence(complaint: ComplaintModel): void {
+    if (!complaint.evidenceUrl) return;
+
+    try {
+      // Create an image element to load the image
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        // Create a canvas and draw the image
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+          // Convert canvas to blob and download
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = `evidence-${complaint.id}-${new Date().getTime()}.png`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              URL.revokeObjectURL(url);
+            }
+          });
+        }
+      };
+      img.onerror = () => {
+        this.error.set('Failed to download evidence image. Please try again.');
+      };
+      img.src = complaint.evidenceUrl;
+    } catch {
+      this.error.set('Failed to download evidence image. Please try again.');
+    }
+  }
 }
