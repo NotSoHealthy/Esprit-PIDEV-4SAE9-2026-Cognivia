@@ -2,7 +2,8 @@ export enum ComplaintStatus {
   SUBMITTED = 'SUBMITTED',
   VALIDATED = 'VALIDATED',
   DISMISSED = 'DISMISSED',
-  INVESTIGATING = 'INVESTIGATING',
+  APPEALED = 'APPEALED',
+  UNDER_INVESTIGATION = 'UNDER_INVESTIGATION',
   ACTION_TAKEN = 'ACTION_TAKEN',
   CLOSED = 'CLOSED',
 }
@@ -42,6 +43,8 @@ export interface ComplaintModel {
   handledByAdminId?: number;
   createdAt?: string;
   reviewedAt?: string;
+  investigatedAt?: string;
   resolvedAt?: string;
   resolutionDecision?: string;
+  appealMessage?: string;
 }

@@ -66,6 +66,13 @@ export class ComplaintService {
     );
   }
 
+  appealComplaint(complaint: ComplaintModel): Observable<ComplaintModel> {
+    return this.http.put<ComplaintModel>(
+      `${this.apiBaseUrl}/Equipment/complaint/appeal`,
+      complaint,
+    );
+  }
+
   closeComplaint(complaint: ComplaintModel): Observable<ComplaintModel> {
     return this.http.put<ComplaintModel>(
       `${this.apiBaseUrl}/Equipment/complaint/close`,

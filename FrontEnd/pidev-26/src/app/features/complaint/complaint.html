@@ -16,6 +16,24 @@
     }
   </header>
 
+  @if (!isAdmin()) {
+    @if (hasActionTakenReports()) {
+      <p class="patient-retention-note" role="note">
+        Resolved reports are automatically removed 24 hours after they are resolved.
+      </p>
+    }
+    @if (hasClosedReports()) {
+      <p class="patient-retention-note" role="note">
+        Closed reports are automatically removed 24 hours after they are closed.
+      </p>
+    }
+    @if (hasDismissedReports()) {
+      <p class="patient-retention-note" role="note">
+        Dismissed reports without active appeals are automatically removed 24 hours after dismissal.
+      </p>
+    }
+  }
+
   @if (loading()) {
     <div class="complaint-state" role="status" aria-live="polite">
       Loading complaints...
@@ -36,9 +54,62 @@
     </div>
   } @else {
     @if (isAdmin()) {
+      <!-- Sorting & Filtering Controls for Admin -->
+      <div class="sort-controls">
+        <div class="controls-row">
+          <div>
+            <div class="sort-label">Sort by:</div>
+            <div class="sort-buttons">
+              <button
+                class="sort-button"
+                [class.active]="sortBy() === 'priority'"
+                (click)="setSortBy('priority')"
+                type="button"
+                aria-label="Sort by priority"
+              >
+                Priority {{ sortBy() === 'priority' ? (sortDirection() === 'asc' ? '↑' : '↓') : '' }}
+              </button>
+              <button
+                class="sort-button"
+                [class.active]="sortBy() === 'date'"
+                (click)="setSortBy('date')"
+                type="button"
+                aria-label="Sort by date"
+              >
+                Date {{ sortBy() === 'date' ? (sortDirection() === 'asc' ? '↑' : '↓') : '' }}
+              </button>
+            </div>
+          </div>
+          <div>
+            <label for="category-filter" class="sort-label">Category:</label>
+            <select
+              id="category-filter"
+              class="category-filter"
+              [value]="selectedCategoryFilter()"
+              (change)="setCategoryFilter($any($event.target).value)"
+              aria-label="Filter by category"
+            >
+              <option value="ALL">All Categories</option>
+              @for (category of availableCategories(); track category) {
+                <option [value]="category">
+                  {{ category === 'OTHER' ? 'Other' : getCategoryLabel($any(category)) }}
+                </option>
+              }
+            </select>
+          </div>
+        </div>
+      </div>
+
       <!-- Admin View: All Complaints Grid -->
       <div class="complaints-grid">
-        @for (complaint of complaints(); track complaint.id) {
+        @if (sortedComplaints().length === 0) {
+          <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <h2 class="empty-title">No reports match filter</h2>
+            <p class="empty-message">Try selecting a different category or check back later.</p>
+          </div>
+        } @else {
+          @for (complaint of sortedComplaints(); track complaint.id) {
           <article
             class="complaint-card-admin clickable-card"
             role="button"
@@ -49,7 +120,13 @@
             [attr.aria-label]="'View details for ' + getCategoryLabel(complaint.category)"
           >
             <div class="complaint-card-header">
-              <h3 class="complaint-subject">{{ getCategoryLabel(complaint.category) }}</h3>
+              <span
+                class="priority-badge"
+                [ngClass]="getPriorityClass(complaint.priority)"
+                [attr.aria-label]="'Priority: ' + getPriorityLabel(complaint.priority)"
+              >
+                {{ getPriorityLabel(complaint.priority) }}
+              </span>
               <span
                 class="status-badge"
                 [ngClass]="getStatusClass(complaint.status || ComplaintStatus.SUBMITTED)"
@@ -57,30 +134,43 @@
                 {{ getStatusLabel(complaint.status || ComplaintStatus.SUBMITTED) }}
               </span>
             </div>
+            <h3 class="complaint-subject">{{ getCategoryLabel(complaint.category) }}</h3>
             <div class="complaint-metadata">
-              <span class="complaint-badge">{{ getPriorityLabel(complaint.priority) }}</span>
               <span class="complaint-badge">{{ getRoleLabel(complaint.targetUserRole) }}</span>
             </div>
             <p class="complaint-description">
               {{ complaint.description || 'No description provided' }}
             </p>
             <div class="complaint-footer">
-              <div class="complaint-dates">
-                <span class="complaint-date">
-                  Submitted: {{ complaint.createdAt ? (complaint.createdAt | date: 'medium') : 'N/A' }}
-                </span>
-                @if (complaint.status === ComplaintStatus.DISMISSED && complaint.resolvedAt) {
+              @if (complaint.status !== ComplaintStatus.UNDER_INVESTIGATION && complaint.status !== ComplaintStatus.ACTION_TAKEN && complaint.status !== ComplaintStatus.CLOSED) {
+                <div class="complaint-dates">
                   <span class="complaint-date">
-                    Resolved: {{ complaint.resolvedAt | date: 'medium' }}
+                    Submitted: {{ complaint.createdAt ? (complaint.createdAt | date: 'medium') : 'N/A' }}
                   </span>
-                } @else if (complaint.reviewedAt) {
-                  <span class="complaint-date">
-                    Reviewed: {{ complaint.reviewedAt | date: 'medium' }}
-                  </span>
-                }
-              </div>
+                  @if (complaint.status === ComplaintStatus.DISMISSED && complaint.resolvedAt) {
+                    <span class="complaint-date">
+                      Resolved: {{ complaint.resolvedAt | date: 'medium' }}
+                    </span>
+                  } @else if (complaint.reviewedAt) {
+                    <span class="complaint-date">
+                      Reviewed: {{ complaint.reviewedAt | date: 'medium' }}
+                    </span>
+                  }
+                </div>
+              }
+              @if (complaint.status === ComplaintStatus.UNDER_INVESTIGATION || complaint.status === ComplaintStatus.ACTION_TAKEN || complaint.status === ComplaintStatus.CLOSED) {
+                <button
+                  class="timeline-button"
+                  type="button"
+                  (click)="openTimelineOverlay(complaint); $event.stopPropagation()"
+                  [attr.aria-label]="'View timeline for ' + getCategoryLabel(complaint.category)"
+                >
+                  📅 Timeline
+                </button>
+              }
             </div>
           </article>
+          }
         }
       </div>
     } @else {
@@ -97,7 +187,16 @@
             [attr.aria-label]="'View details for ' + getCategoryLabel(complaint.category)"
           >
             <div class="complaint-card-header">
-              <h3 class="complaint-subject">{{ getCategoryLabel(complaint.category) }}</h3>
+              <div class="header-left">
+                <span
+                  class="priority-badge"
+                  [ngClass]="getPriorityClass(complaint.priority)"
+                  [attr.aria-label]="'Priority: ' + getPriorityLabel(complaint.priority)"
+                >
+                  {{ getPriorityLabel(complaint.priority) }}
+                </span>
+                <h3 class="complaint-subject">{{ getCategoryLabel(complaint.category) }}</h3>
+              </div>
               <span
                 class="status-badge"
                 [ngClass]="getStatusClass(complaint.status || ComplaintStatus.SUBMITTED)"
@@ -106,17 +205,28 @@
               </span>
             </div>
             <div class="complaint-metadata">
-              <span class="complaint-badge">{{ getPriorityLabel(complaint.priority) }}</span>
               <span class="complaint-badge">{{ getRoleLabel(complaint.targetUserRole) }}</span>
             </div>
             <p class="complaint-description">
               {{ complaint.description || 'No description provided' }}
             </p>
             <div class="complaint-footer">
-              <span class="complaint-date">
-                Submitted:
-                {{ complaint.createdAt ? (complaint.createdAt | date: 'medium') : 'N/A' }}
-              </span>
+              @if (complaint.status !== ComplaintStatus.UNDER_INVESTIGATION && complaint.status !== ComplaintStatus.ACTION_TAKEN && complaint.status !== ComplaintStatus.CLOSED) {
+                <span class="complaint-date">
+                  Submitted:
+                  {{ complaint.createdAt ? (complaint.createdAt | date: 'medium') : 'N/A' }}
+                </span>
+              }
+              @if (complaint.status === ComplaintStatus.UNDER_INVESTIGATION || complaint.status === ComplaintStatus.ACTION_TAKEN || complaint.status === ComplaintStatus.CLOSED) {
+                <button
+                  class="timeline-button"
+                  type="button"
+                  (click)="openTimelineOverlay(complaint); $event.stopPropagation()"
+                  [attr.aria-label]="'View timeline for ' + getCategoryLabel(complaint.category)"
+                >
+                  📅 Timeline
+                </button>
+              }
             </div>
           </article>
         }
@@ -253,6 +363,11 @@
                     <p class="detail-value">{{ complaint.resolutionDecision }}</p>
                   </div>
                 }
+              } @else if (complaint.status === ComplaintStatus.APPEALED && complaint.appealMessage) {
+                <div class="detail-section">
+                  <h3 class="detail-label">Appeal Message</h3>
+                  <p class="detail-value appeal-message">{{ complaint.appealMessage }}</p>
+                </div>
               } @else if (complaint.reviewedAt) {
                 <div class="detail-section">
                   <h3 class="detail-label">Reviewed</h3>
@@ -271,10 +386,22 @@
       }
 
       <div class="modal-actions">
-        <button class="secondary-button" type="button" (click)="closeDetailOverlay()">
-          Close
-        </button>
-        @if (selectedComplaint()?.status === ComplaintStatus.SUBMITTED) {
+        @if (selectedComplaint()?.status !== ComplaintStatus.APPEALED) {
+          <button class="secondary-button" type="button" (click)="closeDetailOverlay()">
+            Close
+          </button>
+        }
+        @if (selectedComplaint()?.status === ComplaintStatus.APPEALED) {
+          <button
+            class="secondary-button"
+            type="button"
+            (click)="closeReportComplaint()"
+            [disabled]="closingComplaintId() !== null"
+          >
+            {{ closingComplaintId() !== null ? 'Closing...' : '✓ Close Report' }}
+          </button>
+        }
+        @if (selectedComplaint()?.status === ComplaintStatus.SUBMITTED || selectedComplaint()?.status === ComplaintStatus.APPEALED) {
           <button
             class="danger-button"
             type="button"
@@ -290,6 +417,26 @@
             [disabled]="validatingComplaintId() !== null"
           >
             {{ validatingComplaintId() !== null ? 'Validating...' : 'Validate Report' }}
+          </button>
+        }
+        @if (selectedComplaint()?.status === ComplaintStatus.VALIDATED) {
+          <button
+            class="investigation-button"
+            type="button"
+            (click)="startInvestigation()"
+            [disabled]="investigatingComplaintId() !== null"
+          >
+            {{ investigatingComplaintId() !== null ? 'Starting...' : 'Start Investigation' }}
+          </button>
+        }
+        @if (selectedComplaint()?.status === ComplaintStatus.UNDER_INVESTIGATION) {
+          <button
+            class="danger-button"
+            type="button"
+            (click)="openTakeActionDecisionModal()"
+            [disabled]="takingActionComplaintId() !== null"
+          >
+            {{ takingActionComplaintId() !== null ? 'Taking Action...' : 'Take Action' }}
           </button>
         }
       </div>
@@ -396,6 +543,16 @@
         <button class="secondary-button" type="button" (click)="closeDetailOverlay()">
           Close
         </button>
+        @if (selectedComplaint()?.status === ComplaintStatus.DISMISSED) {
+          <button
+            class="primary-button"
+            type="button"
+            (click)="openAppealModal(); $event.stopPropagation()"
+            [disabled]="appealingComplaintId() !== null"
+          >
+            {{ appealingComplaintId() !== null ? 'Appealing...' : '⚖️ Appeal' }}
+          </button>
+        }
         <button
           class="danger-button"
           type="button"
@@ -426,7 +583,7 @@
       </div>
 
       <p class="modal-text">
-        Enter a resolution decision before dismissing this complaint.
+        Enter a resolution decision before dismissing this report.
       </p>
 
       <textarea
@@ -452,6 +609,214 @@
           [disabled]="dismissingComplaintId() !== null"
         >
           {{ dismissingComplaintId() !== null ? 'Dismissing...' : 'Confirm Dismiss' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Take Action Decision Modal (Admin View) -->
+@if (showTakeActionDecisionModal() && isAdmin()) {
+  <div class="modal-overlay confirmation-overlay" (click)="closeTakeActionDecisionModal()" role="dialog" aria-modal="true">
+    <div class="modal modal-compact" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Take Action</h2>
+        <button
+          class="icon-button"
+          type="button"
+          (click)="closeTakeActionDecisionModal()"
+          aria-label="Close"
+        >
+          ×
+        </button>
+      </div>
+
+      <p class="modal-text">
+        Enter a resolution decision before taking action on this report.
+      </p>
+
+      <textarea
+        class="dismiss-decision-input"
+        rows="4"
+        [value]="takeActionDecision()"
+        (input)="takeActionDecision.set($any($event.target).value)"
+        placeholder="Write the action decision..."
+      ></textarea>
+
+      @if (error()) {
+        <p class="form-error">{{ error() }}</p>
+      }
+
+      <div class="modal-actions">
+        <button class="secondary-button" type="button" (click)="closeTakeActionDecisionModal()">
+          Cancel
+        </button>
+        <button
+          class="danger-button"
+          type="button"
+          (click)="takeAction()"
+          [disabled]="takingActionComplaintId() !== null"
+        >
+          {{ takingActionComplaintId() !== null ? 'Applying...' : 'Confirm Action' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Appeal Modal (Patient View) -->
+@if (showAppealModal()) {
+  <div class="modal-overlay confirmation-overlay" (click)="closeAppealModal()" role="dialog" aria-modal="true">
+    <div class="modal modal-small" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Appeal Report</h2>
+        <button
+          class="icon-button"
+          type="button"
+          (click)="closeAppealModal()"
+          aria-label="Close"
+        >
+          ×
+        </button>
+      </div>
+
+      <p class="modal-text">
+        Explain why you believe this report should be reconsidered.
+      </p>
+
+      <textarea
+        class="dismiss-decision-input"
+        rows="4"
+        [value]="appealMessage()"
+        (input)="appealMessage.set($any($event.target).value)"
+        placeholder="Write your appeal message..."
+      ></textarea>
+
+      @if (error()) {
+        <p class="form-error">{{ error() }}</p>
+      }
+
+      <div class="modal-actions">
+        <button class="secondary-button" type="button" (click)="closeAppealModal()">
+          Cancel
+        </button>
+        <button
+          class="primary-button"
+          type="button"
+          (click)="appealComplaint()"
+          [disabled]="appealingComplaintId() !== null"
+        >
+          {{ appealingComplaintId() !== null ? 'Submitting...' : 'Submit Appeal' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Timeline Overlay Modal -->
+@if (showTimelineOverlay()) {
+  <div class="modal-overlay" (click)="closeTimelineOverlay()" role="dialog" aria-modal="true">
+    <div class="modal modal-large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Report Timeline</h2>
+        <button
+          class="icon-button"
+          type="button"
+          (click)="closeTimelineOverlay()"
+          aria-label="Close"
+        >
+          ×
+        </button>
+      </div>
+
+      @if (timelineComplaint(); as complaint) {
+        <div class="timeline-container">
+          <!-- Submitted Status -->
+          <div class="timeline-node timeline-node-1">
+            <div class="timeline-date">{{ complaint.createdAt | date: 'short' }}</div>
+            <div class="timeline-status status-submitted">
+              <div class="timeline-status-icon">✓</div>
+              <div class="timeline-status-label">SUBMITTED</div>
+            </div>
+          </div>
+
+          @if (complaint.reviewedAt) {
+            <!-- Arrow to Validated -->
+            <div class="timeline-arrow timeline-arrow-1">
+              <div class="dot-container">
+                <span class="dot dot-1"></span>
+                <span class="dot dot-2"></span>
+                <span class="dot dot-3"></span>
+                <span class="dot dot-4"></span>
+                <span class="dot dot-5"></span>
+                <span class="arrow-head"></span>
+              </div>
+            </div>
+
+            <!-- Validated Status -->
+            <div class="timeline-node timeline-node-2">
+              <div class="timeline-date">{{ complaint.reviewedAt | date: 'short' }}</div>
+              <div class="timeline-status status-validated">
+                <div class="timeline-status-icon">✓</div>
+                <div class="timeline-status-label">VALIDATED</div>
+              </div>
+            </div>
+          }
+
+          @if (complaint.investigatedAt) {
+            <!-- Arrow to Under Investigation -->
+            <div class="timeline-arrow timeline-arrow-2">
+              <div class="dot-container">
+                <span class="dot dot-1"></span>
+                <span class="dot dot-2"></span>
+                <span class="dot dot-3"></span>
+                <span class="dot dot-4"></span>
+                <span class="dot dot-5"></span>
+                <span class="arrow-head"></span>
+              </div>
+            </div>
+
+            <!-- Under Investigation Status -->
+            <div class="timeline-node timeline-node-3">
+              <div class="timeline-date">{{ complaint.investigatedAt | date: 'short' }}</div>
+              <div class="timeline-status status-investigating">
+                <div class="timeline-status-icon">🔍</div>
+                <div class="timeline-status-label">UNDER INVESTIGATION</div>
+              </div>
+            </div>
+          }
+
+          @if (complaint.resolvedAt && (complaint.status === ComplaintStatus.ACTION_TAKEN || complaint.status === ComplaintStatus.CLOSED)) {
+            <!-- Arrow to Action Taken -->
+            <div class="timeline-arrow timeline-arrow-3">
+              <div class="dot-container">
+                <span class="dot dot-1"></span>
+                <span class="dot dot-2"></span>
+                <span class="dot dot-3"></span>
+                <span class="dot dot-4"></span>
+                <span class="dot dot-5"></span>
+                <span class="arrow-head"></span>
+              </div>
+            </div>
+
+            <!-- Action Taken Status -->
+            <div class="timeline-node timeline-node-4">
+              <div class="timeline-date">{{ complaint.resolvedAt | date: 'short' }}</div>
+              <div class="timeline-status status-action-taken">
+                <div class="timeline-status-icon">⚖️</div>
+                <div class="timeline-status-label">ACTION TAKEN</div>
+              </div>
+              @if (complaint.resolutionDecision) {
+                <div class="timeline-decision">{{ complaint.resolutionDecision }}</div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <div class="modal-actions">
+        <button class="secondary-button" type="button" (click)="closeTimelineOverlay()">
+          Close
         </button>
       </div>
     </div>

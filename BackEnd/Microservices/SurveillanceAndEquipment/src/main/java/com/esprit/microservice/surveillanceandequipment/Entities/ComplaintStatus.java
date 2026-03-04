@@ -6,5 +6,6 @@ public enum ComplaintStatus {
     DISMISSED,
     UNDER_INVESTIGATION,
     ACTION_TAKEN,
-    CLOSED
+    CLOSED,
+    APPEALED
 }

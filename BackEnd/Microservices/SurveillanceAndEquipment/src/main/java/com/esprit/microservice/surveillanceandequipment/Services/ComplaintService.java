@@ -4,6 +4,8 @@ import com.esprit.microservice.surveillanceandequipment.Entities.Complaint;
 import com.esprit.microservice.surveillanceandequipment.Entities.ComplaintStatus;
 import com.esprit.microservice.surveillanceandequipment.Repositories.ComplaintRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -11,6 +13,7 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class ComplaintService {
     public final ComplaintRepository repository;
 
@@ -49,16 +52,42 @@ public class ComplaintService {
 
         complaint.setStatus(ComplaintStatus.DISMISSED);
         complaint.setReviewedAt(LocalDateTime.now());
+
+        return repository.save(complaint);
+    }
+
+    public Complaint appealComplaint(Complaint complaint) {
+
+        if (complaint.getStatus() != ComplaintStatus.DISMISSED) {
+            throw new IllegalStateException("Only DISMISSED complaints can be appealed");
+        }
+
+        complaint.setStatus(ComplaintStatus.APPEALED);
+        complaint.setReviewedAt(LocalDateTime.now());
+
+        return repository.save(complaint);
+    }
+
+    public Complaint closeComplaint(Complaint complaint) {
+
+
+        if (complaint.getStatus() != ComplaintStatus.APPEALED) {
+
+            throw new IllegalStateException("Only APPEALED complaints can be closed");
+        }
+
+        complaint.setStatus(ComplaintStatus.CLOSED);
         complaint.setResolvedAt(LocalDateTime.now());
 
         return repository.save(complaint);
     }
+
     public Complaint startInvestigation(Complaint complaint) {
 
         if (complaint.getStatus() != ComplaintStatus.VALIDATED) {
             throw new IllegalStateException("Complaint must be VALIDATED first");
         }
-
+        complaint.setInvestigatedAt(LocalDateTime.now());
         complaint.setStatus(ComplaintStatus.UNDER_INVESTIGATION);
 
         return repository.save(complaint);
@@ -76,21 +105,33 @@ public class ComplaintService {
         return repository.save(complaint);
     }
 
-    public Complaint closeComplaint(Complaint complaint) {
-
-
-        if (complaint.getStatus() != ComplaintStatus.ACTION_TAKEN &&
-                complaint.getStatus() != ComplaintStatus.DISMISSED) {
-
-            throw new IllegalStateException("Only resolved complaints can be closed");
-        }
-
-        complaint.setStatus(ComplaintStatus.CLOSED);
-
-        return repository.save(complaint);
-    }
-
     public void deleteComplaint(Long id) {
         repository.deleteById(id);
+    }
+
+
+    @Scheduled(fixedRate = 24 * 60 * 60 * 1000)
+    public void deleteExpiredComplaints() {
+
+        LocalDateTime threshold = LocalDateTime.now().minusHours(24);
+
+        List<ComplaintStatus> statusesToDelete = List.of(
+                ComplaintStatus.ACTION_TAKEN,
+                ComplaintStatus.CLOSED,
+                ComplaintStatus.DISMISSED
+        );
+
+        List<Complaint> complaintsToDelete =
+                repository.findByStatusInAndResolvedAtBefore(
+                        statusesToDelete,
+                        threshold
+                );
+
+        if (!complaintsToDelete.isEmpty()) {
+            repository.deleteAll(complaintsToDelete);
+            log.info("Deleted {} expired complaints", complaintsToDelete.size());
+        } else {
+            log.info("No expired complaints found.");
+        }
     }
 }

@@ -36,7 +36,9 @@ public class Complaint {
 
     private LocalDateTime createdAt;
     private LocalDateTime reviewedAt;
+    private LocalDateTime investigatedAt;
     private LocalDateTime resolvedAt;
 
     private String resolutionDecision;
+    private String appealMessage;
 }

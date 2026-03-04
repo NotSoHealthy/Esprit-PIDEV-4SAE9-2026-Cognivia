@@ -39,6 +39,16 @@ public class ComplaintController {
         return complaintService.dismissComplaint(complaint);
     }
 
+    @PutMapping("/appeal")
+    public Complaint appealComplaint(@RequestBody Complaint complaint) {
+        return complaintService.appealComplaint(complaint);
+    }
+
+    @PutMapping("/close")
+    public Complaint closeComplaint(@RequestBody Complaint complaint) {
+        return complaintService.closeComplaint(complaint);
+    }
+
     @PutMapping("/investigate")
     public Complaint startInvestigation(@RequestBody Complaint complaint) {
         return complaintService.startInvestigation(complaint);
@@ -47,11 +57,6 @@ public class ComplaintController {
     @PutMapping("/take-action")
     public Complaint takeAction(@RequestBody Complaint complaint) {
         return complaintService.takeAction(complaint);
-    }
-
-    @PutMapping("/close")
-    public Complaint closeComplaint(@RequestBody Complaint complaint) {
-        return complaintService.closeComplaint(complaint);
     }
 
     @DeleteMapping("/{id}")
