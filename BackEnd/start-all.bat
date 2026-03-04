@@ -9,6 +9,7 @@ set "CARE_DIR=Microservices\care"
 set "FORUM_DIR=Microservices\forum-service"
 set "DPCHAT_DIR=Microservices\dpchat"
 set "MON_DIR=Microservices\monitoring"
+set "SAE_DIR=Microservices\SurveillanceAndEquipment"
 REM ----------------------------------------------------
 
 where wt >nul 2>nul
@@ -25,6 +26,7 @@ if not exist "%CD%\%CARE_DIR%\" (echo [ERROR] Missing: %CD%\%CARE_DIR% & pause &
 if not exist "%CD%\%FORUM_DIR%\" (echo [ERROR] Missing: %CD%\%FORUM_DIR% & pause & exit /b 1)
 if not exist "%CD%\%DPCHAT_DIR%\" (echo [ERROR] Missing: %CD%\%DPCHAT_DIR% & pause & exit /b 1)
 if not exist "%CD%\%MON_DIR%\" (echo [ERROR] Missing: %CD%\%MON_DIR% & pause & exit /b 1)
+if not exist "%CD%\%SAE_DIR%\" (echo [ERROR] Missing: %CD%\%SAE_DIR% & pause & exit /b 1)
 
 REM Create runner scripts in a stable folder next to this .bat (not TEMP)
 set "RUNDIR=%CD%\run-tabs"
@@ -36,6 +38,7 @@ call :writeRunner "%RUNDIR%\care.cmd" "care" "%CD%\%CARE_DIR%" 7
 call :writeRunner "%RUNDIR%\forum.cmd" "forum" "%CD%\%FORUM_DIR%" 7
 call :writeRunner "%RUNDIR%\dpchat.cmd" "dpchat" "%CD%\%DPCHAT_DIR%" 7
 call :writeRunner "%RUNDIR%\monitoring.cmd" "monitoring" "%CD%\%MON_DIR%" 7
+call :writeRunner "%RUNDIR%\SurveillanceAndEquipment.cmd" "SurveillanceAndEquipment" "%CD%\%SAE_DIR%" 7
 
 REM Start ONE Windows Terminal window with tabs
 wt -w 0 ^
@@ -45,6 +48,7 @@ wt -w 0 ^
   ; new-tab --title "forum"      cmd /k "%RUNDIR%\forum.cmd" ^
   ; new-tab --title "dpchat"     cmd /k "%RUNDIR%\dpchat.cmd" ^
   ; new-tab --title "monitoring" cmd /k "%RUNDIR%\monitoring.cmd"
+  ; new-tab --title "SurveillanceAndEquipment" cmd /k "%RUNDIR%\SurveillanceAndEquipment.cmd"
 
 exit /b 0
 
