@@ -1,7 +1,7 @@
 <div class="stock-cards-container">
   <!-- Loading spinner -->
   <div *ngIf="loading" class="spinner-wrapper">
-    <nz-spin nzTip="Loading stocks..." nzSize="large" style="transform: scale(1.4);"></nz-spin>
+    <nz-spin nzSize="large" style="transform: scale(1.4);" class="spinner-wrapper"></nz-spin>
   </div>
 
   <!-- Error message -->
@@ -50,6 +50,7 @@
 
       <div class="stock-card-actions" (click)="$event.stopPropagation()">
         <button 
+          *ngIf="userRole === 'ROLE_ADMIN' || userRole === 'ROLE_PHARMACY'"
           nz-button 
           nzShape="round" 
           nzSize="small" 
@@ -59,6 +60,7 @@
           Adjust Stock
         </button>
         <button 
+          *ngIf="userRole === 'ROLE_ADMIN' || userRole === 'ROLE_PHARMACY'"
           nz-button 
           nzDanger 
           nzShape="round" 
@@ -77,9 +79,6 @@
       [nzTotal]="totalFilteredStocks"
       [nzPageSize]="pageSize"
       (nzPageIndexChange)="onPageChange($event)"
-      nzShowSizeChanger
-      [nzPageSizeOptions]="[5, 10, 20, 50]"
-      (nzPageSizeChange)="pageSize = $event; pageIndex = 1"
     ></nz-pagination>
   </div>
 </div>

@@ -4,6 +4,7 @@ import com.pidev.pharmacy.dto.PrescriptionPharmacyRecommendationDTO;
 import com.pidev.pharmacy.entities.Prescription;
 import com.pidev.pharmacy.entities.PrescriptionItem;
 import com.pidev.pharmacy.services.PrescriptionService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -49,7 +50,7 @@ public class PrescriptionController {
     }
 
     @PostMapping
-    public ResponseEntity<Prescription> createPrescription(@RequestBody Prescription prescription) {
+    public ResponseEntity<Prescription> createPrescription(@Valid @RequestBody Prescription prescription) {
         try {
             Prescription created = prescriptionService.create(prescription);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
@@ -60,7 +61,7 @@ public class PrescriptionController {
     }
 
     @PutMapping("/{id}")
-    public Prescription updatePrescription(@PathVariable Long id, @RequestBody Prescription prescription) {
+    public Prescription updatePrescription(@PathVariable Long id, @Valid @RequestBody Prescription prescription) {
         return prescriptionService.update(id, prescription);
     }
 

@@ -2,7 +2,7 @@
   <!-- Header -->
   <div class="prescription-header">
     <h1 class="prescription-title">Prescriptions</h1>
-    <button *ngIf="activeTabIndex === 0" nz-button nzType="primary" class="add-btn" (click)="openAddModal()">
+    <button *ngIf="activeTabIndex === 0 && (userRole === 'ROLE_ADMIN' || userRole === 'ROLE_DOCTOR')" nz-button nzType="primary" class="add-btn" (click)="openAddModal()">
       Add prescription
     </button>
   </div>
@@ -26,7 +26,7 @@
         <!-- Prescriptions list -->
         <div class="prescriptions-list" *ngIf="prescriptions.length > 0">
           <div
-            *ngFor="let prescription of prescriptions"
+            *ngFor="let prescription of paginatedPrescriptions"
             class="prescription-card"
             [ngClass]="{ 'prescription-expanded': isPrescriptionExpanded(prescription.id) }"
           >
@@ -40,6 +40,7 @@
 
               <div class="prescription-actions">
                 <button
+                  *ngIf="userRole === 'ROLE_ADMIN'"
                   nz-button
                   nzType="text"
                   nz-dropdown
@@ -51,8 +52,8 @@
                 </button>
                 <nz-dropdown-menu #prescriptionMenu="nzDropdownMenu">
                   <ul nz-menu>
-                    <li nz-menu-item (click)="openEditModal(prescription, $event)">Edit</li>
-                    <li nz-menu-item class="menu-delete" (click)="deletePrescription(prescription, $event)">Delete</li>
+                    <li *ngIf="userRole === 'ROLE_ADMIN'" nz-menu-item (click)="openEditModal(prescription, $event)">Edit</li>
+                    <li *ngIf="userRole === 'ROLE_ADMIN'" nz-menu-item class="menu-delete" (click)="deletePrescription(prescription, $event)">Delete</li>
                   </ul>
                 </nz-dropdown-menu>
                 <nz-icon
@@ -94,12 +95,12 @@
                   </div>
                   <div *ngFor="let item of prescription.items" class="items-table-row">
                     <div class="items-table-cell medication-cell">
-                      <div class="medication-list-image" *ngIf="item.medication?.imageUrl; else noListMedicationImage">
-                        <img [src]="item.medication?.imageUrl" [alt]="getMedicationLabel(item.medication)" />
-                      </div>
-                      <ng-template #noListMedicationImage>
-                        <div class="medication-list-image medication-option-placeholder">
-                          {{ getMedicationLabel(item.medication)?.charAt(0) || '?' }}
+                    <div class="medication-list-image" *ngIf="item.medication.imageUrl; else noListMedicationImage">
+                      <img [src]="item.medication.imageUrl" [alt]="getMedicationLabel(item.medication)" />
+                    </div>
+                    <ng-template #noListMedicationImage>
+                      <div class="medication-list-image medication-option-placeholder">
+                        {{ getMedicationLabel(item.medication).charAt(0) || '?' }}
                         </div>
                       </ng-template>
                       <span>{{ getMedicationLabel(item.medication) }}</span>
@@ -111,6 +112,15 @@
               </div>
             </div>
           </div>
+        </div>
+
+        <div class="pagination-wrapper" *ngIf="prescriptions.length > prescriptionPageSize">
+          <nz-pagination
+            [nzPageIndex]="prescriptionPageIndex"
+            [nzTotal]="prescriptions.length"
+            [nzPageSize]="prescriptionPageSize"
+            (nzPageIndexChange)="onPrescriptionPageChange($event)"
+          ></nz-pagination>
         </div>
       </nz-tab>
 
@@ -155,7 +165,7 @@
             </nz-select>
 
             <div *ngIf="recommendationLoading" class="recommendation-loading">
-              <nz-spin nzTip="Loading pharmacy recommendations..."></nz-spin>
+              <nz-spin nzTip="Loading pharmacy recommendations..." nzSize="large" style="transform: scale(1.4);"></nz-spin>
             </div>
 
             <div
@@ -178,7 +188,7 @@
                 </div>
                 <ng-template #noRecommendationImage>
                   <div class="recommendation-image recommendation-placeholder">
-                    {{ currentRecommendation!.pharmacyName?.charAt(0) || '?' }}
+                    {{ currentRecommendation!.pharmacyName.charAt(0) || '?' }}
                   </div>
                 </ng-template>
 
@@ -308,7 +318,7 @@
                       </div>
                       <ng-template #noMedicationImage>
                         <div class="medication-option-image medication-option-placeholder">
-                          {{ med.name?.charAt(0) || '?' }}
+                          {{ med.name.charAt(0) || '?' }}
                         </div>
                       </ng-template>
                       <span class="medication-option-name">{{ med.name }}</span>

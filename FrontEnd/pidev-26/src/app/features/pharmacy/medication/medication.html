@@ -79,9 +79,6 @@
       [nzTotal]="totalFilteredMedications"
       [nzPageSize]="pageSize"
       (nzPageIndexChange)="onPageChange($event)"
-      nzShowSizeChanger
-      [nzPageSizeOptions]="[5, 10, 20, 50]"
-      (nzPageSizeChange)="pageSize = $event; pageIndex = 1"
     ></nz-pagination>
   </div>
 

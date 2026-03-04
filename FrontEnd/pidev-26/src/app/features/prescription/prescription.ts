@@ -15,6 +15,7 @@ import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzPaginationModule } from 'ng-zorro-antd/pagination';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { finalize } from 'rxjs/operators';
 import { PrescriptionService } from './services/prescription.service';
@@ -43,6 +44,7 @@ import { KeycloakService } from '../../core/auth/keycloak.service';
     NzDividerModule,
     NzDatePickerModule,
     NzDropDownModule,
+    NzPaginationModule,
   ],
   templateUrl: './prescription.html',
   styleUrl: './prescription.css',
@@ -55,6 +57,7 @@ export class PrescriptionComponent implements OnInit {
   private readonly msg = inject(NzMessageService);
   private readonly cdr = inject(ChangeDetectorRef);
   public readonly fb = inject(FormBuilder);
+  readonly userRole = this.keycloakService.getUserRole();
 
   prescriptions: Prescription[] = [];
   medications: Medication[] = [];
@@ -70,6 +73,8 @@ export class PrescriptionComponent implements OnInit {
   recommendationLoading = false;
   recommendedPharmacies: PharmacyRecommendation[] = [];
   recommendationIndex = 0;
+  prescriptionPageIndex = 1;
+  prescriptionPageSize = 8;
 
   // Form for adding prescription
   addPrescriptionForm = this.fb.group({
@@ -132,6 +137,15 @@ export class PrescriptionComponent implements OnInit {
         this.msg.error('Failed to load prescriptions');
       },
     });
+  }
+
+  get paginatedPrescriptions(): Prescription[] {
+    const start = (this.prescriptionPageIndex - 1) * this.prescriptionPageSize;
+    return this.prescriptions.slice(start, start + this.prescriptionPageSize);
+  }
+
+  onPrescriptionPageChange(pageIndex: number): void {
+    this.prescriptionPageIndex = pageIndex;
   }
 
   loadPrescriptionCodeOptions(query: string): void {

@@ -12,6 +12,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 
 import { MedicationStockService } from '../services/medication-stock.service';
 import { MedicationStock } from '../models/medication-stock.model';
+import { KeycloakService } from '../../../core/auth/keycloak.service';
 
 @Component({
   selector: 'app-stock-card',
@@ -32,6 +33,8 @@ export class StockCard implements OnInit {
   private readonly stockService = inject(MedicationStockService);
   private readonly msg = inject(NzMessageService);
   private readonly modal = inject(NzModalService);
+  private readonly keycloakService = inject(KeycloakService);
+  readonly userRole = this.keycloakService.getUserRole();
 
   @Input() pharmacyId: number | null = null;
   @Input() searchText = '';
@@ -47,7 +50,7 @@ export class StockCard implements OnInit {
   stocks: MedicationStock[] = [];
 
   pageIndex = 1;
-  pageSize = 10;
+  pageSize = 12;
 
   ngOnInit(): void {
     if (this.pharmacyId) {

@@ -114,7 +114,7 @@ export class Medication implements OnInit, OnChanges {
   editingMedicationId: number | null = null;
   selectedMedication: MedicationModel | null = null;
   pageIndex = 1;
-  pageSize = 5;
+  pageSize = 8;
 
   therapeuticOptions = [
     { label: 'Cholinesterase Inhib.', value: TherapeuticClass.CHOLINESTERASE_INHIBITOR },
@@ -202,10 +202,16 @@ export class Medication implements OnInit, OnChanges {
   }
 
   ngOnInit(): void {
+    this.pageSize = this.embedded ? 12 : 8;
     this.resolveAndLoad();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['embedded']) {
+      this.pageSize = this.embedded ? 12 : 8;
+      this.pageIndex = 1;
+    }
+
     if (this.embedded && changes['pharmacyIdInput']) {
       this.resolveAndLoad();
     }

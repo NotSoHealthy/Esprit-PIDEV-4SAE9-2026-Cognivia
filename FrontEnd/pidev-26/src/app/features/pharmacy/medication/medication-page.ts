@@ -17,6 +17,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzPaginationModule } from 'ng-zorro-antd/pagination';
 import { NzRateModule } from 'ng-zorro-antd/rate';
+import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzMessageService } from 'ng-zorro-antd/message';
 
 import { PharmacyService } from '../services/pharmacy.service';
@@ -26,6 +27,7 @@ import { InventoryTransactionService } from '../services/inventory-transaction.s
 import { WorkingHoursService } from '../services/working-hours.service';
 import { RatingService } from '../services/rating.service';
 import { ReportService } from '../services/report.service';
+import { KeycloakService } from '../../../core/auth/keycloak.service';
 import { Pharmacy } from '../models/pharmacy.model';
 import { MedicationModel } from '../models/medication.model';
 import { MedicationStock } from '../models/medication-stock.model';
@@ -59,6 +61,7 @@ type ScheduleMode = 'all' | 'weekdays' | 'weekends' | 'individual';
     NzTooltipModule,
     NzPaginationModule,
     NzRateModule,
+    NzDividerModule,
     StockCard,
     Medication,
   ],
@@ -77,6 +80,8 @@ export class MedicationPage implements OnInit {
   private readonly reportService = inject(ReportService);
   private readonly msg = inject(NzMessageService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly keycloakService = inject(KeycloakService);
+  readonly userRole = this.keycloakService.getUserRole();
 
   @ViewChild('stockCards') stockCards?: StockCard;
   @ViewChild('medicationComponent') medicationComponent?: Medication;
@@ -85,6 +90,7 @@ export class MedicationPage implements OnInit {
   pharmacy: Pharmacy | null = null;
   loading = false;
   errorMsg: string | null = null;
+  currentYear = new Date().getFullYear();
 
   activeSection: Section = 'overview';
 
@@ -294,6 +300,21 @@ export class MedicationPage implements OnInit {
       .join(' ');
   }
 
+  get stockHistoryDotCoords(): Array<{ x: number; y: number }> {
+    const points = this.stockHistorySeries;
+    if (points.length === 0) return [];
+    if (points.length === 1) return [{ x: 300, y: 160 }];
+
+    const minValue = Math.min(...points.map((p) => p.value));
+    const maxValue = Math.max(...points.map((p) => p.value));
+    const range = Math.max(1, maxValue - minValue);
+
+    return points.map((point, index) => ({
+      x: 40 + (index * (520 / Math.max(1, points.length - 1))),
+      y: 180 - (((point.value - minValue) / range) * 140),
+    }));
+  }
+
   get inventoryTherapeuticClassOptions(): string[] {
     return Array.from(
       new Set(
@@ -444,10 +465,51 @@ export class MedicationPage implements OnInit {
       next: (hours) => {
         this.workingHours = hours ?? [];
         this.loadDaySchedule();
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error(err);
         this.workingHours = [];
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  isDayClosed(day: DayOfWeek): boolean {
+    const wh = this.workingHours.find(h => h.dayOfWeek === day);
+    return !wh || wh.isClosed || (!wh.openTime && !wh.closeTime);
+  }
+
+  getDayOpenTime(day: DayOfWeek): string | null {
+    const wh = this.workingHours.find(h => h.dayOfWeek === day);
+    return wh && !wh.isClosed ? wh.openTime : null;
+  }
+
+  getDayCloseTime(day: DayOfWeek): string | null {
+    const wh = this.workingHours.find(h => h.dayOfWeek === day);
+    return wh && !wh.isClosed ? wh.closeTime : null;
+  }
+
+  deleteDaySchedule(day: DayOfWeek): void {
+    const wh = this.workingHours.find(h => h.dayOfWeek === day);
+    if (!wh || !wh.id) {
+      this.msg.info('No schedule to delete for this day');
+      return;
+    }
+
+    this.workingHoursService.delete(wh.id).subscribe({
+      next: () => {
+        this.workingHours = this.workingHours.filter(h => h.dayOfWeek !== day);
+        this.msg.success(`Schedule for ${day.charAt(0) + day.slice(1).toLowerCase()} deleted`);
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error(err);
+        this.msg.error('Failed to delete schedule');
+        this.cdr.detectChanges();
       },
     });
   }
@@ -476,7 +538,7 @@ export class MedicationPage implements OnInit {
     const daysToUpdate = this.getDaysToUpdate();
     const updates: any[] = [];
 
-    // Create update operations for selected days
+    // Create update operations for selected days only — do NOT touch other days
     daysToUpdate.forEach(day => {
       const existingHours = this.workingHours.find(wh => wh.dayOfWeek === day);
       
@@ -506,49 +568,21 @@ export class MedicationPage implements OnInit {
       }
     });
 
-    // Set other days as closed if not included
-    this.daysOfWeek.forEach(dayObj => {
-      if (!daysToUpdate.includes(dayObj.key)) {
-        const existingHours = this.workingHours.find(wh => wh.dayOfWeek === dayObj.key);
-        
-        if (existingHours && existingHours.id && !existingHours.isClosed) {
-          // Update to closed
-          updates.push(
-            this.workingHoursService.updateDayWorkingHours(
-              this.pharmacyId!,
-              dayObj.key,
-              null,
-              null,
-              true
-            )
-          );
-        } else if (!existingHours) {
-          // Create as closed
-          const closedHours: any = {
-            dayOfWeek: dayObj.key,
-            openTime: null,
-            closeTime: null,
-            isClosed: true,
-            pharmacy: { id: this.pharmacyId }
-          };
-          updates.push(
-            this.workingHoursService.create(closedHours)
-          );
-        }
-      }
-    });
-
     // Execute all updates
     Promise.all(updates.map(obs => obs.toPromise()))
       .then(() => {
         this.savingSchedule = false;
         this.msg.success('Schedule saved successfully');
         this.loadWorkingHours();
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       })
       .catch(err => {
         console.error(err);
         this.savingSchedule = false;
         this.msg.error('Failed to save schedule');
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       });
   }
 
@@ -594,11 +628,13 @@ export class MedicationPage implements OnInit {
         this.ratings = ratings ?? [];
         this.ratingPageIndex = 1;
         this.updateRatingDistribution();
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error(err);
         this.ratings = [];
         this.updateRatingDistribution();
+        this.cdr.detectChanges();
       },
     });
   }
@@ -641,10 +677,12 @@ export class MedicationPage implements OnInit {
       next: (reports) => {
         this.reports = reports ?? [];
         this.reportPageIndex = 1;
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error(err);
         this.reports = [];
+        this.cdr.detectChanges();
       },
     });
   }
@@ -656,10 +694,12 @@ export class MedicationPage implements OnInit {
       next: () => {
         this.msg.success('Rating deleted');
         this.loadRatings();
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error(err);
         this.msg.error('Failed to delete rating');
+        this.cdr.detectChanges();
       },
     });
   }
@@ -671,10 +711,12 @@ export class MedicationPage implements OnInit {
       next: () => {
         this.msg.success('Report deleted');
         this.loadReports();
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error(err);
         this.msg.error('Failed to delete report');
+        this.cdr.detectChanges();
       },
     });
   }
@@ -745,11 +787,13 @@ export class MedicationPage implements OnInit {
           this.msg.success('Transaction recorded successfully');
           this.stockCards?.loadStocks();
           this.loadTransactions();
+          this.cdr.detectChanges();
         },
         error: (err) => {
           console.error(err);
           this.submittingTransaction = false;
           this.msg.error('Failed to record transaction');
+          this.cdr.detectChanges();
         },
       });
   }
@@ -874,6 +918,6 @@ export class MedicationPage implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/pharmacies']);
+    this.router.navigate(['/pharmacy']);
   }
 }

@@ -1,16 +1,11 @@
 <div class="pharmacy-profile-page">
   <div *ngIf="loading" class="spinner-wrapper">
-    <nz-spin nzTip="Loading pharmacy page..." nzSize="large"></nz-spin>
+    <nz-spin nzTip="Loading pharmacy page..." nzSize="large" style="transform: scale(1.4);"></nz-spin>
   </div>
 
   <div *ngIf="!loading && errorMsg" class="page-error">{{ errorMsg }}</div>
 
   <ng-container *ngIf="!loading && !errorMsg && pharmacy">
-    <button nz-button nzType="text" class="back-btn" (click)="goBack()">
-      <nz-icon nzType="arrow-left" nzTheme="outline"></nz-icon>
-      Back to Pharmacies
-    </button>
-
     <div
       class="banner"
       [ngStyle]="{
@@ -18,29 +13,40 @@
           ? 'url(' + pharmacy.bannerUrl + ')'
           : 'linear-gradient(120deg, #4D5CAB 0%, #7986cb 100%)'
       }"
-    ></div>
+    >
+      <button nz-button nzType="text" class="back-btn" (click)="goBack()">
+        <nz-icon nzType="arrow-left" nzTheme="outline"></nz-icon>
+        Back to Pharmacies
+      </button>
+    </div>
 
     <div class="profile-header">
       <div class="logo-wrapper" *ngIf="pharmacy.logoUrl; else noLogo">
         <img [src]="pharmacy.logoUrl" [alt]="pharmacy.name" />
       </div>
       <ng-template #noLogo>
-        <div class="logo-wrapper logo-placeholder">{{ pharmacy.name?.charAt(0) }}</div>
+      <div class="logo-wrapper logo-placeholder">{{ pharmacy.name.charAt(0) }}</div>
       </ng-template>
 
       <div class="profile-info">
         <h1>{{ pharmacy.name }}</h1>
         <p>{{ pharmacy.address || 'No address provided.' }}</p>
-        <button 
-          *ngIf="pharmacy.latitude && pharmacy.longitude" 
-          nz-button 
-          nzType="text" 
-          class="location-btn" 
-          (click)="openGoogleMaps()"
-          nz-tooltip="Open location in Google Maps">
-          <nz-icon nzType="global" nzTheme="outline"></nz-icon>
-          View on Map
-        </button>
+        <div class="profile-info-pills">
+          <div class="contact-info" *ngIf="pharmacy.contactInfo">
+            <nz-icon nzType="phone" nzTheme="outline"></nz-icon>
+            <span>Contact: {{ pharmacy.contactInfo }}</span>
+          </div>
+          <button 
+            *ngIf="pharmacy.latitude && pharmacy.longitude" 
+            nz-button 
+            nzType="text" 
+            class="location-btn" 
+            (click)="openGoogleMaps()"
+            nz-tooltip="Open location in Google Maps">
+            <nz-icon nzType="environment" nzTheme="outline"></nz-icon>
+            View on Map
+          </button>
+        </div>
       </div>
     </div>
 
@@ -49,13 +55,13 @@
         <button nz-button [nzType]="activeSection === 'overview' ? 'primary' : 'default'" (click)="setSection('overview')">
           Overview
         </button>
-        <button nz-button [nzType]="activeSection === 'schedule' ? 'primary' : 'default'" (click)="setSection('schedule')">
+        <button nz-button [nzType]="activeSection === 'schedule' ? 'primary' : 'default'" (click)="setSection('schedule')" *ngIf="userRole === 'ROLE_ADMIN' || userRole === 'ROLE_PHARMACY'">
           Schedule
         </button>
-        <button nz-button [nzType]="activeSection === 'reports' ? 'primary' : 'default'" (click)="setSection('reports')">
+        <button nz-button [nzType]="activeSection === 'reports' ? 'primary' : 'default'" (click)="setSection('reports')" *ngIf="userRole === 'ROLE_ADMIN' || userRole === 'ROLE_PHARMACY'">
           Reports + Rating
         </button>
-        <button nz-button [nzType]="activeSection === 'logs' ? 'primary' : 'default'" (click)="setSection('logs')">
+        <button nz-button [nzType]="activeSection === 'logs' ? 'primary' : 'default'" (click)="setSection('logs')" *ngIf="userRole === 'ROLE_ADMIN' || userRole === 'ROLE_PHARMACY'">
           Logs
         </button>
 
@@ -118,7 +124,7 @@
           <section *ngSwitchCase="'overview'" class="overview-section">
             <div class="overview-header-row">
               <h2>Overview</h2>
-              <button nz-button nzType="primary" class="add-medication-btn" (click)="openAddMedicationModal()">
+              <button *ngIf="userRole === 'ROLE_ADMIN' || userRole === 'ROLE_PHARMACY'" nz-button nzType="primary" class="add-medication-btn" (click)="openAddMedicationModal()">
                 Add medication
               </button>
             </div>
@@ -144,6 +150,57 @@
 
           <section *ngSwitchCase="'schedule'" class="schedule-section">
             <h2>Working Hours</h2>
+
+            <!-- Current Schedule Timetable -->
+            <div class="schedule-timetable" *ngIf="workingHours.length > 0">
+              <h3>Current Schedule</h3>
+              <table class="timetable">
+                <thead>
+                  <tr>
+                    <th>Day</th>
+                    <th>Status</th>
+                    <th>Open</th>
+                    <th>Close</th>
+                    <th *ngIf="userRole === 'ROLE_ADMIN' || userRole === 'ROLE_PHARMACY'"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let day of daysOfWeek" [class.day-closed]="isDayClosed(day.key)">
+                    <td class="day-name">{{ day.label }}</td>
+                    <td>
+                      <span class="status-pill" [class.status-open]="!isDayClosed(day.key)" [class.status-closed]="isDayClosed(day.key)">
+                        {{ isDayClosed(day.key) ? 'Closed' : 'Open' }}
+                      </span>
+                    </td>
+                    <td>{{ getDayOpenTime(day.key) || '—' }}</td>
+                    <td>{{ getDayCloseTime(day.key) || '—' }}</td>
+                    <td *ngIf="userRole === 'ROLE_ADMIN' || userRole === 'ROLE_PHARMACY'">
+                      <button
+                        *ngIf="!isDayClosed(day.key)"
+                        nz-button
+                        nzType="text"
+                        nzDanger
+                        nzSize="small"
+                        nz-tooltip
+                        nzTooltipTitle="Delete schedule for this day"
+                        (click)="deleteDaySchedule(day.key)"
+                      >
+                        <nz-icon nzType="delete" nzTheme="outline"></nz-icon>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div *ngIf="workingHours.length === 0" class="no-schedule-msg">
+              <nz-empty nzNotFoundContent="No schedule set yet. Use the form below to create one."></nz-empty>
+            </div>
+
+            <nz-divider *ngIf="userRole === 'ROLE_ADMIN' || userRole === 'ROLE_PHARMACY'"></nz-divider>
+
+            <ng-container *ngIf="userRole === 'ROLE_ADMIN' || userRole === 'ROLE_PHARMACY'">
+            <h3>Edit Schedule</h3>
             
             <div class="schedule-mode-selection">
               <label>Apply schedule to:</label>
@@ -194,6 +251,7 @@
                 Save Schedule
               </button>
             </div>
+            </ng-container>
           </section>
 
           <section *ngSwitchCase="'reports'" class="reports-section">
@@ -251,7 +309,7 @@
                     {{ rating.comment }}
                   </div>
                 </div>
-                <button nz-button nzType="default" nzDanger (click)="deleteRating(rating)">Delete</button>
+                <button *ngIf="userRole === 'ROLE_ADMIN' || userRole === 'ROLE_PHARMACY'" nz-button nzType="default" nzDanger (click)="deleteRating(rating)">Delete</button>
               </div>
             </div>
 
@@ -280,7 +338,7 @@
                   <div class="entity-meta">Reported by: {{ report.username || 'Unknown user' }}</div>
                   <div class="entity-description">{{ report.description || 'No additional information provided.' }}</div>
                 </div>
-                <button nz-button nzType="default" nzDanger (click)="deleteReport(report)">Delete</button>
+                <button *ngIf="userRole === 'ROLE_ADMIN' || userRole === 'ROLE_PHARMACY'" nz-button nzType="default" nzDanger (click)="deleteReport(report)">Delete</button>
               </div>
             </div>
 
@@ -430,7 +488,7 @@
                 </div>
                 <ng-template #noMedicationImage>
                   <div class="medication-option-image medication-option-placeholder">
-                    {{ medication.name?.charAt(0) || '?' }}
+                    {{ medication.name.charAt(0) || '?' }}
                   </div>
                 </ng-template>
                 <span class="medication-option-name">{{ medication.name }}</span>
@@ -444,7 +502,7 @@
 
     <ng-template #stockFooterTpl>
       <button nz-button nzType="default" (click)="closeAddMedicationModal()">Close</button>
-      <button nz-button nzType="default" (click)="requestAddNewMedication()">
+      <button *ngIf="userRole === 'ROLE_ADMIN' || userRole === 'ROLE_PHARMACY'" nz-button nzType="default" (click)="requestAddNewMedication()">
         Request new medication
       </button>
       <button nz-button nzType="primary" [nzLoading]="addingMedicationToStock" (click)="submitAddMedicationToStock()">
@@ -472,6 +530,13 @@
               <line x1="40" y1="180" x2="560" y2="180" class="chart-axis"></line>
               <line x1="40" y1="20" x2="40" y2="180" class="chart-axis"></line>
               <polyline [attr.points]="stockHistoryPolylinePoints" class="chart-line"></polyline>
+              <circle
+                *ngFor="let coord of stockHistoryDotCoords"
+                [attr.cx]="coord.x"
+                [attr.cy]="coord.y"
+                r="5"
+                class="chart-dot"
+              ></circle>
             </svg>
           </div>
 
@@ -493,5 +558,19 @@
       [showFloatingAddButton]="false"
       style="display: none;"
     ></app-medication>
-  </ng-container>
+    <!-- Page Footer -->
+    <footer class="pharmacy-footer">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="javascript:void(0)">Terms of Service</a>
+          <span class="footer-dot">&middot;</span>
+          <a href="javascript:void(0)">Privacy Policy</a>
+          <span class="footer-dot">&middot;</span>
+          <a href="javascript:void(0)">Help Center</a>
+        </div>
+        <div class="footer-copy">
+          &copy; {{ currentYear }} PharmaCare. All rights reserved.
+        </div>
+      </div>
+    </footer>  </ng-container>
 </div>

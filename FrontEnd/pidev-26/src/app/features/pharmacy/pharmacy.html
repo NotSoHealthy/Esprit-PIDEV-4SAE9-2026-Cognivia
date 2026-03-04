@@ -1,8 +1,8 @@
 <div class="pharmacy-page">
   <div class="pharmacy-header">
-    <h1 class="pharmacy-title">Pharmacies</h1>
+    <h1 class="pharmacy-title">Pharmacy Management</h1>
 
-    <button *ngIf="activeTabIndex === 0" nz-button nzType="primary" class="add-btn" (click)="openAddModal()">
+    <button *ngIf="activeTabIndex === 0 && (userRole === 'ROLE_ADMIN' || userRole === 'ROLE_PHARMACY')" nz-button nzType="primary" class="add-btn" (click)="openAddModal()">
       Add pharmacy
     </button>
   </div>
@@ -99,31 +99,6 @@
             ></nz-option>
           </nz-select>
         </div>
-
-        <div class="filter-section">
-          <label>Medication in selected pharmacy</label>
-          <nz-select
-            [(ngModel)]="inventoryMedicationName"
-            (ngModelChange)="onInventoryMedicationNameChange()"
-            nzPlaceHolder="All medications"
-            nzAllowClear
-            style="width: 100%;"
-          >
-            <nz-option
-              *ngFor="let medicationName of inventoryMedicationOptions"
-              [nzValue]="medicationName"
-              [nzLabel]="medicationName"
-            ></nz-option>
-          </nz-select>
-        </div>
-
-        <div class="filter-section">
-          <label class="switch-label">Show out of stock</label>
-          <nz-switch
-            [(ngModel)]="inventoryOutOfStockOnly"
-            (ngModelChange)="onInventoryOutOfStockChange()"
-          ></nz-switch>
-        </div>
         </ng-container>
 
         <ng-template #requestedSidebarFilters>
@@ -219,7 +194,12 @@
                   (click)="toggleLike(p, $event)"
                   [attr.aria-pressed]="p.id ? liked.has(p.id) : false"
                 >
-                  <nz-icon nzType="heart" [nzTheme]="p.id && liked.has(p.id) ? 'fill' : 'outline'"></nz-icon>
+                  <nz-icon 
+                    nzType="heart" 
+                    [nzTheme]="p.id && liked.has(p.id) ? 'fill' : 'outline'"
+                    class="heart-icon"
+                    [class.heart-liked]="p.id && liked.has(p.id)"
+                  ></nz-icon>
                 </button>
 
                 <nz-rate
@@ -235,10 +215,10 @@
 
                 <nz-dropdown-menu #menu="nzDropdownMenu">
                   <ul nz-menu>
-                    <li nz-menu-item (click)="editInfo(p, $event)">Edit Info</li>
-                    <li nz-menu-item (click)="changeCoordinates(p, $event)">Change Coordinates</li>
+                    <li *ngIf="userRole === 'ROLE_ADMIN' || userRole === 'ROLE_PHARMACY'" nz-menu-item (click)="editInfo(p, $event)">Edit Info</li>
+                    <li *ngIf="userRole === 'ROLE_ADMIN' || userRole === 'ROLE_PHARMACY'" nz-menu-item (click)="changeCoordinates(p, $event)">Change Coordinates</li>
                     <li nz-menu-item nzDanger (click)="report(p, $event)">Report</li>
-                    <li nz-menu-item nzDanger (click)="delete(p, $event)">Delete</li>
+                    <li *ngIf="userRole === 'ROLE_ADMIN'" nz-menu-item nzDanger (click)="delete(p, $event)">Delete</li>
                   </ul>
                 </nz-dropdown-menu>
               </div>
@@ -269,14 +249,11 @@
               [nzTotal]="totalFiltered"
               [nzPageSize]="pageSize"
               (nzPageIndexChange)="onPageChange($event)"
-              nzShowSizeChanger
-              [nzPageSizeOptions]="[5, 10, 20, 50]"
-              (nzPageSizeChange)="pageSize = $event; pageIndex = 1"
             />
           </div>
         </nz-tab>
 
-        <nz-tab nzTitle="Inventory">
+        <nz-tab nzTitle="Inventory" *ngIf="userRole === 'ROLE_ADMIN'">
           <div *ngIf="!inventoryPharmacyId" class="empty-wrapper">
             <nz-empty nzNotFoundContent="Select a pharmacy to view inventory"></nz-empty>
           </div>
@@ -287,7 +264,6 @@
             [pharmacyIdInput]="inventoryPharmacyId"
             [searchText]="inventorySearchText"
             [therapeuticClassFilter]="inventoryTherapeuticClass"
-            [selectedMedicationName]="inventoryMedicationName"
             [outOfStockOnly]="inventoryOutOfStockOnly"
             [showAIButton]="true"
             (medicationsChange)="onInventoryMedicationsChange($event)"
@@ -295,19 +271,19 @@
           ></app-medication>
         </nz-tab>
 
-        <nz-tab nzTitle="Requested Medications">
-          <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-            <button nz-button [nzType]="requestedMainView === 'requests' ? 'primary' : 'default'" (click)="setRequestedMainView('requests')">
+        <nz-tab nzTitle="Requested Medications" *ngIf="userRole === 'ROLE_ADMIN'">
+          <div class="tab-toggle-row">
+            <button nz-button nzShape="round" [nzType]="requestedMainView === 'requests' ? 'primary' : 'default'" (click)="setRequestedMainView('requests')">
               Requests
             </button>
-            <button nz-button [nzType]="requestedMainView === 'agent-logs' ? 'primary' : 'default'" (click)="setRequestedMainView('agent-logs')">
+            <button nz-button nzShape="round" [nzType]="requestedMainView === 'agent-logs' ? 'primary' : 'default'" (click)="setRequestedMainView('agent-logs')">
               Agent Logs
             </button>
           </div>
 
           <div *ngIf="requestedMainView === 'requests'">
             <div *ngIf="requestedLoading" class="spinner-wrapper">
-              <nz-spin nzTip="Loading requested medications..." nzSize="large"></nz-spin>
+              <nz-spin nzTip="Loading requested medications..." nzSize="large" style="transform: scale(1.4);"></nz-spin>
             </div>
 
             <div *ngIf="!requestedLoading && requestedMedications.length === 0" class="empty-wrapper">
@@ -327,7 +303,7 @@
                     <img [src]="med.imageUrl" [alt]="med.name" style="width: 100%; height: 100%; object-fit: cover;" />
                   </div>
                   <div *ngIf="!med.imageUrl" style="width: 48px; height: 48px; border-radius: 8px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: 700; color: #4D5CAB;">
-                    {{ med.name?.charAt(0) || '?' }}
+                  {{ med.name.charAt(0) || '?' }}
                   </div>
                   <div style="flex: 1; min-width: 0;">
                     <div class="pharmacy-name">{{ med.name }}</div>
@@ -387,7 +363,7 @@
 
           <div *ngIf="requestedMainView === 'agent-logs'">
             <div *ngIf="agentLogsLoading" class="spinner-wrapper">
-              <nz-spin nzTip="Loading agent logs..." nzSize="large"></nz-spin>
+              <nz-spin nzTip="Loading agent logs..." nzSize="large" style="transform: scale(1.4);"></nz-spin>
             </div>
 
             <div *ngIf="!agentLogsLoading && agentLogs.length === 0" class="empty-wrapper">
@@ -472,8 +448,10 @@
               <nz-form-control>
                 <input
                   nz-input
+                  type="tel"
                   formControlName="contactInfo"
-                  placeholder="Phone or contact details"
+                  placeholder="8-digit phone number"
+                  maxlength="8"
                   [class.field-error]="isFieldInvalid('contactInfo')"
                 />
                 <div *ngIf="getFieldError('contactInfo')" class="error-text">{{ getFieldError('contactInfo') }}</div>
@@ -588,7 +566,7 @@
         <!-- STEP 2 -->
         <div *ngIf="currentStep === 2" class="step-complete">
           <div *ngIf="saving" class="loading-state">
-            <nz-spin nzTip="Creating pharmacy..." nzSize="large"></nz-spin>
+            <nz-spin nzSize="large" style="transform: scale(1.4);"></nz-spin>
           </div>
 
           <div *ngIf="!saving && !stepError" class="success-state">
@@ -780,8 +758,8 @@
     [nzWidth]="480"
   >
     <ng-container *nzDrawerContent>
-      <div *ngIf="aiDrawerLoading" style="text-align: center; padding: 40px 0;">
-        <nz-spin nzTip="Loading AI overview..." nzSize="large"></nz-spin>
+      <div *ngIf="aiDrawerLoading" class="ai-drawer-loading">
+        <nz-spin nzSize="large" style="transform: scale(1.4);" class="ai-drawer-spinner"></nz-spin>
       </div>
 
       <div *ngIf="!aiDrawerLoading && aiOverviewData" class="ai-overview-content">

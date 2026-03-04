@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpEventType } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../../../core/api/api.tokens';
@@ -68,6 +68,22 @@ getAll(): Observable<Pharmacy[]> {
     return this.http.post<Pharmacy>(
       `${this.apiBaseUrl}/pharmacy/pharmacies/${id}/upload-images`,
       formData
+    );
+  }
+
+  uploadImagesWithProgress(id: number, opts: { banner?: File; logo?: File }): Observable<HttpEvent<Pharmacy>> {
+    const formData = new FormData();
+
+    if (opts.banner) formData.append('banner', opts.banner);
+    if (opts.logo) formData.append('logo', opts.logo);
+
+    return this.http.post<Pharmacy>(
+      `${this.apiBaseUrl}/pharmacy/pharmacies/${id}/upload-images`,
+      formData,
+      {
+        reportProgress: true,
+        observe: 'events'
+      }
     );
   }
 

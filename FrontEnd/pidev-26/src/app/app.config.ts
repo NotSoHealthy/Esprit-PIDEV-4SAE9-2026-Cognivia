@@ -22,9 +22,18 @@ import {
   PlusOutline,
   MinusOutline,
   PictureOutline,
+  PictureTwoTone,
   ArrowLeftOutline,
   StarFill,
-  GlobalOutline
+  GlobalOutline,
+  UploadOutline,
+  DeleteOutline,
+  EyeOutline,
+  FileImageOutline,
+  PaperClipOutline,
+  LoadingOutline,
+  EnvironmentOutline,
+  PhoneOutline
 } from '@ant-design/icons-angular/icons';
 
 export const appConfig: ApplicationConfig = {
@@ -50,10 +59,19 @@ export const appConfig: ApplicationConfig = {
       MoreOutline,
       ArrowLeftOutline,
       PictureOutline,
+      PictureTwoTone,
       PlusOutline,
       MinusOutline,
       StarFill,
-      GlobalOutline
+      GlobalOutline,
+      UploadOutline,
+      DeleteOutline,
+      EyeOutline,
+      FileImageOutline,
+      PaperClipOutline,
+      LoadingOutline,
+      EnvironmentOutline,
+      PhoneOutline
     ]),
   ],
 };

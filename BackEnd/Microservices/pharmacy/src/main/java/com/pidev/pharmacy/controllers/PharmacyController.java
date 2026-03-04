@@ -5,6 +5,7 @@ import com.pidev.pharmacy.dto.PharmacyUpdateInfoDTO;
 import com.pidev.pharmacy.dto.PharmacyUpdateLocationDTO;
 import com.pidev.pharmacy.entities.Pharmacy;
 import com.pidev.pharmacy.services.PharmacyService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -35,12 +36,12 @@ public class PharmacyController {
     }
 
     @PostMapping
-    public Pharmacy createPharmacy(@RequestBody Pharmacy pharmacy) {
+    public Pharmacy createPharmacy(@Valid @RequestBody Pharmacy pharmacy) {
         return pharmacyService.create(pharmacy);
     }
 
     @PutMapping("/{id}")
-    public Pharmacy updatePharmacy(@PathVariable Long id, @RequestBody Pharmacy pharmacy) {
+    public Pharmacy updatePharmacy(@PathVariable Long id, @Valid @RequestBody Pharmacy pharmacy) {
         return pharmacyService.update(id, pharmacy);
     }
 
@@ -98,7 +99,7 @@ public class PharmacyController {
     @PatchMapping("/{id}/update-info")
     public ResponseEntity<Pharmacy> updatePharmacyInfo(
             @PathVariable Long id,
-            @RequestBody PharmacyUpdateInfoDTO dto) {
+            @Valid @RequestBody PharmacyUpdateInfoDTO dto) {
         try {
             Pharmacy pharmacy = pharmacyService.updatePharmacyInfo(id, dto);
             return ResponseEntity.ok(pharmacy);
@@ -111,7 +112,7 @@ public class PharmacyController {
     @PatchMapping("/{id}/update-location")
     public ResponseEntity<Pharmacy> updatePharmacyLocation(
             @PathVariable Long id,
-            @RequestBody PharmacyUpdateLocationDTO dto) {
+            @Valid @RequestBody PharmacyUpdateLocationDTO dto) {
         try {
             Pharmacy pharmacy = pharmacyService.updatePharmacyLocation(id, dto);
             return ResponseEntity.ok(pharmacy);

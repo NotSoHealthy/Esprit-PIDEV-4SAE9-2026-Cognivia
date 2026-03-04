@@ -59,13 +59,13 @@ export class AppLayout implements OnInit {
     link: '/pharmacy',
     label: 'Pharmacy',
     icon: 'medicine-box',
-    roles: ['ROLE_PHARMACY', 'ROLE_ADMIN'],
+    roles: ['ROLE_PHARMACY', 'ROLE_ADMIN', 'ROLE_CAREGIVER', 'ROLE_DOCTOR'],
    },
    {
     link: '/prescriptions',
     label: 'Prescriptions',
     icon: 'file-text',
-    roles: ['ROLE_DOCTOR', 'ROLE_PHARMACY', 'ROLE_ADMIN'],
+    roles: ['ROLE_DOCTOR', 'ROLE_PHARMACY', 'ROLE_ADMIN', 'ROLE_CAREGIVER'],
    },
   ];
   currentRouteLabel = '';

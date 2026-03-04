@@ -9,6 +9,14 @@
   min-height: 300px;
 }
 
+.spinner-wrapper ::ng-deep .ant-spin-dot-item {
+  background-color: #4D5CAB !important;
+}
+
+.spinner-wrapper ::ng-deep .ant-spin-text {
+  color: #4D5CAB !important;
+}
+
 .stock-error {
   padding: 24px;
   text-align: center;
@@ -116,6 +124,7 @@
 
 .stock-card-actions {
   display: flex;
+  justify-content: center;
   gap: 8px;
   margin-top: 16px;
   padding-top: 16px;

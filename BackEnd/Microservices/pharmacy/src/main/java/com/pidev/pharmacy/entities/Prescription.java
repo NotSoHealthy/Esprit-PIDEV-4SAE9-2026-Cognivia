@@ -2,6 +2,10 @@ package com.pidev.pharmacy.entities;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,9 +32,19 @@ public class Prescription {
     private String code;
 
     private String doctorName;
+    
+    @NotBlank(message = "Patient name is required")
+    @Size(min = 3, max = 100, message = "Patient name must be between 3 and 100 characters")
     private String patientName;
+    
+    @NotBlank(message = "Description is required")
+    @Size(min = 5, max = 500, message = "Description must be between 5 and 500 characters")
     private String description;
+    
     private Instant createdAt;
+    
+    @NotNull(message = "Expiration date is required")
+    @Future(message = "Expiration date must be in the future")
     private Instant expiresAt;
 
     @JsonManagedReference

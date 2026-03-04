@@ -2,6 +2,7 @@ package com.pidev.pharmacy.controllers;
 
 import com.pidev.pharmacy.entities.Medication;
 import com.pidev.pharmacy.services.MedicationService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -51,12 +52,12 @@ public class MedicationController {
     }
 
     @PostMapping
-    public Medication createMedication(@RequestBody Medication medication) {
+    public Medication createMedication(@Valid @RequestBody Medication medication) {
         return medicationService.create(medication);
     }
 
     @PutMapping("/{id}")
-    public Medication updateMedication(@PathVariable Long id, @RequestBody Medication medication) {
+    public Medication updateMedication(@PathVariable Long id, @Valid @RequestBody Medication medication) {
         return medicationService.update(id, medication);
     }
 

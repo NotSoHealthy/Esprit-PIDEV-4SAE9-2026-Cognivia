@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnInit, ViewChild, ElementRef, AfterViewInit, NgZone, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { HttpEventType } from '@angular/common/http';
 import * as L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { NzIconModule, NZ_ICONS } from 'ng-zorro-antd/icon';
@@ -33,6 +34,7 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
+import { NzProgressModule } from 'ng-zorro-antd/progress';
 import { PharmacyService } from './services/pharmacy.service';
 import { MedicationService } from './services/medication.service';
 import { DeepSeekService } from './services/deepseek.service';
@@ -80,6 +82,7 @@ import { KeycloakService } from '../../core/auth/keycloak.service';
     NzSwitchModule,
     NzCheckboxModule,
     NzDrawerModule,
+    NzProgressModule,
     Medication,
   ],
    providers: [
@@ -133,6 +136,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
   rateMap = new Map<number, number>();
   private ratingByPharmacy = new Map<number, Rating>();
   private readonly currentUsername = this.keycloakService.getEmail() ?? '';
+  readonly userRole = this.keycloakService.getUserRole();
   pharmacyStatus = new Map<number, { isOpen: boolean; isClosed: boolean }>();
 
   isRatingModalOpen = false;
@@ -211,11 +215,13 @@ export class Pharmacy implements OnInit, AfterViewInit {
   logoFileList: NzUploadFile[] = [];
   bannerFile: File | null = null;
   logoFile: File | null = null;
+  uploadProgress = 0;
+  isUploading = false;
 
   addForm = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(3)]],
     description: ['', [Validators.required, Validators.minLength(10)]],
-    contactInfo: ['', [Validators.required, Validators.minLength(5)]],
+    contactInfo: ['', [Validators.required, Validators.pattern(/^\d{8}$/)]],
     address: ['', [Validators.required, Validators.minLength(5)]],
     latitude: [null as number | null, [Validators.required]],
     longitude: [null as number | null, [Validators.required]],
@@ -469,11 +475,17 @@ export class Pharmacy implements OnInit, AfterViewInit {
   }
 
   onAutoDeleteReviewRequiredToggle(): void {
+    // Also toggle agent mode when auto-delete is toggled
+    this.agentMode = this.autoDeleteReviewRequired;
+    
     // Send auto-delete review required setting to backend
     this.service.updateAutoDeleteReviewRequired(this.autoDeleteReviewRequired).subscribe({
       next: () => {
         console.log('Auto-delete review required setting saved:', this.autoDeleteReviewRequired);
         this.msg.success(`Auto-delete review required ${this.autoDeleteReviewRequired ? 'enabled' : 'disabled'}`);
+        
+        // Also update agent mode
+        this.onAgentModeToggle();
       },
       error: (err: any) => {
         console.error('Failed to save auto-delete setting:', err);
@@ -703,18 +715,25 @@ export class Pharmacy implements OnInit, AfterViewInit {
     this.aiDrawerLoading = true;
     this.aiOverviewData = null;
     this.parsedAIData = null;
+    this.cdr.markForCheck();
 
     this.deepSeekService.giveMedicationAiOverview(medication.id).subscribe({
       next: (data) => {
-        this.aiOverviewData = data;
-        this.parsedAIData = this.parseAIResponse(data);
-        this.aiDrawerLoading = false;
+        this.ngZone.run(() => {
+          this.aiOverviewData = data;
+          this.parsedAIData = this.parseAIResponse(data);
+          this.aiDrawerLoading = false;
+          this.cdr.markForCheck();
+        });
       },
       error: (err) => {
-        console.error(err);
-        this.msg.error('Failed to load AI overview');
-        this.aiDrawerLoading = false;
-        this.closeAIDrawer();
+        this.ngZone.run(() => {
+          console.error(err);
+          this.msg.error('Failed to load AI overview');
+          this.aiDrawerLoading = false;
+          this.closeAIDrawer();
+          this.cdr.markForCheck();
+        });
       },
     });
   }
@@ -743,6 +762,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
     this.selectedMedicationForAI = null;
     this.aiOverviewData = null;
     this.parsedAIData = null;
+    this.cdr.markForCheck();
   }
 
   ngAfterViewInit(): void {
@@ -795,7 +815,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
 
   isPharmacyOpen(workingHours: any[]): { isOpen: boolean; isClosed: boolean } {
     if (!workingHours || workingHours.length === 0) {
-      return { isOpen: false, isClosed: false };
+      return { isOpen: false, isClosed: true };
     }
 
     const now = new Date();
@@ -807,7 +827,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
     const todaySchedule = workingHours.find((wh: any) => wh.dayOfWeek === todayString);
 
     if (!todaySchedule) {
-      return { isOpen: false, isClosed: false };
+      return { isOpen: false, isClosed: true };
     }
 
     if (todaySchedule.isClosed) {
@@ -815,7 +835,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
     }
 
     if (!todaySchedule.openTime || !todaySchedule.closeTime) {
-      return { isOpen: false, isClosed: false };
+      return { isOpen: false, isClosed: true };
     }
 
     const [openHour, openMin] = todaySchedule.openTime.split(':').map(Number);
@@ -826,7 +846,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
 
     const isOpen = now >= openDate && now < closeDate;
 
-    return { isOpen, isClosed: false };
+    return { isOpen, isClosed: !isOpen };
   }
 
   private loadRatingsState(): void {
@@ -941,10 +961,13 @@ export class Pharmacy implements OnInit, AfterViewInit {
 
     request.subscribe({
       next: () => {
-        this.submittingRating = false;
-        this.msg.success('Rating submitted successfully');
-        this.cancelRatingModal();
-        this.loadRatingsState();
+        queueMicrotask(() => {
+          this.submittingRating = false;
+          this.cdr.markForCheck();
+          this.msg.success('Rating submitted successfully');
+          this.cancelRatingModal();
+          this.loadRatingsState();
+        });
       },
       error: (err) => {
         console.error(err);
@@ -1483,10 +1506,19 @@ export class Pharmacy implements OnInit, AfterViewInit {
 
     request.subscribe({
       next: () => {
-        if (newFavoriteValue) this.liked.add(p.id!);
-        else this.liked.delete(p.id!);
-        this.msg.success(newFavoriteValue ? 'Added to favorites' : 'Removed from favorites');
-        this.loadRatingsState();
+        queueMicrotask(() => {
+          // Create new Set reference to trigger change detection
+          if (newFavoriteValue) {
+            this.liked = new Set([...this.liked, p.id!]);
+          } else {
+            const newLiked = new Set(this.liked);
+            newLiked.delete(p.id!);
+            this.liked = newLiked;
+          }
+          this.cdr.markForCheck();
+          this.msg.success(newFavoriteValue ? 'Added to favorites' : 'Removed from favorites');
+          this.loadRatingsState();
+        });
       },
       error: (err) => {
         console.error(err);
@@ -1543,11 +1575,13 @@ export class Pharmacy implements OnInit, AfterViewInit {
         this.submittingReport = false;
         this.msg.success('Report submitted successfully');
         this.cancelReportModal();
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error(err);
         this.submittingReport = false;
         this.msg.error('Failed to submit report');
+        this.cdr.detectChanges();
       },
     });
   }

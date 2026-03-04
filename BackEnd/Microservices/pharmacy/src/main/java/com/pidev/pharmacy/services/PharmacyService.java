@@ -104,6 +104,9 @@ public class PharmacyService implements IService<Pharmacy> {
         if (dto.getDescription() != null) {
             existing.setDescription(dto.getDescription());
         }
+        if (dto.getContactInfo() != null) {
+            existing.setContactInfo(dto.getContactInfo());
+        }
         if (dto.getBannerUrl() != null) {
             existing.setBannerUrl(dto.getBannerUrl());
         }
