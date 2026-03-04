@@ -129,7 +129,11 @@ export class PostListComponent implements OnInit {
     }
 
     loadPosts(): void {
-        this.loading = true;
+        // Defer loading state update to avoid NG0100 error
+        Promise.resolve().then(() => {
+            this.loading = true;
+            this.cdr.detectChanges();
+        });
         const searchKeyword = this.searchTerm || this.selectedTag;
         this.forumService.getAllPosts(this.currentPage, this.pageSize, this.selectedCategory, searchKeyword).subscribe({
             next: (response: any) => {
@@ -365,6 +369,20 @@ export class PostListComponent implements OnInit {
             case ReactionType.SAD: return 'frown';
             case ReactionType.ANGRY: return 'alert';
             default: return 'like';
+        }
+    }
+
+    getReactionLabel(type: ReactionType | null | string): string {
+        if (!type) return 'Reaction';
+        switch (type) {
+            case ReactionType.LIKE: return 'Like';
+            case ReactionType.DISLIKE: return 'Dislike';
+            case ReactionType.LOVE: return 'Love';
+            case ReactionType.HAHA: return 'Haha';
+            case ReactionType.WOW: return 'Wow';
+            case ReactionType.SAD: return 'Sad';
+            case ReactionType.ANGRY: return 'Angry';
+            default: return 'Reaction';
         }
     }
 

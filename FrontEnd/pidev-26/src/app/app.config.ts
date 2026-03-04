@@ -84,6 +84,8 @@ import {
   CalendarOutline,
   ClockCircleOutline,
   RobotOutline,
+  CoffeeOutline,
+  StopOutline,
 } from '@ant-design/icons-angular/icons';
 
 export const appConfig: ApplicationConfig = {
@@ -177,6 +179,8 @@ export const appConfig: ApplicationConfig = {
       CalendarOutline,
       ClockCircleOutline,
       RobotOutline,
+      CoffeeOutline,
+      StopOutline,
     ]),
     provideTranslateService({
       defaultLanguage: 'en',

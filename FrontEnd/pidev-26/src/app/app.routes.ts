@@ -11,7 +11,7 @@ export const routes: Routes = [
       {
         path: '',
         pathMatch: 'full',
-        redirectTo: 'posts',
+        redirectTo: 'dashboard',
       },
       {
         path: 'dashboard',
@@ -26,6 +26,7 @@ export const routes: Routes = [
       },
       {
         path: 'posts',
+        canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
         loadComponent: () =>
           import('./features/forum/components/post-list/post-list.component').then(
             (m) => m.PostListComponent,
@@ -33,6 +34,7 @@ export const routes: Routes = [
       },
       {
         path: 'posts/new',
+        canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
         loadComponent: () =>
           import('./features/forum/components/create-post/create-post.component').then(
             (m) => m.CreatePostComponent,
@@ -40,6 +42,7 @@ export const routes: Routes = [
       },
       {
         path: 'posts/:id',
+        canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
         loadComponent: () =>
           import('./features/forum/components/post-detail/post-detail.component').then(
             (m) => m.PostDetailComponent,

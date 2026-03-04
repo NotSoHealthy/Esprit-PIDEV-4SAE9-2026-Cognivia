@@ -215,7 +215,7 @@
                                             (click)="like(post, $event)">
                                             <span nz-icon [nzType]="getReactionIcon(getUserReaction(post))"
                                                 [nzTheme]="getUserReaction(post) ? 'fill' : 'outline'"></span>
-                                            Reaction
+                                            {{ getReactionLabel(getUserReaction(post)) }}
                                         </button>
 
                                         <!-- Reaction Picker (Facebook style) -->
@@ -261,9 +261,9 @@
                                     <span class="summary-emoji" *ngIf="post.dislikeCount">👎</span>
                                     <span class="summary-emoji" *ngIf="post.loveCount">❤️</span>
                                     <span class="summary-emoji" *ngIf="post.hahaCount">😂</span>
-                                    <span class="summary-emoji" *ngIf="post.wowCount">💡</span>
+                                    <span class="summary-emoji" *ngIf="post.wowCount">😮</span>
                                     <span class="summary-emoji" *ngIf="post.sadCount">😢</span>
-                                    <span class="summary-emoji" *ngIf="post.angryCount">⚠️</span>
+                                    <span class="summary-emoji" *ngIf="post.angryCount">😡</span>
                                 </div>
                                 <span class="total-count">{{ getTotalReactions(post) }}</span>
                             </div>

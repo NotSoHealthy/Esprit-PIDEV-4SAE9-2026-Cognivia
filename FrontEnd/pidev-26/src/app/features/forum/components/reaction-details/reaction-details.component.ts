@@ -190,7 +190,7 @@ export class ReactionDetailsComponent implements OnInit {
     const emojis: Record<ReactionType, string> = {
       'LIKE': '👍',
       'LOVE': '❤️',
-      'HAHA': '😆',
+      'HAHA': '😂',
       'WOW': '😮',
       'SAD': '😢',
       'ANGRY': '😡',

@@ -1,39 +1,35 @@
 @import 'tailwindcss';
 
 :root {
-  /* Core Colors - Refined for premium look */
-  --primary-color: #3b429f;
+  /* Global Theme (Cognitive Tests) */
+  --primary-color: #6366f1;
   --primary-hover: #4f46e5;
-  --primary-active: #2e358c;
-  --secondary-color: #6366f1;
-  --secondary-hover: #818cf8;
+  --secondary-color: #0ea5e9;
 
   --success-color: #10b981;
   --error-color: #ef4444;
   --warning-color: #f59e0b;
 
-  /* Text Colors */
   --text-main: #1e293b;
   --text-secondary: #64748b;
   --text-disabled: #94a3b8;
 
-  /* Backgrounds */
   --bg-app: #eef2f6;
   --bg-component: #ffffff;
-  --bg-hover: rgba(59, 66, 159, 0.04);
+  --bg-hover: rgba(99, 102, 241, 0.04);
 
-  /* Borders & Shadows */
   --border-color: #e2e8f0;
   --card-border-color: #e2e8f0;
   --border-radius-base: 12px;
   --border-radius-lg: 16px;
+
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.1);
+
   --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
   --card-hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-
-  /* Glassmorphism */
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.3);
 }
+
 @theme {
   --color-cognivia-blue: #6BAED6;
   --color-cognivia-teal: #4CB3A3;
@@ -235,13 +231,21 @@ h6 {
   background: rgba(114, 46, 209, 0.15);
   color: var(--secondary-hover);
 }
+
 /* Cognitive Tests Custom Styles */
-:root {
-  --primary-color: #6366f1;
+/* Forum & Chat Premium Theme */
+.forum-page,
+.chat-container {
+  --primary-color: #3b429f;
   --primary-hover: #4f46e5;
-  --secondary-color: #0ea5e9;
-  --glass-bg: rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  --primary-active: #2e358c;
+  --secondary-color: #6366f1;
+  --secondary-hover: #818cf8;
+
+  --bg-hover: rgba(59, 66, 159, 0.04);
+
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.3);
 }
 
 .glass {

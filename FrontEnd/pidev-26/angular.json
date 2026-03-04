@@ -45,6 +45,7 @@
                   "maximumError": "5MB"
                 },
                 {
+                  "type": "initial",
                   "maximumWarning": "1.5MB",
                   "maximumError": "2MB"
                 },
