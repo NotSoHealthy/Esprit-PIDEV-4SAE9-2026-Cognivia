@@ -3,6 +3,7 @@ package com.pidev.monitoring.controllers;
 import com.pidev.monitoring.entities.CognitiveTest;
 import com.pidev.monitoring.entities.TestQuestion;
 import com.pidev.monitoring.services.CognitiveTestService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,12 +30,12 @@ public class CognitiveTestController {
     }
 
     @PostMapping
-    public CognitiveTest createTest(@RequestBody CognitiveTest test) {
+    public CognitiveTest createTest(@Valid @RequestBody CognitiveTest test) {
         return cognitiveTestService.createTest(test);
     }
 
     @PutMapping("/{id}")
-    public CognitiveTest updateTest(@PathVariable Long id, @RequestBody CognitiveTest test) {
+    public CognitiveTest updateTest(@PathVariable Long id, @Valid @RequestBody CognitiveTest test) {
         return cognitiveTestService.updateTest(id, test);
     }
 

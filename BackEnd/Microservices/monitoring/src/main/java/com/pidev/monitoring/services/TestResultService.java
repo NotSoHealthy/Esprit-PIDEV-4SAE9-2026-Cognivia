@@ -38,10 +38,12 @@ public class TestResultService {
         this.riskScoreRepository = riskScoreRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<TestResult> getAllResults() {
         return testResultRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public TestResult getResultById(Long id) {
         return testResultRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Result not found with id: " + id));
@@ -265,10 +267,12 @@ public class TestResultService {
         return newest - oldest; // Simplified slope: total change over 30 days
     }
 
+    @Transactional(readOnly = true)
     public List<TestResult> getResultsByPatientId(Long patientId) {
         return testResultRepository.findByPatientId(patientId);
     }
 
+    @Transactional(readOnly = true)
     public TestResult getResultByAssignmentId(Long assignmentId) {
         return testResultRepository.findByAssignmentId(assignmentId)
                 .orElse(null); // Return null instead of throwing if no result yet

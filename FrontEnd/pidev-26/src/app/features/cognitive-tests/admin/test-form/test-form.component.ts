@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
@@ -8,7 +9,8 @@ import { QuestionType } from '../../../../core/models/cognitive-tests/question-t
 
 @Component({
     selector: 'app-test-form',
-    imports: [FormsModule, ReactiveFormsModule, RouterModule],
+    standalone: true,
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
     templateUrl: './test-form.component.html',
     styleUrls: ['./test-form.component.css']
 })
@@ -25,8 +27,8 @@ export class TestFormComponent implements OnInit {
         private router: Router
     ) {
         this.testForm = this.fb.group({
-            title: ['', Validators.required],
-            description: ['', Validators.required],
+            title: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
+            description: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(500)]],
             questions: this.fb.array([])
         });
     }
@@ -46,7 +48,7 @@ export class TestFormComponent implements OnInit {
 
     addQuestion(): void {
         const questionGroup = this.fb.group({
-            questionText: ['', Validators.required],
+            questionText: ['', [Validators.required, Validators.minLength(5)]],
             questionType: [QuestionType.SIMPLE, Validators.required],
             correctAnswer: [''],
             options: this.fb.array([])
@@ -86,7 +88,7 @@ export class TestFormComponent implements OnInit {
             test.questions.forEach((q: any) => {
                 const questionGroup = this.fb.group({
                     id: [q.id],
-                    questionText: [q.questionText, Validators.required],
+                    questionText: [q.questionText, [Validators.required, Validators.minLength(5)]],
                     questionType: [q.questionType, Validators.required],
                     correctAnswer: [q.correctAnswer || ''],
                     options: this.fb.array(q.options.map((opt: any) => this.fb.group({

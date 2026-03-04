@@ -54,7 +54,7 @@ public class TestAssignment {
     private SeverityTarget targetSeverity;
 
     @OneToMany(mappedBy = "assignment", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @JsonIgnore
     private List<TestResult> results = new ArrayList<>();
 
     // --- Getters & Setters ---

@@ -3,6 +3,9 @@ package com.pidev.monitoring.entities;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -23,9 +26,13 @@ public class TestQuestion {
     @JsonBackReference
     private CognitiveTest test;
 
+    @NotBlank(message = "Question text is required")
+    @Size(min = 5, max = 255, message = "Question text must be between 5 and 255 characters")
     private String questionText;
+
     private String correctAnswer;
 
+    @NotNull(message = "Question type is required")
     @Enumerated(EnumType.STRING)
     private QuestionType questionType;
 

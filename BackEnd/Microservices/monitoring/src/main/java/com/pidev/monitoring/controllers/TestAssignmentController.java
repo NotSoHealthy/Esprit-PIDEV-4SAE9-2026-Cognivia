@@ -23,6 +23,11 @@ public class TestAssignmentController {
         return testAssignmentService.assignTest(testId, assignment);
     }
 
+    @GetMapping("/health")
+    public String healthCheck() {
+        return "Monitoring Service is UP and running. TestAssignmentController is reachable.";
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<TestAssignment> getAssignmentById(@PathVariable Long id) {
         return ResponseEntity.ok(testAssignmentService.getAssignmentById(id));
@@ -38,6 +43,7 @@ public class TestAssignmentController {
      * Patient: fetch all assignments visible to them.
      * The service internally resolves the patient's severity from the care service.
      */
+
     @GetMapping("/for-patient/{patientId}")
     public List<TestAssignment> getAssignmentsForPatient(@PathVariable Long patientId) {
         return testAssignmentService.getAssignmentsForPatient(patientId);

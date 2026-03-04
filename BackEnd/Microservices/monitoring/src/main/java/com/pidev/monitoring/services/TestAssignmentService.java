@@ -8,6 +8,8 @@ import com.pidev.monitoring.entities.SeverityTarget;
 import com.pidev.monitoring.entities.TestResult;
 import com.pidev.monitoring.repositories.CognitiveTestRepository;
 import com.pidev.monitoring.repositories.TestAssignmentRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -20,6 +22,8 @@ import java.util.Objects;
 
 @Service
 public class TestAssignmentService {
+
+    private static final Logger log = LoggerFactory.getLogger(TestAssignmentService.class);
 
     private final TestAssignmentRepository testAssignmentRepository;
     private final CognitiveTestRepository cognitiveTestRepository;
@@ -66,11 +70,13 @@ public class TestAssignmentService {
         return assignment;
     }
 
+    @Transactional(readOnly = true)
     public TestAssignment getAssignmentById(Long id) {
         return testAssignmentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Assignment not found with id: " + id));
     }
 
+    @Transactional(readOnly = true)
     public List<TestAssignment> getAllAssignments() {
         return testAssignmentRepository.findAll();
     }
@@ -83,34 +89,53 @@ public class TestAssignmentService {
      *
      * The patient's severity is fetched from the care service using patientId.
      */
+    @Transactional(readOnly = true)
     public List<TestAssignment> getAssignmentsForPatient(Long patientId) {
+        log.info("Fetching assignments for patientId: {}", patientId);
         // 1. Targeted assignments for this patient
         List<TestAssignment> targeted = testAssignmentRepository.findByPatientId(patientId);
+        log.debug("Found {} targeted assignments", targeted.size());
 
         // 2. Fetch severity from the care service
         String severity = fetchPatientSeverity(patientId);
+        log.debug("Fetched patient severity: {}", severity);
         List<TestAssignment> general = new ArrayList<>();
         if (severity != null) {
             try {
                 SeverityTarget severityTarget = SeverityTarget.valueOf(severity.toUpperCase());
                 general = testAssignmentRepository
                         .findByAssignmentTypeAndTargetSeverity(AssignmentType.GENERAL, severityTarget);
+                log.debug("Found {} general assignments for severity {}", general.size(), severityTarget);
             } catch (IllegalArgumentException e) {
-                System.err.println("Unknown severity value from care service: " + severity);
+                log.error("Unknown severity value from care service: {}", severity);
             }
         }
 
         // 3. Merge both lists
         List<TestAssignment> all = new ArrayList<>(targeted);
         all.addAll(general);
+        log.debug("Total assignments before filtering: {}", all.size());
 
         LocalDateTime now = LocalDateTime.now();
 
         // 4. Filter out assignments that are completed OR expired
-        return all.stream()
-                .filter(assignment -> assignment.getDueAt() != null && now.isBefore(assignment.getDueAt()))
-                .filter(assignment -> !isAssignmentCompletedByPatient(assignment, patientId))
+        List<TestAssignment> filtered = all.stream()
+                .filter(assignment -> {
+                    boolean notExpired = assignment.getDueAt() != null && now.isBefore(assignment.getDueAt());
+                    if (!notExpired)
+                        log.trace("Assignment {} filtered out: expired or null dueAt", assignment.getId());
+                    return notExpired;
+                })
+                .filter(assignment -> {
+                    boolean notCompleted = !isAssignmentCompletedByPatient(assignment, patientId);
+                    if (!notCompleted)
+                        log.trace("Assignment {} filtered out: already completed", assignment.getId());
+                    return notCompleted;
+                })
                 .toList();
+
+        log.info("Returning {} assignments for patientId: {}", filtered.size(), patientId);
+        return filtered;
     }
 
     /**
@@ -163,7 +188,8 @@ public class TestAssignmentService {
                 return patient.get("severity").toString();
             }
         } catch (Exception e) {
-            System.err.println("Failed to fetch patient severity from care service: " + e.getMessage());
+            log.error("Failed to fetch patient severity from care service for patient {}: {}", patientId,
+                    e.getMessage());
         }
         return null;
     }

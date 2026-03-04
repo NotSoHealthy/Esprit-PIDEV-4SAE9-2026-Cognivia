@@ -7,66 +7,89 @@
   <form [formGroup]="testForm" (ngSubmit)="onSubmit()" class="glass form-container">
     <div class="form-group">
       <label for="title">Title</label>
-      <input id="title" formControlName="title" placeholder="Test Title">
+      <input id="title" formControlName="title" placeholder="Test Title"
+        [class.is-invalid]="testForm.get('title')?.invalid && testForm.get('title')?.touched">
+      <div class="error-hint" *ngIf="testForm.get('title')?.invalid && testForm.get('title')?.touched">
+        <span *ngIf="testForm.get('title')?.errors?.['required']">Title is required.</span>
+        <span *ngIf="testForm.get('title')?.errors?.['minlength']">Title must be at least 3 characters.</span>
+      </div>
     </div>
 
     <div class="form-group">
       <label for="description">Description</label>
-      <textarea id="description" formControlName="description" placeholder="Short description"></textarea>
+      <textarea id="description" formControlName="description" placeholder="Short description"
+        [class.is-invalid]="testForm.get('description')?.invalid && testForm.get('description')?.touched"></textarea>
+      <div class="error-hint" *ngIf="testForm.get('description')?.invalid && testForm.get('description')?.touched">
+        <span *ngIf="testForm.get('description')?.errors?.['required']">Description is required.</span>
+        <span *ngIf="testForm.get('description')?.errors?.['minlength']">Description must be at least 5
+          characters.</span>
+      </div>
     </div>
 
     <div class="questions-section">
-      <h3>Questions</h3>
+      <div class="section-header">
+        <h3>Questions</h3>
+        <p class="section-hint" *ngIf="questions.length === 0">Please add at least one question to this test.</p>
+      </div>
+
       <div formArrayName="questions">
         @for (q of questions.controls; track q; let i = $index) {
-          <div [formGroupName]="i" class="question-item">
-            <div class="question-header">
-              <h4>Question #{{ i + 1 }}</h4>
-              <button type="button" class="btn btn-icon danger" (click)="removeQuestion(i)">🗑</button>
-            </div>
-            <div class="form-group">
-              <input formControlName="questionText" placeholder="Enter question text">
-            </div>
-            <div class="form-group">
-              <label>Type</label>
-              <select formControlName="questionType">
-                @for (type of questionTypes; track type) {
-                  <option [value]="type">{{ type }}</option>
-                }
-              </select>
-            </div>
-            @if (q.get('questionType')?.value === 'SIMPLE') {
-              <div class="form-group">
-                <label>Correct Answer (Internal)</label>
-                <input formControlName="correctAnswer" placeholder="Enter the correct answer for auto-grading">
-              </div>
-            }
-            <!-- Options for MULTIPLE_CHOICE -->
-            @if (q.get('questionType')?.value === 'MULTIPLE_CHOICE') {
-              <div class="options-section">
-                <h5>Options</h5>
-                <div formArrayName="options">
-                  @for (opt of getOptions(i).controls; track opt; let j = $index) {
-                    <div [formGroupName]="j"
-                      class="option-item">
-                      <input type="checkbox" formControlName="isCorrect">
-                      <input formControlName="optionText" placeholder="Option text">
-                      <button type="button" class="btn btn-icon danger"
-                      (click)="removeOption(i, j)">×</button>
-                    </div>
-                  }
-                </div>
-                <button type="button" class="btn btn-sm" (click)="addOption(i)">+ Add Option</button>
-              </div>
-            }
+        <div [formGroupName]="i" class="question-item">
+          <div class="question-header">
+            <h4>Question #{{ i + 1 }}</h4>
+            <button type="button" class="btn btn-icon danger" (click)="removeQuestion(i)">🗑</button>
           </div>
+          <div class="form-group">
+            <input formControlName="questionText" placeholder="Enter question text"
+              [class.is-invalid]="q.get('questionText')?.invalid && q.get('questionText')?.touched">
+            <div class="error-hint" *ngIf="q.get('questionText')?.invalid && q.get('questionText')?.touched">
+              <span *ngIf="q.get('questionText')?.errors?.['required']">Question text is required.</span>
+              <span *ngIf="q.get('questionText')?.errors?.['minlength']">Minimum 5 characters required.</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Type</label>
+            <select formControlName="questionType">
+              @for (type of questionTypes; track type) {
+              <option [value]="type">{{ type }}</option>
+              }
+            </select>
+          </div>
+          @if (q.get('questionType')?.value === 'SIMPLE') {
+          <div class="form-group">
+            <label>Correct Answer (Internal)</label>
+            <input formControlName="correctAnswer" placeholder="Enter the correct answer for auto-grading">
+          </div>
+          }
+          <!-- Options for MULTIPLE_CHOICE -->
+          @if (q.get('questionType')?.value === 'MULTIPLE_CHOICE') {
+          <div class="options-section">
+            <h5>Options</h5>
+            <div formArrayName="options">
+              @for (opt of getOptions(i).controls; track opt; let j = $index) {
+              <div [formGroupName]="j" class="option-item">
+                <input type="checkbox" formControlName="isCorrect">
+                <input formControlName="optionText" placeholder="Option text">
+                <button type="button" class="btn btn-icon danger" (click)="removeOption(i, j)">×</button>
+              </div>
+              }
+            </div>
+            <button type="button" class="btn btn-sm" (click)="addOption(i)">+ Add Option</button>
+          </div>
+          }
+        </div>
         }
       </div>
       <button type="button" class="btn btn-outline" (click)="addQuestion()">+ Add Question</button>
     </div>
 
     <div class="form-footer">
-      <button type="submit" class="btn btn-primary" [disabled]="testForm.invalid">Save Test</button>
+      <div class="form-error-summary" *ngIf="testForm.invalid && testForm.touched">
+        Please fix the errors above before saving.
+      </div>
+      <button type="submit" class="btn btn-primary" [disabled]="testForm.invalid || questions.length === 0">
+        {{ isEditMode ? 'Update' : 'Save' }} Test
+      </button>
     </div>
   </form>
 </div>
