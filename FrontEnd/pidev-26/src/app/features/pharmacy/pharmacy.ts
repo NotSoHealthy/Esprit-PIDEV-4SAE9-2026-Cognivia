@@ -43,6 +43,7 @@ import { AgentLogService } from './services/agent-log.service';
 import { WorkingHoursService } from './services/working-hours.service';
 import { RatingService } from './services/rating.service';
 import { ReportService } from './services/report.service';
+import { PharmacistService } from '../../core/services/pharmacy/pharmacist.service';
 import { Pharmacy as PharmacyModel } from './models/pharmacy.model';
 import { MedicationModel } from './models/medication.model';
 import { Rating } from './models/rating.model';
@@ -54,6 +55,8 @@ import { NzRateModule } from 'ng-zorro-antd/rate';
 import { PictureTwoTone } from '@ant-design/icons-angular/icons';
 import { Medication } from './medication/medication';
 import { KeycloakService } from '../../core/auth/keycloak.service';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 
 @Component({
@@ -124,6 +127,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
   private readonly deepSeekService = inject(DeepSeekService);
   private readonly agentMessageService = inject(AgentMessageService);
   private readonly agentLogService = inject(AgentLogService);
+  private readonly pharmacistService = inject(PharmacistService);
 
   map: L.Map | null = null;
   marker: L.Marker | null = null;
@@ -131,6 +135,8 @@ export class Pharmacy implements OnInit, AfterViewInit {
   pharmacies: PharmacyModel[] = [];
   loading = false;
   errorMsg: string | null = null;
+  userPharmacy: PharmacyModel | null = null;
+  loadingPharmacist = false;
 
   liked = new Set<number>();
   rateMap = new Map<number, number>();
@@ -184,6 +190,8 @@ export class Pharmacy implements OnInit, AfterViewInit {
   requestedMainView: 'requests' | 'agent-logs' = 'requests';
   agentMode = false;
   autoDeleteReviewRequired = false;
+  requestedSettingsLoading = false;
+  private requestedSettingsSeq = 0;
   agentMessages = new Map<number, AgentMessage>(); // medicationId -> AgentMessage
 
   // Agent logs state
@@ -229,6 +237,52 @@ export class Pharmacy implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.loadPharmacies();
+    // If user is pharmacist, load their pharmacy
+    if (this.userRole === 'ROLE_PHARMACY') {
+      this.loadPharmacistPharmacy();
+    }
+  }
+
+  isOwnPharmacy(pharmacyId: number | null | undefined): boolean {
+    if (this.userRole !== 'ROLE_PHARMACY') return false;
+    if (!pharmacyId) return false;
+    return this.userPharmacy?.id === pharmacyId;
+  }
+
+  loadPharmacistPharmacy(): void {
+    const userId = this.keycloakService.getUserId();
+    if (!userId) {
+      this.loadingPharmacist = false;
+      return;
+    }
+
+    this.loadingPharmacist = true;
+    this.pharmacistService.getPharmacistByUserId(userId)
+      .subscribe({
+        next: (pharmacist) => {
+          const pharmacyId = pharmacist?.pharmacyId ?? null;
+          if (!pharmacyId) {
+            this.userPharmacy = null;
+            this.loadingPharmacist = false;
+            return;
+          }
+
+          this.service.getById(pharmacyId).subscribe({
+            next: (pharmacy) => {
+              this.userPharmacy = pharmacy;
+              this.loadingPharmacist = false;
+            },
+            error: () => {
+              this.userPharmacy = null;
+              this.loadingPharmacist = false;
+            },
+          });
+        },
+        error: () => {
+          this.userPharmacy = null;
+          this.loadingPharmacist = false;
+        }
+      });
   }
 
   get filteredPharmacies(): PharmacyModel[] {
@@ -400,24 +454,31 @@ export class Pharmacy implements OnInit, AfterViewInit {
     // Tab 2: Requested medications
     if (tabIndex === 2) {
       this.requestedMainView = 'requests';
-      // Load agent mode from global config when entering requested medications tab
-      this.service.getAgentMode().subscribe({
-        next: (config) => {
-          this.agentMode = config.agentModeEnabled;
-        },
-        error: (err: any) => {
-          console.error('Failed to load agent mode config:', err);
-        }
-      });
-      
-      // Load auto-delete review required setting
-      this.service.getAutoDeleteReviewRequired().subscribe({
-        next: (config) => {
-          this.autoDeleteReviewRequired = config.autoDeleteReviewRequired;
-        },
-        error: (err: any) => {
-          console.error('Failed to load auto-delete config:', err);
-        }
+      // Load both settings together and hide switches until loaded.
+      // This prevents visible "flips" caused by async config responses.
+      this.requestedSettingsLoading = true;
+      const seq = ++this.requestedSettingsSeq;
+      forkJoin({
+        agent: this.service.getAgentMode().pipe(
+          catchError((err: any) => {
+            console.error('Failed to load agent mode config:', err);
+            return of({ agentModeEnabled: this.agentMode });
+          })
+        ),
+        autoDelete: this.service.getAutoDeleteReviewRequired().pipe(
+          catchError((err: any) => {
+            console.error('Failed to load auto-delete config:', err);
+            return of({ autoDeleteReviewRequired: this.autoDeleteReviewRequired });
+          })
+        ),
+      }).subscribe(({ agent, autoDelete }) => {
+        setTimeout(() => {
+          if (seq !== this.requestedSettingsSeq) return;
+          this.agentMode = !!agent.agentModeEnabled;
+          this.autoDeleteReviewRequired = !!autoDelete.autoDeleteReviewRequired;
+          this.requestedSettingsLoading = false;
+          this.cdr.detectChanges();
+        }, 0);
       });
       
       this.loadRequestedMedications();
@@ -462,33 +523,38 @@ export class Pharmacy implements OnInit, AfterViewInit {
     }
   }
 
-  onAgentModeToggle(): void {
-    // Send agent mode preference to backend (global setting)
-    this.service.updateAgentMode(this.agentMode).subscribe({
-      next: () => {
+  onAgentModeToggle(enabled: boolean): void {
+    const previous = this.agentMode;
+    this.agentMode = enabled;
+
+    this.service.updateAgentMode(enabled).subscribe({
+      next: (config) => {
+        this.agentMode = !!config.agentModeEnabled;
         console.log('Agent mode setting saved:', this.agentMode);
       },
       error: (err: any) => {
         console.error('Failed to save agent mode setting:', err);
+        this.agentMode = previous;
+        this.msg.error('Failed to save agent mode');
       }
     });
   }
 
-  onAutoDeleteReviewRequiredToggle(): void {
-    // Also toggle agent mode when auto-delete is toggled
-    this.agentMode = this.autoDeleteReviewRequired;
-    
-    // Send auto-delete review required setting to backend
-    this.service.updateAutoDeleteReviewRequired(this.autoDeleteReviewRequired).subscribe({
-      next: () => {
+  onAutoDeleteReviewRequiredToggle(enabled: boolean): void {
+    const previous = this.autoDeleteReviewRequired;
+    this.autoDeleteReviewRequired = enabled;
+
+    // IMPORTANT: Auto-delete is independent from Agent Mode.
+    // Do not force agentMode to follow autoDelete (that caused the "self-changing" switches).
+    this.service.updateAutoDeleteReviewRequired(enabled).subscribe({
+      next: (config) => {
+        this.autoDeleteReviewRequired = !!config.autoDeleteReviewRequired;
         console.log('Auto-delete review required setting saved:', this.autoDeleteReviewRequired);
         this.msg.success(`Auto-delete review required ${this.autoDeleteReviewRequired ? 'enabled' : 'disabled'}`);
-        
-        // Also update agent mode
-        this.onAgentModeToggle();
       },
       error: (err: any) => {
         console.error('Failed to save auto-delete setting:', err);
+        this.autoDeleteReviewRequired = previous;
         this.msg.error('Failed to save setting');
       }
     });
@@ -978,6 +1044,11 @@ export class Pharmacy implements OnInit, AfterViewInit {
   }
 
   openAddModal(): void {
+    if (this.userRole === 'ROLE_PHARMACY' && this.userPharmacy) {
+      this.msg.error('You already have a pharmacy.');
+      return;
+    }
+
     this.modalMode = 'add';
     this.editingPharmacy = null;
     this.currentStep = 0;
@@ -1247,6 +1318,22 @@ export class Pharmacy implements OnInit, AfterViewInit {
 
     if (created?.id != null && !this.rateMap.has(created.id)) {
       this.rateMap.set(created.id, 0);
+    }
+
+    // If user is a pharmacist, assign this pharmacy to their profile
+    if (this.userRole === 'ROLE_PHARMACY' && created?.id) {
+      const userId = this.keycloakService.getUserId();
+      if (userId) {
+        this.pharmacistService.assignPharmacyToUser(userId, created.id).subscribe({
+          next: () => {
+            this.userPharmacy = created;
+            console.log('Pharmacy assigned to pharmacist');
+          },
+          error: (err) => {
+            console.error('Failed to assign pharmacy to pharmacist:', err);
+          },
+        });
+      }
     }
 
     this.stepComplete = true;
@@ -1535,6 +1622,12 @@ export class Pharmacy implements OnInit, AfterViewInit {
   report(p: PharmacyModel, ev?: MouseEvent): void {
     ev?.stopPropagation();
     if (!p.id) return;
+
+    if (this.userRole === 'ROLE_PHARMACY' && this.isOwnPharmacy(p.id)) {
+      this.msg.error("You can't report your own pharmacy.");
+      return;
+    }
+
     this.selectedReportPharmacy = p;
     this.selectedReportReason = null;
     this.reportDescription = '';
@@ -1589,6 +1682,12 @@ export class Pharmacy implements OnInit, AfterViewInit {
   editInfo(p: PharmacyModel, ev?: MouseEvent): void {
     ev?.stopPropagation();
     if (!p.id) return;
+
+    if (this.userRole === 'ROLE_PHARMACY' && !this.isOwnPharmacy(p.id)) {
+      this.msg.error("You can only edit your own pharmacy.");
+      return;
+    }
+
     this.editingPharmacy = p;
     this.modalMode = 'editInfo';
     this.currentStep = 0;
@@ -1635,6 +1734,12 @@ export class Pharmacy implements OnInit, AfterViewInit {
   changeCoordinates(p: PharmacyModel, ev?: MouseEvent): void {
     ev?.stopPropagation();
     if (!p.id) return;
+
+    if (this.userRole === 'ROLE_PHARMACY' && !this.isOwnPharmacy(p.id)) {
+      this.msg.error("You can only edit your own pharmacy.");
+      return;
+    }
+
     this.editingPharmacy = p;
     this.modalMode = 'changeCoordinates';
     this.currentStep = 1;
@@ -1657,6 +1762,11 @@ export class Pharmacy implements OnInit, AfterViewInit {
   delete(p: PharmacyModel, ev?: MouseEvent): void {
     ev?.stopPropagation();
     if (!p.id) return;
+
+    if (this.userRole === 'ROLE_PHARMACY' && !this.isOwnPharmacy(p.id)) {
+      this.msg.error("You can only delete your own pharmacy.");
+      return;
+    }
     
     const pharmacyId = p.id;
     this.msg.loading('Deleting pharmacy...', { nzDuration: 0 });
@@ -1666,6 +1776,11 @@ export class Pharmacy implements OnInit, AfterViewInit {
         this.msg.remove();
         this.msg.success('Pharmacy deleted successfully');
         this.pharmacies = this.pharmacies.filter(ph => ph.id !== pharmacyId);
+
+        if (this.userRole === 'ROLE_PHARMACY' && this.userPharmacy?.id === pharmacyId) {
+          this.userPharmacy = null;
+        }
+
         this.rateMap.delete(pharmacyId);
         this.liked.delete(pharmacyId);
         this.ratingByPharmacy.delete(pharmacyId);

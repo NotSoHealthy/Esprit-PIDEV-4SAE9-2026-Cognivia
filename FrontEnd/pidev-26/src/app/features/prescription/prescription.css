@@ -342,11 +342,11 @@
 }
 
 .spinner-wrapper ::ng-deep .ant-spin-dot-item {
-  background-color: #4D5CAB !important;
+  background-color: var(--prescription-primary-color) !important;
 }
 
 .spinner-wrapper ::ng-deep .ant-spin-text {
-  color: #4D5CAB !important;
+  color: var(--prescription-primary-color) !important;
 }
 
 .empty-wrapper {
@@ -421,6 +421,14 @@
 
 .recommendation-loading {
   padding: 16px 0;
+}
+
+.recommendation-loading ::ng-deep .ant-spin-dot-item {
+  background-color: var(--prescription-primary-color) !important;
+}
+
+.recommendation-loading ::ng-deep .ant-spin-text {
+  color: var(--prescription-primary-color) !important;
 }
 
 .recommendation-carousel {

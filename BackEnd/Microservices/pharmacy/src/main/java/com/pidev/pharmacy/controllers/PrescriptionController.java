@@ -27,6 +27,14 @@ public class PrescriptionController {
         return prescriptionService.getAll();
     }
 
+    @GetMapping("/visible")
+    public List<Prescription> getVisiblePrescriptions(@RequestParam(name = "patientNames", required = false) List<String> patientNames) {
+        if (patientNames == null || patientNames.isEmpty()) {
+            return List.of();
+        }
+        return prescriptionService.getVisibleByPatientNameMentions(patientNames);
+    }
+
     @GetMapping("/code-suggestions")
     public List<String> getCodeSuggestions(@RequestParam(name = "query", required = false) String query) {
         return prescriptionService.searchCodes(query);
@@ -44,7 +52,7 @@ public class PrescriptionController {
         }
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public Prescription getPrescriptionById(@PathVariable Long id) {
         return prescriptionService.getById(id);
     }
@@ -60,12 +68,12 @@ public class PrescriptionController {
         }
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id:\\d+}")
     public Prescription updatePrescription(@PathVariable Long id, @Valid @RequestBody Prescription prescription) {
         return prescriptionService.update(id, prescription);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
     public ResponseEntity<Void> deletePrescription(@PathVariable Long id) {
         prescriptionService.delete(id);
         return ResponseEntity.noContent().build();
@@ -74,7 +82,7 @@ public class PrescriptionController {
     /**
      * Get all items in a prescription
      */
-    @GetMapping("/{id}/items")
+    @GetMapping("/{id:\\d+}/items")
     public List<PrescriptionItem> getPrescriptionItems(@PathVariable Long id) {
         return prescriptionService.getPrescriptionItems(id);
     }
@@ -132,7 +140,7 @@ public class PrescriptionController {
     /**
      * Check if prescription is expired
      */
-    @GetMapping("/{id}/is-expired")
+    @GetMapping("/{id:\\d+}/is-expired")
     public ResponseEntity<Boolean> isExpired(@PathVariable Long id) {
         try {
             boolean expired = prescriptionService.isExpired(id);
@@ -146,7 +154,7 @@ public class PrescriptionController {
     /**
      * Extend prescription expiration
      */
-    @PatchMapping("/{id}/extend")
+    @PatchMapping("/{id:\\d+}/extend")
     public ResponseEntity<Prescription> extendExpiration(
             @PathVariable Long id,
             @RequestParam Long expirationTimestamp) {

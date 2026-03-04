@@ -42,6 +42,11 @@ public class PatientController {
         return patientService.getByDoctorId(doctorId);
     }
 
+    @GetMapping("/caregiver/user/{userId}")
+    public List<Patient> getPatientsByCaregiverUserId(@PathVariable UUID userId) {
+        return patientService.getByCaregiverUserId(userId);
+    }
+
     @GetMapping("{patientId}/contact")
     public PatientDto.PatientContactInfoDto getPatientContactInfo(@PathVariable Long patientId) {
         return patientService.getContactInfo(patientId);

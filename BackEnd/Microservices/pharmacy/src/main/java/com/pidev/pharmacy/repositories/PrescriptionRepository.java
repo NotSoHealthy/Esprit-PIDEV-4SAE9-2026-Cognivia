@@ -18,4 +18,6 @@ public interface PrescriptionRepository extends JpaRepository<Prescription, Long
     Optional<Prescription> findByCodeIgnoreCase(String code);
 
     List<Prescription> findTop10ByCodeContainingIgnoreCaseOrderByCreatedAtDesc(String code);
+
+    List<Prescription> findByPatientNameContainingIgnoreCaseOrderByCreatedAtDesc(String patientName);
 }

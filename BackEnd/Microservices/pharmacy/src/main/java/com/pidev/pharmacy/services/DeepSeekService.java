@@ -18,10 +18,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -68,11 +70,13 @@ public class DeepSeekService {
                 .stream()
                 .filter(m -> m.getMedicationStatus() == MedicationStatus.ACCEPTED)
                 .toList();
-        String medicationList = acceptedMedications.stream()
-                .map(m -> m.getName())
-                .distinct()
-                .reduce((a, b) -> a + ", " + b)
-                .orElse("(no accepted medications in database)");
+        List<String> acceptedMedicationNames = acceptedMedications.stream()
+            .map(Medication::getName)
+            .filter(Objects::nonNull)
+            .map(String::trim)
+            .filter(s -> !s.isBlank())
+            .distinct()
+            .toList();
 
         String systemPrompt = "You are a pharmaceutical expert. Validate medication for Alzheimer's disease management. " +
                 "Use FDA.gov, DailyMed, MedlinePlus, PubMed for accuracy. Respond ONLY with valid JSON, no markdown, no explanation.";
@@ -118,26 +122,53 @@ public class DeepSeekService {
 
         // STEP 3: Check for exact or similar names in database (ACCEPTED medications only)
         {
-            String userPrompt = String.format(
-                    "Given the medication name '%s', check if it matches or is similar to any of these existing ACCEPTED medications : %s." +
-                    "Consider abbreviations" +
-                    "The objective is to check for conflicts within the database before adding a new medicaiton do not check if this is a real life medication"+
-                    "Return JSON: {exists, matchedName, reason}",
-                    medication.getName(),
-                    medicationList
-            );
-            String aiResponse = askDeepSeek(systemPrompt, userPrompt);
+            final String inputName = nullSafe(medication.getName()).trim();
+            final String normalizedInput = normalizeMedicationName(inputName);
+
+            // Deterministic guard: exact (normalized) match should always be flagged.
+            for (String existingName : acceptedMedicationNames) {
+                if (normalizeMedicationName(existingName).equals(normalizedInput)) {
+                    message.setRawAnalysisData(message.getRawAnalysisData() +
+                            "\nSTEP 3 - Name Conflict Check:\n" +
+                            "{\"exists\":true,\"matchedName\":\"" + escapeJson(existingName) + "\",\"matchType\":\"EXACT\",\"confidence\":1.0,\"reason\":\"Normalized exact match\"}\n");
+                    message.setContent("⚠️ Medication already exists in database as '" + existingName + "'.");
+                    message.setActionType(AgentActionType.DELETE);
+                    return message;
+                }
+            }
+
+            // Reduce confusion: only send AI the nearest candidates (instead of the entire DB list).
+            List<String> candidates = acceptedMedicationNames.stream()
+                    .map(name -> new NameCandidate(name, similarityScore(normalizedInput, normalizeMedicationName(name))))
+                    .filter(c -> c.score >= 0.70)
+                    .sorted(Comparator.comparingDouble(NameCandidate::score).reversed())
+                    .limit(25)
+                    .map(NameCandidate::name)
+                    .toList();
+
+            String step3SystemPrompt = "You are a strict string-matching assistant for medication NAME conflicts in a database. " +
+                    "You must match by NAME only (generic/brand/abbreviation/spelling variants). " +
+                    "Do NOT use therapeutic class, indications, or Alzheimer's relevance to decide. " +
+                    "If unsure, return exists=false. Respond ONLY with valid JSON.";
+
+            String userPrompt = "Task: Decide whether the input medication name conflicts with an existing accepted medication name.\n" +
+                    "Rules:\n" +
+                    "- Consider: brand↔generic equivalents, common abbreviations, minor spelling/spacing/punctuation differences.\n" +
+                    "- Do NOT match different medications just because they share the same therapeutic class or indication.\n" +
+                    "- exists=true ONLY if you are confident it refers to the SAME medication as one of the candidates.\n" +
+                    "- If there is no clear same-medication match, exists=false and matchedName=null.\n\n" +
+                    "InputName: '" + inputName + "'\n" +
+                    "CandidateNames: " + toJsonArray(candidates) + "\n\n" +
+                    "Return ONLY JSON exactly with keys: {exists:boolean, matchedName:string|null, matchType:string, confidence:number, reason:string}.";
+
+            String aiResponse = askDeepSeek(step3SystemPrompt, userPrompt);
             Map<String, Object> validation = parseJsonOrFallback(aiResponse);
-
-            System.out.println("===== DEEPSEEK RAW RESPONSE =====");
-            System.out.println(aiResponse);
-            System.out.println("=================================");
-
             message.setRawAnalysisData(message.getRawAnalysisData() + "\nSTEP 3 - Name Conflict Check:\n" + aiResponse + "\n");
 
             boolean exists = extractBoolean(validation, "exists", false);
-            if (exists) {
-                String matchedName = extractString(validation, "matchedName", medication.getName());
+            double confidence = extractDouble(validation, "confidence", 0.0);
+            if (exists && confidence >= 0.85) {
+                String matchedName = extractString(validation, "matchedName", inputName);
                 message.setContent("⚠️ Medication already exists in database as '" + matchedName + "'.");
                 message.setActionType(AgentActionType.DELETE);
                 return message;
@@ -164,6 +195,17 @@ public class DeepSeekService {
             String aiResponse = askDeepSeek(systemPrompt, userPrompt);
             Map<String, Object> validation = parseJsonOrFallback(aiResponse);
             message.setRawAnalysisData(message.getRawAnalysisData() + "\nSTEP 4 & 5 - Description & Class Check:\n" + aiResponse + "\n");
+
+                    // IMPORTANT: Do not silently pass if the AI response is malformed or missing fields.
+                    // This was previously causing the checks to be bypassed because extractBoolean(..., default=true).
+                    if (!hasKeys(validation, "descriptionAccurate", "classCorrect")) {
+                    message.setContent(
+                        "⚠️ AI validation did not return the expected JSON fields for description/class checks. " +
+                        "Manual review required."
+                    );
+                    message.setActionType(AgentActionType.REVIEW_REQUIRED);
+                    return message;
+                    }
 
             boolean descriptionAccurate = extractBoolean(validation, "descriptionAccurate", true);
             boolean classCorrect = extractBoolean(validation, "classCorrect", true);
@@ -299,8 +341,62 @@ public class DeepSeekService {
             JsonNode node = objectMapper.readTree(text);
             return objectMapper.convertValue(node, Map.class);
         } catch (Exception ignored) {
+            // Some providers respond with extra text or ```json fenced blocks.
+            // Try extracting the first JSON object and parsing that.
+            String extracted = extractFirstJsonObject(text);
+            if (extracted != null) {
+                try {
+                    JsonNode node = objectMapper.readTree(extracted);
+                    return objectMapper.convertValue(node, Map.class);
+                } catch (Exception ignored2) {
+                    // fall through
+                }
+            }
+
             return Map.of("raw", text);
         }
+    }
+
+    private boolean hasKeys(Map<String, Object> map, String... keys) {
+        if (map == null) {
+            return false;
+        }
+        for (String key : keys) {
+            if (!map.containsKey(key)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Best-effort extraction of the first JSON object ({...}) from a mixed response.
+     * Handles cases like markdown fences or extra explanatory text.
+     */
+    private String extractFirstJsonObject(String text) {
+        if (text == null || text.isBlank()) {
+            return null;
+        }
+
+        int start = text.indexOf('{');
+        if (start < 0) {
+            return null;
+        }
+
+        int depth = 0;
+        for (int i = start; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == '{') {
+                depth++;
+            } else if (c == '}') {
+                depth--;
+                if (depth == 0) {
+                    return text.substring(start, i + 1);
+                }
+            }
+        }
+
+        return null;
     }
 
     private void applyMedicationPatch(Medication medication, Map<String, Object> patch) {
@@ -412,4 +508,74 @@ public class DeepSeekService {
         Object value = map.get(key);
         return value == null ? defaultValue : String.valueOf(value);
     }
+
+    private double extractDouble(Map<String, Object> map, String key, double defaultValue) {
+        if (map == null || !map.containsKey(key)) {
+            return defaultValue;
+        }
+        Object value = map.get(key);
+        if (value instanceof Number n) {
+            return n.doubleValue();
+        }
+        if (value instanceof String s) {
+            try {
+                return Double.parseDouble(s.trim());
+            } catch (Exception ignored) {
+                return defaultValue;
+            }
+        }
+        return defaultValue;
+    }
+
+    private String normalizeMedicationName(String name) {
+        if (name == null) {
+            return "";
+        }
+        return name
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9]", "")
+                .trim();
+    }
+
+    private double similarityScore(String normalizedA, String normalizedB) {
+        if (normalizedA == null || normalizedB == null) {
+            return 0.0;
+        }
+        if (normalizedA.isBlank() && normalizedB.isBlank()) {
+            return 1.0;
+        }
+        int distance = levenshtein(normalizedA, normalizedB);
+        int maxLen = Math.max(normalizedA.length(), normalizedB.length());
+        if (maxLen == 0) {
+            return 1.0;
+        }
+        return 1.0 - (double) distance / maxLen;
+    }
+
+    private String toJsonArray(List<String> values) {
+        if (values == null || values.isEmpty()) {
+            return "[]";
+        }
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = 0; i < values.size(); i++) {
+            if (i > 0) sb.append(',');
+            sb.append('"').append(escapeJson(values.get(i))).append('"');
+        }
+        sb.append(']');
+        return sb.toString();
+    }
+
+    private String escapeJson(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
+    }
+
+    private record NameCandidate(String name, double score) {}
 }

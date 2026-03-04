@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators, FormArray, FormGroup } from '@angular/forms';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -17,9 +18,11 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzPaginationModule } from 'ng-zorro-antd/pagination';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { finalize } from 'rxjs/operators';
+import { finalize, switchMap } from 'rxjs/operators';
+import { of } from 'rxjs';
 import { PrescriptionService } from './services/prescription.service';
 import { MedicationService } from '../pharmacy/services/medication.service';
+import { PatientService } from '../../core/services/care/patient.service';
 import { PharmacyRecommendation, Prescription, PrescriptionItem, Medication } from './models/prescription.model';
 import { Frequency, frequencyLabels } from './models/frequency.enum';
 import { KeycloakService } from '../../core/auth/keycloak.service';
@@ -52,7 +55,9 @@ import { KeycloakService } from '../../core/auth/keycloak.service';
 export class PrescriptionComponent implements OnInit {
   private readonly prescriptionService = inject(PrescriptionService);
   private readonly medicationService = inject(MedicationService);
+  private readonly patientService = inject(PatientService);
   private readonly keycloakService = inject(KeycloakService);
+  private readonly router = inject(Router);
   private readonly modal = inject(NzModalService);
   private readonly msg = inject(NzMessageService);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -61,6 +66,7 @@ export class PrescriptionComponent implements OnInit {
 
   prescriptions: Prescription[] = [];
   medications: Medication[] = [];
+  patientOptions: any[] = [];
   loading = false;
   savingPrescription = false;
   activeTabIndex = 0;
@@ -95,8 +101,13 @@ export class PrescriptionComponent implements OnInit {
   readonly pieColors = ['#4D5CAB', '#7986cb', '#52c41a', '#faad14', '#ff7a45', '#ff4d4f', '#13c2c2'];
 
   ngOnInit(): void {
-    this.loadPrescriptions();
+    if (this.userRole === 'ROLE_CAREGIVER') {
+      this.loadCaregiverVisiblePrescriptions();
+    } else {
+      this.loadPrescriptions();
+    }
     this.loadMedications();
+    this.loadPatients();
     this.loadPrescriptionCodeOptions('');
   }
 
@@ -137,6 +148,50 @@ export class PrescriptionComponent implements OnInit {
         this.msg.error('Failed to load prescriptions');
       },
     });
+  }
+
+  loadCaregiverVisiblePrescriptions(): void {
+    this.loading = true;
+    const caregiverUserId = this.keycloakService.getUserId();
+    if (!caregiverUserId) {
+      this.prescriptions = [];
+      this.loading = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.patientService.getPatientsByCaregiverUserId(caregiverUserId)
+      .pipe(
+        switchMap((patients: any[]) => {
+          const names = (patients ?? [])
+            .map((p) => `${p?.firstName ?? ''} ${p?.lastName ?? ''}`.trim())
+            .filter((n) => n.length > 0);
+
+          if (names.length === 0) {
+            return of([] as Prescription[]);
+          }
+
+          return this.prescriptionService.getVisibleByPatientNames(names);
+        }),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.detectChanges();
+        }),
+      )
+      .subscribe({
+        next: (data) => {
+          this.prescriptions = data ?? [];
+          const codesFromList = this.prescriptions
+            .map((prescription) => prescription.code)
+            .filter((code): code is string => !!code && code.trim().length > 0);
+          this.prescriptionCodeOptions = Array.from(new Set(codesFromList)).slice(0, 10);
+        },
+        error: (err) => {
+          console.error('Error loading caregiver-visible prescriptions:', err);
+          this.msg.error('Failed to load prescriptions');
+          this.prescriptions = [];
+        },
+      });
   }
 
   get paginatedPrescriptions(): Prescription[] {
@@ -199,6 +254,10 @@ export class PrescriptionComponent implements OnInit {
     this.recommendationIndex = (this.recommendationIndex + 1) % total;
   }
 
+  goToPharmacyMedications(pharmacyId: number): void {
+    this.router.navigate(['/medications', pharmacyId]);
+  }
+
   get currentRecommendation(): PharmacyRecommendation | null {
     if (this.recommendedPharmacies.length === 0) {
       return null;
@@ -220,6 +279,24 @@ export class PrescriptionComponent implements OnInit {
       error: (err: any) => {
         console.error('Error loading medications:', err);
       },
+    });
+  }
+
+  loadPatients(): void {
+    this.patientService.getAllPatients().subscribe({
+      next: (patients: any[]) => {
+        this.patientOptions = patients.map(p => ({
+          label: `${p.firstName} ${p.lastName}`,
+          value: `${p.firstName} ${p.lastName}`,
+          firstName: p.firstName,
+          lastName: p.lastName
+        }));
+
+        this.cdr.detectChanges();
+      },
+      error: (err: any) => {
+        console.error('Error loading patients:', err);
+      }
     });
   }
 

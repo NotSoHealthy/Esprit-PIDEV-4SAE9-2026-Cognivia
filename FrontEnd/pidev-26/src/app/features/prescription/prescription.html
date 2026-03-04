@@ -182,7 +182,7 @@
                 ‹
               </button>
 
-              <div class="recommendation-card">
+              <div class="recommendation-card" (click)="goToPharmacyMedications(currentRecommendation!.pharmacyId)" style="cursor: pointer;">
                 <div class="recommendation-image" *ngIf="getRecommendationImage(currentRecommendation!); else noRecommendationImage">
                   <img [src]="getRecommendationImage(currentRecommendation!)!" [alt]="currentRecommendation!.pharmacyName" />
                 </div>
@@ -245,16 +245,18 @@
   >
     <ng-container *nzModalContent>
       <form [formGroup]="addPrescriptionForm">
-        <!-- Patient Name -->
+        <!-- Patient Name with Autocomplete -->
         <nz-form-item>
           <nz-form-label nzRequired>Patient Name</nz-form-label>
           <nz-form-control>
-            <input
-              nz-input
+            <nz-select
               formControlName="patientName"
-              placeholder="Enter patient name"
+              nzPlaceHolder="Select or type patient name"
+              nzShowSearch
+              nzAllowClear
+              [nzOptions]="patientOptions"
               [class.field-error]="isFieldInvalid('patientName')"
-            />
+            ></nz-select>
             <div *ngIf="getFieldError('patientName')" class="error-text">{{ getFieldError('patientName') }}</div>
           </nz-form-control>
         </nz-form-item>

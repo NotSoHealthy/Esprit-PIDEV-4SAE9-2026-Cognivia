@@ -10,6 +10,8 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 
     List<Report> findByPharmacyId(Long pharmacyId);
 
+    long deleteByPharmacyId(Long pharmacyId);
+
     List<Report> findByReason(ReportReason reason);
 }
 

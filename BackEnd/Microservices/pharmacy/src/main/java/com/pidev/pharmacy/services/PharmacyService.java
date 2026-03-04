@@ -2,7 +2,13 @@ package com.pidev.pharmacy.services;
 import com.pidev.pharmacy.dto.PharmacyUpdateInfoDTO;
 import com.pidev.pharmacy.dto.PharmacyUpdateLocationDTO;
 import com.pidev.pharmacy.entities.Pharmacy;
+import com.pidev.pharmacy.repositories.InventoryTransactionRepository;
+import com.pidev.pharmacy.repositories.MedicationStockRepository;
+import com.pidev.pharmacy.repositories.PharmacistRepository;
 import com.pidev.pharmacy.repositories.PharmacyRepository;
+import com.pidev.pharmacy.repositories.RatingRepository;
+import com.pidev.pharmacy.repositories.ReportRepository;
+import com.pidev.pharmacy.repositories.WorkingHoursRepository;
 import com.pidev.pharmacy.utils.ImageUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +24,12 @@ public class PharmacyService implements IService<Pharmacy> {
 
     private final PharmacyRepository pharmacyRepository;
     private final ImgbbService imgbbService;
+    private final MedicationStockRepository medicationStockRepository;
+    private final WorkingHoursRepository workingHoursRepository;
+    private final RatingRepository ratingRepository;
+    private final ReportRepository reportRepository;
+    private final InventoryTransactionRepository inventoryTransactionRepository;
+    private final PharmacistRepository pharmacistRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -50,8 +62,19 @@ public class PharmacyService implements IService<Pharmacy> {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         Pharmacy existing = getById(id);
+
+        // Cascade delete dependents that reference pharmacy_id to avoid FK violations.
+        // Order here doesn't matter as long as everything referencing the pharmacy is removed first.
+        inventoryTransactionRepository.deleteByPharmacyId(id);
+        medicationStockRepository.deleteByPharmacyId(id);
+        workingHoursRepository.deleteByPharmacyId(id);
+        ratingRepository.deleteByPharmacyId(id);
+        reportRepository.deleteByPharmacyId(id);
+        pharmacistRepository.deleteByPharmacy_Id(id);
+
         pharmacyRepository.delete(existing);
     }
 

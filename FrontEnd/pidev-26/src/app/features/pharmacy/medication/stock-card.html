@@ -41,6 +41,10 @@
 
       <nz-card-meta [nzTitle]="getMedicationProp(stock, 'name')"></nz-card-meta>
 
+      <div *ngIf="createdBy" class="created-by-info">
+        <small>Created by: {{ createdBy }}</small>
+      </div>
+
       <div class="stock-card-body">
         <div class="stock-meta-row">
           <span class="stock-muted">Class:</span>

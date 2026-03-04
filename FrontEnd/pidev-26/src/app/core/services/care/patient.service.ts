@@ -1,16 +1,16 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Patient } from '../../models/care/patient.model';
-import { API_BASE_URL } from '../../constants/cognitive-tests/api.constants';
+import { API_BASE_URL } from '../../api/api.tokens';
 
 @Injectable({
     providedIn: 'root'
 })
 export class PatientService {
-    private apiUrl = `${API_BASE_URL}/care/patient`;
-
-    constructor(private http: HttpClient) { }
+    private readonly http = inject(HttpClient);
+    private readonly apiBaseUrl = inject(API_BASE_URL);
+    private readonly apiUrl = `${this.apiBaseUrl}/care/patient`;
 
     getAllPatients(): Observable<Patient[]> {
         return this.http.get<Patient[]>(this.apiUrl);
@@ -22,5 +22,9 @@ export class PatientService {
 
     getPatientByUserId(userId: string): Observable<Patient> {
         return this.http.get<Patient>(`${this.apiUrl}/user/${userId}`);
+    }
+
+    getPatientsByCaregiverUserId(userId: string): Observable<Patient[]> {
+        return this.http.get<Patient[]>(`${this.apiUrl}/caregiver/user/${userId}`);
     }
 }

@@ -31,6 +31,7 @@
       <div class="profile-info">
         <h1>{{ pharmacy.name }}</h1>
         <p>{{ pharmacy.address || 'No address provided.' }}</p>
+        <p *ngIf="userRole === 'ROLE_PHARMACY' && createdByName">Pharmacist: {{ createdByName }}</p>
         <div class="profile-info-pills">
           <div class="contact-info" *ngIf="pharmacy.contactInfo">
             <nz-icon nzType="phone" nzTheme="outline"></nz-icon>
@@ -142,6 +143,7 @@
               [therapeuticClassFilter]="inventoryTherapeuticClass"
               [selectedMedicationName]="inventoryMedicationName"
               [outOfStockOnly]="inventoryOutOfStockOnly"
+              [createdBy]="createdByName"
               (stocksChange)="onStocksChange($event)"
               (openTransaction)="openTransactionModal($event)"
               (openStockHistory)="openStockHistoryModal($event)"

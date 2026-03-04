@@ -11,6 +11,8 @@ public interface WorkingHoursRepository extends JpaRepository<WorkingHours, Long
 
     List<WorkingHours> findByPharmacyId(Long pharmacyId);
 
+    long deleteByPharmacyId(Long pharmacyId);
+
     Optional<WorkingHours> findByPharmacyIdAndDayOfWeek(Long pharmacyId, DayOfWeek dayOfWeek);
 }
 

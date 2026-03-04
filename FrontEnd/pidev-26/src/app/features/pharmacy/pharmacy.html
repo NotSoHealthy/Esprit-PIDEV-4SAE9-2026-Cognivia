@@ -2,8 +2,20 @@
   <div class="pharmacy-header">
     <h1 class="pharmacy-title">Pharmacy Management</h1>
 
-    <button *ngIf="activeTabIndex === 0 && (userRole === 'ROLE_ADMIN' || userRole === 'ROLE_PHARMACY')" nz-button nzType="primary" class="add-btn" (click)="openAddModal()">
-      Add pharmacy
+    <button
+      *ngIf="
+        activeTabIndex === 0 &&
+        (
+          userRole === 'ROLE_ADMIN' ||
+          (userRole === 'ROLE_PHARMACY' && !loadingPharmacist && !userPharmacy)
+        )
+      "
+      nz-button
+      nzType="primary"
+      class="add-btn"
+      (click)="openAddModal()"
+    >
+      Create pharmacy
     </button>
   </div>
 
@@ -130,16 +142,18 @@
           <div class="filter-section">
             <label class="switch-label">Agent Mode</label>
             <nz-switch
-              [(ngModel)]="agentMode"
-              (ngModelChange)="onAgentModeToggle()"
+              *ngIf="!requestedSettingsLoading"
+              [ngModel]="agentMode"
+              (ngModelChange)="onAgentModeToggle($event)"
             ></nz-switch>
           </div>
 
           <div class="filter-section">
             <label class="switch-label">Auto-delete Review Required</label>
             <nz-switch
-              [(ngModel)]="autoDeleteReviewRequired"
-              (ngModelChange)="onAutoDeleteReviewRequiredToggle()"
+              *ngIf="!requestedSettingsLoading"
+              [ngModel]="autoDeleteReviewRequired"
+              (ngModelChange)="onAutoDeleteReviewRequiredToggle($event)"
             ></nz-switch>
           </div>
         </ng-template>
@@ -215,10 +229,10 @@
 
                 <nz-dropdown-menu #menu="nzDropdownMenu">
                   <ul nz-menu>
-                    <li *ngIf="userRole === 'ROLE_ADMIN' || userRole === 'ROLE_PHARMACY'" nz-menu-item (click)="editInfo(p, $event)">Edit Info</li>
-                    <li *ngIf="userRole === 'ROLE_ADMIN' || userRole === 'ROLE_PHARMACY'" nz-menu-item (click)="changeCoordinates(p, $event)">Change Coordinates</li>
-                    <li nz-menu-item nzDanger (click)="report(p, $event)">Report</li>
-                    <li *ngIf="userRole === 'ROLE_ADMIN'" nz-menu-item nzDanger (click)="delete(p, $event)">Delete</li>
+                    <li *ngIf="userRole === 'ROLE_ADMIN' || isOwnPharmacy(p.id)" nz-menu-item (click)="editInfo(p, $event)">Edit Info</li>
+                    <li *ngIf="userRole === 'ROLE_ADMIN' || isOwnPharmacy(p.id)" nz-menu-item (click)="changeCoordinates(p, $event)">Change Coordinates</li>
+                    <li *ngIf="userRole !== 'ROLE_PHARMACY' || !isOwnPharmacy(p.id)" nz-menu-item nzDanger (click)="report(p, $event)">Report</li>
+                    <li *ngIf="userRole === 'ROLE_ADMIN' || isOwnPharmacy(p.id)" nz-menu-item nzDanger (click)="delete(p, $event)">Delete</li>
                   </ul>
                 </nz-dropdown-menu>
               </div>

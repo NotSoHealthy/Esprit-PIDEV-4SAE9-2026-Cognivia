@@ -10,6 +10,8 @@ public interface InventoryTransactionRepository extends JpaRepository<InventoryT
 
     List<InventoryTransaction> findByPharmacyId(Long pharmacyId);
 
+    long deleteByPharmacyId(Long pharmacyId);
+
     List<InventoryTransaction> findByMedicationId(Long medicationId);
 
     List<InventoryTransaction> findByPharmacyIdAndMedicationId(Long pharmacyId, Long medicationId);

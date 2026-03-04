@@ -27,6 +27,7 @@ import { InventoryTransactionService } from '../services/inventory-transaction.s
 import { WorkingHoursService } from '../services/working-hours.service';
 import { RatingService } from '../services/rating.service';
 import { ReportService } from '../services/report.service';
+import { PharmacistService } from '../../../core/services/pharmacy/pharmacist.service';
 import { KeycloakService } from '../../../core/auth/keycloak.service';
 import { Pharmacy } from '../models/pharmacy.model';
 import { MedicationModel } from '../models/medication.model';
@@ -78,6 +79,7 @@ export class MedicationPage implements OnInit {
   private readonly workingHoursService = inject(WorkingHoursService);
   private readonly ratingService = inject(RatingService);
   private readonly reportService = inject(ReportService);
+  private readonly pharmacistService = inject(PharmacistService);
   private readonly msg = inject(NzMessageService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly keycloakService = inject(KeycloakService);
@@ -90,6 +92,7 @@ export class MedicationPage implements OnInit {
   pharmacy: Pharmacy | null = null;
   loading = false;
   errorMsg: string | null = null;
+  createdByName: string | null = null;
   currentYear = new Date().getFullYear();
 
   activeSection: Section = 'overview';
@@ -158,6 +161,7 @@ export class MedicationPage implements OnInit {
     }
 
     this.loadPharmacy(this.pharmacyId);
+    this.loadPharmacistCreatedBy();
     this.loadInventoryCatalog();
     this.loadWorkingHours();
     this.loadTransactions();
@@ -190,6 +194,28 @@ export class MedicationPage implements OnInit {
         console.error(err);
         this.errorMsg = 'Failed to load pharmacy details';
         this.loading = false;
+      },
+    });
+  }
+
+  private loadPharmacistCreatedBy(): void {
+    if (this.keycloakService.getUserRole() !== 'ROLE_PHARMACY') {
+      return;
+    }
+
+    const userId = this.keycloakService.getUserId();
+    if (!userId) {
+      return;
+    }
+
+    this.pharmacistService.getPharmacistByUserId(userId).subscribe({
+      next: (pharmacist) => {
+        if (pharmacist && pharmacist.firstName && pharmacist.lastName) {
+          this.createdByName = `${pharmacist.firstName} ${pharmacist.lastName}`;
+        }
+      },
+      error: (err) => {
+        console.error('Failed to load pharmacist info:', err);
       },
     });
   }

@@ -20,6 +20,7 @@ import java.time.Instant;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -319,6 +320,36 @@ public class PrescriptionService implements IService<Prescription> {
                         .thenComparing(PrescriptionPharmacyRecommendationDTO::getPharmacyName, Comparator.nullsLast(String::compareToIgnoreCase)))
                 .limit(5)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Prescription> getVisibleByPatientNameMentions(List<String> patientNames) {
+        if (patientNames == null || patientNames.isEmpty()) {
+            return List.of();
+        }
+
+        Map<Long, Prescription> uniqueById = new LinkedHashMap<>();
+
+        for (String patientName : patientNames) {
+            if (patientName == null) {
+                continue;
+            }
+            String trimmed = patientName.trim();
+            if (trimmed.isBlank()) {
+                continue;
+            }
+
+            List<Prescription> matches = prescriptionRepository
+                    .findByPatientNameContainingIgnoreCaseOrderByCreatedAtDesc(trimmed);
+
+            for (Prescription prescription : matches) {
+                if (prescription != null && prescription.getId() != null) {
+                    uniqueById.putIfAbsent(prescription.getId(), prescription);
+                }
+            }
+        }
+
+        return uniqueById.values().stream().toList();
     }
 
     private String generateUniquePrescriptionCode() {

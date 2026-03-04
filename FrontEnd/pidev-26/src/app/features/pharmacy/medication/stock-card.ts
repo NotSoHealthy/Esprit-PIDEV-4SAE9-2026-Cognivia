@@ -40,8 +40,7 @@ export class StockCard implements OnInit {
   @Input() searchText = '';
   @Input() therapeuticClassFilter = '';
   @Input() selectedMedicationName = '';
-  @Input() outOfStockOnly = false;
-  @Output() stocksChange = new EventEmitter<MedicationStock[]>();
+  @Input() outOfStockOnly = false;  @Input() createdBy: string | null = null;  @Output() stocksChange = new EventEmitter<MedicationStock[]>();
   @Output() openTransaction = new EventEmitter<MedicationStock>();
   @Output() openStockHistory = new EventEmitter<MedicationStock>();
 

@@ -9,6 +9,8 @@ public interface RatingRepository extends JpaRepository<Rating, Long> {
 
     List<Rating> findByPharmacyId(Long pharmacyId);
 
+    long deleteByPharmacyId(Long pharmacyId);
+
     List<Rating> findByUsernameIgnoreCase(String username);
 
     List<Rating> findByIsFavoriteTrue();

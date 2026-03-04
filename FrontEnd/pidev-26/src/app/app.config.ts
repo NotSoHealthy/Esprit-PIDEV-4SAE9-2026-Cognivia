@@ -95,6 +95,9 @@ import {
   RobotOutline,
   CoffeeOutline,
   StopOutline,
+  LikeOutline,
+  SaveOutline,
+
 } from '@ant-design/icons-angular/icons';
 
 export const appConfig: ApplicationConfig = {
@@ -209,6 +212,7 @@ export const appConfig: ApplicationConfig = {
       RobotOutline,
       CoffeeOutline,
       StopOutline,
+      SaveOutline,
     ]),
     provideTranslateService({
       defaultLanguage: 'en',

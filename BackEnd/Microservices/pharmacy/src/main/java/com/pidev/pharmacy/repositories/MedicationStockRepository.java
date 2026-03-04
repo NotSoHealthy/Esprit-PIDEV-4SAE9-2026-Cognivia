@@ -11,6 +11,8 @@ public interface MedicationStockRepository extends JpaRepository<MedicationStock
 
     List<MedicationStock> findByPharmacyId(Long pharmacyId);
 
+    long deleteByPharmacyId(Long pharmacyId);
+
     List<MedicationStock> findByMedicationId(Long medicationId);
 
     Optional<MedicationStock> findByPharmacyIdAndMedicationId(Long pharmacyId, Long medicationId);

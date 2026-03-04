@@ -17,6 +17,15 @@ export class PrescriptionService {
     return this.http.get<Prescription[]>(this.apiUrl);
   }
 
+  getVisibleByPatientNames(patientNames: string[]): Observable<Prescription[]> {
+    const names = (patientNames ?? []).map((n) => (n ?? '').trim()).filter((n) => n.length > 0);
+    const params = new URLSearchParams();
+    names.forEach((name) => params.append('patientNames', name));
+    const queryString = params.toString();
+    const url = queryString ? `${this.apiUrl}/visible?${queryString}` : `${this.apiUrl}/visible?patientNames=`;
+    return this.http.get<Prescription[]>(url);
+  }
+
   // Get prescription by ID
   getById(id: number): Observable<Prescription> {
     return this.http.get<Prescription>(`${this.apiUrl}/${id}`);

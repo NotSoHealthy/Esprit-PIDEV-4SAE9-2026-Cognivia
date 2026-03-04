@@ -1,0 +1,46 @@
+.profile-card {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.profile-header {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.profile-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #4D5CAB;
+  margin: 0 0 8px 0;
+}
+
+.profile-subtitle {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.65);
+  margin: 0;
+}
+
+nz-form-item {
+  margin-bottom: 24px;
+}
+
+.form-actions {
+  margin-top: 32px;
+  text-align: center;
+}
+
+.submit-btn {
+  background-color: #4D5CAB !important;
+  border-color: #4D5CAB !important;
+  padding: 0 40px;
+  height: 40px;
+  font-size: 16px;
+}
+
+.submit-btn:hover {
+  background-color: #3f4ea3 !important;
+  border-color: #3f4ea3 !important;
+}
