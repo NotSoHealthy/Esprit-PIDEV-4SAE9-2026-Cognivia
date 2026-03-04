@@ -189,6 +189,19 @@
 	flex-shrink: 0;
 }
 
+.button-label-with-icon {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+}
+
+.careteam-button-icon {
+	width: 1rem;
+	height: 1rem;
+	fill: currentColor;
+	flex-shrink: 0;
+}
+
 /* Modal Styles */
 .modal-overlay {
 	position: fixed;

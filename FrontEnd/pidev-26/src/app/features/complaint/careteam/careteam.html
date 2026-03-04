@@ -33,7 +33,12 @@
 						class="report-button"
 						(click)="openReportModal(doctor()!.id, UserRole.ROLE_DOCTOR, getDoctorFullName())"
 					>
-						⚠️ Report
+						<span class="button-label-with-icon">
+							<svg class="careteam-button-icon" viewBox="0 0 24 24" aria-hidden="true">
+								<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"></path>
+							</svg>
+							Report
+						</span>
 					</button>
 				} @else {
 					<p class="empty-text">No doctor is assigned to your profile yet.</p>
@@ -59,7 +64,12 @@
 									class="report-button"
 									(click)="openReportModal(caregiver.id, UserRole.ROLE_CAREGIVER, getCaregiverFullName(caregiver))"
 								>
-									⚠️ Report
+									<span class="button-label-with-icon">
+										<svg class="careteam-button-icon" viewBox="0 0 24 24" aria-hidden="true">
+											<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"></path>
+										</svg>
+										Report
+									</span>
 								</button>
 							</li>
 						}
@@ -73,7 +83,12 @@
 
 	<div class="careteam-actions">
 		<button type="button" class="view-reports-button" routerLink="/complaint">
-			📋 View Reports
+			<span class="button-label-with-icon">
+				<svg class="careteam-button-icon" viewBox="0 0 24 24" aria-hidden="true">
+					<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm0-4H8V8h8v2z"></path>
+				</svg>
+				View Reports
+			</span>
 		</button>
 	</div>
 
