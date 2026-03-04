@@ -3,7 +3,8 @@ import { Component, OnInit, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { KeycloakService } from '../../core/auth/keycloak.service';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
+import { LanguageService } from '../../core/services/language.service';
 
 @Component({
   selector: 'app-home',
@@ -14,10 +15,9 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 export class Home implements OnInit {
   private readonly keycloak = inject(KeycloakService);
   private readonly router = inject(Router);
-  private readonly translate = inject(TranslateService);
+  private readonly languageService = inject(LanguageService);
 
   showLangDropdown = false;
-  currentLang = 'en';
 
   languages = [
     { code: 'en', name: 'English' },
@@ -27,16 +27,12 @@ export class Home implements OnInit {
 
   alertMessage: string | null = null;
 
-  protected readonly headerLogoUrl =
+  readonly headerLogoUrl =
     'https://cdn.builder.io/api/v1/image/assets%2Fd3d69403f729419ab22b58accb7875b9%2F9db03c941d394af5b6ff65a035e69fd5?format=webp&width=800&height=1200';
-  protected readonly logoUrl =
+  readonly logoUrl =
     'https://cdn.builder.io/api/v1/image/assets%2Fd3d69403f729419ab22b58accb7875b9%2F213a472db51145909716f52671b94f74?format=webp&width=800&height=1200';
 
   ngOnInit(): void {
-    this.translate.addLangs(['en', 'fr', 'ar']);
-    this.translate.setDefaultLang('en');
-    this.translate.use('en');
-
     if (this.keycloak.isLoggedIn()) {
       void this.router.navigateByUrl('/dashboard');
       return;
@@ -49,17 +45,16 @@ export class Home implements OnInit {
   }
 
   switchLanguage(lang: string): void {
-    this.currentLang = lang;
-    this.translate.use(lang);
+    this.languageService.setLanguage(lang);
     this.showLangDropdown = false;
+  }
 
-    // Update document direction and lang attribute
-    document.documentElement.lang = lang;
-    if (lang === 'ar') {
-      document.documentElement.dir = 'rtl';
-    } else {
-      document.documentElement.dir = 'ltr';
-    }
+  get currentLang(): string {
+    return this.languageService.getLanguage();
+  }
+
+  getCurrentLang(): string {
+    return this.languageService.getLanguage();
   }
 
   getCurrentLangName(): string {

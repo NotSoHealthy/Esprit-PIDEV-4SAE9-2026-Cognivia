@@ -1,8 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import Keycloak from 'keycloak-js';
+import { LanguageService } from '../services/language.service';
 
 @Injectable({ providedIn: 'root' })
 export class KeycloakService {
+  private readonly languageService = inject(LanguageService);
   private keycloak: Keycloak;
   private readonly unverifiedAlertKey = 'pidev.auth.alert.unverified';
   private readonly unverifiedLogoutAttemptAtKey = 'pidev.auth.unverified.logout.at';
@@ -52,12 +54,20 @@ export class KeycloakService {
     return authenticated;
   }
 
-  login(redirectUri = window.location.origin): Promise<void> {
-    return this.keycloak.login({ redirectUri });
+  async login(redirectUri = window.location.origin): Promise<void> {
+    const locale = this.languageService.getLanguage();
+    const loginUrl = await this.keycloak.createLoginUrl({ redirectUri, locale });
+    const url = new URL(loginUrl);
+    url.searchParams.set('kc_locale', locale);
+    window.location.href = url.toString();
   }
 
-  register(redirectUri = window.location.origin): Promise<void> {
-    return this.keycloak.register({ redirectUri });
+  async register(redirectUri = window.location.origin): Promise<void> {
+    const locale = this.languageService.getLanguage();
+    const registerUrl = await this.keycloak.createRegisterUrl({ redirectUri, locale });
+    const url = new URL(registerUrl);
+    url.searchParams.set('kc_locale', locale);
+    window.location.href = url.toString();
   }
 
   logout(redirectUri = window.location.origin): Promise<void> {
