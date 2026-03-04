@@ -23,11 +23,8 @@ public class Visit {
     private LocalDate date;
     private Instant createdAt;
     @ManyToOne
-    @com.fasterxml.jackson.annotation.JsonIgnore
     private Caregiver caregiver;
-
     @ManyToOne
-    @com.fasterxml.jackson.annotation.JsonIgnore
     private Patient patient;
     @ManyToOne
     private Doctor doctor;

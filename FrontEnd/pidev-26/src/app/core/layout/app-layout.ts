@@ -29,6 +29,7 @@ import { StreakFlameComponent } from '../../shared/components/streak-flame/strea
     NzIconModule,
     NzDropdownModule,
     NzMenuModule,
+    StreakFlameComponent,
   ],
   templateUrl: './app-layout.html',
   styleUrl: './app-layout.css',

@@ -97,19 +97,35 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     {
       provide: API_BASE_URL,
-      useValue: environment.apiBaseUrl,
+      useValue: (() => {
+        const runtime = (globalThis as any)?.__env ?? null;
+        const v = runtime?.apiBaseUrl;
+        return (typeof v === 'string' && v.trim()) || environment.apiBaseUrl;
+      })(),
     },
     {
       provide: IMGBB_API_KEY,
-      useValue: environment.imgbbApiKey,
+      useValue: (() => {
+        const runtime = (globalThis as any)?.__env ?? null;
+        const v = runtime?.imgbbApiKey;
+        return (typeof v === 'string' && v.trim()) || environment.imgbbApiKey;
+      })(),
     },
     {
       provide: GEMINI_API_KEY,
-      useValue: environment.geminiApiKey,
+      useValue: (() => {
+        const runtime = (globalThis as any)?.__env ?? null;
+        const v = runtime?.geminiApiKey;
+        return (typeof v === 'string' && v.trim()) || environment.geminiApiKey;
+      })(),
     },
     {
       provide: GEMINI_MODEL,
-      useValue: environment.geminiModel,
+      useValue: (() => {
+        const runtime = (globalThis as any)?.__env ?? null;
+        const v = runtime?.geminiModel;
+        return (typeof v === 'string' && v.trim()) || environment.geminiModel;
+      })(),
     },
     provideHttpClient(withInterceptors([authInterceptor])),
     provideNzIcons([
