@@ -28,9 +28,10 @@ export class TestResultService {
         return this.http.get<TestResult>(`${this.apiUrl}/${id}`);
     }
 
-    downloadReport(patientId: number): Observable<Blob> {
-        return this.http.get(`${API_BASE_URL}/monitoring/api/v1/reports/patient/${patientId}/generate`, {
-            responseType: 'blob'
-        });
+    downloadReport(patientId: number, signatureBase64: string): Observable<Blob> {
+        return this.http.post(`${API_BASE_URL}/monitoring/api/v1/reports/patient/${patientId}/generate`,
+            { signature: signatureBase64 },
+            { responseType: 'blob' }
+        );
     }
 }

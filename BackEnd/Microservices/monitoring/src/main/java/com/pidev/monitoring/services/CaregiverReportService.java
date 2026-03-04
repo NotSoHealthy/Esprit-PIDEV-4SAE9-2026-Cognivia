@@ -45,13 +45,15 @@ public class CaregiverReportService {
         this.webClient = WebClient.builder().build();
     }
 
-    public byte[] generatePatientReportPdf(Long patientId) throws IOException {
-        log.info("Starting PDF generation for patient: {}", patientId);
+    public byte[] generatePatientReportPdf(Long patientId, String signatureBase64) throws IOException {
+        log.info("Starting PDF generation for patient: {} with signature: {}", patientId,
+                (signatureBase64 != null ? "present" : "absent"));
         try {
             CaregiverReportDTO reportData = aggregateReportData(patientId);
 
             Context context = new Context();
             context.setVariable("report", reportData);
+            context.setVariable("signatureBase64", signatureBase64);
 
             String htmlContent = templateEngine.process("report", context);
 
@@ -78,7 +80,22 @@ public class CaregiverReportService {
                 : "Active Patient #" + patientId;
 
         Optional<RiskScore> latestRisk = riskScoreRepository.findTopByPatientIdOrderByGeneratedAtDesc(patientId);
-        List<TestResult> recentResults = testResultRepository.findTop5ByPatientIdOrderByTakenAtDesc(patientId);
+
+        // Filter tests done this week (Monday to Sunday)
+        java.time.LocalDate now = java.time.LocalDate.now();
+        java.time.LocalDate monday = now.with(java.time.DayOfWeek.MONDAY);
+        java.time.LocalDate sunday = now.with(java.time.DayOfWeek.SUNDAY);
+
+        List<TestResult> recentResults = testResultRepository.findByPatientId(patientId).stream()
+                .filter(r -> r.getTakenAt() != null)
+                .filter(r -> {
+                    java.time.LocalDate takenDate = r.getTakenAt().toLocalDate();
+                    return (takenDate.isEqual(monday) || takenDate.isAfter(monday)) &&
+                            (takenDate.isEqual(sunday) || takenDate.isBefore(sunday));
+                })
+                .sorted((a, b) -> b.getTakenAt().compareTo(a.getTakenAt()))
+                .limit(10) // Show up to 10 for the week
+                .collect(Collectors.toList());
 
         ExternalMetricsDTO gameMetrics = fetchGameMetrics(patientId);
         if (gameMetrics == null) {

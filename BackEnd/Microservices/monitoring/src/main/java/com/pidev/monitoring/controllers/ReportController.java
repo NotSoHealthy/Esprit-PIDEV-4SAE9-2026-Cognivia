@@ -18,10 +18,13 @@ public class ReportController {
         this.reportService = reportService;
     }
 
-    @GetMapping("/patient/{id}/generate")
-    public ResponseEntity<byte[]> generateReport(@PathVariable Long id) {
+    @PostMapping("/patient/{id}/generate")
+    public ResponseEntity<byte[]> generateReport(
+            @PathVariable Long id,
+            @RequestBody java.util.Map<String, String> body) {
         try {
-            byte[] pdfContents = reportService.generatePatientReportPdf(id);
+            String signatureBase64 = body.get("signature");
+            byte[] pdfContents = reportService.generatePatientReportPdf(id, signatureBase64);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_PDF);

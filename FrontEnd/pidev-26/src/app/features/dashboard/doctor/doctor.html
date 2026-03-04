@@ -183,4 +183,9 @@
       </div>
     </div>
   </div>
+
+  <!-- Signature Modal -->
+  <app-signature-modal *ngIf="showSignatureModal" (onSave)="handleSignatureSave($event)"
+    (onClose)="handleSignatureCancel()">
+  </app-signature-modal>
 </div>

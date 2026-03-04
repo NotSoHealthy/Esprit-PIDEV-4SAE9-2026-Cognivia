@@ -8,11 +8,12 @@ import { RiskScore } from '../../../core/models/cognitive-tests/risk-score.model
 import { TestResult } from '../../../core/models/cognitive-tests/test-result.model';
 import { CognitiveTestService } from '../../../core/services/cognitive-tests/test.service';
 import { CommonModule } from '@angular/common';
+import { SignatureModalComponent } from '../../../shared/components/signature-modal/signature-modal.component';
 
 @Component({
   selector: 'app-doctor',
   standalone: true,
-  imports: [CommonModule, NzIconModule, FormsModule],
+  imports: [CommonModule, NzIconModule, FormsModule, SignatureModalComponent],
   templateUrl: './doctor.html',
   styleUrl: './doctor.css',
 })
@@ -35,6 +36,10 @@ export class Doctor implements OnInit {
   searchTerm: string = '';
   sortBy: 'name' | 'severity' = 'name';
   isDownloading = false;
+
+  // Signature Modal State
+  showSignatureModal = false;
+  selectedPatientId: number | null = null;
 
   ngOnInit(): void {
     this.loadMonitoringData();
@@ -185,7 +190,18 @@ export class Doctor implements OnInit {
   }
 
   downloadReport(patientId: number): void {
-    this.resultService.downloadReport(patientId).subscribe({
+    this.selectedPatientId = patientId;
+    this.showSignatureModal = true;
+    this.cdr.detectChanges();
+  }
+
+  handleSignatureSave(signatureBase64: string): void {
+    if (!this.selectedPatientId) return;
+
+    this.showSignatureModal = false;
+    const patientId = this.selectedPatientId;
+
+    this.resultService.downloadReport(patientId, signatureBase64).subscribe({
       next: (blob: Blob) => {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -193,8 +209,20 @@ export class Doctor implements OnInit {
         link.download = `Clinical_Report_Patient_${patientId}_${new Date().getTime()}.pdf`;
         link.click();
         window.URL.revokeObjectURL(url);
+        this.selectedPatientId = null;
+        this.cdr.detectChanges();
       },
-      error: (err) => console.error('Report download failed', err)
+      error: (err) => {
+        console.error('Report download failed', err);
+        this.selectedPatientId = null;
+        this.cdr.detectChanges();
+      }
     });
+  }
+
+  handleSignatureCancel(): void {
+    this.showSignatureModal = false;
+    this.selectedPatientId = null;
+    this.cdr.detectChanges();
   }
 }

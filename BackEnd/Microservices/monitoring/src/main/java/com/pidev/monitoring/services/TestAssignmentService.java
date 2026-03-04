@@ -40,7 +40,13 @@ public class TestAssignmentService {
 
         assignment.setTest(test);
         assignment.setAssignedAt(LocalDateTime.now());
-        assignment.setDueAt(assignment.getAssignedAt().plusDays(1)); // 1 day completion window
+
+        // Expiration logic: Recurring tests should not expire daily
+        if (assignment.getFrequency() != null && assignment.getFrequency() != Frequency.ONCE) {
+            assignment.setDueAt(assignment.getAssignedAt().plusYears(1)); // 1 year window for recurring
+        } else {
+            assignment.setDueAt(assignment.getAssignedAt().plusDays(1)); // 1 day completion window for ONCE
+        }
 
         // Validation: TARGETED must have patientId, GENERAL must have targetSeverity
         if (assignment.getAssignmentType() == AssignmentType.TARGETED) {
@@ -136,7 +142,7 @@ public class TestAssignmentService {
 
         return switch (freq) {
             case ONCE -> true; // If they have any result, it's done
-            case DAILY -> lastCompletion.isAfter(now.minusHours(24));
+            case DAILY -> lastCompletion.toLocalDate().isEqual(now.toLocalDate());
             case WEEKLY -> lastCompletion.isAfter(now.minusDays(7));
             case MONTHLY -> lastCompletion.isAfter(now.minusDays(30));
         };

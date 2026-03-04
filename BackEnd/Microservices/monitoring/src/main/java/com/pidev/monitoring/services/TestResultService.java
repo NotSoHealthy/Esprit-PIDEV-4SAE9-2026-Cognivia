@@ -178,15 +178,40 @@ public class TestResultService {
 
         double baseRisk = 100.0 - weightedAvg;
 
+        // STAGE 5: Missed Tests Penalty
+        // Identify daily assignments that haven't been completed today
+        List<TestAssignment> assignments = testAssignmentRepository.findByPatientId(patientId);
+        java.time.LocalDate today = java.time.LocalDate.now();
+
+        long missedToday = assignments.stream()
+                .filter(a -> Frequency.DAILY.equals(a.getFrequency()))
+                .filter(a -> {
+                    // Check if there is any result for today for this specific assignment
+                    return a.getResults().stream()
+                            .noneMatch(r -> r.getTakenAt() != null && r.getTakenAt().toLocalDate().isEqual(today));
+                })
+                .count();
+
+        if (missedToday > 0) {
+            double penalty = missedToday * 10.0; // 10% risk increase per missed daily test
+            baseRisk += penalty;
+            log.info("Applying missed test penalty for patient {}: +{}% ({} tests missed today)", patientId, penalty,
+                    missedToday);
+        }
+
         // Penalty for high response time in Unity games (normalized)
         if (gameFactor > 5000)
             baseRisk += 5.0; // Significant delay penalty
 
-        // STAGE 5: Clinical Flagging Logic
+        // Ensure risk doesn't exceed 100%
+        baseRisk = Math.min(baseRisk, 100.0);
+
+        // STAGE 6: Clinical Flagging Logic
         boolean clinicalFlag = false;
-        if (slope < -15.0 || (baseRisk > 70 && slope < -5.0)) {
+        if (slope < -15.0 || (baseRisk > 70 && slope < -5.0) || missedToday >= 2) {
             clinicalFlag = true;
-            log.warn("CLINICAL ALERT: Significant cognitive drop detected for patient {}", patientId);
+            log.warn("CLINICAL ALERT: Significant cognitive drop or high non-compliance detected for patient {}",
+                    patientId);
         }
 
         String riskLevel = (baseRisk > 70) ? "HIGH" : (baseRisk > 30) ? "MEDIUM" : "LOW";
@@ -209,7 +234,8 @@ public class TestResultService {
                 .build();
 
         riskScoreRepository.save(riskScore);
-        log.info("AI Analysis Complete for patient {}: Slope={}, Flag={}", patientId, slope, clinicalFlag);
+        log.info("AI Analysis Complete for patient {}: Slope={}, Flag={}, Risk={}", patientId, slope, clinicalFlag,
+                riskLevel);
     }
 
     private ExternalMetricsDTO fetchGameMetricsForPatient(Long patientId) {

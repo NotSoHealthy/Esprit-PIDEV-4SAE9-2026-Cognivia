@@ -9,7 +9,8 @@ import {
   RouterOutlet,
 } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { filter } from 'rxjs/operators';
+import { filter, switchMap } from 'rxjs/operators';
+import { interval } from 'rxjs';
 import { KeycloakService } from '../auth/keycloak.service';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
@@ -106,10 +107,25 @@ export class AppLayout implements OnInit {
         filter((event: any) => event instanceof NavigationEnd),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(() => this.updateCurrentRouteLabel());
+      .subscribe(() => {
+        this.updateCurrentRouteLabel();
+        // Refresh streak on every navigation (e.g. returning from a game)
+        if (this.userRole === 'ROLE_PATIENT') {
+          this.fetchStreak();
+        }
+      });
 
     if (this.userRole === 'ROLE_PATIENT') {
       this.fetchStreak();
+
+      // Also poll every 30 seconds so the flame stays in sync
+      interval(30_000).pipe(
+        takeUntilDestroyed(this.destroyRef),
+        switchMap(() => {
+          const pid = this.keycloak.getUserId();
+          return pid ? this.streakService.getStreak(pid) : [];
+        }),
+      ).subscribe(s => this.streakCount = s.currentStreak);
     }
   }
 
