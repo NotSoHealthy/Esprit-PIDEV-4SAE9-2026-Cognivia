@@ -1,0 +1,22 @@
+<div class="role-container">
+    <div class="glass-card header-section">
+        <h1>Welcome to NotSoHealthy</h1>
+        <p>Please select your role to continue</p>
+    </div>
+
+    <div class="roles-grid">
+        <div class="glass-card role-card doctor" (click)="selectRole('doctor')">
+            <div class="icon">🩺</div>
+            <h2>Doctor</h2>
+            <p>Manage tests, assignments, and view patient results.</p>
+            <button class="btn-primary">Enter as Doctor</button>
+        </div>
+
+        <div class="glass-card role-card patient" (click)="selectRole('patient')">
+            <div class="icon">👤</div>
+            <h2>Patient</h2>
+            <p>View your assigned tests and complete your assessments.</p>
+            <button class="btn-secondary">Enter as Patient</button>
+        </div>
+    </div>
+</div>

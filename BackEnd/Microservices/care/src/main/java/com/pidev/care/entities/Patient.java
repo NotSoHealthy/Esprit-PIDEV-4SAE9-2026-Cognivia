@@ -1,4 +1,4 @@
-package com.pidev.care.entities;
+ package com.pidev.care.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -30,15 +30,21 @@ public class Patient {
     private int checkInFrequency; // in minutes
     @Enumerated(EnumType.STRING)
     private Severity severity;
+    
     @JsonIgnore
     @ManyToMany
     private List<EmergencyContact> emergencyContactList;
+
     @JsonIgnore
     @ManyToMany(mappedBy = "patientList")
     private List<Caregiver> caregiverList;
+
+
     @JsonIgnore
     @OneToMany(mappedBy = "patient")
     private List<Visit> visits;
+
+
     @JsonIgnore
     @OneToMany(mappedBy = "patient")
     private List<Note> notes;

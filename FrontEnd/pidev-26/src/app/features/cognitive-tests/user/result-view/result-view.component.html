@@ -1,0 +1,43 @@
+<div class="user-container">
+  @if (result) {
+  <div class="result-card glass">
+    <h2>Test Results</h2>
+    <div class="result-summary">
+      <div class="score-display" [ngClass]="getScoreClass()">
+        <span class="score-value">{{ result.score | number:'1.0-1' }}%</span>
+        <span class="score-label">Score</span>
+      </div>
+      <div class="result-details">
+        <div class="result-item">
+          <span class="label">Time Taken</span>
+          <span class="value">{{ ((result.responseTime || 0) / 1000) | number:'1.0-1' }}s</span>
+        </div>
+        <div class="result-item">
+          <span class="label">Date</span>
+          <span class="value">{{ result.takenAt | date:'medium' }}</span>
+        </div>
+      </div>
+    </div>
+    @if (result.answers && result.answers.length > 0) {
+    <div class="answers-breakdown">
+      <h3>Answer Breakdown</h3>
+      @for (answer of result.answers; track answer; let i = $index) {
+      <div class="answer-item" [class.correct]="answer.isCorrect" [class.incorrect]="!answer.isCorrect">
+        <span class="q-num">Q{{ i + 1 }}</span>
+        <span class="answer-status">{{ answer.isCorrect ? '✓ Correct' : '✗ Incorrect' }}</span>
+      </div>
+      }
+    </div>
+    }
+    <div class="footer">
+      <button class="btn btn-outline" [routerLink]="['/user/tests']">Take Another Test</button>
+    </div>
+  </div>
+  }
+
+  @if (!result) {
+  <div class="loading glass">
+    <p>Loading results...</p>
+  </div>
+  }
+</div>

@@ -1,0 +1,293 @@
+package org.example.forumservice.services;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.example.forumservice.entities.Post;
+import org.example.forumservice.entities.ReactionType;
+import org.example.forumservice.repositories.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class PostServiceImpl implements PostService {
+
+    private final PostRepository postRepository;
+    private final ReactionRepository reactionRepository;
+    private final PinnedPostRepository pinnedPostRepository;
+    private final CommentRepository commentRepository;
+    private final ReportRepository reportRepository;
+    private final UserLookupService userLookupService;
+    private final AnalysisService analysisService;
+    private final BadWordFilterService badWordFilterService;
+
+    @Override
+    public List<Post> getAllPosts(String userId) {
+        Page<Post> postPage = getPosts(userId, "all", null, 0, Integer.MAX_VALUE);
+        return postPage.getContent();
+    }
+
+    @Override
+    public Page<Post> getPosts(String userId, String category, String keyword, int page, int size) {
+        log.info("Fetching posts: userId={}, category={}, keyword={}, page={}, size={}",
+                userId, category, keyword, page, size);
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Post> postPage;
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            postPage = postRepository.searchPosts(userId, keyword, pageable);
+        } else if (category == null || category.equalsIgnoreCase("all")) {
+            postPage = postRepository.findAllWithPinnedFirst(userId, pageable);
+        } else {
+            postPage = postRepository.findByCategoryWithPinnedFirst(userId, category, pageable);
+        }
+
+        if (postPage.isEmpty()) {
+            return postPage;
+        }
+
+        enrichPosts(postPage.getContent(), userId);
+
+        return postPage;
+    }
+
+    private void enrichPosts(List<Post> posts, String userId) {
+        if (posts.isEmpty())
+            return;
+
+        List<Long> postIds = posts.stream().map(Post::getId).collect(Collectors.toList());
+
+        // Batch fetch reaction counts
+        List<Object[]> reactionCounts = reactionRepository.countReactionsForPosts(postIds);
+        Map<Long, Map<ReactionType, Long>> countsByPost = new HashMap<>();
+        for (Object[] row : reactionCounts) {
+            Long postId = (Long) row[0];
+            ReactionType type = (ReactionType) row[1];
+            Long count = (Long) row[2];
+            countsByPost.computeIfAbsent(postId, k -> new HashMap<>()).put(type, count);
+        }
+
+        // Batch fetch comment counts
+        List<Object[]> commentCounts = commentRepository.countCommentsForPosts(postIds);
+        Map<Long, Long> commentCountsByPost = new HashMap<>();
+        for (Object[] row : commentCounts) {
+            commentCountsByPost.put((Long) row[0], (Long) row[1]);
+        }
+
+        // Batch fetch pinned status
+        Set<Long> pinnedPostIds = new HashSet<>();
+        Map<Long, ReactionType> userReactionsByPost = new HashMap<>();
+
+        if (userId != null) {
+            pinnedPostIds = pinnedPostRepository.findByUserId(userId).stream()
+                    .map(pp -> pp.getPost().getId())
+                    .collect(Collectors.toSet());
+
+            List<Object[]> userReactions = reactionRepository.findUserReactionsForPosts(userId, postIds);
+            for (Object[] row : userReactions) {
+                userReactionsByPost.put((Long) row[0], (ReactionType) row[1]);
+            }
+        }
+
+        for (Post post : posts) {
+            Map<ReactionType, Long> counts = countsByPost.getOrDefault(post.getId(), Collections.emptyMap());
+            post.setLikeCount(counts.getOrDefault(ReactionType.LIKE, 0L));
+            post.setDislikeCount(counts.getOrDefault(ReactionType.DISLIKE, 0L));
+            post.setLoveCount(counts.getOrDefault(ReactionType.LOVE, 0L));
+            post.setHahaCount(counts.getOrDefault(ReactionType.HAHA, 0L));
+            post.setWowCount(counts.getOrDefault(ReactionType.WOW, 0L));
+            post.setSadCount(counts.getOrDefault(ReactionType.SAD, 0L));
+            post.setAngryCount(counts.getOrDefault(ReactionType.ANGRY, 0L));
+
+            post.setCommentCount(commentCountsByPost.getOrDefault(post.getId(), 0L));
+            post.setUserReaction(userReactionsByPost.get(post.getId()));
+
+            enrichWithAuthorInfo(post);
+            post.setPinned(pinnedPostIds.contains(post.getId()));
+        }
+    }
+
+    @Override
+    public Post getPostById(Long id) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
+
+        if (Boolean.TRUE.equals(post.getBanned())) {
+            throw new RuntimeException("This post has been suspended due to community reports.");
+        }
+
+        populateCounts(post);
+        enrichWithAuthorInfo(post);
+        return post;
+    }
+
+    private void enrichWithAuthorInfo(Post post) {
+        userLookupService.lookupUser(post.getUserId()).ifPresent(profile -> {
+            post.setAuthorFullName(profile.fullName);
+            post.setAuthorRole(profile.role);
+        });
+    }
+
+    private void populateCounts(Post post) {
+        post.setLikeCount(reactionRepository.countByPost_IdAndType(post.getId(), ReactionType.LIKE));
+        post.setDislikeCount(reactionRepository.countByPost_IdAndType(post.getId(), ReactionType.DISLIKE));
+        post.setLoveCount(reactionRepository.countByPost_IdAndType(post.getId(), ReactionType.LOVE));
+        post.setHahaCount(reactionRepository.countByPost_IdAndType(post.getId(), ReactionType.HAHA));
+        post.setWowCount(reactionRepository.countByPost_IdAndType(post.getId(), ReactionType.WOW));
+        post.setSadCount(reactionRepository.countByPost_IdAndType(post.getId(), ReactionType.SAD));
+        post.setAngryCount(reactionRepository.countByPost_IdAndType(post.getId(), ReactionType.ANGRY));
+
+        post.setCommentCount((long) commentRepository.findByPostId(post.getId()).size());
+    }
+
+    @Override
+    public Post createPost(Post post) {
+        badWordFilterService.validateText(post.getTitle() + " " + post.getContent());
+        post.setId(null);
+        post.setBanned(false);
+
+        List<String> keywords = analysisService.extractKeywords(post.getTitle() + " " + post.getContent());
+        post.setKeywords(keywords);
+        post.setCategory(analysisService.determineCategory(keywords));
+
+        return postRepository.save(post);
+    }
+
+    @Override
+    public Post updatePost(Long id, Post post) {
+        badWordFilterService.validateText(post.getTitle() + " " + post.getContent());
+        Post existing = getPostById(id);
+        existing.setTitle(post.getTitle());
+        existing.setContent(post.getContent());
+
+        List<String> keywords = analysisService.extractKeywords(post.getTitle() + " " + post.getContent());
+        existing.setKeywords(keywords);
+        existing.setCategory(analysisService.determineCategory(keywords));
+
+        return postRepository.save(existing);
+    }
+
+    @Override
+    public void deletePost(Long id) {
+        postRepository.deleteById(id);
+    }
+
+    @Override
+    public Post togglePin(Long id, String userId) {
+        Post post = getPostById(id);
+        Optional<org.example.forumservice.entities.PinnedPost> existing = pinnedPostRepository
+                .findByPostAndUserId(post, userId);
+
+        if (existing.isPresent()) {
+            pinnedPostRepository.delete(existing.get());
+            post.setPinned(false);
+        } else {
+            org.example.forumservice.entities.PinnedPost pinnedPost = new org.example.forumservice.entities.PinnedPost();
+            pinnedPost.setPost(post);
+            pinnedPost.setUserId(userId);
+            pinnedPostRepository.save(pinnedPost);
+            post.setPinned(true);
+        }
+        return post;
+    }
+
+    @Override
+    public Page<Post> getReportedPosts(int page, int size) {
+        log.info("Fetching reported posts: page={}, size={}", page, size);
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Post> postPage = postRepository.findAllReportedPosts(pageable);
+
+        if (postPage.isEmpty()) {
+            return postPage;
+        }
+
+        enrichPosts(postPage.getContent(), null);
+
+        return postPage;
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void removeReportsFromPost(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found with id: " + postId));
+
+        reportRepository.deleteByPost_Id(postId);
+        post.setBanned(false);
+        postRepository.save(post);
+    }
+
+    @Override
+    public void reportPost(Long postId, String userId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        if (post.getUserId() != null && post.getUserId().equals(userId)) {
+            throw new RuntimeException("You cannot report your own post.");
+        }
+
+        if (reportRepository.existsByPost_IdAndUserId(postId, userId)) {
+            return;
+        }
+
+        org.example.forumservice.entities.Report report = new org.example.forumservice.entities.Report();
+        report.setPost(post);
+        report.setUserId(userId);
+        reportRepository.save(report);
+
+        long reportCount = reportRepository.countByPost_Id(postId);
+        if (reportCount >= 2) {
+            post.setBanned(true);
+            postRepository.save(post);
+        }
+    }
+
+    @Override
+    public Post repostPost(Long postId, String userId, String username) {
+        Post original = getPostById(postId);
+
+        Post repost = new Post();
+        repost.setTitle(original.getTitle());
+        repost.setContent(original.getContent());
+        repost.setUserId(userId);
+        repost.setUsername(username);
+        repost.setCategory(original.getCategory());
+        repost.setKeywords(new ArrayList<>(original.getKeywords()));
+        repost.setBanned(false);
+
+        repost.setIsRepost(true);
+        repost.setOriginalPostId(original.getId());
+        repost.setOriginalUserId(original.getUserId());
+        repost.setOriginalUsername(original.getUsername());
+
+        return postRepository.save(repost);
+    }
+
+    @Override
+    public void reclassifyAllPosts() {
+        log.info("Reclassifying all posts...");
+        List<Post> allPosts = postRepository.findAll();
+        for (Post post : allPosts) {
+            List<String> keywords = analysisService.extractKeywords(post.getTitle() + " " + post.getContent());
+            post.setKeywords(keywords);
+            post.setCategory(analysisService.determineCategory(keywords));
+        }
+        postRepository.saveAll(allPosts);
+        log.info("Reclassification complete. Processed {} posts.", allPosts.size());
+    }
+
+    @Override
+    public Map<String, Long> getKeywordFrequencies() {
+        return postRepository.findAll().stream()
+                .flatMap(post -> post.getKeywords().stream())
+                .collect(Collectors.groupingBy(k -> k, Collectors.counting()));
+    }
+}

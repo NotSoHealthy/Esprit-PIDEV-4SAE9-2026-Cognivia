@@ -1,0 +1,17 @@
+package com.pidev.monitoring.repositories;
+
+import com.pidev.monitoring.entities.TestResult;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.List;
+
+@Repository
+public interface TestResultRepository extends JpaRepository<TestResult, Long> {
+    List<TestResult> findByPatientId(Long patientId);
+
+    List<TestResult> findTop5ByPatientIdOrderByTakenAtDesc(Long patientId);
+
+    List<TestResult> findAllByPatientIdAndTakenAtAfterOrderByTakenAtDesc(Long patientId, java.time.LocalDateTime date);
+
+    java.util.Optional<TestResult> findByAssignmentId(Long assignmentId);
+}

@@ -23,7 +23,7 @@
   "private": true,
   "packageManager": "npm@11.7.0",
   "dependencies": {
-    "@angular/cdk": "~21.1.4",
+    "@angular/cdk": "^21.2.0",
     "@angular/common": "^21.1.0",
     "@angular/compiler": "^21.1.0",
     "@angular/core": "^21.1.0",
@@ -31,6 +31,8 @@
     "@angular/material": "~21.1.4",
     "@angular/platform-browser": "^21.1.0",
     "@angular/router": "^21.1.0",
+    "@ngx-translate/core": "^17.0.0",
+    "@ngx-translate/http-loader": "^17.0.0",
     "keycloak-angular": "^21.0.0",
     "keycloak-js": "^26.2.3",
     "leaflet": "^1.9.4",
@@ -39,7 +41,9 @@
     "ngx-quill": "^30.0.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
-    "tui-image-editor": "^3.15.3"
+    "tui-image-editor": "^3.15.3",
+    "fabric": "^7.2.0",
+    "ngx-image-cropper": "^9.1.6"
   },
   "devDependencies": {
     "@angular/build": "^21.1.4",

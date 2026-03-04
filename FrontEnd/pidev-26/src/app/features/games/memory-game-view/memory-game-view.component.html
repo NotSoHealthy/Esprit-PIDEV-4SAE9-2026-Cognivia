@@ -1,0 +1,43 @@
+<div class="game-container max-w-6xl mx-auto! p-6 sm:p-8">
+    <div class="flex items-start justify-between gap-4 mb-6">
+        <div>
+            <h1 class="text-2xl font-bold! tracking-wide text-[#4D5CAB] flex items-center gap-2">
+                <span nz-icon nzType="play-circle" nzTheme="outline" class="text-3xl"></span>
+                Memory Game Suite
+            </h1>
+            <p class="text-[#4D5CAB]/80 mt-1">Exercise your cognitive skills with our collection of interactive training
+                games.</p>
+        </div>
+        <button nz-button nzType="default" class="rounded-full!" (click)="goBack()">
+            <span nz-icon nzType="arrow-left"></span> Back to Dashboard
+        </button>
+    </div>
+
+
+    <div class="game-wrapper bg-white rounded-3xl drop-shadow-sm overflow-hidden relative shadow-md"
+        style="height: 650px;">
+
+        <!-- Overlay Before Game Starts -->
+        <div *ngIf="!isGameStarted"
+            class="overlay absolute inset-0 bg-[#f8fbff] flex flex-col items-center justify-center z-10 p-8 text-center">
+            <div class="mb-6 text-[#4D5CAB]">
+                <span nz-icon nzType="play-circle" nzTheme="outline" style="font-size: 64px;"></span>
+            </div>
+            <h2 class="text-2xl font-bold text-[#4D5CAB] mb-4">Ready to Play?</h2>
+            <p class="text-gray-600 max-w-md mb-8">
+                The game will load assets into your browser. This might take a few moments depending on your connection.
+                Please make sure your sound is on!
+            </p>
+            <button nz-button nzType="primary" nzSize="large" class="rounded-full! px-10 h-12 text-lg"
+                (click)="startGame()">
+                <span nz-icon nzType="play-circle" nzTheme="outline"></span> Load Assets & Start Game
+            </button>
+        </div>
+
+        <!-- Unity WebGL Iframe (Loads only after click) -->
+        <iframe *ngIf="isGameStarted" [src]="gameUrl" style="width: 100%; height: 100%; border: none; display: block;"
+            allow="autoplay; fullscreen" title="Unity Memory Game">
+        </iframe>
+
+    </div>
+</div>

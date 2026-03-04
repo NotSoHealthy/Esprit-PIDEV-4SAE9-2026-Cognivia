@@ -21,8 +21,7 @@ public class SecurityConfig {
                         // preflight requests
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // for now, allow everything while testing CORS
-                        .anyExchange().permitAll()
-                )
+                        .anyExchange().permitAll())
                 // If/when you want JWT validation at the gateway:
                 // .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .build();

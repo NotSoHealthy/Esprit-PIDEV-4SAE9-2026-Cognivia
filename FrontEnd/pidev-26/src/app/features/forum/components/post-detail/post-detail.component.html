@@ -1,0 +1,237 @@
+<div class="post-detail-page" *ngIf="post">
+    <div class="forum-container mx-auto px-4">
+
+        <!-- Premium Navigation -->
+        <nav class="mb-8">
+            <a class="back-btn" (click)="goBack()">
+                <span nz-icon nzType="arrow-left"></span>
+                Back to Conversations
+            </a>
+        </nav>
+
+        <!-- Main Discussion Card -->
+        <article class="forum-post-container" [class.pinned]="post.pinned">
+            <!-- Repost Banner -->
+            <div class="repost-detail-banner" *ngIf="post.isRepost">
+                <span nz-icon nzType="retweet" class="repost-icon"></span>
+                <span class="repost-text">
+                    Reposted from <span class="original-author">@{{ post.originalUsername }}</span>
+                </span>
+                <button nz-button nzType="link" [routerLink]="['/posts', post.originalPostId]"
+                    class="view-original-btn">
+                    View Original
+                </button>
+            </div>
+
+            <!-- Hero Header Section -->
+            <header class="post-hero-header">
+                <span class="post-category-label">{{ getCategoryLabel(post.category) }}</span>
+                <h1 class="post-title">{{ post.title }}</h1>
+
+                <div class="author-meta-bar">
+                    <div class="author-info-group">
+                        <div class="author-avatar-wrap">
+                            <nz-avatar [nzSize]="48" [nzText]="(post.username || post.userId || 'A')[0].toUpperCase()"
+                                [style.background-color]="'#3b429f'"></nz-avatar>
+                            <span class="status-online"></span>
+                        </div>
+                        <div class="name-role-group">
+                            <span class="author-name">
+                                {{ post.authorFullName || '@' + (post.username || post.userId || 'anonymous') }}
+                            </span>
+                            <span class="author-role-tag">
+                                {{ post.authorRole || (isDoctor(post) ? 'Doctor' : 'Member') }}
+                            </span>
+                        </div>
+
+                        <button *ngIf="post.userId && post.userId !== currentUserId" nz-button nzType="text"
+                            nzSize="small" class="ml-2 text-primary font-bold hover:underline"
+                            (click)="sendMessageToAuthor()">
+                            Message
+                        </button>
+                    </div>
+
+                    <div class="post-time-stats">
+                        <span class="timestamp">{{ post.createdAt | timeAgo }}</span>
+                        <span *ngIf="isEdited(post)" class="edited-flag">Edited</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Body Content Section -->
+            <section class="post-body-container">
+                <div class="post-body-text" [innerHTML]="post.content | highlightMention"></div>
+
+                <!-- Topic Tags -->
+                <div class="flex flex-wrap gap-2 mt-8">
+                    <nz-tag *ngFor="let keyword of post.keywords"
+                        class="rounded-lg border-none bg-slate-100 text-slate-600 font-semibold px-3 py-1">
+                        #{{ keyword }}
+                    </nz-tag>
+                    <nz-tag *ngIf="post.category"
+                        class="rounded-lg border-none bg-slate-100 text-slate-600 font-semibold px-3 py-1">
+                        #{{ post.category }}
+                    </nz-tag>
+                </div>
+            </section>
+
+            <!-- Premium Interaction Footer -->
+            <footer class="post-interaction-footer">
+                <div class="primary-actions">
+                    <!-- Reaction Wrapper -->
+                    <div class="reaction-picker-wrap">
+                        <button class="btn-premium" [class.btn-active]="getUserReaction(post)"
+                            (click)="like(post, $event)">
+                            <span nz-icon [nzType]="getReactionIcon(getUserReaction(post))"
+                                [nzTheme]="getUserReaction(post) ? 'fill' : 'outline'"></span>
+                            <span>{{ getUserReaction(post) || 'React' }}</span>
+                        </button>
+
+                        <div class="reaction-menu">
+                            <span class="emoji-item" (click)="react('LIKE', $event)">👍</span>
+                            <span class="emoji-item" (click)="react('LOVE', $event)">❤️</span>
+                            <span class="emoji-item" (click)="react('HAHA', $event)">😂</span>
+                            <span class="emoji-item" (click)="react('WOW', $event)">😮</span>
+                            <span class="emoji-item" (click)="react('SAD', $event)">😢</span>
+                            <span class="emoji-item" (click)="react('ANGRY', $event)">😡</span>
+                        </div>
+                    </div>
+
+                    <!-- Repost Button -->
+                    <button class="btn-premium btn-repost" (click)="repost(post, $event)" nz-tooltip
+                        nzTooltipTitle="Share this discussion with others">
+                        <span nz-icon nzType="retweet"></span>
+                        <span>Repost</span>
+                    </button>
+
+                    <!-- Counter -->
+                    <div class="reaction-summary" *ngIf="getTotalReactions(post) > 0"
+                        (click)="showReactionDetails(post, $event)">
+                        <div class="emoji-stack">
+                            <span class="summary-emoji" *ngIf="post.likeCount">👍</span>
+                            <span class="summary-emoji" *ngIf="post.loveCount">❤️</span>
+                            <span class="summary-emoji" *ngIf="post.hahaCount">😂</span>
+                            <span class="summary-emoji" *ngIf="post.wowCount">😮</span>
+                            <span class="summary-emoji" *ngIf="post.sadCount">😢</span>
+                            <span class="summary-emoji" *ngIf="post.angryCount">😡</span>
+                        </div>
+                        <span class="total-count">{{ getTotalReactions(post) }}</span>
+                    </div>
+
+                    <button class="btn-premium" nz-dropdown [nzDropdownMenu]="shareMenu" nzTrigger="click"
+                        (click)="$event.stopPropagation()">
+                        <span nz-icon nzType="share-alt"></span>
+                        <span>Share</span>
+                    </button>
+                    <nz-dropdown-menu #shareMenu="nzDropdownMenu">
+                        <ul nz-menu>
+                            <li nz-menu-item (click)="sharePost(post, 'copy', $event)"><span nz-icon
+                                    nzType="link"></span> Copy Link</li>
+                            <li nz-menu-item (click)="sharePost(post, 'twitter', $event)"><span nz-icon
+                                    nzType="twitter"></span> X / Twitter</li>
+                            <li nz-menu-item (click)="sharePost(post, 'whatsapp', $event)"><span nz-icon
+                                    nzType="whats-app"></span> WhatsApp</li>
+                            <li nz-menu-item (click)="sharePost(post, 'email', $event)"><span nz-icon
+                                    nzType="mail"></span> Email</li>
+                        </ul>
+                    </nz-dropdown-menu>
+                </div>
+
+                <div class="secondary-actions">
+                    <span *ngIf="post.userId !== currentUserId" nz-icon nzType="warning" class="util-icon" nz-tooltip
+                        nzTooltipTitle="Report Content" (click)="reportPost(post, $event)"></span>
+
+                    <span nz-icon nzType="link" class="util-icon" nz-tooltip nzTooltipTitle="Copy link"
+                        (click)="sharePost(post, 'copy', $event)"></span>
+
+                    <span *ngIf="post.userId === currentUserId || currentUserId === 'admin'" nz-icon nzType="delete"
+                        class="util-icon delete-icon" nz-popconfirm nzPopconfirmTitle="Permanently delete this post?"
+                        (nzOnConfirm)="deletePost()"></span>
+                </div>
+            </footer>
+        </article>
+
+        <!-- Discussion Thread -->
+        <section class="replies-section-wrap">
+            <div class="section-title-bar">
+                <span nz-icon nzType="message" class="text-2xl text-slate-400"></span>
+                <h2 class="text-xl font-bold text-slate-800 m-0">Conversations</h2>
+                <span class="reply-count-badge">{{ comments.length }} Replies</span>
+            </div>
+
+            <!-- Comment Card Redesign -->
+            <div class="comments-flow">
+                <div *ngFor="let comment of comments" class="comment-card" [class.is-reply]="comment.parentId">
+                    <div class="comment-header">
+                        <div class="commenter-info">
+                            <nz-avatar [nzSize]="32"
+                                [nzText]="(comment.username || comment.userId || 'A')[0].toUpperCase()"
+                                [style.background-color]="'#e2e8f0'" [style.color]="'#475569'"></nz-avatar>
+                            <span class="commenter-name">
+                                {{ comment.authorFullName || '@' + (comment.username || comment.userId) }}
+                            </span>
+                            <span class="comment-role-tag" *ngIf="comment.authorRole || isDoctor(comment)">
+                                {{ comment.authorRole || 'Doctor' }}
+                            </span>
+                        </div>
+                        <div class="comment-meta">
+                            {{ comment.createdAt | timeAgo }}
+                            <span *ngIf="isEdited(comment)" class="ml-1 opacity-60">(edited)</span>
+                        </div>
+                    </div>
+
+                    <div class="comment-text-body" [innerHTML]="comment.content | highlightMention"></div>
+
+                    <div class="comment-actions-bar">
+                        <span class="action-link" (click)="replyToComment(comment)">
+                            <span nz-icon nzType="rollback"></span> Reply
+                        </span>
+
+                        <span *ngIf="comment.userId === currentUserId || currentUserId === 'admin'" class="action-link"
+                            (click)="editComment(comment)">
+                            <span nz-icon nzType="edit"></span> Edit
+                        </span>
+
+                        <span *ngIf="comment.userId === currentUserId || currentUserId === 'admin'"
+                            class="action-link delete" nz-popconfirm nzPopconfirmTitle="Delete this reply?"
+                            (nzOnConfirm)="deleteComment(comment.id)">
+                            <span nz-icon nzType="delete"></span> Delete
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div *ngIf="comments.length === 0"
+                    class="py-12 bg-white rounded-3xl border border-dashed border-slate-200 text-center">
+                    <nz-empty nzNotFoundContent="No replies yet. Be the first to join the conversation!"></nz-empty>
+                </div>
+            </div>
+        </section>
+
+        <!-- Premium Reply Composer -->
+        <section class="premium-composer">
+            <label class="composer-label">What are your thoughts?</label>
+            <textarea nz-input [(ngModel)]="newCommentContent" [nzAutosize]="{ minRows: 4, maxRows: 12 }"
+                class="reply-textarea" placeholder="Write a thoughtful reply..."></textarea>
+
+            <div class="flex justify-between items-center">
+                <p class="text-xs text-slate-400 m-0">
+                    Use <span class="font-bold text-navy">@username</span> to mention others.
+                </p>
+                <button class="post-reply-btn" (click)="addComment()" [disabled]="!newCommentContent.trim()">
+                    Post Reply
+                </button>
+            </div>
+        </section>
+    </div>
+</div>
+
+<!-- Edit Comment Modal Template -->
+<ng-template #editCommentTpl>
+    <div class="p-6">
+        <label class="block text-sm font-bold text-slate-700 mb-3">Update your comment</label>
+        <textarea nz-input rows="8" [(ngModel)]="tempEditContent"
+            class="rounded-xl border-2 border-slate-100 focus:border-navy p-4 w-full text-base transition-all"
+            placeholder="Edit your content..."></textarea>
+    </div>
+</ng-template>
