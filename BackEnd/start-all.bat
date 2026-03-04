@@ -47,7 +47,7 @@ wt -w 0 ^
   ; new-tab --title "care"       cmd /k "%RUNDIR%\care.cmd" ^
   ; new-tab --title "forum"      cmd /k "%RUNDIR%\forum.cmd" ^
   ; new-tab --title "dpchat"     cmd /k "%RUNDIR%\dpchat.cmd" ^
-  ; new-tab --title "monitoring" cmd /k "%RUNDIR%\monitoring.cmd"
+  ; new-tab --title "monitoring" cmd /k "%RUNDIR%\monitoring.cmd"^
   ; new-tab --title "SurveillanceAndEquipment" cmd /k "%RUNDIR%\SurveillanceAndEquipment.cmd"
 
 exit /b 0
