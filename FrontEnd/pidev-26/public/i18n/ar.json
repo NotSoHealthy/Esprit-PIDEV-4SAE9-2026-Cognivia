@@ -1,0 +1,16 @@
+{
+    "HOME": {
+        "HEADING": "رعاية ذكية للرفاهية المعرفية.",
+        "GET_STARTED": "ابدأ الآن",
+        "HAVE_ACCOUNT": "لدي حساب بالفعل",
+        "SIGN_OUT": "تسجيل الخروج"
+    },
+    "HEADER": {
+        "SITE_LANGUAGE": "لغة الموقع",
+        "LANGUAGES": {
+            "EN": "English",
+            "FR": "Français",
+            "AR": "العربية"
+        }
+    }
+}

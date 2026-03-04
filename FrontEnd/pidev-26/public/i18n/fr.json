@@ -1,0 +1,16 @@
+{
+    "HOME": {
+        "HEADING": "Soins intelligents pour le bien-être cognitif.",
+        "GET_STARTED": "Commencer",
+        "HAVE_ACCOUNT": "J'ai déjà un compte",
+        "SIGN_OUT": "Se déconnecter"
+    },
+    "HEADER": {
+        "SITE_LANGUAGE": "LANGUE DU SITE",
+        "LANGUAGES": {
+            "EN": "English",
+            "FR": "Français",
+            "AR": "العربية"
+        }
+    }
+}

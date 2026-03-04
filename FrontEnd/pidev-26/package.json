@@ -23,18 +23,22 @@
   "private": true,
   "packageManager": "npm@11.7.0",
   "dependencies": {
+    "@angular/animations": "^21.1.0",
     "@angular/common": "^21.1.0",
     "@angular/compiler": "^21.1.0",
     "@angular/core": "^21.1.0",
     "@angular/forms": "^21.1.0",
     "@angular/platform-browser": "^21.1.0",
     "@angular/router": "^21.1.0",
+    "@ngx-translate/core": "^17.0.0",
+    "@ngx-translate/http-loader": "^17.0.0",
     "keycloak-angular": "^21.0.0",
     "keycloak-js": "^26.2.3",
     "leaflet": "^1.9.4",
     "ng-zorro-antd": "^21.1.0",
     "rxjs": "~7.8.0",
-    "tslib": "^2.3.0"
+    "tslib": "^2.3.0",
+    "zone.js": "~0.15.1"
   },
   "devDependencies": {
     "@angular/build": "^21.1.4",
@@ -43,7 +47,6 @@
     "@tailwindcss/postcss": "^4.1.12",
     "@types/leaflet": "^1.9.21",
     "jsdom": "^27.1.0",
-    "ng-zorro-antd": "^21.1.0",
     "postcss": "^8.5.3",
     "tailwindcss": "^4.1.12",
     "typescript": "~5.9.2",

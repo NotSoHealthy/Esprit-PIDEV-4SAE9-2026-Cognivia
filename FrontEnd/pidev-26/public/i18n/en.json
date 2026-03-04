@@ -1,0 +1,16 @@
+{
+    "HOME": {
+        "HEADING": "Intelligent Care for Cognitive Well-Being.",
+        "GET_STARTED": "Get Started",
+        "HAVE_ACCOUNT": "I already have an account",
+        "SIGN_OUT": "Sign Out"
+    },
+    "HEADER": {
+        "SITE_LANGUAGE": "SITE LANGUAGE",
+        "LANGUAGES": {
+            "EN": "English",
+            "FR": "Français",
+            "AR": "العربية"
+        }
+    }
+}

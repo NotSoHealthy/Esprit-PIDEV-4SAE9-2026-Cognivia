@@ -25,9 +25,11 @@ public class Caregiver {
     private String lastName;
     @Enumerated(EnumType.STRING)
     private CaregiverType type;
+
     @ManyToMany
     @JsonIgnore
     private List<Patient> patientList;
+
     @OneToMany(mappedBy = "caregiver")
     @JsonIgnore
     private List<Visit> visitList;

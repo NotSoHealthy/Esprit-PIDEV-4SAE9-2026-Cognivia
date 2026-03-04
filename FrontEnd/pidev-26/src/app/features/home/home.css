@@ -1,17 +1,80 @@
-.home {
-  max-width: 720px;
-  margin: 1rem auto;
-  padding: 1rem;
+/* Cognivia Landing Page - Component Styles */
+
+:host {
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-.actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-top: 1rem;
+/* Heading text color - darker slate-blue to match reference */
+.heading-text {
+  color: #4B6584;
 }
 
-button {
-  padding: 0.5rem 0.75rem;
+/* Primary CTA Button (Get Started) */
+.btn-cta-primary {
+  background-color: #6BAED6;
+  color: white;
+  font-weight: 800;
+  padding: 0.75rem 2rem;
+  border-radius: 1rem;
+  border: none;
+  box-shadow: 0 5px 0 0 #4A90B8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-cta-primary:active {
+  box-shadow: none;
+  transform: translateY(5px);
+}
+
+.btn-cta-primary:hover {
+  filter: brightness(1.1);
+}
+
+/* Secondary CTA Button (I already have an account) */
+.btn-cta-secondary {
+  background-color: white;
+  color: #6BAED6;
+  font-weight: 800;
+  padding: 0.75rem 2rem;
+  border-radius: 1rem;
+  border: 2px solid #e0e0e0;
+  box-shadow: 0 5px 0 0 #d8d8d8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-cta-secondary:active {
+  box-shadow: none;
+  transform: translateY(5px);
+}
+
+.btn-cta-secondary:hover {
+  background-color: #f7f7f7;
+}
+
+/* Animated gradient background blob */
+.animate-bg-gradient {
+  background: linear-gradient(-45deg, #6BAED6, #4CB3A3, #F1A9A0, #F5F5F5);
+  background-size: 400% 400%;
+  animation: gradient-flow 15s ease infinite;
+}
+
+@keyframes gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }

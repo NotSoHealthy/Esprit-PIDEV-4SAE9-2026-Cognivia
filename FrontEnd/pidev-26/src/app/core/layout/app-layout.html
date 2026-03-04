@@ -2,24 +2,18 @@
   <header class="flex items-center justify-between px-4 pt-4">
     <span class="flex items-center gap-10">
       <img src="/logo.svg" class="bg-white p-4.5 rounded-full" />
+      <app-streak-flame *ngIf="userRole === 'ROLE_PATIENT'" [streakCount]="streakCount"></app-streak-flame>
       <p class="font-bold text-xl tracking-wide">{{ currentRouteLabel }}</p>
     </span>
     <div class="flex items-center gap-5">
       <nz-icon nzType="bell" nzTheme="outline" class="text-2xl" />
-      <a
-        nz-dropdown
-        nzTrigger="click"
-        [nzDropdownMenu]="menu"
-        nzPlacement="bottomCenter"
-        class="text-black!"
-      >
+      <a nz-dropdown nzTrigger="click" [nzDropdownMenu]="menu" nzPlacement="bottomCenter" class="text-black!">
         <div class="flex rounded-full bg-[#F2F6FE] p-2 gap-2 items-center drop-shadow-sm">
           <span
-            class="rounded-full aspect-square w-8 bg-[#B4BEF0] text-center content-center font-bold text-[#4D5CAB] drop-shadow-xs"
-          >
+            class="rounded-full aspect-square w-8 bg-[#B4BEF0] text-center content-center font-bold text-[#4D5CAB] drop-shadow-xs">
             {{
-              (fullName ? fullName[0] + fullName.split(' ').slice(-1)[0][0] : username[0])
-                | uppercase
+            (fullName ? fullName[0] + fullName.split(' ').slice(-1)[0][0] : username[0])
+            | uppercase
             }}
           </span>
           <p class="ml-2 content-center font-semibold">{{ fullName ?? username | titlecase }}</p>
@@ -44,17 +38,10 @@
     <aside class="w-fit shrink-0 px-4 py-3">
       <nav class="flex flex-col gap-2 bg-[#F2F6FE] rounded-full w-fit p-2">
         <ng-container *ngFor="let route of routes">
-          <span
-            *ngIf="userRole && route.roles.includes(userRole)"
-            class="rounded-full text-[#4D5CAB] hover:text-white"
-          >
-            <nz-icon
-              [routerLink]="route.link"
-              routerLinkActive="!bg-[#4D5CAB] !text-white"
-              [nzType]="route.icon"
+          <span *ngIf="userRole && route.roles.includes(userRole)" class="rounded-full text-[#4D5CAB] hover:text-white">
+            <nz-icon [routerLink]="route.link" routerLinkActive="!bg-[#4D5CAB] !text-white" [nzType]="route.icon"
               nzTheme="outline"
-              class="w-fit text-[30px] bg-white p-3 rounded-full hover:bg-[#4D5CAB] transition-colors duration-200"
-            />
+              class="w-fit text-[30px] bg-white p-3 rounded-full hover:bg-[#4D5CAB] transition-colors duration-200" />
           </span>
         </ng-container>
       </nav>

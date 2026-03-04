@@ -1,0 +1,8 @@
+:host {
+    display: block;
+}
+
+canvas {
+    background: transparent;
+    display: block;
+}

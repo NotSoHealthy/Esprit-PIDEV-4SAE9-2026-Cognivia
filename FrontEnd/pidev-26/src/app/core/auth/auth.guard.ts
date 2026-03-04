@@ -7,7 +7,7 @@ export const authGuard: CanMatchFn = () => {
   const router = inject(Router);
   const keycloak = inject(KeycloakService);
 
-  return keycloak.isLoggedIn() ? true : router.parseUrl('/');
+  return keycloak.isLoggedIn();
 };
 
 export const roleGuard = (roles: string[]): CanMatchFn => {

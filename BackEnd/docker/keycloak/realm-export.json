@@ -1,35 +1,47 @@
 {
   "realm": "pidev",
   "enabled": true,
-
   "accessTokenLifespan": 3600,
   "ssoSessionIdleTimeout": 3600,
-
   "roles": {
     "realm": [
-      { "name": "ROLE_UNVERIFIED" },
-      { "name": "ROLE_ADMIN" },
-      { "name": "ROLE_DOCTOR" },
-      { "name": "ROLE_CAREGIVER" },
-      { "name": "ROLE_PATIENT" },
-      { "name": "ROLE_PHARMACY" }
+      {
+        "name": "ROLE_UNVERIFIED"
+      },
+      {
+        "name": "ROLE_ADMIN"
+      },
+      {
+        "name": "ROLE_DOCTOR"
+      },
+      {
+        "name": "ROLE_CAREGIVER"
+      },
+      {
+        "name": "ROLE_PATIENT"
+      },
+      {
+        "name": "ROLE_PHARMACY"
+      }
     ]
   },
-
   "clients": [
-   {
-	  "clientId": "pidev-frontend",
-	  "name": "PIDEV Angular FrontEnd",
-	  "protocol": "openid-connect",
-	  "publicClient": true,
-	  "standardFlowEnabled": true,
-	  "directAccessGrantsEnabled": false,
-	  "serviceAccountsEnabled": false,
-	  "redirectUris": ["http://localhost:4200/*"],
-	  "webOrigins": ["+"]
-	}
+    {
+      "clientId": "pidev-frontend",
+      "name": "PIDEV Angular FrontEnd",
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:4200/*"
+      ],
+      "webOrigins": [
+        "*"
+      ]
+    }
   ],
-
   "users": [
     {
       "username": "admin",
@@ -43,7 +55,9 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["ROLE_ADMIN"]
+      "realmRoles": [
+        "ROLE_ADMIN"
+      ]
     },
     {
       "username": "doctor1",
@@ -57,7 +71,9 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["ROLE_DOCTOR"]
+      "realmRoles": [
+        "ROLE_DOCTOR"
+      ]
     }
   ]
 }
