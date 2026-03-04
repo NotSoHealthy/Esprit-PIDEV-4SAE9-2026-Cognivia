@@ -40,6 +40,7 @@ export class VisitReportPage implements OnInit {
 
   isLoading = false;
   isSaving = false;
+  isSubmitting = false;
   errorMessage: string | null = null;
   saveErrorMessage: string | null = null;
 
@@ -183,12 +184,101 @@ export class VisitReportPage implements OnInit {
       });
   }
 
+  submit(): void {
+    if (!this.visitId) {
+      this.saveErrorMessage = 'Missing visit id.';
+      return;
+    }
+    if (!this.canEdit || this.isValidated) {
+      return;
+    }
+
+    this.isSubmitting = true;
+    this.saveErrorMessage = null;
+    try {
+      this.cdr.detectChanges();
+    } catch {
+      // ignore
+    }
+
+    const createUrl = `${this.apiBaseUrl}/monitoring/visitreport`;
+    const reportId = this.visitReport?.id ?? this.visitReport?.reportId ?? null;
+    const payload = this.buildSavePayload(true, 'VALIDATED');
+
+    const submit$ = reportId
+      ? this.http.put<any>(`${this.apiBaseUrl}/monitoring/visitreport/${reportId}`, payload)
+      : this.http.post<any>(createUrl, payload);
+
+    submit$
+      .pipe(
+        catchError((err) => {
+          if (reportId && err?.status === 404) {
+            return this.http.post<any>(createUrl, payload);
+          }
+
+          if (!reportId && this.shouldRetryWithVisitId(err)) {
+            return this.http.post<any>(createUrl, this.buildSavePayload(true, 'VALIDATED'));
+          }
+
+          return throwError(() => err);
+        }),
+        finalize(() => {
+          this.isSubmitting = false;
+          try {
+            this.cdr.detectChanges();
+          } catch {
+            // ignore
+          }
+        }),
+      )
+      .subscribe({
+        next: (saved) => {
+          this.visitReport = saved ?? this.visitReport;
+          // Ensure status is reflected even if backend doesn't echo it.
+          if (this.visitReport) {
+            this.visitReport.status = 'VALIDATED';
+          }
+          this.reportContent = this.resolveReportContent(saved) || this.reportContent;
+          try {
+            this.cdr.detectChanges();
+          } catch {
+            // ignore
+          }
+        },
+        error: (error) => {
+          // eslint-disable-next-line no-console
+          console.error('Error submitting report:', error);
+          this.saveErrorMessage = this.formatHttpError(error) ?? 'Failed to submit report.';
+          try {
+            this.cdr.detectChanges();
+          } catch {
+            // ignore
+          }
+        },
+      });
+  }
+
   get canEdit(): boolean {
     if (!this.visit) return false;
+    if (this.isValidated) return false;
     if (!this.isScheduledStatus(this.getVisitStatus(this.visit))) return false;
     const when = this.getVisitDate(this.visit);
     if (!when) return false;
     return this.isSameDay(when, new Date());
+  }
+
+  get isValidated(): boolean {
+    const raw =
+      this.visitReport?.status ??
+      this.visitReport?.reportStatus ??
+      this.visitReport?.state ??
+      this.visitReport?.data?.status ??
+      null;
+    return (
+      String(raw ?? '')
+        .trim()
+        .toUpperCase() === 'VALIDATED'
+    );
   }
 
   private hydrateFromNavigationState(): void {
@@ -315,8 +405,9 @@ export class VisitReportPage implements OnInit {
     return fullName || String(fallback || '-');
   }
 
-  private buildSavePayload(includeVisitId: boolean): any {
+  private buildSavePayload(includeVisitId: boolean, overrideStatus?: string): any {
     const status =
+      overrideStatus ||
       (this.visitReport?.status ?? this.visitReport?.reportStatus ?? this.visitReport?.state) ||
       'DRAFT';
 

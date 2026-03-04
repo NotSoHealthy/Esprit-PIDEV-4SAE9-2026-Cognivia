@@ -15,6 +15,15 @@
       <div class="flex items-center gap-2">
         <button
           nz-button
+          nzType="default"
+          [disabled]="!canEdit || isValidated || isLoading"
+          [nzLoading]="isSubmitting"
+          (click)="submit()"
+        >
+          Submit
+        </button>
+        <button
+          nz-button
           nzType="primary"
           [disabled]="!canEdit || isLoading"
           [nzLoading]="isSaving"
@@ -33,11 +42,17 @@
     } @else {
       <div class="rounded-xl bg-white drop-shadow-sm p-4">
         @if (saveErrorMessage) {
-          <div class="mb-4 rounded-2xl bg-[#F2F6FE] p-4 text-[#4D5CAB]">{{ saveErrorMessage }}</div>
+          <div class="mb-4! rounded-2xl bg-[#F2F6FE] p-4 text-[#4D5CAB]">
+            {{ saveErrorMessage }}
+          </div>
         }
 
-        @if (!canEdit) {
-          <div class="mb-4 rounded-2xl bg-[#F2F6FE] p-4 text-[#4D5CAB]">
+        @if (isValidated) {
+          <div class="mb-4! rounded-2xl bg-[#F2F6FE] p-4 text-[#4D5CAB]">
+            This report has been submitted and validated. It can no longer be edited.
+          </div>
+        } @else if (!canEdit) {
+          <div class="mb-4! rounded-2xl bg-[#F2F6FE] p-4 text-[#4D5CAB]">
             This visit report can only be edited for scheduled/pending visits on the current day.
           </div>
         }

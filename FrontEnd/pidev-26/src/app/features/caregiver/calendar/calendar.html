@@ -16,10 +16,11 @@
           <ul class="cal-events">
             @for (visit of getVisitsForDate(date); track visit?.id ?? visit?.visitId ?? $index) {
               <li
-                class="cal-event"
+                class="cal-event cursor-pointer"
                 nz-popover
                 [nzPopoverTitle]="popOverTitle(visit)"
                 [nzPopoverContent]="popOverContent(visit)"
+                (click)="openVisitReport(visit)"
               >
                 <nz-badge
                   [nzStatus]="badgeStatusForVisit(visit)"

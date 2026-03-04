@@ -2,6 +2,22 @@
 
 @import 'tailwindcss';
 @import 'quill/dist/quill.snow.css';
+@import 'tui-image-editor/dist/tui-image-editor.css';
+@import 'tui-color-picker/dist/tui-color-picker.css';
+@import 'leaflet/dist/leaflet.css';
+@import 'leaflet-draw/dist/leaflet.draw.css';
+
+/* TUI Image Editor overlay tweaks (rendered via Angular CDK Overlay). */
+.tui-image-editor-overlay-backdrop {
+  background: transparent;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+/* Hide the library header only inside our overlay panel. */
+.tui-image-editor-overlay-panel .tui-image-editor-header {
+  display: none !important;
+}
 /*
   Josh's Custom CSS Reset
   https://www.joshwcomeau.com/css/custom-css-reset/

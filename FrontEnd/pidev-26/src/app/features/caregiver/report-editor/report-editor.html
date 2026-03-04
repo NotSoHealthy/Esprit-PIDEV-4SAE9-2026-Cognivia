@@ -1,17 +1,69 @@
 <div class="flex flex-col gap-3">
-  @if (isUploadingImage) {
-    <p class="text-sm text-gray-500">Uploading image...</p>
+  @if (readOnly) {
+    @if (reportContent) {
+      <div class="rounded-xl border border-gray-200 overflow-hidden">
+        <quill-view-html [content]="reportContent" theme="snow" [sanitize]="true" />
+      </div>
+    } @else {
+      <div class="rounded-xl border border-gray-200 bg-white p-3 text-sm text-gray-500">
+        No report content.
+      </div>
+    }
+  } @else {
+    @if (isUploadingImage) {
+      <p class="text-sm text-gray-500">Uploading image...</p>
+    }
+
+    <nz-spin [nzSpinning]="isUploadingImage" nzTip="Uploading image..." nzSize="large">
+      <quill-editor
+        class="w-full"
+        [(ngModel)]="reportContent"
+        (ngModelChange)="onReportContentChange($event)"
+        [modules]="modules"
+        [readOnly]="isUploadingImage"
+        placeholder="Write your visit report..."
+        (onEditorCreated)="onEditorCreated($event)"
+      ></quill-editor>
+    </nz-spin>
   }
 
-  <nz-spin [nzSpinning]="isUploadingImage" nzTip="Uploading image..." nzSize="large">
-    <quill-editor
-      class="w-full"
-      [(ngModel)]="reportContent"
-      (ngModelChange)="onReportContentChange($event)"
-      [modules]="modules"
-      [readOnly]="readOnly || isUploadingImage"
-      placeholder="Write your visit report..."
-      (onEditorCreated)="onEditorCreated($event)"
-    ></quill-editor>
-  </nz-spin>
+  <ng-template cdkPortal #imageEditorPortal="cdkPortal">
+    <div class="h-screen w-screen">
+      <div class="flex h-full items-start justify-center overflow-y-auto p-4">
+        <div
+          class="relative flex w-full max-w-5xl flex-col rounded-xl bg-white p-4 drop-shadow-sm gap-2"
+        >
+          <div class="relative z-10 flex shrink-0 items-center justify-between gap-3">
+            <p class="truncate text-lg font-bold text-black">Edit image</p>
+            <div class="flex items-center gap-2">
+              <button
+                nz-button
+                nzType="default"
+                [disabled]="isUploadingImage"
+                (click)="cancelImageEdit()"
+              >
+                Cancel
+              </button>
+              <button
+                nz-button
+                nzType="primary"
+                [nzLoading]="isUploadingImage"
+                [disabled]="isPreparingImageEditor"
+                (click)="applyImageEdit()"
+              >
+                Use image
+              </button>
+            </div>
+          </div>
+
+          <div class="mt-3 min-h-0 overflow-auto">
+            @if (isPreparingImageEditor) {
+              <div class="rounded-2xl bg-gray-50 p-4 text-gray-600">Loading editor...</div>
+            }
+            <div data-tui-editor-host class="mt-3 w-full" style="height: 600px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-template>
 </div>

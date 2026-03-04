@@ -171,7 +171,7 @@ export class VisitList implements OnChanges {
   }
 
   onVisitRowClick(visit: any): void {
-    if (!this.canOpenReportEditor(visit)) return;
+    if (!this.canOpenReportPage(visit)) return;
 
     const visitId = this.getVisitId(visit);
     if (!visitId || visitId === '-') return;
@@ -181,12 +181,10 @@ export class VisitList implements OnChanges {
     });
   }
 
-  canOpenReportEditor(visit: any): boolean {
+  canOpenReportPage(visit: any): boolean {
     if (this.currentUserRole !== 'caregiver') return false;
-    if (!this.isScheduledStatus(this.getVisitStatus(visit))) return false;
-    const when = this.getVisitDate(visit);
-    if (!when) return false;
-    return this.isSameDay(when, new Date());
+    const visitId = this.getVisitId(visit);
+    return !!visitId && visitId !== '-';
   }
 
   getCaregiverName(visit: any): string {
@@ -212,16 +210,5 @@ export class VisitList implements OnChanges {
     return fullName || String(fallback || '-');
   }
 
-  private isScheduledStatus(status: VisitStatus): boolean {
-    const s = this.normalizeSearch(status);
-    return s.includes('pending') || s.includes('planned') || s.includes('scheduled');
-  }
-
-  private isSameDay(a: Date, b: Date): boolean {
-    return (
-      a.getFullYear() === b.getFullYear() &&
-      a.getMonth() === b.getMonth() &&
-      a.getDate() === b.getDate()
-    );
-  }
+  // Note: Editability rules are enforced on the report page itself (read-only viewer + disabled actions).
 }

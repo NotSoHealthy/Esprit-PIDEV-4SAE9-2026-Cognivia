@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { TitleCasePipe } from '@angular/common';
 import { NzPopoverModule } from 'ng-zorro-antd/popover';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-calendar',
@@ -20,6 +21,7 @@ export class Calendar implements OnInit {
   private readonly apiBaseUrl = inject(API_BASE_URL);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly currentUser = inject(CurrentUserService);
+  private readonly router = inject(Router);
 
   visits: any[] = [];
   calendarMode: NzCalendarMode = 'month';
@@ -153,5 +155,22 @@ export class Calendar implements OnInit {
       .toLocaleLowerCase()
       .replace(/^\w/, (c) => c.toUpperCase());
     return `Status: ${status}${severity ? ` | Severity: ${severity}` : ''}`;
+  }
+
+  openVisitReport(visit: any): void {
+    const id = this.getVisitId(visit);
+    if (!id) return;
+
+    void this.router.navigate(['/visit', id, 'report'], {
+      state: {
+        visit,
+      },
+    });
+  }
+
+  private getVisitId(visit: any): string | null {
+    const id = visit?.id ?? visit?.visitId;
+    if (id === null || id === undefined) return null;
+    return String(id);
   }
 }

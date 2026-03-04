@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { API_BASE_URL } from '../../../core/api/api.tokens';
 
 import { Calendar } from './calendar';
@@ -13,6 +14,7 @@ describe('Calendar', () => {
       imports: [Calendar],
       providers: [
         provideHttpClientTesting(),
+        provideRouter([]),
         {
           provide: API_BASE_URL,
           useValue: 'http://localhost',

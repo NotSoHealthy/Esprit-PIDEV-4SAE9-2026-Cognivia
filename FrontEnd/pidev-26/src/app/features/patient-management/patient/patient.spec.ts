@@ -29,6 +29,7 @@ describe('Patient', () => {
               paramMap: convertToParamMap({ id: '1' }),
             },
             paramMap: of(convertToParamMap({ id: '1' })),
+            queryParamMap: of(convertToParamMap({ tab: 'information' })),
           },
         },
       ],
@@ -36,10 +37,23 @@ describe('Patient', () => {
 
     fixture = TestBed.createComponent(Patient);
     component = fixture.componentInstance;
+    fixture.detectChanges();
     await fixture.whenStable();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('reads active tab from query param', async () => {
+    const route = TestBed.inject(ActivatedRoute) as any;
+    route.queryParamMap = of(convertToParamMap({ tab: 'visits' }));
+
+    const freshFixture = TestBed.createComponent(Patient);
+    const freshComponent = freshFixture.componentInstance;
+    freshFixture.detectChanges();
+    await freshFixture.whenStable();
+
+    expect(freshComponent.activePanel).toBe('visits');
   });
 });

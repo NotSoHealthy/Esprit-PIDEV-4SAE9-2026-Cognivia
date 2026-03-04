@@ -43,7 +43,7 @@
     </thead>
     <tbody>
       @for (visit of visitsTable.data; track getVisitId(visit)) {
-        <tr (click)="onVisitRowClick(visit)" [class.cursor-pointer]="canOpenReportEditor(visit)">
+        <tr (click)="onVisitRowClick(visit)" [class.cursor-pointer]="canOpenReportPage(visit)">
           @if (currentUserRole == 'admin') {
             <td>#{{ getVisitId(visit) }}</td>
           }
