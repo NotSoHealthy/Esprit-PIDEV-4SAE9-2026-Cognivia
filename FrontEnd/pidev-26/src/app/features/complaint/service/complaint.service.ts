@@ -106,4 +106,11 @@ export class ComplaintService {
   getCaregiverDetails(caregiverId: number): Observable<any> {
     return this.http.get<any>(`${this.apiBaseUrl}/care/caregiver/${caregiverId}`);
   }
+
+  saveWhiteboardData(complaint: ComplaintModel, whiteboardData: string): Observable<ComplaintModel> {
+    return this.http.put<ComplaintModel>(
+      `${this.apiBaseUrl}/Equipment/complaint/whiteboard`,
+      { ...complaint, whiteboardData },
+    );
+  }
 }

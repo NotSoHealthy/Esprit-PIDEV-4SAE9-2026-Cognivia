@@ -2,6 +2,8 @@ package com.esprit.microservice.surveillanceandequipment.Entities;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -41,4 +43,8 @@ public class Complaint {
 
     private String resolutionDecision;
     private String appealMessage;
+
+    @Column(columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
+    private String whiteboardData;
 }

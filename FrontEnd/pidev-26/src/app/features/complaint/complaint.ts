@@ -13,10 +13,11 @@ import {
   UserRole,
 } from './model/complaint.model';
 import { ComplaintService } from './service/complaint.service';
+import { InvestigationWhiteboardComponent } from './whiteboard/investigation-whiteboard';
 
 @Component({
   selector: 'app-complaint',
-  imports: [CommonModule],
+  imports: [CommonModule, InvestigationWhiteboardComponent],
   templateUrl: './complaint.html',
   styleUrl: './complaint.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,6 +36,7 @@ export class Complaint implements OnInit {
   readonly complaintIdToDelete = signal<number | null>(null);
   readonly complaintNameToDelete = signal<string | null>(null);
   readonly isAdmin = signal(false);
+  readonly showWhiteboardOverlay = signal(false);
   readonly selectedComplaint = signal<ComplaintModel | null>(null);
   readonly showDetailOverlay = signal(false);
   readonly showTimelineOverlay = signal(false);
@@ -128,10 +130,6 @@ export class Complaint implements OnInit {
 
   readonly hasClosedReports = computed(() =>
     this.complaints().some((c) => c.status === ComplaintStatus.CLOSED),
-  );
-
-  readonly hasDismissedReports = computed(() =>
-    this.complaints().some((c) => c.status === ComplaintStatus.DISMISSED),
   );
 
   ngOnInit(): void {
@@ -289,6 +287,24 @@ export class Complaint implements OnInit {
 
   goBackToCareTeam(): void {
     this.router.navigate(['/careteam']);
+  }
+
+  openWhiteboardOverlay(): void {
+    this.showWhiteboardOverlay.set(true);
+  }
+
+  closeWhiteboardOverlay(): void {
+    this.showWhiteboardOverlay.set(false);
+  }
+
+  openWhiteboardForComplaint(): void {
+    this.showDetailOverlay.set(false);
+    this.showWhiteboardOverlay.set(true);
+  }
+
+  onWhiteboardSaved(): void {
+    // Reload complaints to get the updated whiteboard data
+    this.loadComplaints();
   }
 
   retractComplaint(complaintId: number): void {

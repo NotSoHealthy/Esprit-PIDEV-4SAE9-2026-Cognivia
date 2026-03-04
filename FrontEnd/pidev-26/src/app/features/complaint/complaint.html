@@ -27,11 +27,6 @@
         Closed reports are automatically removed 24 hours after they are closed.
       </p>
     }
-    @if (hasDismissedReports()) {
-      <p class="patient-retention-note" role="note">
-        Dismissed reports without active appeals are automatically removed 24 hours after dismissal.
-      </p>
-    }
   }
 
   @if (loading()) {
@@ -235,6 +230,31 @@
   }
 </section>
 
+@if (showWhiteboardOverlay()) {
+  <div
+    class="modal-overlay whiteboard-overlay"
+    (click)="closeWhiteboardOverlay()"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Investigation whiteboard"
+  >
+    <div class="modal whiteboard-modal" (click)="$event.stopPropagation()">
+      <div class="whiteboard-overlay-topbar">
+        <button
+          class="icon-button"
+          type="button"
+          (click)="closeWhiteboardOverlay()"
+          aria-label="Close whiteboard"
+        >
+          ×
+        </button>
+      </div>
+
+      <app-investigation-whiteboard [complaint]="selectedComplaint()" (whiteboardSaved)="onWhiteboardSaved()"></app-investigation-whiteboard>
+    </div>
+  </div>
+}
+
 <!-- Retract Confirmation Modal -->
 @if (showRetractConfirmation()) {
   <div class="modal-overlay confirmation-overlay" (click)="closeRetractConfirmation()" role="dialog" aria-modal="true">
@@ -430,6 +450,13 @@
           </button>
         }
         @if (selectedComplaint()?.status === ComplaintStatus.UNDER_INVESTIGATION) {
+          <button
+            class="secondary-button"
+            type="button"
+            (click)="openWhiteboardForComplaint()"
+          >
+            🧩 Open Whiteboard
+          </button>
           <button
             class="danger-button"
             type="button"
@@ -740,76 +767,126 @@
             </div>
           </div>
 
-          @if (complaint.reviewedAt) {
-            <!-- Arrow to Validated -->
-            <div class="timeline-arrow timeline-arrow-1">
-              <div class="dot-container">
-                <span class="dot dot-1"></span>
-                <span class="dot dot-2"></span>
-                <span class="dot dot-3"></span>
-                <span class="dot dot-4"></span>
-                <span class="dot dot-5"></span>
-                <span class="arrow-head"></span>
+          @if (complaint.status === ComplaintStatus.CLOSED) {
+            <!-- Timeline for Closed Reports: SUBMITTED -> DISMISSED -> CLOSED -->
+            @if (complaint.reviewedAt) {
+              <!-- Arrow to Dismissed -->
+              <div class="timeline-arrow timeline-arrow-1">
+                <div class="dot-container">
+                  <span class="dot dot-1"></span>
+                  <span class="dot dot-2"></span>
+                  <span class="dot dot-3"></span>
+                  <span class="dot dot-4"></span>
+                  <span class="dot dot-5"></span>
+                  <span class="arrow-head"></span>
+                </div>
               </div>
-            </div>
 
-            <!-- Validated Status -->
-            <div class="timeline-node timeline-node-2">
-              <div class="timeline-date">{{ complaint.reviewedAt | date: 'short' }}</div>
-              <div class="timeline-status status-validated">
-                <div class="timeline-status-icon">✓</div>
-                <div class="timeline-status-label">VALIDATED</div>
+              <!-- Dismissed Status -->
+              <div class="timeline-node timeline-node-2">
+                <div class="timeline-date">{{ complaint.reviewedAt | date: 'short' }}</div>
+                <div class="timeline-status status-dismissed">
+                  <div class="timeline-status-icon">✗</div>
+                  <div class="timeline-status-label">DISMISSED</div>
+                </div>
               </div>
-            </div>
-          }
+            }
 
-          @if (complaint.investigatedAt) {
-            <!-- Arrow to Under Investigation -->
-            <div class="timeline-arrow timeline-arrow-2">
-              <div class="dot-container">
-                <span class="dot dot-1"></span>
-                <span class="dot dot-2"></span>
-                <span class="dot dot-3"></span>
-                <span class="dot dot-4"></span>
-                <span class="dot dot-5"></span>
-                <span class="arrow-head"></span>
+            @if (complaint.resolvedAt) {
+              <!-- Arrow to Closed -->
+              <div class="timeline-arrow timeline-arrow-2">
+                <div class="dot-container">
+                  <span class="dot dot-1"></span>
+                  <span class="dot dot-2"></span>
+                  <span class="dot dot-3"></span>
+                  <span class="dot dot-4"></span>
+                  <span class="dot dot-5"></span>
+                  <span class="arrow-head"></span>
+                </div>
               </div>
-            </div>
 
-            <!-- Under Investigation Status -->
-            <div class="timeline-node timeline-node-3">
-              <div class="timeline-date">{{ complaint.investigatedAt | date: 'short' }}</div>
-              <div class="timeline-status status-investigating">
-                <div class="timeline-status-icon">🔍</div>
-                <div class="timeline-status-label">UNDER INVESTIGATION</div>
+              <!-- Closed Status -->
+              <div class="timeline-node timeline-node-3">
+                <div class="timeline-date">{{ complaint.resolvedAt | date: 'short' }}</div>
+                <div class="timeline-status status-closed">
+                  <div class="timeline-status-icon">🔒</div>
+                  <div class="timeline-status-label">CLOSED</div>
+                </div>
               </div>
-            </div>
-          }
+            }
+          } @else {
+            <!-- Timeline for Other Reports: SUBMITTED -> VALIDATED -> UNDER INVESTIGATION -> ACTION TAKEN -->
+            @if (complaint.reviewedAt) {
+              <!-- Arrow to Validated -->
+              <div class="timeline-arrow timeline-arrow-1">
+                <div class="dot-container">
+                  <span class="dot dot-1"></span>
+                  <span class="dot dot-2"></span>
+                  <span class="dot dot-3"></span>
+                  <span class="dot dot-4"></span>
+                  <span class="dot dot-5"></span>
+                  <span class="arrow-head"></span>
+                </div>
+              </div>
 
-          @if (complaint.resolvedAt && (complaint.status === ComplaintStatus.ACTION_TAKEN || complaint.status === ComplaintStatus.CLOSED)) {
-            <!-- Arrow to Action Taken -->
-            <div class="timeline-arrow timeline-arrow-3">
-              <div class="dot-container">
-                <span class="dot dot-1"></span>
-                <span class="dot dot-2"></span>
-                <span class="dot dot-3"></span>
-                <span class="dot dot-4"></span>
-                <span class="dot dot-5"></span>
-                <span class="arrow-head"></span>
+              <!-- Validated Status -->
+              <div class="timeline-node timeline-node-2">
+                <div class="timeline-date">{{ complaint.reviewedAt | date: 'short' }}</div>
+                <div class="timeline-status status-validated">
+                  <div class="timeline-status-icon">✓</div>
+                  <div class="timeline-status-label">VALIDATED</div>
+                </div>
               </div>
-            </div>
+            }
 
-            <!-- Action Taken Status -->
-            <div class="timeline-node timeline-node-4">
-              <div class="timeline-date">{{ complaint.resolvedAt | date: 'short' }}</div>
-              <div class="timeline-status status-action-taken">
-                <div class="timeline-status-icon">⚖️</div>
-                <div class="timeline-status-label">ACTION TAKEN</div>
+            @if (complaint.investigatedAt) {
+              <!-- Arrow to Under Investigation -->
+              <div class="timeline-arrow timeline-arrow-2">
+                <div class="dot-container">
+                  <span class="dot dot-1"></span>
+                  <span class="dot dot-2"></span>
+                  <span class="dot dot-3"></span>
+                  <span class="dot dot-4"></span>
+                  <span class="dot dot-5"></span>
+                  <span class="arrow-head"></span>
+                </div>
               </div>
-              @if (complaint.resolutionDecision) {
-                <div class="timeline-decision">{{ complaint.resolutionDecision }}</div>
-              }
-            </div>
+
+              <!-- Under Investigation Status -->
+              <div class="timeline-node timeline-node-3">
+                <div class="timeline-date">{{ complaint.investigatedAt | date: 'short' }}</div>
+                <div class="timeline-status status-investigating">
+                  <div class="timeline-status-icon">🔍</div>
+                  <div class="timeline-status-label">UNDER INVESTIGATION</div>
+                </div>
+              </div>
+            }
+
+            @if (complaint.resolvedAt && complaint.status === ComplaintStatus.ACTION_TAKEN) {
+              <!-- Arrow to Action Taken -->
+              <div class="timeline-arrow timeline-arrow-3">
+                <div class="dot-container">
+                  <span class="dot dot-1"></span>
+                  <span class="dot dot-2"></span>
+                  <span class="dot dot-3"></span>
+                  <span class="dot dot-4"></span>
+                  <span class="dot dot-5"></span>
+                  <span class="arrow-head"></span>
+                </div>
+              </div>
+
+              <!-- Action Taken Status -->
+              <div class="timeline-node timeline-node-4">
+                <div class="timeline-date">{{ complaint.resolvedAt | date: 'short' }}</div>
+                <div class="timeline-status status-action-taken">
+                  <div class="timeline-status-icon">⚖️</div>
+                  <div class="timeline-status-label">ACTION TAKEN</div>
+                </div>
+                @if (complaint.resolutionDecision) {
+                  <div class="timeline-decision">{{ complaint.resolutionDecision }}</div>
+                }
+              </div>
+            }
           }
         </div>
       }

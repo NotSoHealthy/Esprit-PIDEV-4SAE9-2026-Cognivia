@@ -229,6 +229,44 @@
   box-shadow: 0 4px 12px rgba(77, 92, 171, 0.08);
 }
 
+.whiteboard-open-button {
+  background: #ffffff;
+  color: #4d5cab;
+  border: 2px solid #dbe5fb;
+  padding: 0.55rem 1rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 1rem;
+}
+
+.whiteboard-open-button:hover {
+  border-color: #4d5cab;
+  background: #f7f9ff;
+  transform: translateY(-1px);
+}
+
+.whiteboard-overlay {
+  align-items: flex-start;
+  overflow-y: auto;
+}
+
+.modal.whiteboard-modal {
+  width: clamp(1120px, 80vw, 1700px);
+  max-width: 96vw;
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.whiteboard-overlay-topbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.4rem;
+}
+
 .controls-row {
   display: flex;
   gap: 2rem;

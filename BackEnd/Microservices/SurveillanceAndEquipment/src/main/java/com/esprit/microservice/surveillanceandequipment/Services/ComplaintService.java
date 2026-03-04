@@ -109,6 +109,9 @@ public class ComplaintService {
         repository.deleteById(id);
     }
 
+    public Complaint saveWhiteboard(Complaint complaint){
+        return repository.save(complaint);
+    }
 
     @Scheduled(fixedRate = 24 * 60 * 60 * 1000)
     public void deleteExpiredComplaints() {
@@ -117,8 +120,7 @@ public class ComplaintService {
 
         List<ComplaintStatus> statusesToDelete = List.of(
                 ComplaintStatus.ACTION_TAKEN,
-                ComplaintStatus.CLOSED,
-                ComplaintStatus.DISMISSED
+                ComplaintStatus.CLOSED
         );
 
         List<Complaint> complaintsToDelete =

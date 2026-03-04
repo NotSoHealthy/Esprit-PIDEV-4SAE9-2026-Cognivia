@@ -47,4 +47,5 @@ export interface ComplaintModel {
   resolvedAt?: string;
   resolutionDecision?: string;
   appealMessage?: string;
+  whiteboardData?: unknown;
 }

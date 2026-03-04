@@ -63,4 +63,9 @@ public class ComplaintController {
     public void deleteComplaint(@PathVariable Long id) {
         complaintService.deleteComplaint(id);
     }
+
+    @PutMapping("/whiteboard")
+    public Complaint saveWhiteboard(@RequestBody Complaint complaint){
+        return complaintService.saveWhiteboard(complaint);
+    }
 }
