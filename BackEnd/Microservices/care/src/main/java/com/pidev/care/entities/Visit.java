@@ -34,5 +34,9 @@ public class Visit {
         if (createdAt == null) {
             createdAt = Instant.now();
         }
+        if (status == null) {
+            status = VisitStatus.SCHEDULED;
+        }
     }
+
 }

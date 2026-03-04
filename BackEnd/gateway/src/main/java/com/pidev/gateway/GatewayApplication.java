@@ -22,10 +22,9 @@ public class GatewayApplication {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers("/auth/**").permitAll()
-                        .pathMatchers("/admin/**").hasRole("ADMIN")
-                        .anyExchange().authenticated()
-                )
+                .pathMatchers("/auth/**").permitAll()
+                .pathMatchers("/admin/**").hasRole("ADMIN")
+                .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth -> oauth.jwt())
                 .build();
     }
@@ -33,21 +32,34 @@ public class GatewayApplication {
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
-
                 // ===== APPOINTMENTS : /appointments/** -> lb://APPOINTMENT-SERVICE with RewritePath to /api/appointments/**
                 .route("appointment-service",
                         r -> r.path("/appointments/**")
                                 .filters(f -> f.stripPrefix(1))
                                 .uri("lb://APPOINTMENT-SERVICE"))
-
                 .route("care",
-                        r->r.path("/care/**")
+                        r -> r.path("/care/**")
                                 .filters(f -> f.stripPrefix(1))
                                 .uri("lb://care"))
                 .route("monitoring",
-                        r->r.path("/monitoring/**")
+                        r -> r.path("/monitoring/**")
                                 .filters(f -> f.stripPrefix(1))
                                 .uri("lb://monitoring"))
+                .route("posts",
+                        r -> r.path("/posts/**")
+                                .uri("lb://FORUM-SERVICE"))
+                .route("chat",
+                        r -> r.path("/chat/**")
+                                .uri("lb://DPCHAT"))
+                .route("games",
+                        r -> r.path("/games/**")
+                                .filters(f -> f.stripPrefix(1))
+                                .uri("lb://games"))
+                .route("SurveillanceAndEquipment",
+                        r -> r.path("/Equipment/**")
+                                .filters(f -> f.stripPrefix(1))
+                                .uri("lb://SurveillanceAndEquipment"))
                 .build();
+
     }
 }

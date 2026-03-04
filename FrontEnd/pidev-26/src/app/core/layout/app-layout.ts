@@ -9,12 +9,15 @@ import {
   RouterOutlet,
 } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { filter } from 'rxjs/operators';
+import { filter, switchMap } from 'rxjs/operators';
+import { interval } from 'rxjs';
 import { KeycloakService } from '../auth/keycloak.service';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { CurrentUserService } from '../user/current-user.service';
+import { StreakService } from '../../features/games/streak.service';
+import { StreakFlameComponent } from '../../shared/components/streak-flame/streak-flame.component';
 
 @Component({
   selector: 'app-layout',
@@ -26,6 +29,7 @@ import { CurrentUserService } from '../user/current-user.service';
     NzIconModule,
     NzDropdownModule,
     NzMenuModule,
+    StreakFlameComponent,
   ],
   templateUrl: './app-layout.html',
   styleUrl: './app-layout.css',
@@ -36,8 +40,7 @@ export class AppLayout implements OnInit {
   private readonly activeRoute = inject(ActivatedRoute);
   private readonly keycloak = inject(KeycloakService);
   private readonly currentUser = inject(CurrentUserService);
-
-  // ✅ Sidebar menu: ONLY 3 buttons
+  private readonly streakService = inject(StreakService);
   public readonly routes = [
     {
       link: '/dashboard',
@@ -55,24 +58,113 @@ export class AppLayout implements OnInit {
       link: '/appointments',
       label: 'Appointments',
       icon: 'calendar',
-      // ✅ Patient removed if you want only doctor/caregiver/admin
       roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'],
+    },
+    {
+      // ✅ Patient removed if you want only doctor/caregiver/admin
+      
+      link: '/admin/tests',
+      label: 'Tests',
+      icon: 'form',
+      roles: ['ROLE_DOCTOR', 'ROLE_ADMIN'],
+    },
+    {
+      link: '/calendar',
+      label: 'Calendar',
+      icon: 'calendar',
+      roles: ['ROLE_CAREGIVER'],
+    },
+    {
+      link: '/user/tests',
+      label: 'Tests',
+      icon: 'form',
+      roles: ['ROLE_PATIENT'],
+    },
+    {
+      link: '/user/games/memory',
+      label: 'Cognitive Games',
+      icon: 'play-circle',
+      roles: ['ROLE_PATIENT'],
+    },
+    {
+      link: '/doctor/risk-assessment',
+      label: 'Risk Intelligence',
+      icon: 'line-chart',
+      roles: ['ROLE_DOCTOR', 'ROLE_ADMIN'],
+    },
+    {
+      link: '/posts',
+      label: 'Forum',
+      icon: 'team',
+      roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER'],
+    },
+    {
+      link: '/chat',
+      label: 'Messages',
+      icon: 'message',
+      roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_PATIENT', 'ROLE_ADMIN', 'ROLE_PHARMACY'],
+    },
+    {
+      link: '/admin/reported-posts',
+      label: 'Reported Posts',
+      icon: 'warning',
+      roles: ['ROLE_ADMIN'],
+    },
+    {
+      link: '/equipment',
+      label: 'Equipment',
+      icon: 'shop',
+      roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'],
+    },
+    {
+      link: '/complaint',
+      label: 'Reports',
+      icon: 'container',
+      roles: ['ROLE_ADMIN'],
     },
   ];
 
   currentRouteLabel = '';
-
+  streakCount = 0;
   ngOnInit(): void {
     this.updateCurrentRouteLabel();
 
     this.router.events
       .pipe(
-        filter((event) => event instanceof NavigationEnd),
+        filter((event: any) => event instanceof NavigationEnd),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(() => this.updateCurrentRouteLabel());
+      .subscribe(() => {
+        this.updateCurrentRouteLabel();
+        // Refresh streak on every navigation (e.g. returning from a game)
+        if (this.userRole === 'ROLE_PATIENT') {
+          this.fetchStreak();
+        }
+      });
 
-    console.log('User Roles:', this.keycloak.getUserRole());
+    if (this.userRole === 'ROLE_PATIENT') {
+      this.fetchStreak();
+
+      // Also poll every 30 seconds so the flame stays in sync
+      interval(30_000)
+        .pipe(
+          takeUntilDestroyed(this.destroyRef),
+          switchMap(() => {
+            const pid = this.keycloak.getUserId();
+            return pid ? this.streakService.getStreak(pid) : [];
+          }),
+        )
+        .subscribe((s) => (this.streakCount = s.currentStreak));
+    }
+  }
+
+  private fetchStreak(): void {
+    const patientId = this.keycloak.getUserId();
+    if (patientId) {
+      this.streakService.getStreak(patientId).subscribe((s) => {
+        this.streakCount = s.currentStreak;
+      });
+    }
   }
 
   private getDeepestActiveRoute(route: ActivatedRoute): ActivatedRoute {

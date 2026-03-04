@@ -1,15 +1,14 @@
-package com.pidev.care.entities;
+ package com.pidev.care.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
 
 @Entity
 @Getter
@@ -33,6 +32,7 @@ public class Patient {
     @Enumerated(EnumType.STRING)
     private Severity severity;
 
+    
     @JsonIgnore
     @ManyToMany
     private List<EmergencyContact> emergencyContactList;
@@ -41,9 +41,11 @@ public class Patient {
     @ManyToMany(mappedBy = "patientList")
     private List<Caregiver> caregiverList;
 
+
     @JsonIgnore
     @OneToMany(mappedBy = "patient")
     private List<Visit> visits;
+
 
     @JsonIgnore
     @OneToMany(mappedBy = "patient")

@@ -1,6 +1,91 @@
-/* You can add global styles to this file, and also import other style files */
-
 @import 'tailwindcss';
+@import 'quill/dist/quill.snow.css';
+@import 'tui-image-editor/dist/tui-image-editor.css';
+@import 'tui-color-picker/dist/tui-color-picker.css';
+@import 'leaflet/dist/leaflet.css';
+@import 'leaflet-draw/dist/leaflet.draw.css';
+
+/* TUI Image Editor overlay tweaks (rendered via Angular CDK Overlay). */
+.tui-image-editor-overlay-backdrop {
+  background: transparent;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+/* Hide the library header only inside our overlay panel. */
+.tui-image-editor-overlay-panel .tui-image-editor-header {
+  display: none !important;
+}
+
+:root {
+  /* Global Theme (Cognitive Tests) */
+  --primary-color: #6366f1;
+  --primary-hover: #4f46e5;
+  --secondary-color: #0ea5e9;
+
+  --success-color: #10b981;
+  --error-color: #ef4444;
+  --warning-color: #f59e0b;
+
+  --text-main: #1e293b;
+  --text-secondary: #64748b;
+  --text-disabled: #94a3b8;
+
+  --bg-app: #eef2f6;
+  --bg-component: #ffffff;
+  --bg-hover: rgba(99, 102, 241, 0.04);
+
+  --border-color: #e2e8f0;
+  --card-border-color: #e2e8f0;
+  --border-radius-base: 12px;
+  --border-radius-lg: 16px;
+
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.1);
+
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --card-hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+}
+
+@theme {
+  --color-cognivia-blue: #6baed6;
+  --color-cognivia-teal: #4cb3a3;
+  --color-cognivia-bg: #f5f5f5;
+  --color-cognivia-slate: #6e7580;
+  --color-cognivia-coral: #f1a9a0;
+
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-gradient-flow: gradient-flow 15s ease infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-20px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 /*
   Josh's Custom CSS Reset
   https://www.joshwcomeau.com/css/custom-css-reset/
@@ -15,6 +100,10 @@
 .ant-pagination-options .ant-pagination-options-size-changer {
   margin-inline-end: 1rem !important;
   margin-right: 1rem !important;
+}
+
+th {
+  user-select: none;
 }
 
 *,
@@ -34,10 +123,73 @@
 }
 
 body {
-  line-height: 1.5;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  background-color: rgba(232, 237, 246, 1);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg-app);
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  color: var(--text-main);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+}
+
+.hover-glow {
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+
+  &:hover {
+    box-shadow: 0 0 15px rgba(24, 144, 255, 0.15);
+    transform: translateY(-1px);
+  }
+}
+
+/* Forum Layout Utilities */
+.forum-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+.forum-header {
+  margin-bottom: 24px;
+}
+
+.forum-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.forum-meta-icon {
+  margin-right: 4px;
+  color: var(--text-secondary);
+}
+
+.post-content-area {
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--text-main);
 }
 
 img,
@@ -78,4 +230,137 @@ h6 {
 #root,
 #__next {
   isolation: isolate;
+}
+
+
+/* Mentions & Hashtags */
+.hashtag {
+  color: var(--primary-color);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.hashtag:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
+
+.mention {
+  color: var(--secondary-color);
+  font-weight: 700;
+  background: rgba(114, 46, 209, 0.08);
+  padding: 1px 6px;
+  margin: 0 1px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mention:hover {
+  background: rgba(114, 46, 209, 0.15);
+  color: var(--secondary-hover);
+}
+
+/* Cognitive Tests Custom Styles */
+/* Forum & Chat Premium Theme */
+.forum-page,
+.chat-container {
+  --primary-color: #3b429f;
+  --primary-hover: #4f46e5;
+  --primary-active: #2e358c;
+  --secondary-color: #6366f1;
+  --secondary-hover: #818cf8;
+
+  --bg-hover: rgba(59, 66, 159, 0.04);
+
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.3);
+}
+
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  gap: 0.5rem;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: inherit;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.test-container,
+.user-container,
+.admin-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.test-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.test-card {
+  padding: 1.5rem;
+}
+
+.test-card h3 {
+  margin-bottom: 0.5rem;
+}
+
+.test-card p {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.score-high {
+  color: #10b981;
+}
+
+.score-medium {
+  color: #f59e0b;
+}
+
+.score-low {
+  color: #ef4444;
 }

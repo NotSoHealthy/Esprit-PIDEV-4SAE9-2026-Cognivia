@@ -49,17 +49,19 @@ public class DoctorService implements IService<Doctor> {
     }
 
     public Doctor getByUserId(UUID userId) {
-        return doctorRepository.findByUserId(userId)
-            .map(doctor -> {
-                Doctor result = new Doctor();
-                result.setId(doctor.getId());
-                result.setUserId(doctor.getUserId());
-                result.setFirstName(doctor.getFirstName());
-                result.setLastName(doctor.getLastName());
-                result.setSpecialty(doctor.getSpecialty());
-                result.setLicenseNumber(doctor.getLicenseNumber());
-                return result;
-            })
-        .orElse(null);
+        List<Doctor> doctors = doctorRepository.findByUserId(userId);
+        if (doctors.isEmpty()) {
+            return null;
+        }
+
+        Doctor doctor = doctors.get(0);
+        Doctor result = new Doctor();
+        result.setId(doctor.getId());
+        result.setUserId(doctor.getUserId());
+        result.setFirstName(doctor.getFirstName());
+        result.setLastName(doctor.getLastName());
+        result.setSpecialty(doctor.getSpecialty());
+        result.setLicenseNumber(doctor.getLicenseNumber());
+        return result;
     }
 }

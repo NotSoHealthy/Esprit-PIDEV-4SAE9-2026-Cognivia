@@ -1,0 +1,48 @@
+<div class="post-list-page">
+    <div class="forum-container">
+        <div class="detail-nav mb-6">
+            <button nz-button nzType="text" class="back-btn" routerLink="/posts">
+                <span nz-icon nzType="arrow-left"></span> Back to Forum
+            </button>
+        </div>
+
+        <nz-card [nzBordered]="false" class="post-main-card">
+            <h1 class="forum-title mb-2">Start a New Discussion</h1>
+            <p class="text-secondary mb-8">Share your thoughts, ask a question, or start a debate with the community.
+            </p>
+
+            <form nz-form nzLayout="vertical" (ngSubmit)="createPost()">
+
+                <nz-form-item>
+                    <nz-form-label [nzRequired]="true" [nzNoColon]="true">Discussion Title</nz-form-label>
+                    <nz-form-control nzErrorTip="Please provide a descriptive title">
+                        <input nz-input [(ngModel)]="post.title" name="title"
+                            placeholder="e.g., How do I implement Ng-Zorro in Angular?" required class="forum-input" />
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item>
+                    <nz-form-label [nzRequired]="true" [nzNoColon]="true">Your Thoughts</nz-form-label>
+                    <nz-form-control nzErrorTip="Please share some content">
+                        <nz-mention [nzSuggestions]="suggestions">
+                            <textarea nz-input nzMentionTrigger [(ngModel)]="post.content" name="content"
+                                [nzAutosize]="{ minRows: 8, maxRows: 16 }"
+                                placeholder="Markdown is supported! Use @ to tag users and # for hashtags..." required
+                                class="forum-textarea"></textarea>
+                        </nz-mention>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <div class="form-actions mt-8">
+                    <button nz-button nzType="primary" nzSize="large" type="submit" [nzLoading]="submitting"
+                        [disabled]="!post.title || !post.content" class="glow-button">
+                        Publish Discussion
+                    </button>
+                    <button nz-button nzType="text" nzSize="large" type="button" routerLink="/posts" class="ml-4">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </nz-card>
+    </div>
+</div>

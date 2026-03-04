@@ -1,19 +1,92 @@
-<div class="home">
-    <nz-alert
-        *ngIf="alertMessage"
-        nzType="error"
-        nzShowIcon
-        nzCloseable
-        [nzMessage]="alertMessage"
-        (nzOnClose)="clearAlert()"
-    ></nz-alert>
+<!-- Alert for unverified accounts -->
+<nz-alert *ngIf="alertMessage" nzType="error" nzShowIcon nzCloseable [nzMessage]="alertMessage"
+    (nzOnClose)="clearAlert()" class="fixed top-20 left-1/2 -translate-x-1/2 z-[60] w-auto max-w-md"></nz-alert>
 
-    <h2>Home</h2>
-    <p>This is a placeholder home page.</p>
+<!-- Navigation Header -->
+<header class="fixed top-0 left-0 right-0 bg-cognivia-bg border-b border-[#e5e5e5] z-50 h-[72px]">
+    <div class="w-full h-full px-6 sm:px-10 flex items-center justify-between">
+        <!-- Logo (left) -->
+        <a routerLink="/"
+            class="flex items-center gap-2 group transition-transform hover:scale-105 active:scale-95 shrink-0">
+            <img [src]="headerLogoUrl" alt="Cognivia Logo" class="h-[30px] w-auto drop-shadow-sm" />
+            <span
+                class="text-3xl font-extrabold text-cognivia-blue tracking-tighter lowercase leading-none">cognivia</span>
+        </a>
 
-    <div class="actions">
-        <button type="button" (click)="login()" *ngIf="!isLoggedIn()">Login</button>
-        <button type="button" (click)="signup()" *ngIf="!isLoggedIn()">Sign up</button>
-        <button type="button" (click)="signout()" *ngIf="isLoggedIn()">Sign out</button>
+        <!-- Language Selector (far right) -->
+        <div class="hidden md:block relative ml-auto">
+            <div (click)="toggleLangDropdown()"
+                class="flex items-center gap-2 cursor-pointer hover:brightness-90 transition-all">
+                <span class="text-[10px] font-bold text-cognivia-slate/70 uppercase tracking-widest leading-none">
+                    {{ 'HEADER.SITE_LANGUAGE' | translate }}: {{ getCurrentLangName() }}
+                </span>
+                <svg class="w-3 h-3 text-cognivia-slate/70 transition-transform" [class.rotate-180]="showLangDropdown"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </div>
+
+            <!-- Dropdown Menu -->
+            <div *ngIf="showLangDropdown"
+                class="absolute right-0 mt-2 py-2 w-32 bg-white border border-[#e5e5e5] rounded-xl shadow-xl z-[100]">
+                <button *ngFor="let lang of languages" (click)="switchLanguage(lang.code)"
+                    class="w-full text-left px-4 py-2 text-xs font-bold text-cognivia-slate hover:bg-[#f7f7f7] transition-colors"
+                    [class.text-cognivia-blue]="currentLang === lang.code">
+                    {{ lang.name }}
+                </button>
+            </div>
+        </div>
     </div>
-</div>
+</header>
+
+<!-- Main Content -->
+<main class="min-h-screen pt-[72px] flex flex-col items-center justify-center p-6 sm:p-8 bg-cognivia-bg">
+    <div class="max-w-5xl w-full flex flex-col md:flex-row items-center justify-between gap-12 md:gap-20">
+
+        <!-- Left Section: Animated Logo -->
+        <div
+            class="relative w-full md:w-1/2 flex items-center justify-center p-4 sm:p-8 min-h-[300px] sm:min-h-[450px]">
+            <!-- Animated Gradient Background -->
+            <div class="absolute inset-0 rounded-full animate-bg-gradient opacity-40 blur-[80px] scale-110"></div>
+
+            <!-- Rotating Gradient Ring -->
+            <div class="absolute w-[80%] h-[80%] rounded-full border-[10px] border-white/30 border-t-cognivia-blue/40 border-r-cognivia-teal/40 animate-spin"
+                style="animation-duration: 30s"></div>
+
+            <!-- Large Logo Image with Floating Animation -->
+            <img [src]="logoUrl" alt="Cognivia Brain Training"
+                class="relative z-10 w-[70%] max-w-[320px] h-auto drop-shadow-[0_20px_50px_rgba(0,0,0,0.15)] rounded-[40px] animate-float" />
+        </div>
+
+        <!-- Right Section: Call to Action -->
+        <div class="w-full md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left gap-14">
+            <h1
+                class="text-3xl md:text-[48px] lg:text-[52px] font-extrabold leading-tight max-w-[420px] tracking-tight heading-text">
+                {{ 'HOME.HEADING' | translate }}
+            </h1>
+
+            <!-- CTA Buttons (shown when not logged in) -->
+            <div *ngIf="!isLoggedIn()" class="flex flex-col gap-4 w-full max-w-[320px]">
+                <button type="button" (click)="signup()"
+                    class="btn-cta-primary w-full text-[15px] font-extrabold h-[52px] flex items-center justify-center">
+                    {{ 'HOME.GET_STARTED' | translate }}
+                </button>
+                <button type="button" (click)="login()"
+                    class="btn-cta-secondary w-full text-[15px] font-extrabold h-[52px] flex items-center justify-center">
+                    {{ 'HOME.HAVE_ACCOUNT' | translate }}
+                </button>
+            </div>
+
+            <!-- Sign out button (shown when logged in) -->
+            <div *ngIf="isLoggedIn()" class="flex flex-col gap-4 w-full max-w-[320px]">
+                <button type="button" (click)="signout()"
+                    class="btn-cta-primary w-full text-[15px] font-extrabold h-[52px] flex items-center justify-center">
+                    {{ 'HOME.SIGN_OUT' | translate }}
+                </button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Footer Spacer for Mobile -->
+<div class="h-10 md:hidden"></div>

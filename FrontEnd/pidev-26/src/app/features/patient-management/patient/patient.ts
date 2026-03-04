@@ -1,10 +1,13 @@
 import { HttpClient } from '@angular/common/http';
-import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { API_BASE_URL } from '../../../core/api/api.tokens';
 import { CommonModule } from '@angular/common';
 import { PatientInformation } from './patient-information/patient-information';
 import { Visits } from './visits/visits';
+
+type PatientPanel = 'information' | 'visits' | 'prescriptions' | 'test-results' | 'notes';
 
 @Component({
   selector: 'app-patient',
@@ -14,21 +17,47 @@ import { Visits } from './visits/visits';
 })
 export class Patient implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly http = inject(HttpClient);
   private readonly apiBaseUrl = inject(API_BASE_URL);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly destroyRef = inject(DestroyRef);
 
-  activePanel: 'information' | 'visits' | 'prescriptions' | 'test-results' | 'notes' =
-    'information';
+  activePanel: PatientPanel = 'information';
   patient: any | null = null;
   isLoading = false;
   errorMessage: string | null = null;
 
-  isActive(panel: Patient['activePanel']): boolean {
+  isActive(panel: PatientPanel): boolean {
     return this.activePanel === panel;
   }
 
+  setActivePanel(panel: PatientPanel): void {
+    if (this.activePanel === panel) return;
+
+    this.activePanel = panel;
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab: panel },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
   ngOnInit(): void {
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      const tab = params.get('tab');
+      if (!tab) return;
+
+      if (this.isValidPanel(tab)) {
+        this.activePanel = tab;
+      } else {
+        this.activePanel = 'information';
+      }
+
+      this.cdr.markForCheck();
+    });
+
     const id = this.route.snapshot.paramMap.get('id');
     const statePatient = (history.state as any)?.patient;
 
@@ -58,6 +87,16 @@ export class Patient implements OnInit {
         this.cdr.markForCheck();
       },
     });
+  }
+
+  private isValidPanel(value: string): value is PatientPanel {
+    return (
+      value === 'information' ||
+      value === 'visits' ||
+      value === 'prescriptions' ||
+      value === 'test-results' ||
+      value === 'notes'
+    );
   }
 
   formatDobWithAge(dateOfBirth: unknown): string {

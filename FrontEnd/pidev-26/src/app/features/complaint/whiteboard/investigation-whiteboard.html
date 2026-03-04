@@ -1,0 +1,190 @@
+<section class="investigation-board" aria-labelledby="investigation-board-title">
+  <header class="board-header">
+    <div>
+      <h2 id="investigation-board-title" class="board-title">Investigation Whiteboard</h2>
+      <p class="board-subtitle">
+        Workspace for investigation notes. Changes are saved to this report when you click Save.
+      </p>
+    </div>
+  </header>
+
+  <div class="board-toolbar" role="toolbar" aria-label="Whiteboard tools">
+    <label
+      class="tool-file icon-tool"
+      for="board-image-upload"
+      aria-label="Upload image"
+      title="Upload image"
+    >
+      <svg class="tool-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M5 20h14v-2H5v2zm7-18L5.33 8h3.67v6h6V8h3.67L12 2z"
+        ></path>
+      </svg>
+      <span class="sr-only">Upload image</span>
+      <input
+        #imageUploadInput
+        id="board-image-upload"
+        type="file"
+        accept="image/*"
+        (change)="onFileSelected($event)"
+      />
+    </label>
+
+    <button
+      type="button"
+      class="tool-button draw-toggle"
+      [class.active]="drawingMode()"
+      (click)="toggleDrawingMode()"
+      [attr.aria-label]="drawingMode() ? 'Disable drawing mode' : 'Enable drawing mode'"
+      [attr.title]="drawingMode() ? 'Disable drawing mode' : 'Enable drawing mode'"
+    >
+      <svg
+        class="tool-icon"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path
+          d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm16.71-10.04a1 1 0 000-1.41l-2.51-2.51a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 2-2z"
+        ></path>
+      </svg>
+    </button>
+
+    <button
+      type="button"
+      class="tool-button icon-tool"
+      [disabled]="!canUndo()"
+      (click)="undo()"
+      aria-label="Undo"
+      title="Undo"
+    >
+      <svg class="tool-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M12.5 8a8.5 8.5 0 0 0-7.31 4.17L3 10v7h7l-2.75-2.75A6.5 6.5 0 0 1 12.5 10c2.69 0 5.03 1.64 6.01 4l1.86-.78A8.5 8.5 0 0 0 12.5 8z"
+        ></path>
+      </svg>
+    </button>
+
+    <button
+      type="button"
+      class="tool-button icon-tool"
+      [disabled]="!canRedo()"
+      (click)="redo()"
+      aria-label="Redo"
+      title="Redo"
+    >
+      <svg class="tool-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M11.5 8a8.5 8.5 0 0 1 7.31 4.17L21 10v7h-7l2.75-2.75A6.5 6.5 0 0 0 11.5 10c-2.69 0-5.03 1.64-6.01 4l-1.86-.78A8.5 8.5 0 0 1 11.5 8z"
+        ></path>
+      </svg>
+    </button>
+
+    <label class="tool-setting" for="board-brush-color">
+      Color
+      <input
+        id="board-brush-color"
+        type="color"
+        [value]="brushColor()"
+        (input)="onBrushColorInput($event)"
+      />
+    </label>
+
+    <label class="tool-setting" for="board-brush-size">
+      Brush {{ brushSize() }}px
+      <input
+        id="board-brush-size"
+        type="range"
+        min="1"
+        max="40"
+        [value]="brushSize()"
+        (input)="onBrushSizeInput($event)"
+      />
+    </label>
+
+    <button
+      type="button"
+      class="tool-button"
+      [disabled]="!hasSelectedObject()"
+      (click)="deleteSelectedObject()"
+    >
+      Delete Selected
+    </button>
+
+    <button type="button" class="tool-button warning" (click)="clearBoard()">Clear Board</button>
+
+    @if (complaint?.id) {
+      <div class="whiteboard-save-section">
+        @if (saveError()) {
+          <p class="save-error" role="alert">{{ saveError() }}</p>
+        }
+        @if (saveSuceeded()) {
+          <p class="save-success" role="status">Whiteboard saved successfully!</p>
+        }
+        <button
+          type="button"
+          class="tool-button primary"
+          (click)="saveWhiteboard()"
+          [disabled]="isSaving()"
+        >
+          @if (isSaving()) {
+            Saving...
+          } @else {
+            <span class="tool-button-label-with-icon">
+              <svg class="tool-button-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zM6 8V5h9v3H6z"></path>
+              </svg>
+              Save Whiteboard
+            </span>
+          }
+        </button>
+      </div>
+    }
+  </div>
+
+  @if (imageChangedEvent()) {
+    <section class="cropper-panel" aria-label="Image cropper">
+      <h3>Crop before adding (optional)</h3>
+
+      <image-cropper
+        [imageChangedEvent]="imageChangedEvent()"
+        [maintainAspectRatio]="false"
+        [resizeToWidth]="0"
+        format="png"
+        (imageCropped)="onImageCropped($event)"
+        (imageLoaded)="onImageLoaded($event)"
+        (loadImageFailed)="onCropLoadFailure()"
+      />
+
+      @if (!cropperReady() && !imageLoadError()) {
+        <p class="cropper-note" role="status">Preparing image...</p>
+      }
+
+      @if (imageLoadError()) {
+        <p class="cropper-error" role="alert">{{ imageLoadError() }}</p>
+      }
+
+      <div class="cropper-actions">
+        <button
+          type="button"
+          class="tool-button"
+          [disabled]="(!croppedImageBase64() && !uploadedImageSource()) || !!imageLoadError()"
+          (click)="addCroppedImage()"
+        >
+          Add to Board
+        </button>
+        <button type="button" class="tool-button" (click)="cancelCrop()">Cancel</button>
+      </div>
+    </section>
+  }
+
+  <div #canvasShell class="canvas-shell">
+    <canvas
+      #whiteboardCanvas
+      aria-label="Investigation whiteboard canvas"
+    ></canvas>
+  </div>
+
+  <p class="board-tip">
+    Tip: click any image on the board to move, resize, and rotate it using the corner handles.
+  </p>
+</section>

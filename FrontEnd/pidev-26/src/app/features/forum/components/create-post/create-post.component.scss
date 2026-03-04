@@ -1,0 +1,91 @@
+.create-post-container {
+    max-width: 700px;
+    margin: 3rem auto;
+    padding: 0 1.5rem;
+}
+
+.elegant-card {
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+    padding: 2rem;
+    border: 1px solid var(--border-color);
+}
+
+.gradient-text {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+    font-size: 1rem;
+    margin-bottom: 2.5rem;
+}
+
+.form-actions {
+    display: flex;
+    align-items: center;
+}
+
+.forum-input {
+    height: 48px;
+    border-radius: var(--border-radius-base);
+    font-size: 1rem;
+}
+
+.forum-textarea {
+    border-radius: var(--border-radius-base);
+    font-size: 1rem;
+    padding: 12px;
+}
+
+.glow-button {
+    height: 48px;
+    padding: 0 32px;
+    font-weight: 600;
+    border-radius: var(--border-radius-base);
+    box-shadow: 0 4px 12px rgba(59, 66, 159, 0.2);
+}
+
+@media (max-width: 768px) {
+    .form-actions {
+        flex-direction: column;
+        gap: 12px;
+
+        button {
+            width: 100%;
+            margin: 0 !important;
+        }
+    }
+}
+
+nz-form-item {
+    margin-bottom: 1.5rem;
+}
+
+nz-form-label {
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #f0f0f0;
+
+    button {
+        height: 44px;
+        padding: 0 24px;
+        font-weight: 600;
+    }
+}
+
+.text-secondary {
+    color: var(--text-secondary);
+}

@@ -1,0 +1,56 @@
+<div
+    class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+    <div
+        class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden transform animate-in zoom-in-95 duration-200">
+        <!-- Header -->
+        <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <div>
+                <h3 class="text-xl font-black text-slate-800 tracking-tight">Clinical Validation</h3>
+                <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Provide Doctor's Signature
+                </p>
+            </div>
+            <button (click)="cancel()"
+                class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-8">
+            <div
+                class="relative bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 overflow-hidden cursor-crosshair group hover:border-indigo-300 transition-all">
+                <canvas #signatureCanvas (mousedown)="startDrawing($event)" (mousemove)="draw($event)"
+                    (mouseup)="stopDrawing()" (mouseleave)="stopDrawing()" (touchstart)="startDrawing($event)"
+                    (touchmove)="draw($event)" (touchend)="stopDrawing()" class="w-full h-[200px] touch-none"></canvas>
+
+                <div class="absolute inset-0 pointer-events-none flex flex-col items-center justify-center opacity-30 group-hover:opacity-10 transition-opacity"
+                    *ngIf="false">
+                    <!-- Hint text could go here if needed -->
+                </div>
+            </div>
+            <p class="mt-4 text-[10px] font-bold text-slate-400 uppercase text-center tracking-widest">Draw your
+                signature clearly within the box above</p>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-8 py-6 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between gap-4">
+            <button (click)="clear()"
+                class="px-6 py-2.5 text-sm font-black text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all border border-slate-200 bg-white">
+                Clear Canvas
+            </button>
+            <div class="flex gap-3">
+                <button (click)="cancel()"
+                    class="px-6 py-2.5 text-sm font-black text-slate-500 hover:text-slate-700 transition-all">
+                    Cancel
+                </button>
+                <button (click)="done()"
+                    class="px-8 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-black rounded-xl shadow-lg shadow-indigo-200 transition-all hover:scale-[1.02] active:scale-95">
+                    Generate Signed PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

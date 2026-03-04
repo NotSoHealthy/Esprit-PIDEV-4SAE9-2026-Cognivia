@@ -15,6 +15,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { compareText, getAgeYears, normalizeSearch } from '../../shared/utils';
 import { getSeverityColor, getSeverityRank } from '../../shared/utils/patient.utils';
 import { TitleCasePipe } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 
 type PatientSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'EXTREME';
 
@@ -32,6 +33,7 @@ type PatientSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'EXTREME';
     NzDividerModule,
     NzInputModule,
     TitleCasePipe,
+    MatIconModule,
   ],
   templateUrl: './patient-list.html',
   styleUrl: './patient-list.css',
@@ -135,10 +137,15 @@ export class PatientList implements OnInit {
   };
 
   fetchPatients(): void {
+    const doctorId = (this.currentUser.user() as any)?.data?.id;
+    if (!doctorId) {
+      console.warn('PatientList: doctorId is undefined, skipping fetch');
+      return;
+    }
+
     this.isLoading = true;
     this.errorMessage = null;
-    const doctorId = (this.currentUser.user() as any)?.data?.id;
-    this.http.get<any>(`${this.apiBaseUrl}/care/patient/doctor/${doctorId}`).subscribe({
+    this.http.get<any>(`${this.apiBaseUrl}/care/patient`).subscribe({
       next: (response) => {
         const list =
           (Array.isArray(response) && response) ||
@@ -165,6 +172,7 @@ export class PatientList implements OnInit {
       complete: () => {
         this.isLoading = false;
         this.cdr.detectChanges();
+        console.log(this.patientCountBySeverity);
       },
     });
   }
@@ -349,5 +357,14 @@ export class PatientList implements OnInit {
     const user = this.currentUser.user();
     if (!user) return null;
     return this.currentUser.user()?.kind ?? null;
+  }
+
+  get patientCountBySeverity(): Record<string, number> {
+    const counts: Record<string, number> = {};
+    for (const patient of this.patients) {
+      const severity = patient?.severity ?? 'UNKNOWN';
+      counts[severity] = (counts[severity] ?? 0) + 1;
+    }
+    return counts;
   }
 }

@@ -40,7 +40,7 @@ export class DashboardPage implements OnInit {
     }
 
     if (roles.has('patient')) {
-      this.dashboardComponent = Patient;
+      void this.router.navigateByUrl('/user/tests', { replaceUrl: true });
       return;
     }
 

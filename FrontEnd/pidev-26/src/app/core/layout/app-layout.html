@@ -2,6 +2,7 @@
   <header class="flex items-center justify-between px-4 pt-4">
     <span class="flex items-center gap-10">
       <img src="/logo.svg" class="bg-white p-4.5 rounded-full" />
+      <app-streak-flame *ngIf="userRole === 'ROLE_PATIENT'" [streakCount]="streakCount"></app-streak-flame>
       <p class="font-bold text-xl tracking-wide">{{ currentRouteLabel }}</p>
     </span>
     <div class="flex items-center gap-5">
@@ -25,6 +26,9 @@
       <nz-dropdown-menu #menu="nzDropdownMenu">
         <ul nz-menu class="min-w-48">
           <li nz-menu-item routerLink="/profile">Profile</li>
+          <li nz-menu-item *ngIf="userRole === 'ROLE_PATIENT'" routerLink="/careteam">
+            View care team
+          </li>
           <li nz-menu-item>Settings</li>
           <li nz-menu-divider></li>
           <li nz-menu-item (click)="logout()">Sign out</li>

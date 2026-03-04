@@ -5,8 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface VisitReportRepository extends JpaRepository<VisitReport, Long> {
-    List<VisitReport> findByVisitId(Long visitId);
+    Optional<VisitReport> findByVisitId(Long visitId);
 }
