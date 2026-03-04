@@ -204,6 +204,19 @@
   border-color: #93c5fd;
 }
 
+.tool-button-label-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.tool-button-icon {
+  width: 1rem;
+  height: 1rem;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
 .save-error {
   color: #b91c1c;
   font-size: 0.82rem;

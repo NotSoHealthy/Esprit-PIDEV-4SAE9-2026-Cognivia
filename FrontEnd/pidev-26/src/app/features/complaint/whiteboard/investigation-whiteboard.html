@@ -126,7 +126,16 @@
           (click)="saveWhiteboard()"
           [disabled]="isSaving()"
         >
-          {{ isSaving() ? 'Saving...' : '💾 Save Whiteboard' }}
+          @if (isSaving()) {
+            Saving...
+          } @else {
+            <span class="tool-button-label-with-icon">
+              <svg class="tool-button-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zM6 8V5h9v3H6z"></path>
+              </svg>
+              Save Whiteboard
+            </span>
+          }
         </button>
       </div>
     }

@@ -37,7 +37,11 @@
     <div class="complaint-state complaint-error" role="alert">{{ error() }}</div>
   } @else if (complaints().length === 0) {
     <div class="empty-state">
-      <div class="empty-icon">📋</div>
+      <div class="empty-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-7-1a1 1 0 0 1 1 1h-2a1 1 0 0 1 1-1zm7 19H5V5h14v16zm-7-4h5v2h-5v-2zm-5-4h10v2H7v-2zm0-4h10v2H7V9z"></path>
+        </svg>
+      </div>
       <h2 class="empty-title">No complaints yet</h2>
       <p class="empty-message">
         @if (isAdmin()) {
@@ -160,7 +164,10 @@
                   (click)="openTimelineOverlay(complaint); $event.stopPropagation()"
                   [attr.aria-label]="'View timeline for ' + getCategoryLabel(complaint.category)"
                 >
-                  📅 Timeline
+                  <svg class="timeline-button-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.89-1.99 2L3 20c0 1.11.89 2 2 2h14c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"></path>
+                  </svg>
+                  Timeline
                 </button>
               }
             </div>
@@ -219,7 +226,10 @@
                   (click)="openTimelineOverlay(complaint); $event.stopPropagation()"
                   [attr.aria-label]="'View timeline for ' + getCategoryLabel(complaint.category)"
                 >
-                  📅 Timeline
+                  <svg class="timeline-button-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.89-1.99 2L3 20c0 1.11.89 2 2 2h14c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"></path>
+                  </svg>
+                  Timeline
                 </button>
               }
             </div>
@@ -468,7 +478,12 @@
             type="button"
             (click)="openWhiteboardForComplaint()"
           >
-            🧩 Open Whiteboard
+            <span class="button-label-with-icon">
+              <svg class="action-button-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm17.71-10.04a1.003 1.003 0 0 0 0-1.42l-2.5-2.5a1.003 1.003 0 0 0-1.42 0l-1.96 1.96 3.75 3.75 2.13-2.13z"></path>
+              </svg>
+              Open Whiteboard
+            </span>
           </button>
           <button
             class="danger-button"
@@ -603,7 +618,16 @@
             (click)="openAppealModal(); $event.stopPropagation()"
             [disabled]="appealingComplaintId() !== null"
           >
-            {{ appealingComplaintId() !== null ? 'Appealing...' : '⚖️ Appeal' }}
+            @if (appealingComplaintId() !== null) {
+              Appealing...
+            } @else {
+              <span class="button-label-with-icon">
+                <svg class="action-button-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3 1 9l4 2.18V17h14v-5.82L23 9 12 3zm0 2.18L18.74 9 12 12.82 5.26 9 12 5.18zM7 11.9l5 2.73 5-2.73V15H7v-3.1zM4 19h16v2H4z"></path>
+                </svg>
+                Appeal
+              </span>
+            }
           </button>
         }
         <button
@@ -612,7 +636,16 @@
           (click)="retractComplaintFromDetail()"
           [disabled]="deleting() !== null"
         >
-          {{ deleting() !== null ? 'Deleting...' : '🗑️ Retract' }}
+          @if (deleting() !== null) {
+            Deleting...
+          } @else {
+            <span class="button-label-with-icon">
+              <svg class="action-button-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 7h12l-1 14H7L6 7zm3-4h6l1 2h4v2H4V5h4l1-2z"></path>
+              </svg>
+              Retract
+            </span>
+          }
         </button>
       </div>
     </div>
@@ -788,7 +821,11 @@
           <div class="timeline-node timeline-node-1">
             <div class="timeline-date">{{ complaint.createdAt | date: 'short' }}</div>
             <div class="timeline-status status-submitted">
-              <div class="timeline-status-icon">✓</div>
+              <div class="timeline-status-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path>
+                </svg>
+              </div>
               <div class="timeline-status-label">SUBMITTED</div>
             </div>
           </div>
@@ -812,7 +849,11 @@
               <div class="timeline-node timeline-node-2">
                 <div class="timeline-date">{{ complaint.reviewedAt | date: 'short' }}</div>
                 <div class="timeline-status status-dismissed">
-                  <div class="timeline-status-icon">✗</div>
+                  <div class="timeline-status-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42-6.3-6.31-6.3 6.31-1.41-1.42L9.17 12 2.88 5.71 4.29 4.29l6.3 6.3 6.3-6.3z"></path>
+                    </svg>
+                  </div>
                   <div class="timeline-status-label">DISMISSED</div>
                 </div>
               </div>
@@ -835,7 +876,11 @@
               <div class="timeline-node timeline-node-3">
                 <div class="timeline-date">{{ complaint.resolvedAt | date: 'short' }}</div>
                 <div class="timeline-status status-closed">
-                  <div class="timeline-status-icon">🔒</div>
+                  <div class="timeline-status-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M12 17a2 2 0 0 0 2-2 2 2 0 0 0-1-1.73V11h-2v2.27A2 2 0 0 0 10 15a2 2 0 0 0 2 2zm6-8h-1V7a5 5 0 0 0-10 0v2H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2zm-3 0H9V7a3 3 0 0 1 6 0v2z"></path>
+                    </svg>
+                  </div>
                   <div class="timeline-status-label">CLOSED</div>
                 </div>
               </div>
@@ -859,7 +904,11 @@
               <div class="timeline-node timeline-node-2">
                 <div class="timeline-date">{{ complaint.reviewedAt | date: 'short' }}</div>
                 <div class="timeline-status status-validated">
-                  <div class="timeline-status-icon">✓</div>
+                  <div class="timeline-status-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path>
+                    </svg>
+                  </div>
                   <div class="timeline-status-label">VALIDATED</div>
                 </div>
               </div>
@@ -882,7 +931,11 @@
               <div class="timeline-node timeline-node-3">
                 <div class="timeline-date">{{ complaint.investigatedAt | date: 'short' }}</div>
                 <div class="timeline-status status-investigating">
-                  <div class="timeline-status-icon">🔍</div>
+                  <div class="timeline-status-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 1 0 14 15.5l.27.28v.79L20 21.49 21.49 20l-5.99-6zM10 15a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"></path>
+                    </svg>
+                  </div>
                   <div class="timeline-status-label">UNDER INVESTIGATION</div>
                 </div>
               </div>
@@ -905,7 +958,11 @@
               <div class="timeline-node timeline-node-4">
                 <div class="timeline-date">{{ complaint.resolvedAt | date: 'short' }}</div>
                 <div class="timeline-status status-action-taken">
-                  <div class="timeline-status-icon">⚖️</div>
+                  <div class="timeline-status-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 13-3-3 1.41-1.41L10 11.17l5.59-5.59L17 7l-7 7z"></path>
+                    </svg>
+                  </div>
                   <div class="timeline-status-label">ACTION TAKEN</div>
                 </div>
                 @if (complaint.resolutionDecision) {

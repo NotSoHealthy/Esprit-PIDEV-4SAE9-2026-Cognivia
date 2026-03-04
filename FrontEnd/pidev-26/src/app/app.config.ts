@@ -20,7 +20,8 @@ import {
   HeartOutline,
   ArrowLeftOutline,
   ToolOutline,
-  ContainerOutline
+  ContainerOutline,
+  ShopOutline
 } from '@ant-design/icons-angular/icons';
 
 export const appConfig: ApplicationConfig = {
@@ -45,7 +46,8 @@ export const appConfig: ApplicationConfig = {
       HeartOutline,
       ArrowLeftOutline,
       ToolOutline,
-      ContainerOutline
+      ContainerOutline,
+      ShopOutline
     ]),
   ],
 };
