@@ -1,131 +1,207 @@
 <div class="page-container">
-    <nz-card class="premium-card">
-        <div class="header">
-            <div class="title-group">
-                <h1>Appointments</h1>
-                <p class="subtitle">Manage patient schedules and records</p>
-            </div>
-            <button nz-button nzType="primary" nzSize="large" (click)="openCreate()">
-                <i nz-icon nzType="plus"></i> New Appointment
+  <nz-card class="premium-card">
+    <div class="header">
+      <div class="title-group">
+        <h1>Appointments</h1>
+        <p class="subtitle">Manage patient schedules and records</p>
+      </div>
+      <button nz-button nzType="primary" nzSize="large" (click)="openCreate()">
+        <i nz-icon nzType="plus"></i> New Appointment
+      </button>
+    </div>
+
+    <div class="search-filters">
+      <nz-input-group [nzPrefix]="searchIcon" class="search-box">
+        <input
+          nz-input
+          placeholder="Dynamic search by notes..."
+          [(ngModel)]="filterNotes"
+          (ngModelChange)="onSearch()"
+        />
+      </nz-input-group>
+      <ng-template #searchIcon>
+        <i nz-icon nzType="search"></i>
+      </ng-template>
+
+      <div class="other-filters">
+        <nz-select
+          nzAllowClear
+          nzPlaceHolder="Status"
+          [(ngModel)]="filterStatus"
+          (ngModelChange)="fetch()"
+          style="width: 150px;"
+        >
+          <nz-option *ngFor="let s of statuses" [nzLabel]="s" [nzValue]="s"></nz-option>
+        </nz-select>
+        <button nz-button (click)="resetFilters()">Reset</button>
+      </div>
+    </div>
+
+    <nz-table
+      #basicTable
+      [nzData]="filteredItems ?? []"
+      [nzLoading]="loading"
+      nzBordered
+      class="premium-table"
+    >
+      <thead>
+        <tr>
+          <th nzWidth="60px">ID</th>
+          <th>Caregiver</th>
+          <th>Patient</th>
+          <th>Doctor</th>
+          <th>Date & Time</th>
+          <th>Duration</th>
+          <th>Status</th>
+          <th>Notes</th>
+          <th nzWidth="150px">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let item of basicTable.data">
+          <td class="id-cell">{{ item.id }}</td>
+          <td><i nz-icon nzType="user"></i> {{ item.caregiverId }}</td>
+          <td><i nz-icon nzType="user"></i> {{ item.patientId }}</td>
+          <td><i nz-icon nzType="user"></i> {{ item.doctorId }}</td>
+
+          <td class="date-cell">
+            <div class="main-date">{{ item.appointmentDate | date: 'MMM d, y' }}</div>
+            <div class="sub-date">{{ item.appointmentDate | date: 'HH:mm' }}</div>
+          </td>
+
+          <td>{{ item.durationMinutes ?? 60 }} min</td>
+
+          <td>
+            <span class="status-badge status-{{ item.status | lowercase }}">{{ item.status }}</span>
+          </td>
+
+          <td class="notes-cell" [nzTooltipTitle]="item.notes" nz-tooltip>
+            {{ item.notes }}
+          </td>
+
+          <td class="actions">
+            <button
+              nz-button
+              nzType="text"
+              class="edit-btn"
+              (click)="openEdit(item)"
+              nz-tooltip
+              nzTooltipTitle="Edit"
+            >
+              <i nz-icon nzType="edit"></i>
             </button>
+
+            <button
+              nz-button
+              nzType="text"
+              nzDanger
+              class="delete-btn"
+              (click)="confirmDelete(item)"
+              nz-tooltip
+              nzTooltipTitle="Delete"
+            >
+              <i nz-icon nzType="delete"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+  </nz-card>
+
+  <!-- ✅ MODAL -->
+  <nz-modal
+    [(nzVisible)]="isModalOpen"
+    [nzTitle]="modalTitle"
+    [nzOkLoading]="loading"
+    (nzOnCancel)="closeModal()"
+    (nzOnOk)="save()"
+    nzWidth="500px"
+  >
+    <ng-template #modalTitle>
+      <i nz-icon [nzType]="editingId ? 'edit' : 'plus-circle'"></i>
+      <span style="margin-left: 8px;">{{ editingId ? 'Edit Appointment' : 'New Appointment' }}</span>
+    </ng-template>
+
+    <ng-template nzModalContent>
+      <div class="form-grid">
+
+        <!-- ✅ Email Patient (CREATE ONLY) -->
+        <div class="form-item full-width" *ngIf="editingId == null">
+          <label>Email Patient</label>
+          <input nz-input type="email" [(ngModel)]="form.patientEmail" placeholder="patient@example.com" />
         </div>
 
-        <div class="search-filters">
-            <nz-input-group [nzPrefix]="searchIcon" class="search-box">
-                <input nz-input placeholder="Dynamic search by notes..." [(ngModel)]="filterNotes"
-                    (ngModelChange)="onSearch()" />
-            </nz-input-group>
-            <ng-template #searchIcon>
-                <i nz-icon nzType="search"></i>
-            </ng-template>
-
-            <div class="other-filters">
-                <nz-select nzAllowClear nzPlaceHolder="Status" [(ngModel)]="filterStatus" (ngModelChange)="fetch()"
-                    style="width: 150px;">
-                    <nz-option *ngFor="let s of statuses" [nzLabel]="s" [nzValue]="s"></nz-option>
-                </nz-select>
-                <button nz-button (click)="resetFilters()">Reset</button>
-            </div>
+        <div class="form-item">
+          <label>Caregiver</label>
+          <nz-select
+            [(ngModel)]="form.caregiverId"
+            nzShowSearch
+            nzPlaceHolder="Select Caregiver"
+            [nzLoading]="loadingRefs"
+          >
+            <nz-option *ngFor="let p of caregivers" [nzLabel]="labelOf(p)" [nzValue]="p.id"></nz-option>
+          </nz-select>
         </div>
 
-        <nz-table #basicTable [nzData]="filteredItems" [nzLoading]="loading" nzBordered class="premium-table">
-            <thead>
-                <tr>
-                    <th nzWidth="60px">ID</th>
-                    <th>Caregiver</th>
-                    <th>Patient</th>
-                    <th>Doctor</th>
-                    <th>Date & Time</th>
-                    <th>Status</th>
-                    <th>Notes</th>
-                    <th nzWidth="150px">Actions</th>
-                </tr>
-            </thead>
+        <div class="form-item">
+          <label>Patient</label>
+          <nz-select
+            [(ngModel)]="form.patientId"
+            nzShowSearch
+            nzPlaceHolder="Select Patient"
+            [nzLoading]="loadingRefs"
+          >
+            <nz-option *ngFor="let p of patients" [nzLabel]="labelOf(p)" [nzValue]="p.id"></nz-option>
+          </nz-select>
+        </div>
 
-            <tbody>
-                <tr *ngFor="let item of basicTable.data">
-                    <td class="id-cell">{{ item.id }}</td>
-                    <td><i nz-icon nzType="user"></i> {{ item.caregiverId }}</td>
-                    <td><i nz-icon nzType="user"></i> {{ item.patientId }}</td>
-                    <td><i nz-icon nzType="user"></i> {{ item.doctorId }}</td>
-                    <td class="date-cell">
-                        <div class="main-date">{{ item.appointmentDate | date: 'MMM d, y' }}</div>
-                        <div class="sub-date">{{ item.appointmentDate | date: 'HH:mm' }}</div>
-                    </td>
-                    <td>
-                        <span class="status-badge status-{{ item.status | lowercase }}">{{ item.status }}</span>
-                    </td>
-                    <td class="notes-cell" [nzTooltipTitle]="item.notes" nz-tooltip>
-                        {{ item.notes }}
-                    </td>
-                    <td class="actions">
-                        <button nz-button nzType="text" class="edit-btn" (click)="openEdit(item)" nz-tooltip
-                            nzTooltipTitle="Edit">
-                            <i nz-icon nzType="edit"></i>
-                        </button>
-                        <button nz-button nzType="text" nzDanger class="delete-btn" (click)="confirmDelete(item)"
-                            nz-tooltip nzTooltipTitle="Delete">
-                            <i nz-icon nzType="delete"></i>
-                        </button>
-                    </td>
-                </tr>
-            </tbody>
-        </nz-table>
-    </nz-card>
+        <div class="form-item">
+          <label>Doctor</label>
+          <nz-select
+            [(ngModel)]="form.doctorId"
+            nzShowSearch
+            nzPlaceHolder="Select Doctor"
+            [nzLoading]="loadingRefs"
+          >
+            <nz-option *ngFor="let p of doctors" [nzLabel]="labelOf(p)" [nzValue]="p.id"></nz-option>
+          </nz-select>
+        </div>
 
-    <!-- ✅ MODAL -->
-    <nz-modal [(nzVisible)]="isModalOpen" [nzTitle]="modalTitle" [nzOkLoading]="loading" (nzOnCancel)="closeModal()"
-        (nzOnOk)="save()" nzWidth="500px">
-        <ng-template #modalTitle>
-            <i nz-icon [nzType]="editingId ? 'edit' : 'plus-circle'"></i>
-            <span style="margin-left: 8px;">{{ editingId ? 'Edit Appointment' : 'New Appointment' }}</span>
-        </ng-template>
+        <div class="form-item">
+          <label>Status</label>
+          <nz-select [(ngModel)]="form.status" style="width: 100%;">
+            <nz-option *ngFor="let s of statuses" [nzLabel]="s" [nzValue]="s"></nz-option>
+          </nz-select>
+        </div>
 
-        <ng-template nzModalContent>
-            <div class="form-grid">
-                <div class="form-item">
-                    <label>Caregiver</label>
-                    <nz-select [(ngModel)]="form.caregiverId" nzShowSearch nzPlaceHolder="Select Caregiver"
-                        [nzLoading]="loadingRefs">
-                        <nz-option *ngFor="let p of caregivers" [nzLabel]="labelOf(p)" [nzValue]="p.id"></nz-option>
-                    </nz-select>
-                </div>
+        <!-- ✅ durationMinutes (IMPORTANT pour éviter 400 si backend le veut) -->
+        <div class="form-item">
+          <label>Duration (minutes)</label>
+          <input nz-input type="number" min="5" step="5" [(ngModel)]="form.durationMinutes" placeholder="60" />
+        </div>
 
-                <div class="form-item">
-                    <label>Patient</label>
-                    <nz-select [(ngModel)]="form.patientId" nzShowSearch nzPlaceHolder="Select Patient"
-                        [nzLoading]="loadingRefs">
-                        <nz-option *ngFor="let p of patients" [nzLabel]="labelOf(p)" [nzValue]="p.id"></nz-option>
-                    </nz-select>
-                </div>
+        <div class="form-item full-width">
+          <label>Appointment Date & Time</label>
+          <nz-date-picker
+            [(ngModel)]="form.appointmentDate"
+            nzShowTime
+            nzFormat="yyyy-MM-dd HH:mm"
+            style="width: 100%;"
+          ></nz-date-picker>
+        </div>
 
-                <div class="form-item">
-                    <label>Doctor</label>
-                    <nz-select [(ngModel)]="form.doctorId" nzShowSearch nzPlaceHolder="Select Doctor"
-                        [nzLoading]="loadingRefs">
-                        <nz-option *ngFor="let p of doctors" [nzLabel]="labelOf(p)" [nzValue]="p.id"></nz-option>
-                    </nz-select>
-                </div>
+        <div class="form-item full-width">
+          <label>Notes</label>
+          <textarea
+            nz-input
+            rows="4"
+            [(ngModel)]="form.notes"
+            placeholder="Enter session details..."
+          ></textarea>
+        </div>
 
-                <div class="form-item">
-                    <label>Status</label>
-                    <nz-select [(ngModel)]="form.status" style="width: 100%;">
-                        <nz-option *ngFor="let s of statuses" [nzLabel]="s" [nzValue]="s"></nz-option>
-                    </nz-select>
-                </div>
-
-                <div class="form-item full-width">
-                    <label>Appointment Date & Time</label>
-                    <nz-date-picker [(ngModel)]="form.appointmentDate" nzShowTime nzFormat="yyyy-MM-dd HH:mm"
-                        style="width: 100%;"></nz-date-picker>
-                </div>
-
-                <div class="form-item full-width">
-                    <label>Notes</label>
-                    <textarea nz-input rows="4" [(ngModel)]="form.notes"
-                        placeholder="Enter session details..."></textarea>
-                </div>
-            </div>
-        </ng-template>
-    </nz-modal>
+      </div>
+    </ng-template>
+  </nz-modal>
 </div>

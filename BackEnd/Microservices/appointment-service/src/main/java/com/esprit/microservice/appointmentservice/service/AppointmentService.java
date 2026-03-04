@@ -2,9 +2,11 @@ package com.esprit.microservice.appointmentservice.service;
 
 import com.esprit.microservice.appointmentservice.entity.Appointment;
 import com.esprit.microservice.appointmentservice.entity.AppointmentStatus;
+import com.esprit.microservice.appointmentservice.exception.ConflictException;
 import com.esprit.microservice.appointmentservice.repository.AppointmentRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Service
@@ -21,6 +23,14 @@ public class AppointmentService {
         if (a.getStatus() == null) {
             a.setStatus(AppointmentStatus.PENDING);
         }
+
+        // ✅ default duration
+        if (a.getDurationMinutes() == null) {
+            a.setDurationMinutes(60);
+        }
+
+        checkConflict(a, null);
+
         return repo.save(a);
     }
 
@@ -41,16 +51,59 @@ public class AppointmentService {
         a.setDoctorId(updated.getDoctorId());
         a.setAppointmentDate(updated.getAppointmentDate());
 
+        // ✅ duration update (if null => keep existing, but if existing null => default 60)
+        if (updated.getDurationMinutes() != null) {
+            a.setDurationMinutes(updated.getDurationMinutes());
+        }
+        if (a.getDurationMinutes() == null) {
+            a.setDurationMinutes(60);
+        }
+
         if (updated.getStatus() != null) {
             a.setStatus(updated.getStatus());
         }
 
         a.setNotes(updated.getNotes());
 
+        checkConflict(a, id);
+
         return repo.save(a);
     }
 
     public void delete(Long id) {
         repo.deleteById(id);
+    }
+
+    // ===================== BUSINESS RULE =====================
+    private void checkConflict(Appointment a, Long excludeId) {
+
+        if (a.getDoctorId() == null) {
+            throw new RuntimeException("doctorId is required to check appointment conflicts.");
+        }
+        if (a.getAppointmentDate() == null) {
+            throw new RuntimeException("appointmentDate is required.");
+        }
+        if (a.getDurationMinutes() == null || a.getDurationMinutes() <= 0) {
+            throw new RuntimeException("durationMinutes must be > 0.");
+        }
+
+        // If appointment itself is CANCELLED, we allow it (no need to block)
+        if (a.getStatus() == AppointmentStatus.CANCELLED) {
+            return;
+        }
+
+        OffsetDateTime start = a.getAppointmentDate();
+        OffsetDateTime end = start.plusMinutes(a.getDurationMinutes());
+
+        boolean conflict;
+        if (excludeId == null) {
+            conflict = repo.existsOverlap(a.getDoctorId(), start, end);
+        } else {
+            conflict = repo.existsOverlapExcludingId(a.getDoctorId(), excludeId, start, end);
+        }
+
+        if (conflict) {
+            throw new ConflictException("Ce créneau est déjà réservé pour ce médecin.");
+        }
     }
 }

@@ -46,9 +46,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/tasks/update/tasks-update.page').then((m) => m.TasksUpdatePage),
       },
       {
-  path: 'appointments',
-  loadComponent: () =>
-    import('./features/appointments/appointments').then(m => m.Appointments),
+        path: 'appointments',
+        title: 'Appointments',
+        canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
+        loadComponent: () =>
+          import('./features/appointments/appointments').then(m => m.Appointments),
 }
       
     ],

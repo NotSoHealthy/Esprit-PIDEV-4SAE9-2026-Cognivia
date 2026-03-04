@@ -34,24 +34,20 @@ public class GatewayApplication {
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
 
-                .route("care",
-                        r -> r.path("/care/**")
-                                .filters(f -> f.stripPrefix(1))
-                                .uri("lb://care"))
-
-                // ✅ APPOINTMENTS microservice
-                // /appointments/** -> APPOINTMENT-SERVICE
-                // rewritePath to /api/appointments/** (si ton service expose /api/appointments)
-                .route("appointments",
-                        r -> r.path( "/appointments/**")
+                // ===== APPOINTMENTS : /appointments/** -> lb://APPOINTMENT-SERVICE with RewritePath to /api/appointments/**
+                .route("appointment-service",
+                        r -> r.path("/appointments/**")
                                 .filters(f -> f.stripPrefix(1))
                                 .uri("lb://APPOINTMENT-SERVICE"))
 
+                .route("care",
+                        r->r.path("/care/**")
+                                .filters(f -> f.stripPrefix(1))
+                                .uri("lb://care"))
                 .route("monitoring",
-                        r -> r.path("/monitoring/**")
+                        r->r.path("/monitoring/**")
                                 .filters(f -> f.stripPrefix(1))
                                 .uri("lb://monitoring"))
-
                 .build();
     }
 }

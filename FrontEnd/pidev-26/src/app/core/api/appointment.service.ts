@@ -29,7 +29,7 @@ export class AppointmentApiService {
     }
 
     getById(id: number): Observable<Appointment> {
-        return this.http.get<Appointment>(`${this.baseUrl}/appointments/${id}`);
+        return this.http.get<Appointment>(`${this.baseUrl}/${id}`);
     }
 
     create(body: Appointment): Observable<Appointment> {
@@ -37,10 +37,10 @@ export class AppointmentApiService {
     }
 
     update(id: number, body: Appointment): Observable<Appointment> {
-        return this.http.put<Appointment>(`${this.baseUrl}/appointments/${id}`, body);
+        return this.http.put<Appointment>(`${this.baseUrl}/${id}`, body);
     }
 
     delete(id: number): Observable<void> {
-        return this.http.delete<void>(`${this.baseUrl}/appointments/${id}`);
+        return this.http.delete<void>(`${this.baseUrl}/${id}`);
     }
 }

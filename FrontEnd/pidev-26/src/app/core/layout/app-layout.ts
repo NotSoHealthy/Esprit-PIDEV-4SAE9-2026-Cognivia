@@ -37,6 +37,7 @@ export class AppLayout implements OnInit {
   private readonly keycloak = inject(KeycloakService);
   private readonly currentUser = inject(CurrentUserService);
 
+  // ✅ Sidebar menu: ONLY 3 buttons
   public readonly routes = [
     {
       link: '/dashboard',
@@ -45,37 +46,17 @@ export class AppLayout implements OnInit {
       roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_PATIENT', 'ROLE_ADMIN', 'ROLE_PHARMACY'],
     },
     {
-      link: '/patient-management',
-      label: 'Patient Management',
-      icon: 'check',
-      roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_PATIENT', 'ROLE_ADMIN'],
-    },
-    {
       link: '/tasks',
       label: 'Tasks',
       icon: 'check',
       roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_PATIENT', 'ROLE_ADMIN'],
     },
-
-    // ✅ AJOUT ICI
     {
       link: '/appointments',
       label: 'Appointments',
       icon: 'calendar',
-      roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_PATIENT', 'ROLE_ADMIN'],
-    },
-
-    {
-      link: '/patients',
-      label: 'Patients',
-      icon: 'user-add',
+      // ✅ Patient removed if you want only doctor/caregiver/admin
       roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'],
-    },
-    {
-      link: '/caregivers',
-      label: 'Caregivers',
-      icon: 'user',
-      roles: ['ROLE_DOCTOR', 'ROLE_ADMIN'],
     },
   ];
 

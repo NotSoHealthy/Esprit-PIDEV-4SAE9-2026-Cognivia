@@ -11,7 +11,7 @@ export class TaskService {
   private apiBase = inject(API_BASE_URL);
 
   private url(path = ''): string {
-    // Gateway routes care service under /care/** so call via gateway: /care/tasks
+    // Gateway routes care service under /care/** so call via gateway: /care/api/tasks
     return `${this.apiBase}/care/tasks${path}`;
   }
 

@@ -15,7 +15,12 @@ public class Appointment {
     private Long patientId;
     private Long doctorId;
 
+    @Column(name = "appointment_date")
     private OffsetDateTime appointmentDate;
+
+    // ✅ NEW: duration (minutes). Default 60.
+    @Column(name = "duration_minutes")
+    private Integer durationMinutes = 60;
 
     @Enumerated(EnumType.STRING)
     private AppointmentStatus status;
@@ -24,33 +29,71 @@ public class Appointment {
 
     // ===== GETTERS =====
 
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
 
-    public Long getCaregiverId() { return caregiverId; }
+    public Long getCaregiverId() {
+        return caregiverId;
+    }
 
-    public Long getPatientId() { return patientId; }
+    public Long getPatientId() {
+        return patientId;
+    }
 
-    public Long getDoctorId() { return doctorId; }
+    public Long getDoctorId() {
+        return doctorId;
+    }
 
-    public OffsetDateTime getAppointmentDate() { return appointmentDate; }
+    public OffsetDateTime getAppointmentDate() {
+        return appointmentDate;
+    }
 
-    public AppointmentStatus getStatus() { return status; }
+    // ✅ NEW
+    public Integer getDurationMinutes() {
+        return durationMinutes;
+    }
 
-    public String getNotes() { return notes; }
+    public AppointmentStatus getStatus() {
+        return status;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
 
     // ===== SETTERS =====
 
-    public void setId(Long id) { this.id = id; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public void setCaregiverId(Long caregiverId) { this.caregiverId = caregiverId; }
+    public void setCaregiverId(Long caregiverId) {
+        this.caregiverId = caregiverId;
+    }
 
-    public void setPatientId(Long patientId) { this.patientId = patientId; }
+    public void setPatientId(Long patientId) {
+        this.patientId = patientId;
+    }
 
-    public void setDoctorId(Long doctorId) { this.doctorId = doctorId; }
+    public void setDoctorId(Long doctorId) {
+        this.doctorId = doctorId;
+    }
 
-    public void setAppointmentDate(OffsetDateTime appointmentDate) { this.appointmentDate = appointmentDate; }
+    public void setAppointmentDate(OffsetDateTime appointmentDate) {
+        this.appointmentDate = appointmentDate;
+    }
 
-    public void setStatus(AppointmentStatus status) { this.status = status; }
+    // ✅ NEW
+    public void setDurationMinutes(Integer durationMinutes) {
+        this.durationMinutes = durationMinutes;
+    }
 
-    public void setNotes(String notes) { this.notes = notes; }
+    public void setStatus(AppointmentStatus status) {
+        this.status = status;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
 }
