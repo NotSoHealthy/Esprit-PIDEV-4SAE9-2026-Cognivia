@@ -26,10 +26,6 @@ public class VisitReportController {
     public VisitReport getVisitReportByVisitId(@PathVariable Long visitId) {
         return visitReportService.getByVisitId(visitId);
     }
-    @GetMapping("/patient/{patientId}")
-    public List<VisitReport> getVisitReportsByPatientId(@PathVariable Long patientId) {
-        return visitReportService.getAllByPatientId(patientId);
-    }
 
     @PostMapping
     public VisitReport createVisitReport(@RequestBody VisitReport visitReport) {

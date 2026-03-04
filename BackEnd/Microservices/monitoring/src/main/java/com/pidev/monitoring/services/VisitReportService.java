@@ -48,8 +48,4 @@ public class VisitReportService implements IService<VisitReport> {
     public VisitReport getByVisitId(Long visitId) {
         return visitReportRepository.findByVisitId(visitId).orElse(null);
     }
-
-    public List<VisitReport> getAllByPatientId(Long patientId) {
-        return visitReportRepository.findAllByPatientIdOrderByCreatedAt(patientId);
-    }
 }

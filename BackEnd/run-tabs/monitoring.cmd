@@ -1,7 +1,7 @@
 @echo off
 title monitoring
-echo [monitoring] cd "C:\Users\souha\OneDrive\Bureau\PIDEV-26\BackEnd\Microservices\monitoring"
-pushd "C:\Users\souha\OneDrive\Bureau\PIDEV-26\BackEnd\Microservices\monitoring" || (echo Failed to cd to "C:\Users\souha\OneDrive\Bureau\PIDEV-26\BackEnd\Microservices\monitoring" & pause & exit /b 1)
+echo [monitoring] cd "D:\Files\Uni\PIDEV 26\PIDEV-26\BackEnd\Microservices\monitoring"
+pushd "D:\Files\Uni\PIDEV 26\PIDEV-26\BackEnd\Microservices\monitoring" || (echo Failed to cd to "D:\Files\Uni\PIDEV 26\PIDEV-26\BackEnd\Microservices\monitoring" & pause & exit /b 1)
 timeout /t 7 /nobreak >nul
 mvn -q spring-boot:run
 echo.

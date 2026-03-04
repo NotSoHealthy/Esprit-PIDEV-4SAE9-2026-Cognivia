@@ -10,6 +10,4 @@ import java.util.Optional;
 @Repository
 public interface VisitReportRepository extends JpaRepository<VisitReport, Long> {
     Optional<VisitReport> findByVisitId(Long visitId);
-
-    List<VisitReport> findAllByPatientIdOrderByCreatedAt(Long patientId);
 }
