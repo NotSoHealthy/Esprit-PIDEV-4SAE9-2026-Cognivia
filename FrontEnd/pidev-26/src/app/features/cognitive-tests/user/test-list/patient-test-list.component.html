@@ -1,0 +1,61 @@
+<div class="user-container">
+  <div class="header">
+    <h1>My Cognitive Assessments</h1>
+    <p class="subtitle">Tests assigned to you by your doctor</p>
+  </div>
+
+  <!-- Loading state -->
+  @if (loading) {
+  <div class="empty-state glass">
+    <p>⏳ Loading your tests...</p>
+  </div>
+  }
+
+  <!-- Error state -->
+  @if (!loading && error) {
+  <div class="empty-state glass error-state">
+    <p>⚠️ {{ error }}</p>
+  </div>
+  }
+
+  <!-- Tests grid -->
+  @if (!loading && !error) {
+  <div class="test-grid">
+    @for (assignment of assignments; track assignment.id) {
+    <div class="test-card glass">
+      <div class="card-content">
+        <div class="card-top">
+          <h3>{{ assignment.test?.title || 'Cognitive Test' }}</h3>
+          <span class="badge {{ getSeverityBadgeClass(assignment) }}">
+            @if (assignment.assignmentType === 'TARGETED') {
+            🎯 For You
+            } @else {
+            🌐 {{ assignment.targetSeverity }}
+            }
+          </span>
+        </div>
+        <p>{{ assignment.test?.description || 'Complete this assessment.' }}</p>
+        @if (assignment.dueAt) {
+        <p class="due-date">📅 Due: {{ assignment.dueAt | date:'medium' }}</p>
+        }
+      </div>
+      <div class="card-footer">
+        <span class="info">
+          {{ assignment.test?.questions?.length || 0 }} Questions
+        </span>
+        <button class="btn btn-primary" [routerLink]="['/user/tests/take', assignment.test?.id]"
+          [queryParams]="{ assignmentId: assignment.id, patientId: patientId }">
+          Start Assessment
+        </button>
+      </div>
+    </div>
+    }
+  </div>
+
+  @if (assignments.length === 0) {
+  <div class="empty-state glass">
+    <p>📋 No tests assigned to you at the moment. Your doctor will assign tests when needed.</p>
+  </div>
+  }
+  }
+</div>

@@ -1,5 +1,6 @@
 package com.pidev.care.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,6 +21,7 @@ public class PatientDoctorAssignment {
     private Instant createdAt;
     private Boolean active;
     @ManyToOne
+    @JsonIgnore
     private Doctor doctor;
     @ManyToOne
     private Patient patient;

@@ -18,3 +18,4 @@ services:
       KC_HOSTNAME_STRICT_HTTPS: "false"
     volumes:
       - ./realm-export.json:/opt/keycloak/data/import/realm.json
+      - ./themes:/opt/keycloak/themes

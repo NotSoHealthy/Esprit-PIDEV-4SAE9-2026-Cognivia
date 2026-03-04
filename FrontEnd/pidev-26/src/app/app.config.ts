@@ -3,8 +3,11 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './core/auth/auth.interceptor';
+import { provideTranslateService, TranslateLoader } from '@ngx-translate/core';
+import { TranslateHttpLoader, provideTranslateHttpLoader } from '@ngx-translate/http-loader';
+
 import { API_BASE_URL } from './core/api/api.tokens';
 import { environment } from '../environments/environment';
 import { provideNzIcons } from 'ng-zorro-antd/icon';
@@ -15,17 +18,12 @@ import {
   BellOutline,
   UpOutline,
   DownOutline,
-  PlusOutline,
   LikeOutline,
   DislikeOutline,
   LikeFill,
   DislikeFill,
   MessageOutline,
   ArrowRightOutline,
-  ArrowLeftOutline,
-  ClockCircleOutline,
-  DeleteOutline,
-  EditOutline,
   PushpinOutline,
   PushpinFill,
   HeartOutline,
@@ -36,11 +34,10 @@ import {
   BulbFill,
   FrownOutline,
   FrownFill,
-  AlertOutline,
+
   AlertFill,
   MoreOutline,
-  WarningOutline,
-  CheckCircleOutline,
+
   CheckCircleFill,
   ProfileOutline,
   SettingOutline,
@@ -53,7 +50,6 @@ import {
   MailOutline,
   TeamOutline,
   ReloadOutline,
-  LineChartOutline,
   CloseCircleOutline,
   ExperimentOutline,
   MedicineBoxOutline,
@@ -64,8 +60,30 @@ import {
   UndoOutline,
   TwitterOutline,
   WhatsAppOutline,
-  RobotOutline,
   RobotFill,
+  FormOutline,
+  HistoryOutline,
+  PlusOutline,
+  AlertOutline,
+  CheckCircleOutline,
+  InfoCircleOutline,
+  RightOutline,
+  ToolOutline,
+  SearchOutline,
+  EditOutline,
+  DeleteOutline,
+  InboxOutline,
+  BookOutline,
+  DownloadOutline,
+  ArrowLeftOutline,
+  PlayCircleOutline,
+  LineChartOutline,
+  MinusOutline,
+  WarningOutline,
+  FileSearchOutline,
+  CalendarOutline,
+  ClockCircleOutline,
+  RobotOutline,
 } from '@ant-design/icons-angular/icons';
 
 export const appConfig: ApplicationConfig = {
@@ -136,6 +154,40 @@ export const appConfig: ApplicationConfig = {
       WhatsAppOutline,
       RobotOutline,
       RobotFill,
+      FormOutline,
+      HistoryOutline,
+      PlusOutline,
+      AlertOutline,
+      CheckCircleOutline,
+      InfoCircleOutline,
+      RightOutline,
+      ToolOutline,
+      SearchOutline,
+      EditOutline,
+      DeleteOutline,
+      InboxOutline,
+      BookOutline,
+      DownloadOutline,
+      ArrowLeftOutline,
+      PlayCircleOutline,
+      LineChartOutline,
+      MinusOutline,
+      WarningOutline,
+      FileSearchOutline,
+      CalendarOutline,
+      ClockCircleOutline,
+      RobotOutline,
     ]),
+    provideTranslateService({
+      defaultLanguage: 'en',
+      loader: {
+        provide: TranslateLoader,
+        useClass: TranslateHttpLoader,
+      },
+    }),
+    provideTranslateHttpLoader({
+      prefix: '/i18n/',
+      suffix: '.json',
+    }),
   ],
 };

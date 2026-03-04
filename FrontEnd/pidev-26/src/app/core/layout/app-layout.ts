@@ -15,6 +15,8 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { CurrentUserService } from '../user/current-user.service';
+import { StreakService } from '../../features/games/streak.service';
+import { StreakFlameComponent } from '../../shared/components/streak-flame/streak-flame.component';
 
 @Component({
   selector: 'app-layout',
@@ -26,6 +28,7 @@ import { CurrentUserService } from '../user/current-user.service';
     NzIconModule,
     NzDropdownModule,
     NzMenuModule,
+    StreakFlameComponent
   ],
   templateUrl: './app-layout.html',
   styleUrl: './app-layout.css',
@@ -36,6 +39,7 @@ export class AppLayout implements OnInit {
   private readonly activeRoute = inject(ActivatedRoute);
   private readonly keycloak = inject(KeycloakService);
   private readonly currentUser = inject(CurrentUserService);
+  private readonly streakService = inject(StreakService);
   public readonly routes = [
     {
       link: '/dashboard',
@@ -50,9 +54,27 @@ export class AppLayout implements OnInit {
       roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'],
     },
     {
-      link: '/caregivers',
-      label: 'Caregivers',
-      icon: 'user',
+      link: '/admin/tests',
+      label: 'Tests',
+      icon: 'form',
+      roles: ['ROLE_DOCTOR', 'ROLE_ADMIN'],
+    },
+    {
+      link: '/user/tests',
+      label: 'Tests',
+      icon: 'form',
+      roles: ['ROLE_PATIENT'],
+    },
+    {
+      link: '/user/games/memory',
+      label: 'Cognitive Games',
+      icon: 'play-circle',
+      roles: ['ROLE_PATIENT'],
+    },
+    {
+      link: '/doctor/risk-assessment',
+      label: 'Risk Intelligence',
+      icon: 'line-chart',
       roles: ['ROLE_DOCTOR', 'ROLE_ADMIN'],
     },
     {
@@ -75,17 +97,29 @@ export class AppLayout implements OnInit {
     },
   ];
   currentRouteLabel = '';
+  streakCount = 0;
   ngOnInit(): void {
     this.updateCurrentRouteLabel();
 
     this.router.events
       .pipe(
-        filter((event) => event instanceof NavigationEnd),
+        filter((event: any) => event instanceof NavigationEnd),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => this.updateCurrentRouteLabel());
 
-    console.log('User Roles:', this.keycloak.getUserRole());
+    if (this.userRole === 'ROLE_PATIENT') {
+      this.fetchStreak();
+    }
+  }
+
+  private fetchStreak(): void {
+    const patientId = this.keycloak.getUserId();
+    if (patientId) {
+      this.streakService.getStreak(patientId).subscribe(s => {
+        this.streakCount = s.currentStreak;
+      });
+    }
   }
 
   private getDeepestActiveRoute(route: ActivatedRoute): ActivatedRoute {

@@ -1,1 +1,186 @@
-<p>doctor works!</p>
+<div class="p-8 bg-slate-50 min-h-screen">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-10">
+    <div>
+      <h1 class="text-3xl font-black text-slate-900 tracking-tight">Clinical Dashboard</h1>
+      <p class="text-slate-500 text-lg font-medium">Cognitive Risk Monitoring & Analysis</p>
+    </div>
+    <div class="bg-white px-6 py-3 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
+      <nz-icon nzType="calendar" class="text-indigo-500 text-xl" />
+      <span class="text-base font-bold text-slate-700">{{ today | date:'MMMM d, y' }}</span>
+    </div>
+  </div>
+
+  <!-- Stats Indicators (1 Line) -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+    <div class="bg-white p-7 rounded-3xl border border-slate-200 shadow-sm transition-transform hover:scale-[1.02]">
+      <div class="flex items-center gap-5">
+        <div class="w-14 h-14 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center">
+          <nz-icon nzType="alert" class="text-3xl" />
+        </div>
+        <div>
+          <p class="text-xs font-black text-slate-400 uppercase tracking-[0.15em] mb-1">High Risk</p>
+          <p class="text-3xl font-black text-slate-900">{{ highRiskCount }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white p-7 rounded-3xl border border-slate-200 shadow-sm transition-transform hover:scale-[1.02]">
+      <div class="flex items-center gap-5">
+        <div class="w-14 h-14 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center">
+          <nz-icon nzType="check-circle" class="text-3xl" />
+        </div>
+        <div>
+          <p class="text-xs font-black text-slate-400 uppercase tracking-[0.15em] mb-1">Tests Today</p>
+          <p class="text-3xl font-black text-slate-900">{{ totalTestsToday }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white p-7 rounded-3xl border border-slate-200 shadow-sm transition-transform hover:scale-[1.02]">
+      <div class="flex items-center gap-5">
+        <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center">
+          <nz-icon nzType="user" class="text-3xl" />
+        </div>
+        <div>
+          <p class="text-xs font-black text-slate-400 uppercase tracking-[0.15em] mb-1">Patients</p>
+          <p class="text-3xl font-black text-slate-900">{{ totalPatients }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white p-7 rounded-3xl border border-slate-200 shadow-sm transition-transform hover:scale-[1.02]">
+      <div class="flex items-center gap-5">
+        <div class="w-14 h-14 rounded-2xl bg-orange-50 text-orange-500 flex items-center justify-center">
+          <nz-icon nzType="warning" class="text-3xl" />
+        </div>
+        <div>
+          <p class="text-xs font-black text-slate-400 uppercase tracking-[0.15em] mb-1">AI Flags</p>
+          <p class="text-3xl font-black text-slate-900">{{ clinicalFlagCount }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+    <!-- Patient List -->
+    <div class="lg:col-span-2 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <h2 class="text-xl font-black text-slate-800 tracking-tight">Patient Monitoring List</h2>
+        <span
+          class="px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-500 uppercase tracking-widest">Live
+          Updates</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead class="bg-slate-50/80 border-b border-slate-100">
+            <tr>
+              <th class="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Patient</th>
+              <th class="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Risk Analysis</th>
+              <th class="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Current Status</th>
+              <th class="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr *ngFor="let p of filteredPatients" class="hover:bg-indigo-50/30 transition-colors group">
+              <td class="px-8 py-6">
+                <div class="flex items-center gap-4">
+                  <div
+                    class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm font-black border border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                    {{p.firstName[0]}}{{p.lastName[0]}}
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-base font-black text-slate-900 tracking-tight">{{p.firstName}}
+                      {{p.lastName}}</span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">ID:
+                      #{{p.id}}</span>
+                  </div>
+                </div>
+              </td>
+              <td class="px-8 py-6">
+                <div class="flex flex-col gap-1">
+                  <div class="flex items-center gap-2">
+                    <span class="text-lg font-black tracking-tighter"
+                      [ngClass]="getRiskValueClass(p.currentRisk?.riskValue)">
+                      {{p.currentRisk?.riskValue ?? 0}}%
+                    </span>
+                    <nz-icon *ngIf="p.currentRisk?.externalGameDataUsed" nzType="robot"
+                      class="text-indigo-500 text-sm" />
+                  </div>
+                  <div *ngIf="p.currentRisk?.slopeValue" class="flex items-center gap-1">
+                    <nz-icon [nzType]="getSlopeIcon(p.currentRisk.slopeValue)"
+                      [ngClass]="getSlopeClass(p.currentRisk.slopeValue)" class="text-[10px]" />
+                    <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Trend Analysis</span>
+                  </div>
+                </div>
+              </td>
+              <td class="px-8 py-6">
+                <span class="px-4 py-1.5 rounded-xl text-xs font-black uppercase text-white shadow-sm inline-block"
+                  [ngClass]="getRiskBadgeClass(p.currentRisk?.riskLevel)">
+                  {{p.currentRisk?.riskLevel ?? 'INITIAL'}}
+                </span>
+              </td>
+              <td class="px-8 py-6">
+                <div class="flex flex-col">
+                  <span class="text-sm font-black text-slate-900 tracking-tight">{{p.currentRisk?.generatedAt |
+                    date:'mediumDate'}}</span>
+                  <span
+                    class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{{p.currentRisk?.generatedAt
+                    | date:'shortTime'}}</span>
+                </div>
+              </td>
+              <td class="px-8 py-6 text-right">
+                <button (click)="downloadReport(p.id)"
+                  class="p-3 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-600 hover:bg-indigo-50 transition-all shadow-sm group/btn"
+                  title="Generate Clinical Report">
+                  <nz-icon nzType="download" class="text-lg" />
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Sidebar Activity -->
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col min-h-[600px] overflow-hidden">
+      <div class="p-8 border-b border-slate-100 bg-slate-50/30">
+        <h2 class="text-xl font-black text-slate-800 tracking-tight mb-6">Latest Feed</h2>
+      </div>
+      <div class="flex-1 overflow-auto p-6 space-y-4">
+        <div *ngFor="let risk of recentRisks"
+          class="p-5 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-indigo-200 hover:bg-indigo-50/30 transition-all"
+          [class.border-l-4]="risk.clinicalFlag" [class.border-l-orange-500]="risk.clinicalFlag">
+          <div class="flex justify-between items-start mb-3">
+            <div class="flex flex-col">
+              <span class="text-xs font-black text-slate-900 tracking-tight">Patient #{{risk.patientId}}</span>
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{risk.generatedAt |
+                date:'shortTime'}}</span>
+            </div>
+            <nz-icon *ngIf="risk.clinicalFlag" nzType="warning" class="text-orange-500 text-lg animate-pulse" />
+          </div>
+          <div class="flex justify-between items-end">
+            <div class="flex flex-col">
+              <span class="text-xl font-black tracking-tighter"
+                [ngClass]="getRiskValueClass(risk.riskValue)">{{risk.riskValue}}%</span>
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{risk.riskLevel}}
+                RISK</span>
+            </div>
+            <div class="flex items-center gap-2 px-3 py-1 bg-white rounded-lg border border-slate-100"
+              [ngClass]="getSlopeClass(risk.slopeValue)">
+              <nz-icon [nzType]="getSlopeIcon(risk.slopeValue)" class="text-xs" />
+              <span class="text-xs font-black tracking-tighter">{{risk.slopeValue}}</span>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="recentRisks.length === 0" class="h-full flex flex-col items-center justify-center py-24 space-y-3">
+          <div class="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-200">
+            <nz-icon nzType="inbox" class="text-4xl" />
+          </div>
+          <p class="text-slate-400 font-bold italic tracking-tight">No alerts recorded today</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

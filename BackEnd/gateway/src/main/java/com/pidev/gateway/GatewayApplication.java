@@ -46,6 +46,10 @@ public class GatewayApplication {
                                 .route("chat",
                                                 r -> r.path("/chat/**")
                                                                 .uri("lb://DPCHAT"))
+                                .route("games",
+                                                r -> r.path("/games/**")
+                                                                .filters(f -> f.stripPrefix(1))
+                                                                .uri("lb://games"))
                                 .build();
         }
 }

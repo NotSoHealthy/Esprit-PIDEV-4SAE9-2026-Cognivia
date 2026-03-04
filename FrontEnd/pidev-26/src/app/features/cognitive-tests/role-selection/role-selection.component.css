@@ -1,0 +1,109 @@
+.role-container {
+    min-height: calc(100vh - 80px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    gap: 3rem;
+    background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.1), transparent),
+        radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.1), transparent);
+}
+
+.header-section {
+    text-align: center;
+    padding: 2.5rem 4rem;
+    animation: fadeInDown 0.8s ease-out;
+}
+
+.header-section h1 {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.roles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2.5rem;
+    width: 100%;
+    max-width: 900px;
+}
+
+.role-card {
+    padding: 3rem 2rem;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    animation: fadeInUp 0.8s ease-out;
+    cursor: pointer;
+}
+
+.role-card:hover {
+    transform: translateY(-10px);
+    border-color: var(--primary-color);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.role-card .icon {
+    font-size: 4.5rem;
+    margin-bottom: 1rem;
+}
+
+.role-card h2 {
+    font-size: 2rem;
+    color: #fff;
+}
+
+.role-card p {
+    color: #94a3b8;
+    line-height: 1.6;
+}
+
+.role-card button {
+    margin-top: auto;
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+    pointer-events: none;
+    /* Clicking the card triggers navigation */
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 640px) {
+    .header-section h1 {
+        font-size: 2.2rem;
+    }
+
+    .roles-grid {
+        grid-template-columns: 1fr;
+    }
+}

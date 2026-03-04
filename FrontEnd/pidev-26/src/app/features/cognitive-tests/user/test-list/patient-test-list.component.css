@@ -1,0 +1,168 @@
+.user-container {
+    padding: 1rem;
+}
+
+.header {
+    margin-bottom: 2rem;
+}
+
+.header h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #4D5CAB;
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    color: #666;
+    font-size: 1rem;
+}
+
+.test-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+}
+
+.test-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 2rem;
+    height: 100%;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: white;
+    border: 1px solid rgba(77, 92, 171, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.test-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 40px rgba(77, 92, 171, 0.15);
+}
+
+.card-content h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #4D5CAB;
+    margin-bottom: 0.75rem;
+}
+
+.card-content p {
+    color: #4b5563;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 1.5rem;
+    border-top: 1px solid #F2F6FE;
+}
+
+.info {
+    font-size: 0.85rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: #4D5CAB;
+    color: white;
+    box-shadow: 0 4px 12px rgba(77, 92, 171, 0.2);
+}
+
+.btn-primary:hover {
+    background: #3d498a;
+    transform: scale(1.02);
+    box-shadow: 0 6px 16px rgba(77, 92, 171, 0.3);
+}
+
+.glass {
+    background: white;
+    border: 1px solid rgba(77, 92, 171, 0.1);
+    border-radius: 20px;
+}
+
+.empty-state {
+    padding: 4rem;
+    text-align: center;
+    color: #6b7280;
+    background: white;
+    border-radius: 20px;
+    border: 1px dashed #B4BEF0;
+    grid-column: 1 / -1;
+}
+
+.error-state {
+    color: #ef4444;
+}
+
+/* Card top row: title + badge side by side */
+.card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.card-top h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+/* Assignment type / severity badge */
+.badge {
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.25rem 0.65rem;
+    border-radius: 12px;
+    white-space: nowrap;
+}
+
+.badge-targeted {
+    background: #e0e7ff;
+    color: #4338ca;
+}
+
+.badge-sev-low {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.badge-sev-medium {
+    background: #fef9c3;
+    color: #92400e;
+}
+
+.badge-sev-high {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-sev-extreme {
+    background: #f3e8ff;
+    color: #6b21a8;
+}
+
+.due-date {
+    font-size: 0.82rem;
+    color: #888;
+    margin-top: -0.5rem;
+}
