@@ -11,7 +11,7 @@ import { API_BASE_URL } from '../../api/api.tokens';
 export class CognitiveTestService {
   private readonly apiUrl = inject(API_BASE_URL) + '/monitoring/tests';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAllTests(): Observable<CognitiveTest[]> {
     return this.http.get<CognitiveTest[]>(this.apiUrl);
@@ -38,7 +38,8 @@ export class CognitiveTestService {
   }
 
   downloadMLData(): Observable<Blob> {
-    return this.http.get(`${API_BASE_URL}/monitoring/export/ml-data`, {
+    const base = this.apiUrl.replace('/monitoring/tests', '');
+    return this.http.get(`${base}/monitoring/export/ml-data`, {
       responseType: 'blob',
     });
   }

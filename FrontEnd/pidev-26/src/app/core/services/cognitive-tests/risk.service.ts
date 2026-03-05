@@ -10,21 +10,21 @@ import { API_BASE_URL } from '../../api/api.tokens';
 export class RiskScoreService {
   private readonly apiUrl = inject(API_BASE_URL);
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAllRisks(): Observable<RiskScore[]> {
     return this.http.get<RiskScore[]>(`${this.apiUrl}/monitoring/risk`);
   }
 
   getRisksByPatient(patientId: number): Observable<RiskScore[]> {
-    return this.http.get<RiskScore[]>(`${API_BASE_URL}/monitoring/risk/by-patient/${patientId}`);
+    return this.http.get<RiskScore[]>(`${this.apiUrl}/monitoring/risk/by-patient/${patientId}`);
   }
 
   createRisk(risk: RiskScore): Observable<RiskScore> {
-    return this.http.post<RiskScore>(`${API_BASE_URL}/monitoring/risk`, risk);
+    return this.http.post<RiskScore>(`${this.apiUrl}/monitoring/risk`, risk);
   }
 
   deleteRisk(id: number): Observable<void> {
-    return this.http.delete<void>(`${API_BASE_URL}/monitoring/risk/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/monitoring/risk/${id}`);
   }
 }

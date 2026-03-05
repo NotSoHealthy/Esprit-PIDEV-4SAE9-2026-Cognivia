@@ -7,16 +7,6 @@
 
         <form id="kc-register-form" action="${url.registrationAction}" method="post">
             <div class="form-group">
-                <input type="text" id="firstName" name="firstName" value="${(register.formData.firstName!'')}"
-                       placeholder="${msg("customFirstName")}" autocomplete="given-name" />
-            </div>
-
-            <div class="form-group">
-                <input type="text" id="lastName" name="lastName" value="${(register.formData.lastName!'')}"
-                       placeholder="${msg("customLastName")}" autocomplete="family-name" />
-            </div>
-
-            <div class="form-group">
                 <input type="text" id="email" name="email" value="${(register.formData.email!'')}"
                        placeholder="${msg("customEmail")}" autocomplete="email" />
             </div>
@@ -34,16 +24,16 @@
             </#if>
 
             <div class="form-group">
-                <input type="tel" id="user.attributes.phoneNumber" name="user.attributes.phoneNumber" value="${(register.formData['user.attributes.phoneNumber']!'')}"
+                <input type="tel" id="user.attributes.phone_number" name="user.attributes.phone_number" value="${(register.formData['user.attributes.phone_number']!'')}"
                        placeholder="${msg("customPhone")}" autocomplete="tel" />
             </div>
 
             <div class="form-group">
-                <select id="user.attributes.role" name="user.attributes.role" class="kc-select">
-                    <option value="" disabled <#if !(register.formData['user.attributes.role']?has_content)>selected</#if>>${msg("customRole")}</option>
-                    <option value="doctor" <#if (register.formData['user.attributes.role']!'') == 'doctor'>selected</#if>>${msg("customRoleDoctor")}</option>
-                    <option value="caregiver" <#if (register.formData['user.attributes.role']!'') == 'caregiver'>selected</#if>>${msg("customRoleCaregiver")}</option>
-                    <option value="patient" <#if (register.formData['user.attributes.role']!'') == 'patient'>selected</#if>>${msg("customRolePatient")}</option>
+                <select id="user.attributes.user_type" name="user.attributes.user_type" class="kc-select">
+                    <option value="" disabled <#if !(register.formData['user.attributes.user_type']?has_content)>selected</#if>>${msg("customRole")}</option>
+                    <option value="doctor" <#if (register.formData['user.attributes.user_type']!'') == 'doctor'>selected</#if>>${msg("customRoleDoctor")}</option>
+                    <option value="caregiver" <#if (register.formData['user.attributes.user_type']!'') == 'caregiver'>selected</#if>>${msg("customRoleCaregiver")}</option>
+                    <option value="patient" <#if (register.formData['user.attributes.user_type']!'') == 'patient'>selected</#if>>${msg("customRolePatient")}</option>
                 </select>
             </div>
 
