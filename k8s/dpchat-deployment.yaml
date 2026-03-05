@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dpchat-config
+  namespace: pidev-deployment
+data:
+  PORT: "8086"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dpchat
+  namespace: pidev-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dpchat
+  template:
+    metadata:
+      labels:
+        app: dpchat
+    spec:
+      containers:
+        - name: dpchat
+          image: notsohealthy/pidev-dpchat:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8086
+          envFrom:
+            - configMapRef:
+                name: dpchat-config
+            - configMapRef:
+                name: service-links
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dpchat
+  namespace: pidev-deployment
+  labels:
+    app: dpchat
+spec:
+  selector:
+    app: dpchat
+  ports:
+    - name: http
+      port: 8086
+      targetPort: 8086
