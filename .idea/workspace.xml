@@ -25,7 +25,8 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "forum",
+    "Spring Boot.CareApplication.executor": "Run",
+    "git-widget-placeholder": "design",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/yahya/Desktop/PIDEV-26",
     "node.js.detected.package.eslint": "true",
@@ -89,6 +90,7 @@
       <updated>1771440121761</updated>
       <workItem from="1771440122859" duration="714000" />
       <workItem from="1771486819355" duration="510000" />
+      <workItem from="1772663111757" duration="120000" />
     </task>
     <servers />
   </component>

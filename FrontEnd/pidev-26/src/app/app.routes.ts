@@ -26,11 +26,6 @@ export const routes: Routes = [
           import('./features/dashboard/dashboard.page').then((m) => m.DashboardPage),
       },
       {
-        path: 'profile',
-        title: 'Profile',
-        loadComponent: () => import('./features/profile/profile').then((m) => m.Profile),
-      },
-      {
         path: 'posts',
         canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
         loadComponent: () =>
@@ -212,6 +207,18 @@ export const routes: Routes = [
           ),
       },
     ],
+  },
+  {
+    path: 'profile',
+    title: 'Profile',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/profile/patient/patient').then((m) => m.Patient),
+  },
+  {
+    path: 'welcome',
+    title: 'Welcome',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/welcome/welcome').then((m) => m.WelcomeComponent),
   },
   {
     path: '',

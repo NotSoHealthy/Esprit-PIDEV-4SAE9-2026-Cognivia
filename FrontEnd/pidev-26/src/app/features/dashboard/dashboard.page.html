@@ -1,7 +1,3 @@
-<ng-container *ngIf="dashboardComponent; else noRole">
+<ng-container *ngIf="dashboardComponent">
     <ng-container *ngComponentOutlet="dashboardComponent"></ng-container>
 </ng-container>
-
-<ng-template #noRole>
-    <p>No dashboard available for your role.</p>
-</ng-template>

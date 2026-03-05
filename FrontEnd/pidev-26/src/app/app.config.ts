@@ -21,7 +21,7 @@ import {
   BellOutline,
   UpOutline,
   DownOutline,
- 
+
   ClearOutline,
   PlusCircleOutline,
   CalendarOutline,
@@ -221,10 +221,6 @@ export const appConfig: ApplicationConfig = {
     importProvidersFrom(NzModalModule),
     provideTranslateService({
       defaultLanguage: 'en',
-      loader: {
-        provide: TranslateLoader,
-        useClass: TranslateHttpLoader,
-      },
     }),
     provideTranslateHttpLoader({
       prefix: '/i18n/',

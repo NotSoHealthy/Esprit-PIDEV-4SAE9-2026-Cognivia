@@ -1,0 +1,171 @@
+<div class="h-screen bg-white flex flex-col items-center p-4 relative overflow-hidden font-sans select-none">
+
+    <!-- Progress Bar (Steps 2 to 5) -->
+    <div class="w-full max-w-4xl flex items-center gap-4 mt-4 mb-8 px-4 transition-all duration-500"
+        [ngClass]="{ 'opacity-0 -translate-y-10 pointer-events-none': step() < 2 || step() === 6, 'opacity-100 translate-y-0': step() >= 2 && step() < 6 }">
+        <button (click)="goBack()" class="text-[#afafaf] hover:text-[#3c3c3c] transition-colors p-2">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path>
+            </svg>
+        </button>
+        <div class="flex-1 h-3 bg-[#e5e5e5] rounded-full overflow-hidden">
+            <div class="h-full bg-cognivia-blue transition-all duration-700 ease-out rounded-full shadow-[0_0_10px_rgba(107,174,214,0.3)]"
+                [style.width.%]="progressWidth"></div>
+        </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="flex-1 w-full max-w-2xl flex flex-col relative pt-4">
+
+        <!-- Header Section (Character + Bubble) -->
+        <div *ngIf="step() < 6"
+            class="relative w-full transition-all duration-500 ease-in-out flex items-center shrink-0" [ngClass]="{
+        'flex-col-reverse justify-center h-[350px] text-center mb-4 px-6': step() < 2,
+        'flex-row justify-start mb-8 px-8': step() >= 2
+      }">
+            <!-- Logo Character -->
+            <div class="relative transition-all duration-500 ease-in-out shrink-0 mx-auto" [ngClass]="{
+          'w-48 h-48 scale-110 mt-6': step() < 2,
+          'w-20 h-20 mx-0': step() >= 2
+        }">
+                <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-4 bg-black/5 rounded-[100%] blur-sm transition-opacity duration-500"
+                    [ngClass]="{ 'opacity-100': step() < 2, 'opacity-0': step() >= 2 }"></div>
+
+                <img src="https://cdn.builder.io/api/v1/image/assets%2Fd3d69403f729419ab22b58accb7875b9%2F5eb51ac8abac42abb0f60299bf3d8fe2?format=webp&width=800&height=1200"
+                    alt="Cognivia Logo"
+                    class="w-full h-full object-contain relative z-10 animate-wiggle drop-shadow-xl" />
+            </div>
+
+            <!-- Speech Bubble -->
+            <div class="animate-bounce-subtle bg-white border-2 border-[#e5e5e5] rounded-[24px] px-8 py-5 relative shadow-sm max-w-sm transition-all duration-500 mx-auto"
+                [ngClass]="{ 'mb-4': step() < 2, 'ml-4 mx-0 px-6 py-4 rounded-xl': step() >= 2 }">
+                <p class="text-[#3c3c3c] font-black tracking-tight leading-tight transition-all duration-300 text-center"
+                    [ngClass]="{ 'text-2xl': step() < 2, 'text-lg': step() >= 2 }">
+                    {{ currentMessage }}
+                </p>
+
+                <div *ngIf="step() < 2"
+                    class="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-5 h-5 bg-white border-b-2 border-r-2 border-[#e5e5e5] rotate-45">
+                </div>
+
+                <div *ngIf="step() >= 2"
+                    class="absolute -left-2.5 top-1/2 -translate-y-1/2 w-5 h-5 bg-white border-b-2 border-l-2 border-[#e5e5e5] rotate-45">
+                </div>
+            </div>
+        </div>
+
+        <!-- Inputs Section -->
+        <div class="w-full max-w-md mx-auto relative min-h-[250px] flex items-center justify-center">
+
+            <!-- Step 2: Name Inputs -->
+            <div *ngIf="step() === 2" class="flex flex-col gap-4 animate-slide-up w-full">
+                <h2 class="text-xs font-black text-[#afafaf] mb-2 uppercase tracking-widest">Basic Info</h2>
+                <div class="space-y-3">
+                    <input type="text" [(ngModel)]="firstName" placeholder="First Name"
+                        class="w-full bg-[#f7f7f7] border-2 border-[#e5e5e5] rounded-xl px-5 py-3 outline-none focus:border-cognivia-blue focus:bg-white transition-all text-lg font-black text-[#3c3c3c] placeholder:text-[#afafaf]" />
+                    <input type="text" [(ngModel)]="lastName" placeholder="Last Name"
+                        class="w-full bg-[#f7f7f7] border-2 border-[#e5e5e5] rounded-xl px-5 py-3 outline-none focus:border-cognivia-blue focus:bg-white transition-all text-lg font-black text-[#3c3c3c] placeholder:text-[#afafaf]" />
+                </div>
+            </div>
+
+            <!-- Step 3: Draggable Age Spinner -->
+            <div *ngIf="step() === 3" class="w-full flex flex-col items-center animate-slide-up">
+                <div class="relative h-56 w-36 flex flex-col items-center justify-center overflow-hidden border-2 border-[#e5e5e5] rounded-[32px] bg-[#f7f7f7] shadow-inner ring-4 ring-cognivia-blue/5 touch-none"
+                    (mousedown)="startDragging($event)" (touchstart)="startDragging($event)">
+                    <div class="flex flex-col items-center gap-4 py-8 transition-transform duration-100 ease-out"
+                        [style.transform]="'translateY(' + dragOffset() + 'px)'">
+                        <div class="text-[#afafaf]/20 text-3xl font-black">{{ age - 2 }}</div>
+                        <div class="text-[#afafaf]/40 text-4xl font-black">{{ age - 1 }}</div>
+                        <div
+                            class="text-cognivia-blue text-6xl font-black py-3 border-y-4 border-cognivia-blue/10 w-full text-center bg-white shadow-sm transform scale-110">
+                            {{ age }}</div>
+                        <div class="text-[#afafaf]/40 text-4xl font-black">{{ age + 1 }}</div>
+                        <div class="text-[#afafaf]/20 text-3xl font-black">{{ age + 2 }}</div>
+                    </div>
+
+                    <div
+                        class="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-[#f7f7f7] to-transparent pointer-events-none">
+                    </div>
+                    <div
+                        class="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#f7f7f7] to-transparent pointer-events-none">
+                    </div>
+                </div>
+                <p class="text-[10px] font-black text-[#afafaf] uppercase tracking-widest mt-4">Drag up/down to scroll
+                    age</p>
+            </div>
+
+            <!-- Step 4: Gender Selection -->
+            <div *ngIf="step() === 4" class="w-full flex flex-col gap-3 animate-slide-up">
+                <button *ngFor="let option of genderOptions" (click)="selectGender(option.id)"
+                    [class]="getGenderButtonClass(option.id)"
+                    class="w-full border-2 rounded-xl p-4 flex items-center justify-between transition-all hover:bg-cognivia-blue/5 active:translate-y-1 active:shadow-none group cursor-pointer">
+                    <span class="text-lg font-black text-[#3c3c3c] group-hover:text-cognivia-blue transition-colors">{{
+                        option.label }}</span>
+                    <span class="text-2xl">{{ option.emoji }}</span>
+                </button>
+            </div>
+
+            <!-- Step 5: Notifications -->
+            <div *ngIf="step() === 5" class="w-full flex flex-col items-center justify-center animate-scale-in">
+                <div
+                    class="w-full max-w-sm bg-white border-2 border-[#e5e5e5] rounded-3xl p-8 shadow-xl relative overflow-hidden ring-4 ring-cognivia-blue/5">
+                    <div class="flex flex-col items-center text-center gap-6">
+                        <div
+                            class="w-16 h-16 bg-cognivia-blue/10 rounded-full flex items-center justify-center animate-pulse">
+                            <svg class="w-8 h-8 text-cognivia-blue" fill="currentColor" viewBox="0 0 20 20">
+                                <path
+                                    d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z">
+                                </path>
+                            </svg>
+                        </div>
+                        <div class="space-y-3">
+                            <h3 class="text-xl font-black text-[#3c3c3c]">Allow notifications?</h3>
+                            <p class="text-[#afafaf] font-bold text-sm leading-relaxed px-2">I will help you stay
+                                focused and never forget to train!</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 w-full pt-2">
+                            <button (click)="onContinue()"
+                                class="py-3 rounded-xl border-2 border-[#e5e5e5] text-[#afafaf] font-black uppercase tracking-widest text-[10px] hover:bg-[#f7f7f7] transition-all cursor-pointer">BLOCK</button>
+                            <button (click)="onContinue()"
+                                class="py-3 rounded-xl border-2 border-cognivia-blue text-cognivia-blue font-black uppercase tracking-widest text-[10px] hover:bg-cognivia-blue/5 transition-all cursor-pointer">ALLOW</button>
+                        </div>
+                    </div>
+                    <button (click)="onContinue()"
+                        class="absolute top-4 right-4 text-[#afafaf] hover:text-[#3c3c3c] cursor-pointer p-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 6: Final Loading Screen -->
+        <div *ngIf="step() === 6"
+            class="absolute inset-0 z-[100] bg-white flex flex-col items-center justify-center animate-fade-in text-center p-6">
+            <div class="relative w-48 h-48 mb-8">
+                <div class="absolute inset-0 bg-cognivia-blue/10 rounded-full blur-2xl animate-pulse scale-150"></div>
+                <img src="https://cdn.builder.io/api/v1/image/assets%2Fd3d69403f729419ab22b58accb7875b9%2F5eb51ac8abac42abb0f60299bf3d8fe2?format=webp&width=800&height=1200"
+                    alt="Cognivia Logo" class="w-full h-full object-contain relative z-10 animate-wiggle-fast" />
+            </div>
+            <div class="space-y-4">
+                <p class="text-[10px] font-black text-[#afafaf] uppercase tracking-[0.3em] animate-pulse">LOADING IN
+                    PROGRESS...</p>
+                <p class="text-[#3c3c3c] font-bold text-xl max-w-sm mx-auto leading-relaxed px-4 italic">
+                    "Cognivia is your #1 Alzheimer monitoring go-to"
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Bottom Bar: Continue Button -->
+    <div *ngIf="step() < 6"
+        class="w-full max-w-5xl py-6 px-4 border-t-2 border-[#e5e5e5] flex justify-end mt-auto bg-white/80 backdrop-blur-sm z-50 transition-all duration-300">
+        <button (click)="onContinue()" [disabled]="step() === 2 && (!firstName.trim() || !lastName.trim())"
+            class="bg-[#6BAED6] hover:brightness-110 active:scale-95 text-white font-black px-12 py-3.5 rounded-2xl shadow-[0_5px_0_0_#4A90B8] active:shadow-none active:translate-y-1 transition-all uppercase tracking-[0.1em] text-[14px] disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed cursor-pointer">
+            {{ step() === 5 ? 'Finished' : 'Continue' }}
+        </button>
+    </div>
+</div>

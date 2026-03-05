@@ -1,14 +1,15 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { TestResult } from '../../models/cognitive-tests/test-result.model';
-import { API_BASE_URL } from '../../constants/cognitive-tests/api.constants';
+import { API_BASE_URL } from '../../api/api.tokens';
 
 @Injectable({
     providedIn: 'root'
 })
 export class TestResultService {
-    private apiUrl = `${API_BASE_URL}/monitoring/results`;
+    private apiBaseUrl = inject(API_BASE_URL);
+    private apiUrl = `${this.apiBaseUrl}/monitoring/results`;
 
     constructor(private http: HttpClient) { }
 
@@ -29,7 +30,7 @@ export class TestResultService {
     }
 
     downloadReport(patientId: number, signatureBase64: string): Observable<Blob> {
-        return this.http.post(`${API_BASE_URL}/monitoring/api/v1/reports/patient/${patientId}/generate`,
+        return this.http.post(`${this.apiBaseUrl}/monitoring/api/v1/reports/patient/${patientId}/generate`,
             { signature: signatureBase64 },
             { responseType: 'blob' }
         );

@@ -1,14 +1,15 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Patient } from '../../models/care/patient.model';
-import { API_BASE_URL } from '../../constants/cognitive-tests/api.constants';
+import { API_BASE_URL } from '../../api/api.tokens';
 
 @Injectable({
     providedIn: 'root'
 })
 export class PatientService {
-    private apiUrl = `${API_BASE_URL}/care/patient`;
+    private apiBaseUrl = inject(API_BASE_URL);
+    private apiUrl = `${this.apiBaseUrl}/care/patient`;
 
     constructor(private http: HttpClient) { }
 

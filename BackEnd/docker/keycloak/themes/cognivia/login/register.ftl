@@ -7,6 +7,16 @@
 
         <form id="kc-register-form" action="${url.registrationAction}" method="post">
             <div class="form-group">
+                <input type="text" id="firstName" name="firstName" value="${(register.formData.firstName!'')}"
+                       placeholder="${msg("customFirstName")}" autocomplete="given-name" />
+            </div>
+
+            <div class="form-group">
+                <input type="text" id="lastName" name="lastName" value="${(register.formData.lastName!'')}"
+                       placeholder="${msg("customLastName")}" autocomplete="family-name" />
+            </div>
+
+            <div class="form-group">
                 <input type="text" id="email" name="email" value="${(register.formData.email!'')}"
                        placeholder="${msg("customEmail")}" autocomplete="email" />
             </div>

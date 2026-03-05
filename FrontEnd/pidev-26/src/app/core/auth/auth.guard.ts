@@ -3,11 +3,16 @@ import { CanActivateFn, CanMatchFn, Router } from '@angular/router';
 
 import { KeycloakService } from './keycloak.service';
 
-export const authGuard: CanMatchFn = () => {
-  const router = inject(Router);
+export const authGuard: CanActivateFn = () => {
   const keycloak = inject(KeycloakService);
 
-  return keycloak.isLoggedIn();
+  if (keycloak.isLoggedIn()) {
+    return true;
+  }
+
+  // Redirect to login
+  keycloak.login(window.location.href);
+  return false;
 };
 
 export const homeRedirectGuard: CanActivateFn = () => {

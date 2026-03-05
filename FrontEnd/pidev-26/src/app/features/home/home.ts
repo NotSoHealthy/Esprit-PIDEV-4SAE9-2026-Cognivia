@@ -38,11 +38,6 @@ export class Home implements OnInit {
       return;
     }
     this.alertMessage = this.keycloak.getUnverifiedAlertMessage();
-
-    // If the user is already authenticated, send them to the dashboard
-    if (this.keycloak.isLoggedIn()) {
-      void this.router.navigateByUrl('/dashboard');
-    }
   }
 
   toggleLangDropdown(): void {

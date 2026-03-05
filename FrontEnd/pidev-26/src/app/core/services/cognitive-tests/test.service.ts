@@ -1,15 +1,16 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CognitiveTest } from '../../models/cognitive-tests/cognitive-test.model';
 import { TestQuestion } from '../../models/cognitive-tests/test-question.model';
-import { API_BASE_URL } from '../../constants/cognitive-tests/api.constants';
+import { API_BASE_URL } from '../../api/api.tokens';
 
 @Injectable({
     providedIn: 'root'
 })
 export class CognitiveTestService {
-    private apiUrl = `${API_BASE_URL}/monitoring/tests`;
+    private apiBaseUrl = inject(API_BASE_URL);
+    private apiUrl = `${this.apiBaseUrl}/monitoring/tests`;
 
     constructor(private http: HttpClient) { }
 
@@ -38,7 +39,7 @@ export class CognitiveTestService {
     }
 
     downloadMLData(): Observable<Blob> {
-        return this.http.get(`${API_BASE_URL}/monitoring/export/ml-data`, {
+        return this.http.get(`${this.apiBaseUrl}/monitoring/export/ml-data`, {
             responseType: 'blob'
         });
     }

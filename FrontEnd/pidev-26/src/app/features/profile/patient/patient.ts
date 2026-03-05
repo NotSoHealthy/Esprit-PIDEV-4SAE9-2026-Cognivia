@@ -1,93 +1,95 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, inject, OnInit } from '@angular/core';
-import {
-  FormControl,
-  FormGroup,
-  NonNullableFormBuilder,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
-import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
-import { NzFormModule } from 'ng-zorro-antd/form';
-import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzInputModule } from 'ng-zorro-antd/input';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { API_BASE_URL } from '../../../core/api/api.tokens';
 import { KeycloakService } from '../../../core/auth/keycloak.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-profile-patient',
-  imports: [
-    ReactiveFormsModule,
-    NzFormModule,
-    NzInputModule,
-    NzButtonModule,
-    NzIconModule,
-    NzDatePickerModule,
-  ],
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './patient.html',
   styleUrl: './patient.css',
 })
 export class Patient implements OnInit {
-  private fb = inject(NonNullableFormBuilder);
   private http = inject(HttpClient);
   private readonly keycloak = inject(KeycloakService);
   private apiBaseUrl = inject(API_BASE_URL);
-  private oldPatientInformation: any = {};
-  validateForm: FormGroup<{
-    firstName: FormControl<string>;
-    lastName: FormControl<string>;
-    dateOfBirth: FormControl<Date | null>;
-  }> = this.fb.group({
-    firstName: this.fb.control('', Validators.required),
-    lastName: this.fb.control('', Validators.required),
-    dateOfBirth: new FormControl<Date | null>(null, { validators: [Validators.required] }),
-  });
+  private router = inject(Router);
 
-  submit(): void {
-    if (this.validateForm.valid) {
-      console.log('Patient form:', this.validateForm.getRawValue());
-      if (!this.oldPatientInformation || !this.oldPatientInformation.id) {
-        this.http
-          .post(
-            `${this.apiBaseUrl}/care/patient/register/${this.keycloak.getUserId()}`,
-            this.validateForm.getRawValue(),
-          )
-          .subscribe((response) => {
-            console.log('Patient created:', response);
-          });
-      } else {
-        this.http
-          .put(
-            `${this.apiBaseUrl}/care/patient/${this.oldPatientInformation.id}`,
-            this.validateForm.getRawValue(),
-          )
-          .subscribe((response) => {
-            console.log('Patient updated:', response);
-          });
-      }
+  patientInformation: any = {
+    firstName: '',
+    lastName: '',
+    dateOfBirth: '',
+    gender: ''
+  };
+
+  isLoading = true;
+  isSaving = false;
+
+  ngOnInit(): void {
+    this.loadProfile();
+  }
+
+  loadProfile(): void {
+    this.isLoading = true;
+    const userId = this.keycloak.getUserId();
+    if (userId) {
+      this.http
+        .get(`${this.apiBaseUrl}/care/patient/user/${userId}`)
+        .subscribe({
+          next: (data: any) => {
+            if (data) {
+              this.patientInformation = data;
+              console.log('Patient information loaded:', this.patientInformation);
+            }
+            this.isLoading = false;
+          },
+          error: (err) => {
+            console.error('Error loading profile:', err);
+            this.isLoading = false;
+          }
+        });
+    } else {
+      console.error('UserId missing in loadProfile');
+      this.isLoading = false;
+    }
+  }
+
+  saveProfile(): void {
+    if (!this.patientInformation.id) {
+      console.error('Missing patient ID. Cannot update.');
       return;
     }
 
-    Object.values(this.validateForm.controls).forEach((control) => {
-      if (control.invalid) {
-        control.markAsDirty();
-        control.updateValueAndValidity({ onlySelf: true });
-      }
-    });
+    this.isSaving = true;
+    const payload = {
+      firstName: this.patientInformation.firstName,
+      lastName: this.patientInformation.lastName,
+      dateOfBirth: this.patientInformation.dateOfBirth,
+      gender: this.patientInformation.gender?.toUpperCase()
+    };
+
+    console.log('Updating profile with payload:', payload);
+
+    this.http.put(`${this.apiBaseUrl}/care/patient/${this.patientInformation.id}`, payload)
+      .subscribe({
+        next: (response) => {
+          console.log('Profile updated successfully:', response);
+          this.isSaving = false;
+          alert('Profile updated successfully!');
+        },
+        error: (err) => {
+          console.error('Error updating profile:', err);
+          this.isSaving = false;
+          alert('Failed to update profile. Please check the console.');
+        }
+      });
   }
 
-  ngOnInit(): void {
-    this.http
-      .get(`${this.apiBaseUrl}/care/patient/user/${this.keycloak.getUserId()}`)
-      .subscribe((data) => {
-        this.oldPatientInformation = data;
-        this.validateForm.patchValue({
-          firstName: this.oldPatientInformation.firstName,
-          lastName: this.oldPatientInformation.lastName,
-          dateOfBirth: new Date(this.oldPatientInformation.dateOfBirth),
-        });
-        console.log('Patient information loaded:', this.oldPatientInformation);
-      });
+  goBack(): void {
+    this.router.navigate(['/dashboard']);
   }
 }

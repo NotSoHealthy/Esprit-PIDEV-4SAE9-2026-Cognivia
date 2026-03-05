@@ -12,38 +12,23 @@
 
     <div class="search-filters">
       <nz-input-group [nzPrefix]="searchIcon" class="search-box">
-        <input
-          nz-input
-          placeholder="Dynamic search by notes..."
-          [(ngModel)]="filterNotes"
-          (ngModelChange)="onSearch()"
-        />
+        <input nz-input placeholder="Dynamic search by notes..." [(ngModel)]="filterNotes"
+          (ngModelChange)="onSearch()" />
       </nz-input-group>
       <ng-template #searchIcon>
         <i nz-icon nzType="search"></i>
       </ng-template>
 
       <div class="other-filters">
-        <nz-select
-          nzAllowClear
-          nzPlaceHolder="Status"
-          [(ngModel)]="filterStatus"
-          (ngModelChange)="fetch()"
-          style="width: 150px;"
-        >
+        <nz-select nzAllowClear nzPlaceHolder="Status" [(ngModel)]="filterStatus" (ngModelChange)="fetch()"
+          style="width: 150px;">
           <nz-option *ngFor="let s of statuses" [nzLabel]="s" [nzValue]="s"></nz-option>
         </nz-select>
         <button nz-button (click)="resetFilters()">Reset</button>
       </div>
     </div>
 
-    <nz-table
-      #basicTable
-      [nzData]="filteredItems ?? []"
-      [nzLoading]="loading"
-      nzBordered
-      class="premium-table"
-    >
+    <nz-table #basicTable [nzData]="filteredItems ?? []" [nzLoading]="loading" nzBordered class="premium-table">
       <thead>
         <tr>
           <th nzWidth="60px">ID</th>
@@ -81,26 +66,12 @@
           </td>
 
           <td class="actions">
-            <button
-              nz-button
-              nzType="text"
-              class="edit-btn"
-              (click)="openEdit(item)"
-              nz-tooltip
-              nzTooltipTitle="Edit"
-            >
+            <button nz-button nzType="text" class="edit-btn" (click)="openEdit(item)" nz-tooltip nzTooltipTitle="Edit">
               <i nz-icon nzType="edit"></i>
             </button>
 
-            <button
-              nz-button
-              nzType="text"
-              nzDanger
-              class="delete-btn"
-              (click)="confirmDelete(item)"
-              nz-tooltip
-              nzTooltipTitle="Delete"
-            >
+            <button nz-button nzType="text" nzDanger class="delete-btn" (click)="confirmDelete(item)" nz-tooltip
+              nzTooltipTitle="Delete">
               <i nz-icon nzType="delete"></i>
             </button>
           </td>
@@ -110,14 +81,8 @@
   </nz-card>
 
   <!-- ✅ MODAL -->
-  <nz-modal
-    [(nzVisible)]="isModalOpen"
-    [nzTitle]="modalTitle"
-    [nzOkLoading]="loading"
-    (nzOnCancel)="closeModal()"
-    (nzOnOk)="save()"
-    nzWidth="500px"
-  >
+  <nz-modal [(nzVisible)]="isModalOpen" [nzTitle]="modalTitle" [nzOkLoading]="loading" (nzOnCancel)="closeModal()"
+    (nzOnOk)="save()" nzWidth="500px">
     <ng-template #modalTitle>
       <i nz-icon [nzType]="editingId ? 'edit' : 'plus-circle'"></i>
       <span style="margin-left: 8px;">{{ editingId ? 'Edit Appointment' : 'New Appointment' }}</span>
@@ -134,36 +99,22 @@
 
         <div class="form-item">
           <label>Caregiver</label>
-          <nz-select
-            [(ngModel)]="form.caregiverId"
-            nzShowSearch
-            nzPlaceHolder="Select Caregiver"
-            [nzLoading]="loadingRefs"
-          >
+          <nz-select [(ngModel)]="form.caregiverId" nzShowSearch nzPlaceHolder="Select Caregiver"
+            [nzLoading]="loadingRefs">
             <nz-option *ngFor="let p of caregivers" [nzLabel]="labelOf(p)" [nzValue]="p.id"></nz-option>
           </nz-select>
         </div>
 
         <div class="form-item">
           <label>Patient</label>
-          <nz-select
-            [(ngModel)]="form.patientId"
-            nzShowSearch
-            nzPlaceHolder="Select Patient"
-            [nzLoading]="loadingRefs"
-          >
+          <nz-select [(ngModel)]="form.patientId" nzShowSearch nzPlaceHolder="Select Patient" [nzLoading]="loadingRefs">
             <nz-option *ngFor="let p of patients" [nzLabel]="labelOf(p)" [nzValue]="p.id"></nz-option>
           </nz-select>
         </div>
 
         <div class="form-item">
           <label>Doctor</label>
-          <nz-select
-            [(ngModel)]="form.doctorId"
-            nzShowSearch
-            nzPlaceHolder="Select Doctor"
-            [nzLoading]="loadingRefs"
-          >
+          <nz-select [(ngModel)]="form.doctorId" nzShowSearch nzPlaceHolder="Select Doctor" [nzLoading]="loadingRefs">
             <nz-option *ngFor="let p of doctors" [nzLabel]="labelOf(p)" [nzValue]="p.id"></nz-option>
           </nz-select>
         </div>
@@ -183,22 +134,13 @@
 
         <div class="form-item full-width">
           <label>Appointment Date & Time</label>
-          <nz-date-picker
-            [(ngModel)]="form.appointmentDate"
-            nzShowTime
-            nzFormat="yyyy-MM-dd HH:mm"
-            style="width: 100%;"
-          ></nz-date-picker>
+          <nz-date-picker [(ngModel)]="form.appointmentDate" nzShowTime nzFormat="yyyy-MM-dd HH:mm"
+            style="width: 100%;"></nz-date-picker>
         </div>
 
         <div class="form-item full-width">
           <label>Notes</label>
-          <textarea
-            nz-input
-            rows="4"
-            [(ngModel)]="form.notes"
-            placeholder="Enter session details..."
-          ></textarea>
+          <textarea nz-input rows="4" [(ngModel)]="form.notes" placeholder="Enter session details..."></textarea>
         </div>
 
       </div>
