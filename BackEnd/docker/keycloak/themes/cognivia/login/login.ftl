@@ -7,11 +7,11 @@
 
         <form id="kc-login-form" onsubmit="login.disabled = true; return true;" action="${url.loginAction}" method="post">
             <div class="form-group">
-                <input id="username" name="username" value="${(login.username!'')}" type="text" autocomplete="on" placeholder="${msg("customUsernameOrEmail")}" />
+                <input id="username" name="username" value="${(login.username!'')}" type="email" required autocomplete="on" placeholder="${msg("customUsernameOrEmail")}" />
             </div>
 
             <div class="form-group">
-                <input id="password" name="password" type="password" autocomplete="off" placeholder="${msg("customPassword")}" />
+                <input id="password" name="password" type="password" required autocomplete="off" placeholder="${msg("customPassword")}" />
             </div>
 
             <div class="form-group">
