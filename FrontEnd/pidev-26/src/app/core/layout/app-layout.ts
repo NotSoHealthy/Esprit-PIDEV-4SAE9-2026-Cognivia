@@ -131,7 +131,7 @@ export class AppLayout implements OnInit {
       link: '/equipment',
       label: 'Equipment',
       icon: 'shop',
-      roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'],
+      roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER'],
     },
     {
       link: '/complaint',
