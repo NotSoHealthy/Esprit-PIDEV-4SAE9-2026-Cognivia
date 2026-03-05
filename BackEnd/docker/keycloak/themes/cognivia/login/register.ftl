@@ -31,9 +31,9 @@
             <div class="form-group">
                 <select id="user.attributes.user_type" name="user.attributes.user_type" class="kc-select">
                     <option value="" disabled <#if !(register.formData['user.attributes.user_type']?has_content)>selected</#if>>${msg("customRole")}</option>
-                    <option value="doctor" <#if (register.formData['user.attributes.user_type']!'') == 'doctor'>selected</#if>>${msg("customRoleDoctor")}</option>
-                    <option value="caregiver" <#if (register.formData['user.attributes.user_type']!'') == 'caregiver'>selected</#if>>${msg("customRoleCaregiver")}</option>
-                    <option value="patient" <#if (register.formData['user.attributes.user_type']!'') == 'patient'>selected</#if>>${msg("customRolePatient")}</option>
+                    <option value="Doctor" <#if (register.formData['user.attributes.user_type']!'') == 'Doctor'>selected</#if>>${msg("customRoleDoctor")}</option>
+                    <option value="Caregiver" <#if (register.formData['user.attributes.user_type']!'') == 'Caregiver'>selected</#if>>${msg("customRoleCaregiver")}</option>
+                    <option value="Patient" <#if (register.formData['user.attributes.user_type']!'') == 'Patient'>selected</#if>>${msg("customRolePatient")}</option>
                 </select>
             </div>
 
