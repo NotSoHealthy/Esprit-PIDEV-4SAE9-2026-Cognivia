@@ -7,6 +7,7 @@ pipeline {
 
     environment {
         DOCKER_CREDENTIALS= credentials('docker_hub')
+        DOCKER_BUILDKIT = '1'
     }
 
     stages {
@@ -43,6 +44,24 @@ pipeline {
                         docker push notsohealthy/pidev-${s}:dev
                         """
                     }
+                }
+            }
+        }
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    sh """
+                      kubectl get namespace pidev-deployment >/dev/null 2>&1 || kubectl create namespace pidev-deployment
+                      kubectl apply -f k8s/config.yaml
+                      kubectl apply -f k8s/ -n pidev-deployment
+                    """
+                }
+            }
+        }
+        stage('Restart Deployment') {
+            steps {
+                script {
+                    sh 'kubectl rollout restart deployment --all -n pidev-deployment'
                 }
             }
         }
