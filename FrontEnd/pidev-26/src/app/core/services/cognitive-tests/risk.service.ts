@@ -1,28 +1,30 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { API_BASE_URL } from '../../constants/cognitive-tests/api.constants';
 import { RiskScore } from '../../models/cognitive-tests/risk-score.model';
+import { API_BASE_URL } from '../../api/api.tokens';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root',
 })
 export class RiskScoreService {
-    constructor(private http: HttpClient) { }
+  private readonly apiUrl = inject(API_BASE_URL);
 
-    getAllRisks(): Observable<RiskScore[]> {
-        return this.http.get<RiskScore[]>(`${API_BASE_URL}/monitoring/risk`);
-    }
+  constructor(private http: HttpClient) {}
 
-    getRisksByPatient(patientId: number): Observable<RiskScore[]> {
-        return this.http.get<RiskScore[]>(`${API_BASE_URL}/monitoring/risk/by-patient/${patientId}`);
-    }
+  getAllRisks(): Observable<RiskScore[]> {
+    return this.http.get<RiskScore[]>(`${this.apiUrl}/monitoring/risk`);
+  }
 
-    createRisk(risk: RiskScore): Observable<RiskScore> {
-        return this.http.post<RiskScore>(`${API_BASE_URL}/monitoring/risk`, risk);
-    }
+  getRisksByPatient(patientId: number): Observable<RiskScore[]> {
+    return this.http.get<RiskScore[]>(`${API_BASE_URL}/monitoring/risk/by-patient/${patientId}`);
+  }
 
-    deleteRisk(id: number): Observable<void> {
-        return this.http.delete<void>(`${API_BASE_URL}/monitoring/risk/${id}`);
-    }
+  createRisk(risk: RiskScore): Observable<RiskScore> {
+    return this.http.post<RiskScore>(`${API_BASE_URL}/monitoring/risk`, risk);
+  }
+
+  deleteRisk(id: number): Observable<void> {
+    return this.http.delete<void>(`${API_BASE_URL}/monitoring/risk/${id}`);
+  }
 }

@@ -1,37 +1,39 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { TestResult } from '../../models/cognitive-tests/test-result.model';
-import { API_BASE_URL } from '../../constants/cognitive-tests/api.constants';
+import { API_BASE_URL } from '../../api/api.tokens';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root',
 })
 export class TestResultService {
-    private apiUrl = `${API_BASE_URL}/monitoring/results`;
+  private readonly baseUrl = inject(API_BASE_URL) + '/monitoring';
+  private readonly apiUrl = inject(API_BASE_URL) + '/monitoring/results';
 
-    constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
-    submitResult(assignmentId: number, result: TestResult): Observable<TestResult> {
-        return this.http.post<TestResult>(`${this.apiUrl}/assignment/${assignmentId}`, result);
-    }
+  submitResult(assignmentId: number, result: TestResult): Observable<TestResult> {
+    return this.http.post<TestResult>(`${this.apiUrl}/assignment/${assignmentId}`, result);
+  }
 
-    submitDirectResult(testId: number, result: TestResult): Observable<TestResult> {
-        return this.http.post<TestResult>(`${this.apiUrl}/test/${testId}`, result);
-    }
+  submitDirectResult(testId: number, result: TestResult): Observable<TestResult> {
+    return this.http.post<TestResult>(`${this.apiUrl}/test/${testId}`, result);
+  }
 
-    getAllResults(): Observable<TestResult[]> {
-        return this.http.get<TestResult[]>(this.apiUrl);
-    }
+  getAllResults(): Observable<TestResult[]> {
+    return this.http.get<TestResult[]>(this.apiUrl);
+  }
 
-    getResultById(id: number): Observable<TestResult> {
-        return this.http.get<TestResult>(`${this.apiUrl}/${id}`);
-    }
+  getResultById(id: number): Observable<TestResult> {
+    return this.http.get<TestResult>(`${this.apiUrl}/${id}`);
+  }
 
-    downloadReport(patientId: number, signatureBase64: string): Observable<Blob> {
-        return this.http.post(`${API_BASE_URL}/monitoring/api/v1/reports/patient/${patientId}/generate`,
-            { signature: signatureBase64 },
-            { responseType: 'blob' }
-        );
-    }
+  downloadReport(patientId: number, signatureBase64: string): Observable<Blob> {
+    return this.http.post(
+      `${this.baseUrl}/api/v1/reports/patient/${patientId}/generate`,
+      { signature: signatureBase64 },
+      { responseType: 'blob' },
+    );
+  }
 }
