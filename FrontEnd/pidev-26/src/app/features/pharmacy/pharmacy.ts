@@ -1,12 +1,32 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit, ViewChild, ElementRef, AfterViewInit, NgZone, inject } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+  ViewChild,
+  ElementRef,
+  AfterViewInit,
+  NgZone,
+  inject,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpEventType } from '@angular/common/http';
 import * as L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { NzIconModule, NZ_ICONS } from 'ng-zorro-antd/icon';
-import { EnvironmentOutline, PushpinOutline, MoreOutline, HeartOutline, HeartFill, PlusOutline, CheckCircleFill, CloseCircleFill, PictureOutline, UploadOutline } from '@ant-design/icons-angular/icons';
+import {
+  EnvironmentOutline,
+  PushpinOutline,
+  MoreOutline,
+  HeartOutline,
+  HeartFill,
+  PlusOutline,
+  CheckCircleFill,
+  CloseCircleFill,
+  PictureOutline,
+  UploadOutline,
+} from '@ant-design/icons-angular/icons';
 
 /* ✅ FIX Leaflet marker paths for Angular */
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -58,7 +78,6 @@ import { KeycloakService } from '../../core/auth/keycloak.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
-
 @Component({
   selector: 'app-pharmacy',
   standalone: true,
@@ -69,7 +88,7 @@ import { catchError } from 'rxjs/operators';
     NzEmptyModule,
     NzDropDownModule,
     NzIconModule,
-    
+
     NzButtonModule,
     NzModalModule,
     NzFormModule,
@@ -88,7 +107,7 @@ import { catchError } from 'rxjs/operators';
     NzProgressModule,
     Medication,
   ],
-   providers: [
+  providers: [
     {
       provide: NZ_ICONS,
       useValue: [
@@ -102,13 +121,12 @@ import { catchError } from 'rxjs/operators';
         CloseCircleFill,
         PictureOutline,
         PictureTwoTone,
-        UploadOutline
-      ]
-    }
+        UploadOutline,
+      ],
+    },
   ],
   templateUrl: './pharmacy.html',
   styleUrl: './pharmacy.css',
-
 })
 export class Pharmacy implements OnInit, AfterViewInit {
   @ViewChild('mapContainer', { static: false }) mapContainer?: ElementRef;
@@ -257,32 +275,31 @@ export class Pharmacy implements OnInit, AfterViewInit {
     }
 
     this.loadingPharmacist = true;
-    this.pharmacistService.getPharmacistByUserId(userId)
-      .subscribe({
-        next: (pharmacist) => {
-          const pharmacyId = pharmacist?.pharmacyId ?? null;
-          if (!pharmacyId) {
-            this.userPharmacy = null;
-            this.loadingPharmacist = false;
-            return;
-          }
-
-          this.service.getById(pharmacyId).subscribe({
-            next: (pharmacy) => {
-              this.userPharmacy = pharmacy;
-              this.loadingPharmacist = false;
-            },
-            error: () => {
-              this.userPharmacy = null;
-              this.loadingPharmacist = false;
-            },
-          });
-        },
-        error: () => {
+    this.pharmacistService.getPharmacistByUserId(userId).subscribe({
+      next: (pharmacist) => {
+        const pharmacyId = pharmacist?.pharmacyId ?? null;
+        if (!pharmacyId) {
           this.userPharmacy = null;
           this.loadingPharmacist = false;
+          return;
         }
-      });
+
+        this.service.getById(pharmacyId).subscribe({
+          next: (pharmacy) => {
+            this.userPharmacy = pharmacy;
+            this.loadingPharmacist = false;
+          },
+          error: () => {
+            this.userPharmacy = null;
+            this.loadingPharmacist = false;
+          },
+        });
+      },
+      error: () => {
+        this.userPharmacy = null;
+        this.loadingPharmacist = false;
+      },
+    });
   }
 
   get filteredPharmacies(): PharmacyModel[] {
@@ -295,7 +312,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
         (p) =>
           p.name?.toLowerCase().includes(search) ||
           p.address?.toLowerCase().includes(search) ||
-          p.description?.toLowerCase().includes(search)
+          p.description?.toLowerCase().includes(search),
       );
     }
 
@@ -395,7 +412,9 @@ export class Pharmacy implements OnInit, AfterViewInit {
 
     if (
       this.inventoryMedicationName &&
-      !this.inventoryMedications.some((medication) => medication.name === this.inventoryMedicationName)
+      !this.inventoryMedications.some(
+        (medication) => medication.name === this.inventoryMedicationName,
+      )
     ) {
       this.inventoryMedicationName = '';
     }
@@ -406,8 +425,8 @@ export class Pharmacy implements OnInit, AfterViewInit {
       new Set(
         this.inventoryMedications
           .map((medication) => medication.therapeuticClass)
-          .filter((value): value is string => !!value)
-      )
+          .filter((value): value is string => !!value),
+      ),
     );
   }
 
@@ -416,8 +435,8 @@ export class Pharmacy implements OnInit, AfterViewInit {
       new Set(
         this.inventoryMedications
           .map((medication) => medication.name)
-          .filter((value): value is string => !!value)
-      )
+          .filter((value): value is string => !!value),
+      ),
     );
   }
 
@@ -436,12 +455,12 @@ export class Pharmacy implements OnInit, AfterViewInit {
 
   onTabChange(tabIndex: number): void {
     this.activeTabIndex = tabIndex;
-    
+
     // Tab 0: Pharmacies list
     if (tabIndex === 0) {
       this.loadPharmacies();
     }
-    
+
     // Tab 1: Inventory medications
     if (tabIndex === 1) {
       if (!this.inventoryPharmacyId && this.pharmacies.length > 0) {
@@ -450,7 +469,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
       // Trigger inventory refresh via change detection
       this.loadInventoryMedications();
     }
-    
+
     // Tab 2: Requested medications
     if (tabIndex === 2) {
       this.requestedMainView = 'requests';
@@ -463,13 +482,13 @@ export class Pharmacy implements OnInit, AfterViewInit {
           catchError((err: any) => {
             console.error('Failed to load agent mode config:', err);
             return of({ agentModeEnabled: this.agentMode });
-          })
+          }),
         ),
         autoDelete: this.service.getAutoDeleteReviewRequired().pipe(
           catchError((err: any) => {
             console.error('Failed to load auto-delete config:', err);
             return of({ autoDeleteReviewRequired: this.autoDeleteReviewRequired });
-          })
+          }),
         ),
       }).subscribe(({ agent, autoDelete }) => {
         setTimeout(() => {
@@ -480,7 +499,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
           this.cdr.detectChanges();
         }, 0);
       });
-      
+
       this.loadRequestedMedications();
       this.loadAgentLogs();
     }
@@ -536,7 +555,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
         console.error('Failed to save agent mode setting:', err);
         this.agentMode = previous;
         this.msg.error('Failed to save agent mode');
-      }
+      },
     });
   }
 
@@ -550,13 +569,15 @@ export class Pharmacy implements OnInit, AfterViewInit {
       next: (config) => {
         this.autoDeleteReviewRequired = !!config.autoDeleteReviewRequired;
         console.log('Auto-delete review required setting saved:', this.autoDeleteReviewRequired);
-        this.msg.success(`Auto-delete review required ${this.autoDeleteReviewRequired ? 'enabled' : 'disabled'}`);
+        this.msg.success(
+          `Auto-delete review required ${this.autoDeleteReviewRequired ? 'enabled' : 'disabled'}`,
+        );
       },
       error: (err: any) => {
         console.error('Failed to save auto-delete setting:', err);
         this.autoDeleteReviewRequired = previous;
         this.msg.error('Failed to save setting');
-      }
+      },
     });
   }
 
@@ -572,19 +593,19 @@ export class Pharmacy implements OnInit, AfterViewInit {
         console.error('Failed to load agent logs:', err);
         this.agentLogsLoading = false;
         this.msg.error('Failed to load agent logs');
-      }
+      },
     });
   }
 
   deleteAgentLog(log: AgentLog, event?: MouseEvent): void {
     event?.stopPropagation();
-    
+
     if (!log.id) return;
 
     this.agentLogService.deleteLog(log.id).subscribe({
       next: () => {
         this.msg.success('Agent log deleted successfully');
-        this.agentLogs = this.agentLogs.filter(l => l.id !== log.id);
+        this.agentLogs = this.agentLogs.filter((l) => l.id !== log.id);
         this.cdr.detectChanges();
         // Refresh lists after deleting log
         this.loadRequestedMedications();
@@ -592,13 +613,13 @@ export class Pharmacy implements OnInit, AfterViewInit {
       error: (err: any) => {
         console.error('Failed to delete agent log:', err);
         this.msg.error('Failed to delete agent log');
-      }
+      },
     });
   }
 
   undoAgentAction(log: AgentLog, event?: MouseEvent): void {
     event?.stopPropagation();
-    
+
     if (!log.id) return;
 
     this.agentLogService.undoAction(log.id).subscribe({
@@ -614,34 +635,43 @@ export class Pharmacy implements OnInit, AfterViewInit {
       error: (err: any) => {
         console.error('Failed to undo action:', err);
         this.msg.error('Failed to undo action');
-      }
+      },
     });
   }
 
   private loadInventoryMedications(): void {
-    // This will trigger the Medication component to re-load
-    if (this.inventoryPharmacyId) {
-      this.cdr.detectChanges();
-    }
+    // Trigger change detection to refresh embedded inventory view.
+    // (Requested: always run when switching to Inventory tab.)
+    this.cdr.detectChanges();
   }
 
   formatAgentLogAction(actionType: string): string {
     switch (actionType) {
-      case 'ACCEPTED': return 'Accepted';
-      case 'REJECTED': return 'Rejected';
-      case 'MODIFIED': return 'Modified & Accepted';
-      case 'REVIEW_REJECTED': return 'Rejected (Review Required)';
-      default: return actionType;
+      case 'ACCEPTED':
+        return 'Accepted';
+      case 'REJECTED':
+        return 'Rejected';
+      case 'MODIFIED':
+        return 'Modified & Accepted';
+      case 'REVIEW_REJECTED':
+        return 'Rejected (Review Required)';
+      default:
+        return actionType;
     }
   }
 
   getAgentLogActionColor(actionType: string): string {
     switch (actionType) {
-      case 'ACCEPTED': return '#52c41a';
-      case 'REJECTED': return '#ff4d4f';
-      case 'MODIFIED': return '#faad14';
-      case 'REVIEW_REJECTED': return '#ff4d4f';
-      default: return '#d9d9d9';
+      case 'ACCEPTED':
+        return '#52c41a';
+      case 'REJECTED':
+        return '#ff4d4f';
+      case 'MODIFIED':
+        return '#faad14';
+      case 'REVIEW_REJECTED':
+        return '#ff4d4f';
+      default:
+        return '#d9d9d9';
     }
   }
 
@@ -654,7 +684,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
         this.requestedMedications = medications ?? [];
         this.requestedLoading = false;
         this.cdr.detectChanges();
-        
+
         // Always load agent messages for requested medications
         this.loadAgentMessages();
       },
@@ -666,7 +696,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
   }
 
   loadAgentMessages(): void {
-    this.requestedMedications.forEach(med => {
+    this.requestedMedications.forEach((med) => {
       if (med.id) {
         this.agentMessageService.getMessageForMedication(med.id).subscribe({
           next: (message) => {
@@ -677,7 +707,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
           error: (err) => {
             // Silently ignore if no message found
             console.debug('No agent message for medication', med.id, err);
-          }
+          },
         });
       }
     });
@@ -691,16 +721,13 @@ export class Pharmacy implements OnInit, AfterViewInit {
       const search = this.requestedSearchText.toLowerCase();
       filtered = filtered.filter(
         (m) =>
-          m.name?.toLowerCase().includes(search) ||
-          m.description?.toLowerCase().includes(search)
+          m.name?.toLowerCase().includes(search) || m.description?.toLowerCase().includes(search),
       );
     }
 
     // Therapeutic class filter
     if (this.requestedTherapeuticClass) {
-      filtered = filtered.filter(
-        (m) => m.therapeuticClass === this.requestedTherapeuticClass
-      );
+      filtered = filtered.filter((m) => m.therapeuticClass === this.requestedTherapeuticClass);
     }
 
     const start = (this.requestedPageIndex - 1) * this.requestedPageSize;
@@ -775,7 +802,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
   openAIOverview(medication: MedicationModel, event?: MouseEvent): void {
     event?.stopPropagation();
     if (!medication.id) return;
-    
+
     this.selectedMedicationForAI = medication;
     this.aiDrawerVisible = true;
     this.aiDrawerLoading = true;
@@ -934,14 +961,14 @@ export class Pharmacy implements OnInit, AfterViewInit {
         if (!this.inventoryPharmacyId && this.pharmacies.length > 0) {
           this.inventoryPharmacyId = this.pharmacies[0].id ?? null;
         }
-        
+
         // Load status for each pharmacy
-        this.pharmacies.forEach(pharmacy => {
+        this.pharmacies.forEach((pharmacy) => {
           if (pharmacy.id) {
             this.loadPharmacyStatus(pharmacy.id);
           }
         });
-        
+
         this.loading = false;
         this.cdr.detectChanges();
       },
@@ -996,7 +1023,13 @@ export class Pharmacy implements OnInit, AfterViewInit {
     const [closeHour, closeMin] = todaySchedule.closeTime.split(':').map(Number);
 
     const openDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), openHour, openMin);
-    const closeDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), closeHour, closeMin);
+    const closeDate = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      closeHour,
+      closeMin,
+    );
 
     const isOpen = now >= openDate && now < closeDate;
 
@@ -1041,7 +1074,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
           if (!pharmacy.id) return;
           // Only calculate average if this pharmacy doesn't already have current user's rating
           if (this.rateMap.has(pharmacy.id)) return;
-          
+
           const pharmacyRatings = (ratingsByPharmacy.get(pharmacy.id) ?? [])
             .map((rating) => Number(rating.rating ?? 0))
             .filter((value) => value > 0);
@@ -1171,7 +1204,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
   beforeUploadBanner = (file: NzUploadFile): boolean => {
     const raw = ((file as any).originFileObj ?? file) as any;
     const realFile = raw instanceof File ? raw : null;
-    
+
     if (!realFile) {
       this.msg.error('Could not read the selected file.');
       return false;
@@ -1190,7 +1223,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
   beforeUploadLogo = (file: NzUploadFile): boolean => {
     const raw = ((file as any).originFileObj ?? file) as any;
     const realFile = raw instanceof File ? raw : null;
-    
+
     if (!realFile) {
       this.msg.error('Could not read the selected file.');
       return false;
@@ -1312,7 +1345,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
 
     this.service.updateLocation(this.editingPharmacy.id, payload).subscribe({
       next: (updated) => {
-        const index = this.pharmacies.findIndex(p => p.id === this.editingPharmacy!.id);
+        const index = this.pharmacies.findIndex((p) => p.id === this.editingPharmacy!.id);
         if (index !== -1) {
           this.pharmacies[index] = updated;
         }
@@ -1368,30 +1401,32 @@ export class Pharmacy implements OnInit, AfterViewInit {
         }
 
         // Single upload call with both banner and logo
-        this.service.uploadImages(pharmacyId, {
-          banner: this.bannerFile || undefined,
-          logo: this.logoFile || undefined
-        }).subscribe({
-          next: () => {
-            // Re-fetch the pharmacy to get updated banner/logo URLs
-            this.service.getById(pharmacyId).subscribe({
-              next: (refreshed) => {
-                this.finishPharmacyCreation(refreshed);
-                // Trigger change detection after pharmacy is refreshed with image URLs
-                this.cdr.detectChanges();
-              },
-              error: (err) => {
-                console.error('Failed to refresh pharmacy after image upload:', err);
-                this.finishPharmacyCreation(created);
-              }
-            });
-          },
-          error: (err) => {
-            console.error('Upload error:', err);
-            this.msg.error('Failed to upload images');
-            this.finishPharmacyCreation(created);
-          }
-        });
+        this.service
+          .uploadImages(pharmacyId, {
+            banner: this.bannerFile || undefined,
+            logo: this.logoFile || undefined,
+          })
+          .subscribe({
+            next: () => {
+              // Re-fetch the pharmacy to get updated banner/logo URLs
+              this.service.getById(pharmacyId).subscribe({
+                next: (refreshed) => {
+                  this.finishPharmacyCreation(refreshed);
+                  // Trigger change detection after pharmacy is refreshed with image URLs
+                  this.cdr.detectChanges();
+                },
+                error: (err) => {
+                  console.error('Failed to refresh pharmacy after image upload:', err);
+                  this.finishPharmacyCreation(created);
+                },
+              });
+            },
+            error: (err) => {
+              console.error('Upload error:', err);
+              this.msg.error('Failed to upload images');
+              this.finishPharmacyCreation(created);
+            },
+          });
       },
       error: (err) => {
         console.error(err);
@@ -1462,30 +1497,32 @@ export class Pharmacy implements OnInit, AfterViewInit {
         }
 
         // Single upload call with both banner and logo
-        this.service.uploadImages(pharmacyId, {
-          banner: this.bannerFile || undefined,
-          logo: this.logoFile || undefined
-        }).subscribe({
-          next: () => {
-            // Re-fetch the pharmacy to get updated banner/logo URLs
-            this.service.getById(pharmacyId).subscribe({
-              next: (refreshed) => {
-                this.finishPharmacyUpdate(refreshed);
-                // Trigger change detection after pharmacy is refreshed with image URLs
-                this.cdr.detectChanges();
-              },
-              error: (err) => {
-                console.error('Failed to refresh pharmacy after image upload:', err);
-                this.finishPharmacyUpdate(updated);
-              }
-            });
-          },
-          error: (err) => {
-            console.error('Upload error:', err);
-            this.msg.error('Failed to upload images');
-            this.finishPharmacyUpdate(updated);
-          }
-        });
+        this.service
+          .uploadImages(pharmacyId, {
+            banner: this.bannerFile || undefined,
+            logo: this.logoFile || undefined,
+          })
+          .subscribe({
+            next: () => {
+              // Re-fetch the pharmacy to get updated banner/logo URLs
+              this.service.getById(pharmacyId).subscribe({
+                next: (refreshed) => {
+                  this.finishPharmacyUpdate(refreshed);
+                  // Trigger change detection after pharmacy is refreshed with image URLs
+                  this.cdr.detectChanges();
+                },
+                error: (err) => {
+                  console.error('Failed to refresh pharmacy after image upload:', err);
+                  this.finishPharmacyUpdate(updated);
+                },
+              });
+            },
+            error: (err) => {
+              console.error('Upload error:', err);
+              this.msg.error('Failed to upload images');
+              this.finishPharmacyUpdate(updated);
+            },
+          });
       },
       error: (err) => {
         console.error(err);
@@ -1496,7 +1533,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
   }
 
   private finishPharmacyUpdate(updated: PharmacyModel): void {
-    const index = this.pharmacies.findIndex(p => p.id === this.editingPharmacy!.id);
+    const index = this.pharmacies.findIndex((p) => p.id === this.editingPharmacy!.id);
     if (index !== -1) {
       this.pharmacies[index] = updated;
     }
@@ -1528,7 +1565,8 @@ export class Pharmacy implements OnInit, AfterViewInit {
         // Configure leaflet default icons with CDN
         const defaultIcon = L.icon({
           iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-          shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+          shadowUrl:
+            'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
           iconSize: [25, 41],
           iconAnchor: [12, 41],
           popupAnchor: [1, -34],
@@ -1556,9 +1594,9 @@ export class Pharmacy implements OnInit, AfterViewInit {
 
     // High accuracy geolocation options
     const geoOptions = {
-      enableHighAccuracy: true,   // Force GPS
-      timeout: 45000,              // Wait up to 45 seconds for GPS
-      maximumAge: 0,               // Don't use cached location
+      enableHighAccuracy: true, // Force GPS
+      timeout: 45000, // Wait up to 45 seconds for GPS
+      maximumAge: 0, // Don't use cached location
     };
 
     let bestAccuracy = Infinity;
@@ -1578,7 +1616,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
         if (accuracy < bestAccuracy) {
           bestAccuracy = accuracy;
           bestPosition = position.coords;
-          
+
           // If we get within 1km accuracy, use it immediately
           if (accuracy < 1000) {
             clearTimeout(timeoutId);
@@ -1592,10 +1630,12 @@ export class Pharmacy implements OnInit, AfterViewInit {
         this.ngZone.run(() => {
           this.msg.remove();
           console.error('Geolocation error:', error);
-          this.msg.error('Could not get your location. Please try again or select manually on the map.');
+          this.msg.error(
+            'Could not get your location. Please try again or select manually on the map.',
+          );
         });
       },
-      geoOptions
+      geoOptions,
     );
 
     // Set timeout to use best position after 15 seconds
@@ -1606,7 +1646,9 @@ export class Pharmacy implements OnInit, AfterViewInit {
       } else {
         this.ngZone.run(() => {
           this.msg.remove();
-          this.msg.error('Could not determine your location. Please try again or select manually on the map.');
+          this.msg.error(
+            'Could not determine your location. Please try again or select manually on the map.',
+          );
         });
       }
     }, 15000);
@@ -1621,16 +1663,20 @@ export class Pharmacy implements OnInit, AfterViewInit {
       const lat = coords.latitude;
       const lng = coords.longitude;
       const accuracy = coords.accuracy;
-      
+
       // Show warning if accuracy is poor
       if (accuracy > 10000) {
-        this.msg.warning(`Approximate location (±${(accuracy / 1000).toFixed(0)}km). Click on map to adjust.`);
+        this.msg.warning(
+          `Approximate location (±${(accuracy / 1000).toFixed(0)}km). Click on map to adjust.`,
+        );
       } else if (accuracy > 1000) {
-        this.msg.info(`Location found (±${(accuracy / 1000).toFixed(1)}km accuracy). Click on map to adjust.`);
+        this.msg.info(
+          `Location found (±${(accuracy / 1000).toFixed(1)}km accuracy). Click on map to adjust.`,
+        );
       } else {
         this.msg.success(`Location found (±${accuracy.toFixed(0)}m accuracy)`);
       }
-      
+
       this.setCoordinates(lat, lng);
     });
   }
@@ -1746,25 +1792,27 @@ export class Pharmacy implements OnInit, AfterViewInit {
 
     this.submittingReport = true;
 
-    this.reportService.create({
-      reason: this.selectedReportReason,
-      description: this.reportDescription?.trim() || null,
-      username: this.currentUsername,
-      pharmacy: { id: this.selectedReportPharmacy.id },
-    } as Report).subscribe({
-      next: () => {
-        this.submittingReport = false;
-        this.msg.success('Report submitted successfully');
-        this.cancelReportModal();
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error(err);
-        this.submittingReport = false;
-        this.msg.error('Failed to submit report');
-        this.cdr.detectChanges();
-      },
-    });
+    this.reportService
+      .create({
+        reason: this.selectedReportReason,
+        description: this.reportDescription?.trim() || null,
+        username: this.currentUsername,
+        pharmacy: { id: this.selectedReportPharmacy.id },
+      } as Report)
+      .subscribe({
+        next: () => {
+          this.submittingReport = false;
+          this.msg.success('Report submitted successfully');
+          this.cancelReportModal();
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error(err);
+          this.submittingReport = false;
+          this.msg.error('Failed to submit report');
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   editInfo(p: PharmacyModel, ev?: MouseEvent): void {
@@ -1772,7 +1820,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
     if (!p.id) return;
 
     if (this.userRole === 'ROLE_PHARMACY' && !this.isOwnPharmacy(p.id)) {
-      this.msg.error("You can only edit your own pharmacy.");
+      this.msg.error('You can only edit your own pharmacy.');
       return;
     }
 
@@ -1824,7 +1872,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
     if (!p.id) return;
 
     if (this.userRole === 'ROLE_PHARMACY' && !this.isOwnPharmacy(p.id)) {
-      this.msg.error("You can only edit your own pharmacy.");
+      this.msg.error('You can only edit your own pharmacy.');
       return;
     }
 
@@ -1852,18 +1900,18 @@ export class Pharmacy implements OnInit, AfterViewInit {
     if (!p.id) return;
 
     if (this.userRole === 'ROLE_PHARMACY' && !this.isOwnPharmacy(p.id)) {
-      this.msg.error("You can only delete your own pharmacy.");
+      this.msg.error('You can only delete your own pharmacy.');
       return;
     }
-    
+
     const pharmacyId = p.id;
     this.msg.loading('Deleting pharmacy...', { nzDuration: 0 });
-    
+
     this.service.delete(pharmacyId).subscribe({
       next: () => {
         this.msg.remove();
         this.msg.success('Pharmacy deleted successfully');
-        this.pharmacies = this.pharmacies.filter(ph => ph.id !== pharmacyId);
+        this.pharmacies = this.pharmacies.filter((ph) => ph.id !== pharmacyId);
 
         if (this.userRole === 'ROLE_PHARMACY' && this.userPharmacy?.id === pharmacyId) {
           this.userPharmacy = null;
@@ -1888,7 +1936,8 @@ export class Pharmacy implements OnInit, AfterViewInit {
     if (!control || !control.touched || !control.errors) return null;
 
     if (control.errors['required']) return 'This field is required';
-    if (control.errors['minlength']) return `Minimum ${control.errors['minlength'].requiredLength} characters required`;
+    if (control.errors['minlength'])
+      return `Minimum ${control.errors['minlength'].requiredLength} characters required`;
     return null;
   }
 

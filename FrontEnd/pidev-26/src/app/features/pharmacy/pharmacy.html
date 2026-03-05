@@ -5,10 +5,8 @@
     <button
       *ngIf="
         activeTabIndex === 0 &&
-        (
-          userRole === 'ROLE_ADMIN' ||
-          (userRole === 'ROLE_PHARMACY' && !loadingPharmacist && !userPharmacy)
-        )
+        (userRole === 'ROLE_ADMIN' ||
+          (userRole === 'ROLE_PHARMACY' && !loadingPharmacist && !userPharmacy))
       "
       nz-button
       nzType="primary"
@@ -21,8 +19,7 @@
 
   <!-- Loading -->
   <div *ngIf="loading" class="spinner-wrapper">
-    <nz-spin nzTip="Loading pharmacies..." nzSize="large" style="transform: scale(1.4);">
-    </nz-spin>
+    <nz-spin nzTip="Loading pharmacies..." nzSize="large" style="transform: scale(1.4)"> </nz-spin>
   </div>
 
   <!-- Error -->
@@ -57,7 +54,7 @@
             [(ngModel)]="selectedDate"
             (ngModelChange)="onDateChange()"
             nzPlaceHolder="Select date"
-            style="width: 100%;"
+            style="width: 100%"
           ></nz-date-picker>
         </div>
 
@@ -75,7 +72,7 @@
             (ngModelChange)="onRatingSortChange()"
             nzPlaceHolder="Select sort order"
             nzAllowClear
-            style="width: 100%;"
+            style="width: 100%"
           >
             <nz-option nzValue="desc" nzLabel="Highest to Lowest"></nz-option>
             <nz-option nzValue="asc" nzLabel="Lowest to Highest"></nz-option>
@@ -85,42 +82,38 @@
 
       <ng-template #inventorySidebarFilters>
         <ng-container *ngIf="activeTabIndex === 1; else requestedSidebarFilters">
-        <div class="filter-section">
-          <label>Search medication</label>
-          <input
-            nz-input
-            placeholder="Search medications..."
-            [(ngModel)]="inventorySearchText"
-            (ngModelChange)="onInventorySearchChange()"
-          />
-        </div>
-
-        <div class="filter-section">
-          <label>Filter by therapeutic class</label>
-          <nz-select
-            [(ngModel)]="inventoryTherapeuticClass"
-            (ngModelChange)="onInventoryTherapeuticClassChange()"
-            nzPlaceHolder="All classes"
-            nzAllowClear
-            style="width: 100%;"
-          >
-            <nz-option
-              *ngFor="let therapeuticClass of inventoryTherapeuticClassOptions"
-              [nzValue]="therapeuticClass"
-              [nzLabel]="formatTherapeuticClass(therapeuticClass)"
-            ></nz-option>
-          </nz-select>
-        </div>
-        </ng-container>
-
-        <ng-template #requestedSidebarFilters>
           <div class="filter-section">
             <label>Search medication</label>
             <input
               nz-input
               placeholder="Search medications..."
-              [(ngModel)]="requestedSearchText"
+              [(ngModel)]="inventorySearchText"
+              (ngModelChange)="onInventorySearchChange()"
             />
+          </div>
+
+          <div class="filter-section">
+            <label>Filter by therapeutic class</label>
+            <nz-select
+              [(ngModel)]="inventoryTherapeuticClass"
+              (ngModelChange)="onInventoryTherapeuticClassChange()"
+              nzPlaceHolder="All classes"
+              nzAllowClear
+              style="width: 100%"
+            >
+              <nz-option
+                *ngFor="let therapeuticClass of inventoryTherapeuticClassOptions"
+                [nzValue]="therapeuticClass"
+                [nzLabel]="formatTherapeuticClass(therapeuticClass)"
+              ></nz-option>
+            </nz-select>
+          </div>
+        </ng-container>
+
+        <ng-template #requestedSidebarFilters>
+          <div class="filter-section">
+            <label>Search medication</label>
+            <input nz-input placeholder="Search medications..." [(ngModel)]="requestedSearchText" />
           </div>
 
           <div class="filter-section">
@@ -129,7 +122,7 @@
               [(ngModel)]="requestedTherapeuticClass"
               nzPlaceHolder="All classes"
               nzAllowClear
-              style="width: 100%;"
+              style="width: 100%"
             >
               <nz-option
                 *ngFor="let therapeuticClass of inventoryTherapeuticClassOptions"
@@ -186,16 +179,25 @@
                 *ngIf="p.bannerUrl"
                 [ngClass]="{ 'banner-grayscale': p.id && !pharmacyStatus.get(p.id)?.isOpen }"
                 [ngStyle]="{
-                  'backgroundImage':
+                  backgroundImage:
                     'linear-gradient(to left, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 50%), url(' +
                     p.bannerUrl +
-                    ')'
+                    ')',
                 }"
                 aria-hidden="true"
               ></div>
 
               <!-- Status Badge -->
-              <div *ngIf="p.id && (pharmacyStatus.get(p.id)?.isOpen || pharmacyStatus.get(p.id)?.isClosed)" class="status-badge" [ngClass]="{ 'badge-closed': pharmacyStatus.get(p.id)?.isClosed, 'badge-open': pharmacyStatus.get(p.id)?.isOpen }">
+              <div
+                *ngIf="
+                  p.id && (pharmacyStatus.get(p.id)?.isOpen || pharmacyStatus.get(p.id)?.isClosed)
+                "
+                class="status-badge"
+                [ngClass]="{
+                  'badge-closed': pharmacyStatus.get(p.id)?.isClosed,
+                  'badge-open': pharmacyStatus.get(p.id)?.isOpen,
+                }"
+              >
                 {{ pharmacyStatus.get(p.id)?.isClosed ? 'CLOSED' : 'OPEN' }}
               </div>
 
@@ -208,8 +210,8 @@
                   (click)="toggleLike(p, $event)"
                   [attr.aria-pressed]="p.id ? liked.has(p.id) : false"
                 >
-                  <nz-icon 
-                    nzType="heart" 
+                  <nz-icon
+                    nzType="heart"
                     [nzTheme]="p.id && liked.has(p.id) ? 'fill' : 'outline'"
                     class="heart-icon"
                     [class.heart-liked]="p.id && liked.has(p.id)"
@@ -229,10 +231,36 @@
 
                 <nz-dropdown-menu #menu="nzDropdownMenu">
                   <ul nz-menu>
-                    <li *ngIf="userRole === 'ROLE_ADMIN' || isOwnPharmacy(p.id)" nz-menu-item (click)="editInfo(p, $event)">Edit Info</li>
-                    <li *ngIf="userRole === 'ROLE_ADMIN' || isOwnPharmacy(p.id)" nz-menu-item (click)="changeCoordinates(p, $event)">Change Coordinates</li>
-                    <li *ngIf="userRole !== 'ROLE_PHARMACY' || !isOwnPharmacy(p.id)" nz-menu-item nzDanger (click)="report(p, $event)">Report</li>
-                    <li *ngIf="userRole === 'ROLE_ADMIN' || isOwnPharmacy(p.id)" nz-menu-item nzDanger (click)="delete(p, $event)">Delete</li>
+                    <li
+                      *ngIf="userRole === 'ROLE_ADMIN' || isOwnPharmacy(p.id)"
+                      nz-menu-item
+                      (click)="editInfo(p, $event)"
+                    >
+                      Edit Info
+                    </li>
+                    <li
+                      *ngIf="userRole === 'ROLE_ADMIN' || isOwnPharmacy(p.id)"
+                      nz-menu-item
+                      (click)="changeCoordinates(p, $event)"
+                    >
+                      Change Coordinates
+                    </li>
+                    <li
+                      *ngIf="userRole !== 'ROLE_PHARMACY' || !isOwnPharmacy(p.id)"
+                      nz-menu-item
+                      nzDanger
+                      (click)="report(p, $event)"
+                    >
+                      Report
+                    </li>
+                    <li
+                      *ngIf="userRole === 'ROLE_ADMIN' || isOwnPharmacy(p.id)"
+                      nz-menu-item
+                      nzDanger
+                      (click)="delete(p, $event)"
+                    >
+                      Delete
+                    </li>
                   </ul>
                 </nz-dropdown-menu>
               </div>
@@ -269,7 +297,7 @@
 
         <nz-tab nzTitle="Inventory" *ngIf="userRole === 'ROLE_ADMIN'">
           <div *ngIf="!inventoryPharmacyId" class="empty-wrapper">
-            <nz-empty nzNotFoundContent="Select a pharmacy to view inventory"></nz-empty>
+            <nz-empty nzNotFoundContent="Inventory view"></nz-empty>
           </div>
 
           <app-medication
@@ -287,81 +315,147 @@
 
         <nz-tab nzTitle="Requested Medications" *ngIf="userRole === 'ROLE_ADMIN'">
           <div class="tab-toggle-row">
-            <button nz-button nzShape="round" [nzType]="requestedMainView === 'requests' ? 'primary' : 'default'" (click)="setRequestedMainView('requests')">
+            <button
+              nz-button
+              nzShape="round"
+              [nzType]="requestedMainView === 'requests' ? 'primary' : 'default'"
+              (click)="setRequestedMainView('requests')"
+            >
               Requests
             </button>
-            <button nz-button nzShape="round" [nzType]="requestedMainView === 'agent-logs' ? 'primary' : 'default'" (click)="setRequestedMainView('agent-logs')">
+            <button
+              nz-button
+              nzShape="round"
+              [nzType]="requestedMainView === 'agent-logs' ? 'primary' : 'default'"
+              (click)="setRequestedMainView('agent-logs')"
+            >
               Agent Logs
             </button>
           </div>
 
           <div *ngIf="requestedMainView === 'requests'">
             <div *ngIf="requestedLoading" class="spinner-wrapper">
-              <nz-spin nzTip="Loading requested medications..." nzSize="large" style="transform: scale(1.4);"></nz-spin>
+              <nz-spin
+                nzTip="Loading requested medications..."
+                nzSize="large"
+                style="transform: scale(1.4)"
+              ></nz-spin>
             </div>
 
-            <div *ngIf="!requestedLoading && requestedMedications.length === 0" class="empty-wrapper">
+            <div
+              *ngIf="!requestedLoading && requestedMedications.length === 0"
+              class="empty-wrapper"
+            >
               <nz-empty nzNotFoundContent="No pending medication requests"></nz-empty>
             </div>
 
-            <div class="pharmacy-list" *ngIf="!requestedLoading && paginatedRequestedMedications.length > 0">
-            <div 
-              class="pharmacy-card" 
-              *ngFor="let med of paginatedRequestedMedications" 
-              style="cursor: pointer;"
-              (click)="openMedicationDetail(med)"
+            <div
+              class="pharmacy-list"
+              *ngIf="!requestedLoading && paginatedRequestedMedications.length > 0"
             >
-              <div class="pharmacy-main" style="grid-column: 1 / -1;">
-                <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-                  <div *ngIf="med.imageUrl" style="width: 48px; height: 48px; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
-                    <img [src]="med.imageUrl" [alt]="med.name" style="width: 100%; height: 100%; object-fit: cover;" />
-                  </div>
-                  <div *ngIf="!med.imageUrl" style="width: 48px; height: 48px; border-radius: 8px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: 700; color: #4D5CAB;">
-                  {{ med.name.charAt(0) || '?' }}
-                  </div>
-                  <div style="flex: 1; min-width: 0;">
-                    <div class="pharmacy-name">{{ med.name }}</div>
-                    <div class="pharmacy-address">{{ med.description || 'No description' }}</div>
-                    <div class="pharmacy-muted" style="font-size: 12px; margin-top: 2px;">
-                      {{ formatTherapeuticClass(med.therapeuticClass) }}
+              <div
+                class="pharmacy-card"
+                *ngFor="let med of paginatedRequestedMedications"
+                style="cursor: pointer"
+                (click)="openMedicationDetail(med)"
+              >
+                <div class="pharmacy-main" style="grid-column: 1 / -1">
+                  <div style="display: flex; align-items: center; gap: 12px; width: 100%">
+                    <div
+                      *ngIf="med.imageUrl"
+                      style="
+                        width: 48px;
+                        height: 48px;
+                        border-radius: 8px;
+                        overflow: hidden;
+                        flex-shrink: 0;
+                      "
+                    >
+                      <img
+                        [src]="med.imageUrl"
+                        [alt]="med.name"
+                        style="width: 100%; height: 100%; object-fit: cover"
+                      />
+                    </div>
+                    <div
+                      *ngIf="!med.imageUrl"
+                      style="
+                        width: 48px;
+                        height: 48px;
+                        border-radius: 8px;
+                        background: #f0f0f0;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        flex-shrink: 0;
+                        font-weight: 700;
+                        color: #4d5cab;
+                      "
+                    >
+                      {{ med.name.charAt(0) || '?' }}
+                    </div>
+                    <div style="flex: 1; min-width: 0">
+                      <div class="pharmacy-name">{{ med.name }}</div>
+                      <div class="pharmacy-address">{{ med.description || 'No description' }}</div>
+                      <div class="pharmacy-muted" style="font-size: 12px; margin-top: 2px">
+                        {{ formatTherapeuticClass(med.therapeuticClass) }}
+                      </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-shrink: 0">
+                      <button
+                        nz-button
+                        nzType="primary"
+                        (click)="acceptMedicationRequest(med); $event.stopPropagation()"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        *ngIf="
+                          med.id &&
+                          agentMessages.has(med.id) &&
+                          agentMessages.get(med.id)!.actionType === 'PATCH_AND_ACCEPT'
+                        "
+                        nz-button
+                        nzType="default"
+                        style="background-color: #faad14; border-color: #faad14; color: white"
+                        (click)="patchAndAcceptMedication(med); $event.stopPropagation()"
+                      >
+                        Patch & Accept
+                      </button>
+                      <button
+                        nz-button
+                        nzType="default"
+                        nzDanger
+                        (click)="rejectMedicationRequest(med); $event.stopPropagation()"
+                      >
+                        Reject
+                      </button>
                     </div>
                   </div>
-                  <div style="display: flex; gap: 8px; flex-shrink: 0;">
-                    <button nz-button nzType="primary" (click)="acceptMedicationRequest(med); $event.stopPropagation()">Accept</button>
-                    <button 
-                      *ngIf="med.id && agentMessages.has(med.id) && agentMessages.get(med.id)!.actionType === 'PATCH_AND_ACCEPT'"
-                      nz-button 
-                      nzType="default" 
-                      style="background-color: #faad14; border-color: #faad14; color: white;"
-                      (click)="patchAndAcceptMedication(med); $event.stopPropagation()"
-                    >
-                      Patch & Accept
-                    </button>
-                    <button nz-button nzType="default" nzDanger (click)="rejectMedicationRequest(med); $event.stopPropagation()">Reject</button>
-                  </div>
-                </div>
 
-                <!-- Agent Message Warning Section -->
-                <div 
-                  *ngIf="med.id && agentMessages.has(med.id)" 
-                  class="agent-message-section"
-                  (click)="$event.stopPropagation()"
-                >
-                  <div class="agent-message-header">
-                    <span class="agent-badge">🤖 AI Agent Analysis</span>
-                    <span 
-                      class="agent-action-badge"
-                      [style.background-color]="getAgentActionColor(agentMessages.get(med.id)!.actionType)"
-                    >
-                      {{ getAgentActionLabel(agentMessages.get(med.id)!.actionType) }}
-                    </span>
-                  </div>
-                  <div class="agent-message-content">
-                    {{ agentMessages.get(med.id)!.content }}
+                  <!-- Agent Message Warning Section -->
+                  <div
+                    *ngIf="med.id && agentMessages.has(med.id)"
+                    class="agent-message-section"
+                    (click)="$event.stopPropagation()"
+                  >
+                    <div class="agent-message-header">
+                      <span class="agent-badge">🤖 AI Agent Analysis</span>
+                      <span
+                        class="agent-action-badge"
+                        [style.background-color]="
+                          getAgentActionColor(agentMessages.get(med.id)!.actionType)
+                        "
+                      >
+                        {{ getAgentActionLabel(agentMessages.get(med.id)!.actionType) }}
+                      </span>
+                    </div>
+                    <div class="agent-message-content">
+                      {{ agentMessages.get(med.id)!.content }}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
             </div>
 
             <div class="pagination-wrapper" *ngIf="requestedMedications.length > requestedPageSize">
@@ -377,7 +471,11 @@
 
           <div *ngIf="requestedMainView === 'agent-logs'">
             <div *ngIf="agentLogsLoading" class="spinner-wrapper">
-              <nz-spin nzTip="Loading agent logs..." nzSize="large" style="transform: scale(1.4);"></nz-spin>
+              <nz-spin
+                nzTip="Loading agent logs..."
+                nzSize="large"
+                style="transform: scale(1.4)"
+              ></nz-spin>
             </div>
 
             <div *ngIf="!agentLogsLoading && agentLogs.length === 0" class="empty-wrapper">
@@ -386,27 +484,43 @@
 
             <div class="pharmacy-list" *ngIf="!agentLogsLoading && agentLogs.length > 0">
               <div class="pharmacy-card" *ngFor="let log of agentLogs">
-                <div class="pharmacy-main" style="grid-column: 1 / -1;">
-                  <div style="display: flex; align-items: flex-start; gap: 12px; width: 100%; justify-content: space-between;">
-                    <div style="flex: 1; min-width: 0;">
-                      <div style="margin-bottom: 8px;">
-                        <span class="agent-action-badge" [style.background-color]="getAgentLogActionColor(log.actionType)">
+                <div class="pharmacy-main" style="grid-column: 1 / -1">
+                  <div
+                    style="
+                      display: flex;
+                      align-items: flex-start;
+                      gap: 12px;
+                      width: 100%;
+                      justify-content: space-between;
+                    "
+                  >
+                    <div style="flex: 1; min-width: 0">
+                      <div style="margin-bottom: 8px">
+                        <span
+                          class="agent-action-badge"
+                          [style.background-color]="getAgentLogActionColor(log.actionType)"
+                        >
                           {{ formatAgentLogAction(log.actionType) }}
                         </span>
                       </div>
                       <div class="pharmacy-name">{{ log.medicationName }}</div>
-                      <div class="pharmacy-muted" style="font-size: 12px; margin-top: 4px;">
-                        {{ log.timestamp | date:'short' }}
+                      <div class="pharmacy-muted" style="font-size: 12px; margin-top: 4px">
+                        {{ log.timestamp | date: 'short' }}
                       </div>
-                      <div *ngIf="log.reason" class="pharmacy-address" style="margin-top: 6px;">
+                      <div *ngIf="log.reason" class="pharmacy-address" style="margin-top: 6px">
                         {{ log.reason }}
                       </div>
                     </div>
-                    <div style="display: flex; gap: 8px;">
+                    <div style="display: flex; gap: 8px">
                       <button nz-button nzType="default" (click)="undoAgentAction(log, $event)">
                         Undo
                       </button>
-                      <button nz-button nzType="default" nzDanger (click)="deleteAgentLog(log, $event)">
+                      <button
+                        nz-button
+                        nzType="default"
+                        nzDanger
+                        (click)="deleteAgentLog(log, $event)"
+                      >
                         Delete
                       </button>
                     </div>
@@ -424,7 +538,13 @@
 
   <nz-modal
     [(nzVisible)]="isAddModalOpen"
-    [nzTitle]="modalMode === 'add' ? 'Add pharmacy' : modalMode === 'editInfo' ? 'Edit Info' : 'Change Coordinates'"
+    [nzTitle]="
+      modalMode === 'add'
+        ? 'Add pharmacy'
+        : modalMode === 'editInfo'
+          ? 'Edit Info'
+          : 'Change Coordinates'
+    "
     [nzClosable]="!saving"
     [nzMaskClosable]="!saving"
     (nzOnCancel)="cancelAdd()"
@@ -452,7 +572,9 @@
                   placeholder="Pharmacy name"
                   [class.field-error]="isFieldInvalid('name')"
                 />
-                <div *ngIf="getFieldError('name')" class="error-text">{{ getFieldError('name') }}</div>
+                <div *ngIf="getFieldError('name')" class="error-text">
+                  {{ getFieldError('name') }}
+                </div>
               </nz-form-control>
             </nz-form-item>
 
@@ -468,7 +590,9 @@
                   maxlength="8"
                   [class.field-error]="isFieldInvalid('contactInfo')"
                 />
-                <div *ngIf="getFieldError('contactInfo')" class="error-text">{{ getFieldError('contactInfo') }}</div>
+                <div *ngIf="getFieldError('contactInfo')" class="error-text">
+                  {{ getFieldError('contactInfo') }}
+                </div>
               </nz-form-control>
             </nz-form-item>
 
@@ -483,7 +607,9 @@
                   placeholder="Pharmacy description"
                   [class.field-error]="isFieldInvalid('description')"
                 ></textarea>
-                <div *ngIf="getFieldError('description')" class="error-text">{{ getFieldError('description') }}</div>
+                <div *ngIf="getFieldError('description')" class="error-text">
+                  {{ getFieldError('description') }}
+                </div>
               </nz-form-control>
             </nz-form-item>
 
@@ -532,9 +658,11 @@
         </div>
 
         <!-- STEP 1 - Only show for 'add' and 'changeCoordinates' modes -->
-        <div *ngIf="currentStep === 1 && (modalMode === 'add' || modalMode === 'changeCoordinates')">
+        <div
+          *ngIf="currentStep === 1 && (modalMode === 'add' || modalMode === 'changeCoordinates')"
+        >
           <form nz-form [formGroup]="addForm">
-            <div style="margin-bottom: 16px;">
+            <div style="margin-bottom: 16px">
               <nz-form-item>
                 <nz-form-label [nzRequired]="true">Address</nz-form-label>
                 <nz-form-control>
@@ -544,11 +672,13 @@
                     placeholder="Address"
                     [class.field-error]="isFieldInvalid('address')"
                   />
-                  <div *ngIf="getFieldError('address')" class="error-text">{{ getFieldError('address') }}</div>
+                  <div *ngIf="getFieldError('address')" class="error-text">
+                    {{ getFieldError('address') }}
+                  </div>
                 </nz-form-control>
               </nz-form-item>
 
-              <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+              <div style="display: flex; gap: 12px; margin-bottom: 12px">
                 <button nz-button nzType="primary" (click)="getGeolocation()">
                   <nz-icon nzType="environment" nzTheme="fill"></nz-icon>
                   Get My Location
@@ -556,17 +686,29 @@
               </div>
 
               <!-- Map Container -->
-              <div #mapContainer style="width: 100%; height: 400px; border-radius: 8px; border: 1px solid rgba(0, 0, 0, 0.1);"></div>
+              <div
+                #mapContainer
+                style="
+                  width: 100%;
+                  height: 400px;
+                  border-radius: 8px;
+                  border: 1px solid rgba(0, 0, 0, 0.1);
+                "
+              ></div>
 
               <!-- Coordinates Display -->
-              <div style="margin-top: 12px; display: flex; gap: 24px;">
+              <div style="margin-top: 12px; display: flex; gap: 24px">
                 <div>
-                  <small style="color: rgba(0, 0, 0, 0.45);">Latitude</small>
-                  <div style="font-weight: 600; font-size: 14px;">{{ addForm.get('latitude')?.value || '—' }}</div>
+                  <small style="color: rgba(0, 0, 0, 0.45)">Latitude</small>
+                  <div style="font-weight: 600; font-size: 14px">
+                    {{ addForm.get('latitude')?.value || '—' }}
+                  </div>
                 </div>
                 <div>
-                  <small style="color: rgba(0, 0, 0, 0.45);">Longitude</small>
-                  <div style="font-weight: 600; font-size: 14px;">{{ addForm.get('longitude')?.value || '—' }}</div>
+                  <small style="color: rgba(0, 0, 0, 0.45)">Longitude</small>
+                  <div style="font-weight: 600; font-size: 14px">
+                    {{ addForm.get('longitude')?.value || '—' }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -580,14 +722,14 @@
         <!-- STEP 2 -->
         <div *ngIf="currentStep === 2" class="step-complete">
           <div *ngIf="saving" class="loading-state">
-            <nz-spin nzSize="large" style="transform: scale(1.4);"></nz-spin>
+            <nz-spin nzSize="large" style="transform: scale(1.4)"></nz-spin>
           </div>
 
           <div *ngIf="!saving && !stepError" class="success-state">
             <nz-icon
               nzType="check-circle"
               nzTheme="fill"
-              style="color: #52c41a; font-size: 48px;"
+              style="color: #52c41a; font-size: 48px"
             ></nz-icon>
             <h3>Pharmacy Created Successfully!</h3>
             <p>Your pharmacy has been added to the system.</p>
@@ -597,7 +739,7 @@
             <nz-icon
               nzType="close-circle"
               nzTheme="fill"
-              style="color: #ff4d4f; font-size: 48px;"
+              style="color: #ff4d4f; font-size: 48px"
             ></nz-icon>
             <h3>Error Creating Pharmacy</h3>
             <p>{{ stepError }}</p>
@@ -608,7 +750,12 @@
 
     <!-- ✅ CUSTOM FOOTER -->
     <ng-container *nzModalFooter>
-      <button *ngIf="(modalMode === 'add' && currentStep < 2) || (modalMode !== 'add' && !saving)" nz-button nzType="default" (click)="cancelAdd()">
+      <button
+        *ngIf="(modalMode === 'add' && currentStep < 2) || (modalMode !== 'add' && !saving)"
+        nz-button
+        nzType="default"
+        (click)="cancelAdd()"
+      >
         Cancel
       </button>
 
@@ -651,7 +798,12 @@
         Update Coordinates
       </button>
 
-      <button *ngIf="modalMode === 'add' && currentStep === 2" nz-button nzType="primary" (click)="cancelAdd()">
+      <button
+        *ngIf="modalMode === 'add' && currentStep === 2"
+        nz-button
+        nzType="primary"
+        (click)="cancelAdd()"
+      >
         Close
       </button>
     </ng-container>
@@ -699,8 +851,8 @@
         <div class="report-field">
           <label>Reason</label>
           <div class="report-reasons-buttons">
-            <button 
-              *ngFor="let reason of reportReasonOptions" 
+            <button
+              *ngFor="let reason of reportReasonOptions"
               nz-button
               [nzType]="selectedReportReason === reason.value ? 'primary' : 'default'"
               (click)="selectReportReason(reason.value)"
@@ -734,7 +886,10 @@
     <ng-container *nzModalContent>
       <div *ngIf="selectedMedicationForDetail" class="medication-details">
         <div class="details-image" *ngIf="selectedMedicationForDetail.imageUrl; else detailNoImage">
-          <img [src]="selectedMedicationForDetail.imageUrl" [alt]="selectedMedicationForDetail.name" />
+          <img
+            [src]="selectedMedicationForDetail.imageUrl"
+            [alt]="selectedMedicationForDetail.name"
+          />
         </div>
         <ng-template #detailNoImage>
           <div class="details-image medication-no-image">
@@ -773,13 +928,13 @@
   >
     <ng-container *nzDrawerContent>
       <div *ngIf="aiDrawerLoading" class="ai-drawer-loading">
-        <nz-spin nzSize="large" style="transform: scale(1.4);" class="ai-drawer-spinner"></nz-spin>
+        <nz-spin nzSize="large" style="transform: scale(1.4)" class="ai-drawer-spinner"></nz-spin>
       </div>
 
       <div *ngIf="!aiDrawerLoading && aiOverviewData" class="ai-overview-content">
-        <div *ngIf="selectedMedicationForAI" style="margin-bottom: 24px;">
-          <h3 style="margin: 0 0 8px 0;">{{ selectedMedicationForAI.name }}</h3>
-          <div style="color: #8c8c8c; font-size: 14px;">
+        <div *ngIf="selectedMedicationForAI" style="margin-bottom: 24px">
+          <h3 style="margin: 0 0 8px 0">{{ selectedMedicationForAI.name }}</h3>
+          <div style="color: #8c8c8c; font-size: 14px">
             {{ formatTherapeuticClass(selectedMedicationForAI.therapeuticClass) }}
           </div>
         </div>
@@ -790,21 +945,32 @@
             <p>{{ parsedAIData.summary }}</p>
           </div>
 
-          <div class="ai-section" *ngIf="parsedAIData.indications && parsedAIData.indications.length > 0">
+          <div
+            class="ai-section"
+            *ngIf="parsedAIData.indications && parsedAIData.indications.length > 0"
+          >
             <h4>Indications</h4>
             <ul>
               <li *ngFor="let item of parsedAIData.indications">{{ item }}</li>
             </ul>
           </div>
 
-          <div class="ai-section" *ngIf="parsedAIData.sideEffects && parsedAIData.sideEffects.length > 0">
+          <div
+            class="ai-section"
+            *ngIf="parsedAIData.sideEffects && parsedAIData.sideEffects.length > 0"
+          >
             <h4>Side Effects</h4>
             <div class="side-effects-grid">
-              <span *ngFor="let effect of parsedAIData.sideEffects" class="side-effect-chip">{{ effect }}</span>
+              <span *ngFor="let effect of parsedAIData.sideEffects" class="side-effect-chip">{{
+                effect
+              }}</span>
             </div>
           </div>
 
-          <div class="ai-section" *ngIf="parsedAIData.contraindications && parsedAIData.contraindications.length > 0">
+          <div
+            class="ai-section"
+            *ngIf="parsedAIData.contraindications && parsedAIData.contraindications.length > 0"
+          >
             <h4>Contraindications</h4>
             <ul>
               <li *ngFor="let item of parsedAIData.contraindications">{{ item }}</li>
@@ -813,16 +979,21 @@
 
           <div class="ai-section" *ngIf="parsedAIData.source">
             <h4>Source</h4>
-            <p style="font-size: 13px; color: #8c8c8c;">{{ parsedAIData.source }}</p>
+            <p style="font-size: 13px; color: #8c8c8c">{{ parsedAIData.source }}</p>
           </div>
         </div>
 
         <div class="ai-response" *ngIf="!parsedAIData">
-          <pre style="white-space: pre-wrap; font-family: inherit; margin: 0;">{{ aiOverviewData | json }}</pre>
+          <pre style="white-space: pre-wrap; font-family: inherit; margin: 0">{{
+            aiOverviewData | json
+          }}</pre>
         </div>
       </div>
 
-      <div *ngIf="!aiDrawerLoading && !aiOverviewData" style="text-align: center; padding: 40px 20px; color: #8c8c8c;">
+      <div
+        *ngIf="!aiDrawerLoading && !aiOverviewData"
+        style="text-align: center; padding: 40px 20px; color: #8c8c8c"
+      >
         No overview data available
       </div>
     </ng-container>

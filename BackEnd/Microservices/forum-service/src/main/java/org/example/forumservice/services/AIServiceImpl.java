@@ -26,8 +26,19 @@ public class AIServiceImpl implements AIService {
     private final CommentRepository commentRepository;
     private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${google.ai.api.key:}")
+    @Value("${google.ai.api.key}")
     private String apiKey;
+
+    private String normalizedApiKey() {
+        if (apiKey == null)
+            return "";
+        String key = apiKey.trim();
+        if (key.length() >= 2
+                && ((key.startsWith("\"") && key.endsWith("\"")) || (key.startsWith("'") && key.endsWith("'")))) {
+            key = key.substring(1, key.length() - 1).trim();
+        }
+        return key;
+    }
 
     @Override
     public String summarizePost(Long postId) {
@@ -37,13 +48,14 @@ public class AIServiceImpl implements AIService {
 
         String prompt = buildPrompt(post, comments);
 
-        if (apiKey == null || apiKey.isBlank()) {
+        final String effectiveKey = normalizedApiKey();
+        if (effectiveKey.isBlank()) {
             log.warn("AI API Key missing. Returning fallback summary.");
             return generateFallbackSummary(post, comments);
         }
 
         try {
-            return callAIModule(prompt);
+            return callAIModule(prompt, effectiveKey);
         } catch (Exception e) {
             log.error("Error calling AI API", e);
             return "Unable to generate AI summary at this moment. " + generateFallbackSummary(post, comments);
@@ -68,9 +80,10 @@ public class AIServiceImpl implements AIService {
         return sb.toString();
     }
 
-    private String callAIModule(String prompt) {
+    private String callAIModule(String prompt, String effectiveKey) {
         String url = "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key="
-                + apiKey;
+                + effectiveKey;
+        System.out.println(effectiveKey);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
