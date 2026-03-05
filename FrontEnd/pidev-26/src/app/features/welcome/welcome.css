@@ -33,6 +33,22 @@
 }
 
 .animate-wiggle-fast {
+    animation: wiggle-fast 0.6s ease-in-out infinite;
+}
+
+@keyframes draw-check {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+.animate-draw-check {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    animation: draw-check 0.8s ease-out forwards;
+}
+
+.animate-wiggle-fast {
     animation: wiggle-fast 0.8s ease-in-out infinite;
 }
 

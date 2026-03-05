@@ -115,9 +115,15 @@ export class WelcomeComponent implements OnInit {
             .subscribe({
                 next: (response) => {
                     console.log('Patient created:', response);
-                    setTimeout(() => this.router.navigate(['/dashboard']), 2000);
+                    // Shorter timeout for faster transition
+                    setTimeout(() => {
+                        this.router.navigate(['/dashboard']);
+                    }, 800);
                 },
-                error: (err) => console.error(err)
+                error: (err) => {
+                    console.error('Registration failed:', err);
+                    this.step.set(5); // Go back to last interactive step on error
+                }
             });
     }
 

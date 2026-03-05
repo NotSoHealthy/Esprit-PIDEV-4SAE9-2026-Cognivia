@@ -1,48 +1,83 @@
-<div class="p-8 max-w-2xl mx-auto">
-  <div class="flex items-center justify-between mb-8">
-    <h1 class="text-3xl font-bold text-gray-800">Profile Settings</h1>
-    <button (click)="goBack()" class="text-blue-600 hover:underline cursor-pointer">Back to Dashboard</button>
+<div class="min-h-screen bg-[#f5f5f5] flex flex-col items-center p-4 relative overflow-hidden font-sans select-none">
+  <!-- Top Navigation -->
+  <div class="w-full max-w-4xl flex items-center justify-between mt-4 mb-8 px-4">
+    <button (click)="goBack()"
+      class="text-[#afafaf] hover:text-[#3c3c3c] transition-colors p-2 flex items-center gap-2 group">
+      <svg class="w-6 h-6 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor"
+        viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      <span class="font-black uppercase tracking-widest text-xs">Back to Dashboard</span>
+    </button>
   </div>
 
-  <div *ngIf="isLoading" class="flex justify-center py-20">
-    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-  </div>
+  <!-- Content Area -->
+  <div class="flex-1 w-full max-w-2xl flex flex-col relative pt-4">
 
-  <div *ngIf="!isLoading" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 space-y-6">
-    <div class="grid grid-cols-2 gap-6">
-      <div class="space-y-2">
-        <label class="text-sm font-semibold text-gray-500 uppercase tracking-wider">First Name</label>
-        <input type="text" [(ngModel)]="patientInformation.firstName"
-          class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all" />
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex flex-col items-center justify-center py-20 text-center animate-fade-in">
+      <div class="relative w-40 h-40 mb-8">
+        <div class="absolute inset-0 bg-cognivia-blue/10 rounded-full blur-2xl animate-pulse scale-150"></div>
+        <img
+          src="https://cdn.builder.io/api/v1/image/assets%2Fd3d69403f729419ab22b58accb7875b9%2F5eb51ac8abac42abb0f60299bf3d8fe2?format=webp&width=800&height=1200"
+          alt="Cognivia Logo" class="w-full h-full object-contain relative z-10 animate-wiggle-fast" />
       </div>
-      <div class="space-y-2">
-        <label class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Last Name</label>
-        <input type="text" [(ngModel)]="patientInformation.lastName"
-          class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all" />
+      <p class="text-[10px] font-black text-[#afafaf] uppercase tracking-[0.3em] animate-pulse">Retrieving Profile...
+      </p>
+    </div>
+
+    <!-- Profile Form -->
+    <div *ngIf="!isLoading" class="animate-slide-up w-full max-w-md mx-auto space-y-8 pb-20">
+      <div class="text-center space-y-2 mb-12">
+        <h1 class="text-4xl font-black text-[#3c3c3c] tracking-tight">Your Profile</h1>
+        <p class="text-[#afafaf] font-bold text-sm">Keep your information up to date</p>
       </div>
-    </div>
 
-    <div class="space-y-2">
-      <label class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Date of Birth</label>
-      <input type="date" [(ngModel)]="patientInformation.dateOfBirth"
-        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all" />
-    </div>
+      <!-- Form Groups -->
+      <div class="space-y-6">
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-[#afafaf] uppercase tracking-widest ml-1">First Name</label>
+          <input type="text" [(ngModel)]="patientInformation.firstName" placeholder="First Name"
+            class="w-full bg-white border-2 border-[#e5e5e5] rounded-2xl px-6 py-4 outline-none focus:border-cognivia-blue transition-all text-lg font-black text-[#3c3c3c] placeholder:text-[#afafaf] shadow-[0_4px_0_0_#e5e5e5] focus:shadow-[0_4px_0_0_#6BAED6]" />
+        </div>
 
-    <div class="space-y-2">
-      <label class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Gender</label>
-      <select [(ngModel)]="patientInformation.gender"
-        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all">
-        <option value="MALE">Male</option>
-        <option value="FEMALE">Female</option>
-        <option value="OTHER">Other</option>
-      </select>
-    </div>
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-[#afafaf] uppercase tracking-widest ml-1">Last Name</label>
+          <input type="text" [(ngModel)]="patientInformation.lastName" placeholder="Last Name"
+            class="w-full bg-white border-2 border-[#e5e5e5] rounded-2xl px-6 py-4 outline-none focus:border-cognivia-blue transition-all text-lg font-black text-[#3c3c3c] placeholder:text-[#afafaf] shadow-[0_4px_0_0_#e5e5e5] focus:shadow-[0_4px_0_0_#6BAED6]" />
+        </div>
 
-    <div class="pt-6">
-      <button (click)="saveProfile()" [disabled]="isSaving"
-        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer">
-        {{ isSaving ? 'Saving Changes...' : 'Update Profile' }}
-      </button>
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-[#afafaf] uppercase tracking-widest ml-1">Date of Birth</label>
+          <input type="date" [(ngModel)]="patientInformation.dateOfBirth"
+            class="w-full bg-white border-2 border-[#e5e5e5] rounded-2xl px-6 py-4 outline-none focus:border-cognivia-blue transition-all text-lg font-black text-[#3c3c3c] shadow-[0_4px_0_0_#e5e5e5] focus:shadow-[0_4px_0_0_#6BAED6]" />
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-[#afafaf] uppercase tracking-widest ml-1">Gender</label>
+          <div class="grid grid-cols-2 gap-3">
+            <button *ngFor="let option of ['MALE', 'FEMALE']" (click)="patientInformation.gender = option"
+              [class]="patientInformation.gender === option ? 'border-cognivia-blue bg-cognivia-blue/5 shadow-[0_4px_0_0_#4A90B8]' : 'bg-white border-[#e5e5e5] shadow-[0_4px_0_0_#e5e5e5]'"
+              class="border-2 rounded-2xl p-4 flex items-center justify-center gap-2 transition-all hover:brightness-95 active:translate-y-1 active:shadow-none cursor-pointer">
+              <span class="text-sm font-black text-[#3c3c3c] uppercase tracking-wider">{{ option }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <div class="pt-8">
+        <button (click)="saveProfile()" [disabled]="isSaving"
+          class="w-full bg-[#6BAED6] hover:brightness-110 active:scale-95 text-white font-black px-12 py-4.5 rounded-2xl shadow-[0_6px_0_0_#4A90B8] active:shadow-none active:translate-y-1 transition-all uppercase tracking-[0.2em] text-[16px] disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-3">
+          <svg *ngIf="isSaving" class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+            </path>
+          </svg>
+          {{ isSaving ? 'Saving...' : 'Update Profile' }}
+        </button>
+      </div>
     </div>
   </div>
 </div>
