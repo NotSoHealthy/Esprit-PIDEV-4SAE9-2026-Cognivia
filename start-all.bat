@@ -9,8 +9,8 @@ set "CARE_DIR=BackEnd\Microservices\care"
 set "FORUM_DIR=BackEnd\Microservices\forum-service"
 set "DPCHAT_DIR=BackEnd\Microservices\dpchat"
 set "MON_DIR=BackEnd\Microservices\monitoring"
-set "SAE_DIR=BackEnd\Microservices\surveillance-and-equipment"
-set "GAM_DIR=BackEnd\Microservices\games"
+set "SAE_DIR=BackEnd\Microservices\SurveillanceAndEquipment"
+set "GAM_DIR=BackEnd\Microservices\Games"
 set "PHARMACY_DIR=BackEnd\Microservices\pharmacy"
 set "APPOINTMENT_DIR=BackEnd\Microservices\appointment-service"
 set "FRONTEND_DIR=FrontEnd\pidev-26"
@@ -61,7 +61,7 @@ wt -w 0 ^
   ; new-tab --title "dpchat"                   cmd /k "%RUNDIR%\dpchat.cmd" ^
   ; new-tab --title "monitoring"               cmd /k "%RUNDIR%\monitoring.cmd" ^
   ; new-tab --title "SurveillanceAndEquipment" cmd /k "%RUNDIR%\SurveillanceAndEquipment.cmd" ^
-  ; new-tab --title "Games"                    cmd /k "%RUNDIR%\games.cmd" ^
+  ; new-tab --title "Games"                    cmd /k "%RUNDIR%\Games.cmd" ^
   ; new-tab --title "pharmacy"                 cmd /k "%RUNDIR%\pharmacy.cmd" ^
   ; new-tab --title "appointment"                 cmd /k "%RUNDIR%\appointment.cmd" ^
   ; new-tab --title "frontend"                 cmd /k "%RUNDIR%\frontend.cmd"
