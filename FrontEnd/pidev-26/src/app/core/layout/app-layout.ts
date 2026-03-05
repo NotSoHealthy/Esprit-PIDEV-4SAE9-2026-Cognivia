@@ -15,6 +15,7 @@ import { KeycloakService } from '../auth/keycloak.service';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { CurrentUserService } from '../user/current-user.service';
 import { StreakService } from '../../features/games/streak.service';
 import { StreakFlameComponent } from '../../shared/components/streak-flame/streak-flame.component';
@@ -29,6 +30,7 @@ import { StreakFlameComponent } from '../../shared/components/streak-flame/strea
     NzIconModule,
     NzDropdownModule,
     NzMenuModule,
+    NzTooltipModule,
     StreakFlameComponent,
   ],
   templateUrl: './app-layout.html',
@@ -49,6 +51,12 @@ export class AppLayout implements OnInit {
       roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_PATIENT', 'ROLE_ADMIN', 'ROLE_PHARMACY'],
     },
     {
+      link: '/patient-management',
+      label: 'Patient Management',
+      icon: 'user-add',
+      roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'],
+    },
+    {
       link: '/tasks',
       label: 'Tasks',
       icon: 'check',
@@ -61,8 +69,6 @@ export class AppLayout implements OnInit {
       roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'],
     },
     {
-      // ✅ Patient removed if you want only doctor/caregiver/admin
-
       link: '/admin/tests',
       label: 'Tests',
       icon: 'form',
@@ -200,8 +206,7 @@ export class AppLayout implements OnInit {
     const routePath = firstSegment ? `/${firstSegment}` : '';
     const matchingRoute = this.routes.find((route) => route.link === routePath);
 
-    this.currentRouteLabel =
-      matchingRoute?.label ?? this.formatRouteLabel(this.router.url);
+    this.currentRouteLabel = matchingRoute?.label ?? this.formatRouteLabel(this.router.url);
   }
 
   private formatRouteLabel(url: string): string {
