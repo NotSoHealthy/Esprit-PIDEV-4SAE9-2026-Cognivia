@@ -19,11 +19,12 @@ pipeline {
         stage('Gateway and Eureka Build and Push') {
             steps {
                 script {
+                    sh 'echo $DOCKER_CREDENTIALS_PSW | docker login -u $DOCKER_CREDENTIALS_USR --password-stdin'
                     def services = ["gateway", "eureka"]
 
                     for (s in services) {
                         sh """
-                        docker build -t notsohealthy/pidev-${s}:dev BackEnd/${s}
+                        docker build -t notsohealthy/pidev-${s}:dev BackEnd/${s}/
                         docker push notsohealthy/pidev-${s}:dev
                         """
                     }
@@ -33,11 +34,12 @@ pipeline {
         stage('Microservices Build and Push') {
             steps {
                 script {
+                    sh 'echo $DOCKER_CREDENTIALS_PSW | docker login -u $DOCKER_CREDENTIALS_USR --password-stdin'
                     def microservices = ["appointment-service", "care", "dpchat", "forum-service","games","monitoring","pharmacy","surveillance-and-equipment"]
 
                     for (s in microservices) {
                         sh """
-                        docker build -t notsohealthy/pidev-${s}:dev BackEnd/Microservices/${s}
+                        docker build -t notsohealthy/pidev-${s}:dev BackEnd/Microservices/${s}/
                         docker push notsohealthy/pidev-${s}:dev
                         """
                     }
