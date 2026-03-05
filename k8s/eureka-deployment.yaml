@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eureka-config
+  namespace: pidev-deployment
+data:
+  PORT: "8761"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eureka
+  namespace: pidev-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eureka
+  template:
+    metadata:
+      labels:
+        app: eureka
+    spec:
+      containers:
+        - name: eureka
+          image: notsohealthy/pidev-eureka:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8761
+          envFrom:
+            - configMapRef:
+                name: eureka-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eureka
+  namespace: pidev-deployment
+  labels:
+    app: eureka
+spec:
+  selector:
+    app: eureka
+  ports:
+    - name: http
+      port: 8761
+      targetPort: 8761
+      nodePort: 30761
+  type: NodePort
