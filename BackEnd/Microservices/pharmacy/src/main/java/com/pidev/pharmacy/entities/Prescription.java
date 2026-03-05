@@ -14,6 +14,7 @@ import lombok.Setter;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 
 @Entity
@@ -32,6 +33,10 @@ public class Prescription {
     private String code;
 
     private String doctorName;
+
+    private UUID createdByDoctorUserId;
+
+    private String createdByDoctorUsername;
     
     @NotBlank(message = "Patient name is required")
     @Size(min = 3, max = 100, message = "Patient name must be between 3 and 100 characters")

@@ -806,21 +806,109 @@ export class Pharmacy implements OnInit, AfterViewInit {
 
   parseAIResponse(data: any): any {
     try {
-      if (!data || !data.raw) return null;
-      
-      // Extract JSON from markdown code block
-      const raw = data.raw;
-      const jsonMatch = raw.match(/```json\s*([\s\S]*?)\s*```/);
-      
-      if (jsonMatch && jsonMatch[1]) {
-        return JSON.parse(jsonMatch[1].trim());
+      if (!data) {
+        return null;
       }
-      
+
+      // If backend already returned parsed JSON (Map serialized to object), use it directly.
+      if (typeof data === 'object') {
+        const maybe = data as any;
+        if (
+          typeof maybe.summary === 'string' ||
+          Array.isArray(maybe.indications) ||
+          Array.isArray(maybe.sideEffects) ||
+          Array.isArray(maybe.contraindications)
+        ) {
+          return maybe;
+        }
+      }
+
+      // Otherwise try to parse from raw string fields.
+      const rawText: unknown = typeof data === 'string' ? data : (data as any).raw;
+      if (typeof rawText !== 'string' || rawText.trim().length === 0) {
+        return null;
+      }
+
+      const raw = rawText.trim();
+
+      // 1) Direct JSON
+      try {
+        return JSON.parse(raw);
+      } catch {
+        // continue
+      }
+
+      // 2) Extract JSON from markdown code block
+      const fencedMatch = raw.match(/```json\s*([\s\S]*?)\s*```/i);
+      if (fencedMatch?.[1]) {
+        try {
+          return JSON.parse(fencedMatch[1].trim());
+        } catch {
+          // continue
+        }
+      }
+
+      // 3) Extract first JSON object from mixed response
+      const extracted = this.extractFirstJsonObject(raw);
+      if (extracted) {
+        try {
+          return JSON.parse(extracted);
+        } catch {
+          // continue
+        }
+      }
+
       return null;
     } catch (error) {
       console.error('Failed to parse AI response:', error);
       return null;
     }
+  }
+
+  private extractFirstJsonObject(text: string): string | null {
+    const start = text.indexOf('{');
+    if (start < 0) {
+      return null;
+    }
+
+    let depth = 0;
+    let inString = false;
+    let escape = false;
+
+    for (let i = start; i < text.length; i++) {
+      const c = text[i];
+
+      if (inString) {
+        if (escape) {
+          escape = false;
+          continue;
+        }
+        if (c === '\\') {
+          escape = true;
+          continue;
+        }
+        if (c === '"') {
+          inString = false;
+        }
+        continue;
+      }
+
+      if (c === '"') {
+        inString = true;
+        continue;
+      }
+
+      if (c === '{') {
+        depth++;
+      } else if (c === '}') {
+        depth--;
+        if (depth === 0) {
+          return text.slice(start, i + 1);
+        }
+      }
+    }
+
+    return null;
   }
 
   closeAIDrawer(): void {

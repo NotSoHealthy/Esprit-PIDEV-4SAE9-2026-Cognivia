@@ -89,6 +89,8 @@ public class PrescriptionService implements IService<Prescription> {
             existing.setDoctorName(entity.getDoctorName());
         }
 
+        // Intentionally do not update createdByDoctorUserId/createdByDoctorUsername here.
+
         if (entity.getPatientName() != null) {
             existing.setPatientName(entity.getPatientName());
         }

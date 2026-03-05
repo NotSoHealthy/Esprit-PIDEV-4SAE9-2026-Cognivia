@@ -39,23 +39,24 @@
               </div>
 
               <div class="prescription-actions">
-                <button
-                  *ngIf="userRole === 'ROLE_ADMIN'"
-                  nz-button
-                  nzType="text"
-                  nz-dropdown
-                  [nzDropdownMenu]="prescriptionMenu"
-                  (click)="$event.stopPropagation()"
-                  class="actions-menu-btn"
-                >
-                  <nz-icon nzType="more" nzTheme="outline"></nz-icon>
-                </button>
-                <nz-dropdown-menu #prescriptionMenu="nzDropdownMenu">
-                  <ul nz-menu>
-                    <li *ngIf="userRole === 'ROLE_ADMIN'" nz-menu-item (click)="openEditModal(prescription, $event)">Edit</li>
-                    <li *ngIf="userRole === 'ROLE_ADMIN'" nz-menu-item class="menu-delete" (click)="deletePrescription(prescription, $event)">Delete</li>
-                  </ul>
-                </nz-dropdown-menu>
+                <ng-container *ngIf="canModifyPrescription(prescription)">
+                  <button
+                    nz-button
+                    nzType="text"
+                    nz-dropdown
+                    [nzDropdownMenu]="prescriptionMenu"
+                    (click)="$event.stopPropagation()"
+                    class="actions-menu-btn"
+                  >
+                    <nz-icon nzType="more" nzTheme="outline"></nz-icon>
+                  </button>
+                  <nz-dropdown-menu #prescriptionMenu="nzDropdownMenu">
+                    <ul nz-menu>
+                      <li nz-menu-item (click)="openEditModal(prescription, $event)">Edit</li>
+                      <li nz-menu-item class="menu-delete" (click)="deletePrescription(prescription, $event)">Delete</li>
+                    </ul>
+                  </nz-dropdown-menu>
+                </ng-container>
                 <nz-icon
                   [nzType]="isPrescriptionExpanded(prescription.id) ? 'up' : 'down'"
                   nzTheme="outline"

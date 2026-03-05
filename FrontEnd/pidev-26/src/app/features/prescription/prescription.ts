@@ -100,6 +100,39 @@ export class PrescriptionComponent implements OnInit {
 
   readonly pieColors = ['#4D5CAB', '#7986cb', '#52c41a', '#faad14', '#ff7a45', '#ff4d4f', '#13c2c2'];
 
+  private getUserContext(): { userId?: string | null; username?: string | null; role?: string | null } {
+    return {
+      userId: this.keycloakService.getUserId(),
+      username: this.keycloakService.getUsername(),
+      role: this.userRole,
+    };
+  }
+
+  canModifyPrescription(prescription: Prescription): boolean {
+    if (this.userRole === 'ROLE_ADMIN') {
+      return true;
+    }
+
+    if (this.userRole !== 'ROLE_DOCTOR') {
+      return false;
+    }
+
+    const actorId = (this.keycloakService.getUserId() ?? '').trim().toLowerCase();
+    if (!actorId) {
+      return false;
+    }
+
+    const ownerId = (prescription.createdByDoctorUserId ?? '').trim().toLowerCase();
+    if (ownerId) {
+      return ownerId === actorId;
+    }
+
+    // Backward-compat for old prescriptions created before we stored owner id.
+    const actorUsername = (this.keycloakService.getUsername() ?? '').trim().toLowerCase();
+    const doctorName = (prescription.doctorName ?? '').trim().toLowerCase();
+    return !!actorUsername && !!doctorName && actorUsername === doctorName;
+  }
+
   ngOnInit(): void {
     if (this.userRole === 'ROLE_CAREGIVER') {
       this.loadCaregiverVisiblePrescriptions();
@@ -364,7 +397,7 @@ export class PrescriptionComponent implements OnInit {
       nzOkText: 'Delete',
       nzOkDanger: true,
       nzOnOk: () => {
-        this.prescriptionService.delete(prescription.id!).subscribe({
+        this.prescriptionService.delete(prescription.id!, this.getUserContext()).subscribe({
           next: () => {
             this.msg.success('Prescription deleted');
             this.loadPrescriptions();
@@ -450,8 +483,8 @@ export class PrescriptionComponent implements OnInit {
     };
 
     const request$ = this.isEditMode && this.editingPrescriptionId
-      ? this.prescriptionService.update(this.editingPrescriptionId, prescription)
-      : this.prescriptionService.create(prescription);
+      ? this.prescriptionService.update(this.editingPrescriptionId, prescription, this.getUserContext())
+      : this.prescriptionService.create(prescription, this.getUserContext());
 
     request$.subscribe({
       next: () => {

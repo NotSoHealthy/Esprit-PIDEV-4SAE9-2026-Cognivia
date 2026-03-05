@@ -10,9 +10,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/prescriptions")
@@ -58,8 +60,23 @@ public class PrescriptionController {
     }
 
     @PostMapping
-    public ResponseEntity<Prescription> createPrescription(@Valid @RequestBody Prescription prescription) {
+    public ResponseEntity<Prescription> createPrescription(
+            @Valid @RequestBody Prescription prescription,
+            @RequestHeader(value = "X-User-Id", required = false) String actorUserId,
+            @RequestHeader(value = "X-Username", required = false) String actorUsername
+    ) {
         try {
+            UUID actorId = tryParseUuid(actorUserId);
+            if (actorId != null) {
+                prescription.setCreatedByDoctorUserId(actorId);
+            }
+            if (actorUsername != null && !actorUsername.isBlank()) {
+                prescription.setCreatedByDoctorUsername(actorUsername.trim());
+                if (prescription.getDoctorName() == null || prescription.getDoctorName().isBlank()) {
+                    prescription.setDoctorName(actorUsername.trim());
+                }
+            }
+
             Prescription created = prescriptionService.create(prescription);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
         } catch (Exception e) {
@@ -69,14 +86,69 @@ public class PrescriptionController {
     }
 
     @PutMapping("/{id:\\d+}")
-    public Prescription updatePrescription(@PathVariable Long id, @Valid @RequestBody Prescription prescription) {
+    public Prescription updatePrescription(
+            @PathVariable Long id,
+            @Valid @RequestBody Prescription prescription,
+            @RequestHeader(value = "X-User-Id", required = false) String actorUserId,
+            @RequestHeader(value = "X-User-Role", required = false) String actorRole
+    ) {
+        Prescription existing = prescriptionService.getById(id);
+        assertCanModify(existing, tryParseUuid(actorUserId), actorRole);
         return prescriptionService.update(id, prescription);
     }
 
     @DeleteMapping("/{id:\\d+}")
-    public ResponseEntity<Void> deletePrescription(@PathVariable Long id) {
+    public ResponseEntity<Void> deletePrescription(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-User-Id", required = false) String actorUserId,
+            @RequestHeader(value = "X-User-Role", required = false) String actorRole
+    ) {
+        Prescription existing = prescriptionService.getById(id);
+        assertCanModify(existing, tryParseUuid(actorUserId), actorRole);
         prescriptionService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    private static UUID tryParseUuid(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        try {
+            return UUID.fromString(raw.trim());
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+    }
+
+    private static boolean isAdminRole(String roleHeader) {
+        if (roleHeader == null || roleHeader.isBlank()) {
+            return false;
+        }
+        return roleHeader.trim().equalsIgnoreCase("ROLE_ADMIN");
+    }
+
+    private static void assertCanModify(Prescription existing, UUID actorUserId, String actorRole) {
+        if (existing == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Prescription not found");
+        }
+
+        if (isAdminRole(actorRole)) {
+            return;
+        }
+
+        UUID ownerId = existing.getCreatedByDoctorUserId();
+        if (ownerId == null) {
+            // Backward-compat for older records created before ownership was stored.
+            return;
+        }
+
+        if (actorUserId == null) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing user id");
+        }
+
+        if (!ownerId.equals(actorUserId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the creating doctor can modify this prescription");
+        }
     }
 
     /**

@@ -1,8 +1,14 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PharmacyRecommendation, Prescription, PrescriptionItem } from '../models/prescription.model';
 import { environment } from '../../../../environments/environment';
+
+type UserContext = {
+  userId?: string | null;
+  username?: string | null;
+  role?: string | null;
+};
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +17,30 @@ export class PrescriptionService {
   private readonly apiUrl = `${environment.apiBaseUrl}/pharmacy/prescriptions`;
 
   constructor(private http: HttpClient) {}
+
+  private buildUserHeaders(context?: UserContext): HttpHeaders | undefined {
+    const userId = (context?.userId ?? '').trim();
+    const username = (context?.username ?? '').trim();
+    const role = (context?.role ?? '').trim();
+
+    let headers = new HttpHeaders();
+    let changed = false;
+
+    if (userId) {
+      headers = headers.set('X-User-Id', userId);
+      changed = true;
+    }
+    if (username) {
+      headers = headers.set('X-Username', username);
+      changed = true;
+    }
+    if (role) {
+      headers = headers.set('X-User-Role', role);
+      changed = true;
+    }
+
+    return changed ? headers : undefined;
+  }
 
   // Get all prescriptions
   getAll(): Observable<Prescription[]> {
@@ -32,18 +62,21 @@ export class PrescriptionService {
   }
 
   // Create new prescription
-  create(prescription: Prescription): Observable<Prescription> {
-    return this.http.post<Prescription>(this.apiUrl, prescription);
+  create(prescription: Prescription, context?: UserContext): Observable<Prescription> {
+    const headers = this.buildUserHeaders(context);
+    return this.http.post<Prescription>(this.apiUrl, prescription, headers ? { headers } : undefined);
   }
 
   // Update prescription
-  update(id: number, prescription: Prescription): Observable<Prescription> {
-    return this.http.put<Prescription>(`${this.apiUrl}/${id}`, prescription);
+  update(id: number, prescription: Prescription, context?: UserContext): Observable<Prescription> {
+    const headers = this.buildUserHeaders(context);
+    return this.http.put<Prescription>(`${this.apiUrl}/${id}`, prescription, headers ? { headers } : undefined);
   }
 
   // Delete prescription
-  delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  delete(id: number, context?: UserContext): Observable<void> {
+    const headers = this.buildUserHeaders(context);
+    return this.http.delete<void>(`${this.apiUrl}/${id}`, headers ? { headers } : undefined);
   }
 
   // Get prescription items

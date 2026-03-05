@@ -17,6 +17,8 @@ export interface Prescription {
   id?: number;
   code?: string;
   doctorName: string | null;
+  createdByDoctorUserId?: string;
+  createdByDoctorUsername?: string;
   patientName: string;
   description: string;
   createdAt?: string;
