@@ -58,10 +58,14 @@ pipeline {
                 }
             }
         }
-        stage('Restart Deployment') {
+        stage('Restart Deployments') {
             steps {
                 script {
-                    sh 'kubectl rollout restart deployment --all -n pidev-deployment'
+                    sh """
+                        kubectl get deployments -n pidev-deployment -o name | while read -r deploy; do
+                            kubectl rollout restart -n pidev-deployment "$deploy"
+                        done
+                    """
                 }
             }
         }
