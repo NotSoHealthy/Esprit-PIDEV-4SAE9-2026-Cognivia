@@ -33,7 +33,7 @@ spec:
             - configMapRef:
                 name: service-links
             - secretRef:
-              name: secrets
+              name: secret
 ---
 apiVersion: v1
 kind: Service
