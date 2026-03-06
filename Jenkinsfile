@@ -47,6 +47,7 @@ pipeline {
 
                     for (s in microservices) {
                         sh """
+                        echo "$PIDEV26_KEYCLOAK_CLIENT_SECRET"
                         docker build -t notsohealthy/pidev-${s}:dev BackEnd/Microservices/${s}/
                         docker push notsohealthy/pidev-${s}:dev
                         """
