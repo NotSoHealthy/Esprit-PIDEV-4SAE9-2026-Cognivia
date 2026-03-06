@@ -1,0 +1,830 @@
+<div class="pharmacy-page">
+  <div class="pharmacy-header">
+    <h1 class="pharmacy-title">Pharmacy Management</h1>
+
+    <button
+      *ngIf="
+        activeTabIndex === 0 &&
+        (
+          userRole === 'ROLE_ADMIN' ||
+          (userRole === 'ROLE_PHARMACY' && !loadingPharmacist && !userPharmacy)
+        )
+      "
+      nz-button
+      nzType="primary"
+      class="add-btn"
+      (click)="openAddModal()"
+    >
+      Create pharmacy
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="spinner-wrapper">
+    <nz-spin nzTip="Loading pharmacies..." nzSize="large" style="transform: scale(1.4);">
+    </nz-spin>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="!loading && errorMsg" class="pharmacy-error">{{ errorMsg }}</div>
+
+  <div class="content-wrapper" *ngIf="!loading && !errorMsg">
+    <!-- Sidebar filters -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h3>Filters</h3>
+        <button nz-button nzType="link" nzSize="small" (click)="clearActiveFilters()">
+          Clear All
+        </button>
+      </div>
+
+      <ng-container *ngIf="activeTabIndex === 0; else inventorySidebarFilters">
+        <!-- Search filter -->
+        <div class="filter-section">
+          <label>Search</label>
+          <input
+            nz-input
+            placeholder="Search pharmacies..."
+            [(ngModel)]="searchText"
+            (ngModelChange)="onSearchChange()"
+          />
+        </div>
+
+        <!-- Date filter -->
+        <div class="filter-section">
+          <label>Filter by Date</label>
+          <nz-date-picker
+            [(ngModel)]="selectedDate"
+            (ngModelChange)="onDateChange()"
+            nzPlaceHolder="Select date"
+            style="width: 100%;"
+          ></nz-date-picker>
+        </div>
+
+        <!-- Favorite filter -->
+        <div class="filter-section">
+          <label class="switch-label">Show only favorites</label>
+          <nz-switch [(ngModel)]="favoriteOnly" (ngModelChange)="onFavoriteChange()"></nz-switch>
+        </div>
+
+        <!-- Rating sort -->
+        <div class="filter-section">
+          <label>Sort by Rating</label>
+          <nz-select
+            [(ngModel)]="ratingSortOrder"
+            (ngModelChange)="onRatingSortChange()"
+            nzPlaceHolder="Select sort order"
+            nzAllowClear
+            style="width: 100%;"
+          >
+            <nz-option nzValue="desc" nzLabel="Highest to Lowest"></nz-option>
+            <nz-option nzValue="asc" nzLabel="Lowest to Highest"></nz-option>
+          </nz-select>
+        </div>
+      </ng-container>
+
+      <ng-template #inventorySidebarFilters>
+        <ng-container *ngIf="activeTabIndex === 1; else requestedSidebarFilters">
+        <div class="filter-section">
+          <label>Search medication</label>
+          <input
+            nz-input
+            placeholder="Search medications..."
+            [(ngModel)]="inventorySearchText"
+            (ngModelChange)="onInventorySearchChange()"
+          />
+        </div>
+
+        <div class="filter-section">
+          <label>Filter by therapeutic class</label>
+          <nz-select
+            [(ngModel)]="inventoryTherapeuticClass"
+            (ngModelChange)="onInventoryTherapeuticClassChange()"
+            nzPlaceHolder="All classes"
+            nzAllowClear
+            style="width: 100%;"
+          >
+            <nz-option
+              *ngFor="let therapeuticClass of inventoryTherapeuticClassOptions"
+              [nzValue]="therapeuticClass"
+              [nzLabel]="formatTherapeuticClass(therapeuticClass)"
+            ></nz-option>
+          </nz-select>
+        </div>
+        </ng-container>
+
+        <ng-template #requestedSidebarFilters>
+          <div class="filter-section">
+            <label>Search medication</label>
+            <input
+              nz-input
+              placeholder="Search medications..."
+              [(ngModel)]="requestedSearchText"
+            />
+          </div>
+
+          <div class="filter-section">
+            <label>Filter by therapeutic class</label>
+            <nz-select
+              [(ngModel)]="requestedTherapeuticClass"
+              nzPlaceHolder="All classes"
+              nzAllowClear
+              style="width: 100%;"
+            >
+              <nz-option
+                *ngFor="let therapeuticClass of inventoryTherapeuticClassOptions"
+                [nzValue]="therapeuticClass"
+                [nzLabel]="formatTherapeuticClass(therapeuticClass)"
+              ></nz-option>
+            </nz-select>
+          </div>
+
+          <div class="filter-section">
+            <label class="switch-label">Agent Mode</label>
+            <nz-switch
+              *ngIf="!requestedSettingsLoading"
+              [ngModel]="agentMode"
+              (ngModelChange)="onAgentModeToggle($event)"
+            ></nz-switch>
+          </div>
+
+          <div class="filter-section">
+            <label class="switch-label">Auto-delete Review Required</label>
+            <nz-switch
+              *ngIf="!requestedSettingsLoading"
+              [ngModel]="autoDeleteReviewRequired"
+              (ngModelChange)="onAutoDeleteReviewRequiredToggle($event)"
+            ></nz-switch>
+          </div>
+        </ng-template>
+      </ng-template>
+    </aside>
+
+    <!-- Main content with tabs -->
+    <main class="main-content">
+      <!-- Tabs -->
+      <nz-tabs [(nzSelectedIndex)]="activeTabIndex" (nzSelectedIndexChange)="onTabChange($event)">
+        <nz-tab nzTitle="Pharmacies">
+          <!-- Empty -->
+          <div *ngIf="paginatedPharmacies.length === 0" class="empty-wrapper">
+            <nz-empty nzNotFoundContent="No pharmacies found"></nz-empty>
+          </div>
+
+          <!-- List -->
+          <div class="pharmacy-list" *ngIf="paginatedPharmacies.length > 0">
+            <div
+              class="pharmacy-card"
+              *ngFor="let p of paginatedPharmacies"
+              (click)="openMedicines(p)"
+              role="button"
+              tabindex="0"
+              [ngClass]="{ 'pharmacy-closed': p.id && pharmacyStatus.get(p.id)?.isClosed }"
+            >
+              <!-- Banner -->
+              <div
+                class="pharmacy-banner-bg"
+                *ngIf="p.bannerUrl"
+                [ngClass]="{ 'banner-grayscale': p.id && !pharmacyStatus.get(p.id)?.isOpen }"
+                [ngStyle]="{
+                  'backgroundImage':
+                    'linear-gradient(to left, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 50%), url(' +
+                    p.bannerUrl +
+                    ')'
+                }"
+                aria-hidden="true"
+              ></div>
+
+              <!-- Status Badge -->
+              <div *ngIf="p.id && (pharmacyStatus.get(p.id)?.isOpen || pharmacyStatus.get(p.id)?.isClosed)" class="status-badge" [ngClass]="{ 'badge-closed': pharmacyStatus.get(p.id)?.isClosed, 'badge-open': pharmacyStatus.get(p.id)?.isOpen }">
+                {{ pharmacyStatus.get(p.id)?.isClosed ? 'CLOSED' : 'OPEN' }}
+              </div>
+
+              <!-- Actions -->
+              <div class="card-actions" (click)="$event.stopPropagation()">
+                <button
+                  nz-button
+                  nzType="text"
+                  class="like-btn"
+                  (click)="toggleLike(p, $event)"
+                  [attr.aria-pressed]="p.id ? liked.has(p.id) : false"
+                >
+                  <nz-icon 
+                    nzType="heart" 
+                    [nzTheme]="p.id && liked.has(p.id) ? 'fill' : 'outline'"
+                    class="heart-icon"
+                    [class.heart-liked]="p.id && liked.has(p.id)"
+                  ></nz-icon>
+                </button>
+
+                <nz-rate
+                  class="pharmacy-rate"
+                  [ngModel]="p.id ? getRate(p.id) : 0"
+                  (click)="$event.stopPropagation()"
+                  (ngModelChange)="setRate(p, $event)"
+                ></nz-rate>
+
+                <a nz-dropdown [nzDropdownMenu]="menu" nzTrigger="click" class="dots">
+                  <nz-icon nzType="more" nzTheme="outline"></nz-icon>
+                </a>
+
+                <nz-dropdown-menu #menu="nzDropdownMenu">
+                  <ul nz-menu>
+                    <li *ngIf="userRole === 'ROLE_ADMIN' || isOwnPharmacy(p.id)" nz-menu-item (click)="editInfo(p, $event)">Edit Info</li>
+                    <li *ngIf="userRole === 'ROLE_ADMIN' || isOwnPharmacy(p.id)" nz-menu-item (click)="changeCoordinates(p, $event)">Change Coordinates</li>
+                    <li *ngIf="userRole !== 'ROLE_PHARMACY' || !isOwnPharmacy(p.id)" nz-menu-item nzDanger (click)="report(p, $event)">Report</li>
+                    <li *ngIf="userRole === 'ROLE_ADMIN' || isOwnPharmacy(p.id)" nz-menu-item nzDanger (click)="delete(p, $event)">Delete</li>
+                  </ul>
+                </nz-dropdown-menu>
+              </div>
+
+              <!-- Main -->
+              <div class="pharmacy-main">
+                <div class="pharmacy-name">{{ p.name }}</div>
+
+                <div class="pharmacy-address" *ngIf="p.address; else noAddress">
+                  {{ p.address }}
+                </div>
+                <ng-template #noAddress>
+                  <div class="pharmacy-address pharmacy-muted">No address</div>
+                </ng-template>
+              </div>
+
+              <div class="pharmacy-meta">
+                <span class="pharmacy-muted">Created:</span>
+                <span>{{ p.createdAt ? (p.createdAt | date: 'mediumDate') : '—' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pagination -->
+          <div class="pagination-wrapper" *ngIf="totalFiltered > 0">
+            <nz-pagination
+              [nzPageIndex]="pageIndex"
+              [nzTotal]="totalFiltered"
+              [nzPageSize]="pageSize"
+              (nzPageIndexChange)="onPageChange($event)"
+            />
+          </div>
+        </nz-tab>
+
+        <nz-tab nzTitle="Inventory" *ngIf="userRole === 'ROLE_ADMIN'">
+          <div *ngIf="!inventoryPharmacyId" class="empty-wrapper">
+            <nz-empty nzNotFoundContent="Select a pharmacy to view inventory"></nz-empty>
+          </div>
+
+          <app-medication
+            *ngIf="inventoryPharmacyId"
+            [embedded]="true"
+            [pharmacyIdInput]="inventoryPharmacyId"
+            [searchText]="inventorySearchText"
+            [therapeuticClassFilter]="inventoryTherapeuticClass"
+            [outOfStockOnly]="inventoryOutOfStockOnly"
+            [showAIButton]="true"
+            (medicationsChange)="onInventoryMedicationsChange($event)"
+            (aiButtonClicked)="openAIOverview($event)"
+          ></app-medication>
+        </nz-tab>
+
+        <nz-tab nzTitle="Requested Medications" *ngIf="userRole === 'ROLE_ADMIN'">
+          <div class="tab-toggle-row">
+            <button nz-button nzShape="round" [nzType]="requestedMainView === 'requests' ? 'primary' : 'default'" (click)="setRequestedMainView('requests')">
+              Requests
+            </button>
+            <button nz-button nzShape="round" [nzType]="requestedMainView === 'agent-logs' ? 'primary' : 'default'" (click)="setRequestedMainView('agent-logs')">
+              Agent Logs
+            </button>
+          </div>
+
+          <div *ngIf="requestedMainView === 'requests'">
+            <div *ngIf="requestedLoading" class="spinner-wrapper">
+              <nz-spin nzTip="Loading requested medications..." nzSize="large" style="transform: scale(1.4);"></nz-spin>
+            </div>
+
+            <div *ngIf="!requestedLoading && requestedMedications.length === 0" class="empty-wrapper">
+              <nz-empty nzNotFoundContent="No pending medication requests"></nz-empty>
+            </div>
+
+            <div class="pharmacy-list" *ngIf="!requestedLoading && paginatedRequestedMedications.length > 0">
+            <div 
+              class="pharmacy-card" 
+              *ngFor="let med of paginatedRequestedMedications" 
+              style="cursor: pointer;"
+              (click)="openMedicationDetail(med)"
+            >
+              <div class="pharmacy-main" style="grid-column: 1 / -1;">
+                <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
+                  <div *ngIf="med.imageUrl" style="width: 48px; height: 48px; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
+                    <img [src]="med.imageUrl" [alt]="med.name" style="width: 100%; height: 100%; object-fit: cover;" />
+                  </div>
+                  <div *ngIf="!med.imageUrl" style="width: 48px; height: 48px; border-radius: 8px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: 700; color: #4D5CAB;">
+                  {{ med.name.charAt(0) || '?' }}
+                  </div>
+                  <div style="flex: 1; min-width: 0;">
+                    <div class="pharmacy-name">{{ med.name }}</div>
+                    <div class="pharmacy-address">{{ med.description || 'No description' }}</div>
+                    <div class="pharmacy-muted" style="font-size: 12px; margin-top: 2px;">
+                      {{ formatTherapeuticClass(med.therapeuticClass) }}
+                    </div>
+                  </div>
+                  <div style="display: flex; gap: 8px; flex-shrink: 0;">
+                    <button nz-button nzType="primary" (click)="acceptMedicationRequest(med); $event.stopPropagation()">Accept</button>
+                    <button 
+                      *ngIf="med.id && agentMessages.has(med.id) && agentMessages.get(med.id)!.actionType === 'PATCH_AND_ACCEPT'"
+                      nz-button 
+                      nzType="default" 
+                      style="background-color: #faad14; border-color: #faad14; color: white;"
+                      (click)="patchAndAcceptMedication(med); $event.stopPropagation()"
+                    >
+                      Patch & Accept
+                    </button>
+                    <button nz-button nzType="default" nzDanger (click)="rejectMedicationRequest(med); $event.stopPropagation()">Reject</button>
+                  </div>
+                </div>
+
+                <!-- Agent Message Warning Section -->
+                <div 
+                  *ngIf="med.id && agentMessages.has(med.id)" 
+                  class="agent-message-section"
+                  (click)="$event.stopPropagation()"
+                >
+                  <div class="agent-message-header">
+                    <span class="agent-badge">🤖 AI Agent Analysis</span>
+                    <span 
+                      class="agent-action-badge"
+                      [style.background-color]="getAgentActionColor(agentMessages.get(med.id)!.actionType)"
+                    >
+                      {{ getAgentActionLabel(agentMessages.get(med.id)!.actionType) }}
+                    </span>
+                  </div>
+                  <div class="agent-message-content">
+                    {{ agentMessages.get(med.id)!.content }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            </div>
+
+            <div class="pagination-wrapper" *ngIf="requestedMedications.length > requestedPageSize">
+              <nz-pagination
+                [nzPageIndex]="requestedPageIndex"
+                [nzTotal]="requestedMedications.length"
+                [nzPageSize]="requestedPageSize"
+                (nzPageIndexChange)="requestedPageIndex = $event"
+                [nzShowSizeChanger]="false"
+              ></nz-pagination>
+            </div>
+          </div>
+
+          <div *ngIf="requestedMainView === 'agent-logs'">
+            <div *ngIf="agentLogsLoading" class="spinner-wrapper">
+              <nz-spin nzTip="Loading agent logs..." nzSize="large" style="transform: scale(1.4);"></nz-spin>
+            </div>
+
+            <div *ngIf="!agentLogsLoading && agentLogs.length === 0" class="empty-wrapper">
+              <nz-empty nzNotFoundContent="No agent logs yet"></nz-empty>
+            </div>
+
+            <div class="pharmacy-list" *ngIf="!agentLogsLoading && agentLogs.length > 0">
+              <div class="pharmacy-card" *ngFor="let log of agentLogs">
+                <div class="pharmacy-main" style="grid-column: 1 / -1;">
+                  <div style="display: flex; align-items: flex-start; gap: 12px; width: 100%; justify-content: space-between;">
+                    <div style="flex: 1; min-width: 0;">
+                      <div style="margin-bottom: 8px;">
+                        <span class="agent-action-badge" [style.background-color]="getAgentLogActionColor(log.actionType)">
+                          {{ formatAgentLogAction(log.actionType) }}
+                        </span>
+                      </div>
+                      <div class="pharmacy-name">{{ log.medicationName }}</div>
+                      <div class="pharmacy-muted" style="font-size: 12px; margin-top: 4px;">
+                        {{ log.timestamp | date:'short' }}
+                      </div>
+                      <div *ngIf="log.reason" class="pharmacy-address" style="margin-top: 6px;">
+                        {{ log.reason }}
+                      </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                      <button nz-button nzType="default" (click)="undoAgentAction(log, $event)">
+                        Undo
+                      </button>
+                      <button nz-button nzType="default" nzDanger (click)="deleteAgentLog(log, $event)">
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </nz-tab>
+      </nz-tabs>
+    </main>
+  </div>
+
+  <!-- ===================== MODAL ===================== -->
+
+  <nz-modal
+    [(nzVisible)]="isAddModalOpen"
+    [nzTitle]="modalMode === 'add' ? 'Add pharmacy' : modalMode === 'editInfo' ? 'Edit Info' : 'Change Coordinates'"
+    [nzClosable]="!saving"
+    [nzMaskClosable]="!saving"
+    (nzOnCancel)="cancelAdd()"
+    nzClassName="pharmacy-modal-rounded"
+  >
+    <!-- ✅ MODAL CONTENT -->
+    <ng-container *nzModalContent>
+      <nz-steps [nzCurrent]="currentStep" *ngIf="modalMode === 'add'">
+        <nz-step nzTitle="Basic Info" nzDescription="Name, contact & images"></nz-step>
+        <nz-step nzTitle="Location" nzDescription="Address, latitude & longitude"></nz-step>
+        <nz-step nzTitle="Confirm" nzDescription="Complete"></nz-step>
+      </nz-steps>
+
+      <div class="steps-content" [style.marginTop]="modalMode === 'add' ? '24px' : '0'">
+        <!-- STEP 0 - Only show for 'add' and 'editInfo' modes -->
+        <div *ngIf="currentStep === 0 && (modalMode === 'add' || modalMode === 'editInfo')">
+          <form nz-form [formGroup]="addForm">
+            <!-- Name (Required) -->
+            <nz-form-item>
+              <nz-form-label [nzRequired]="true">Name</nz-form-label>
+              <nz-form-control>
+                <input
+                  nz-input
+                  formControlName="name"
+                  placeholder="Pharmacy name"
+                  [class.field-error]="isFieldInvalid('name')"
+                />
+                <div *ngIf="getFieldError('name')" class="error-text">{{ getFieldError('name') }}</div>
+              </nz-form-control>
+            </nz-form-item>
+
+            <!-- Contact Info -->
+            <nz-form-item>
+              <nz-form-label [nzRequired]="true">Contact Info</nz-form-label>
+              <nz-form-control>
+                <input
+                  nz-input
+                  type="tel"
+                  formControlName="contactInfo"
+                  placeholder="8-digit phone number"
+                  maxlength="8"
+                  [class.field-error]="isFieldInvalid('contactInfo')"
+                />
+                <div *ngIf="getFieldError('contactInfo')" class="error-text">{{ getFieldError('contactInfo') }}</div>
+              </nz-form-control>
+            </nz-form-item>
+
+            <!-- Description -->
+            <nz-form-item>
+              <nz-form-label [nzRequired]="true">Description</nz-form-label>
+              <nz-form-control>
+                <textarea
+                  nz-input
+                  formControlName="description"
+                  rows="3"
+                  placeholder="Pharmacy description"
+                  [class.field-error]="isFieldInvalid('description')"
+                ></textarea>
+                <div *ngIf="getFieldError('description')" class="error-text">{{ getFieldError('description') }}</div>
+              </nz-form-control>
+            </nz-form-item>
+
+            <!-- Banner -->
+            <nz-form-item>
+              <nz-form-label>Banner Image</nz-form-label>
+              <nz-form-control>
+                <nz-upload
+                  [nzFileList]="bannerFileList"
+                  [nzBeforeUpload]="beforeUploadBanner"
+                  (nzOnRemove)="onRemoveBanner()"
+                  nzListType="picture"
+                  nzAccept="image/*"
+                >
+                  <button nz-button>
+                    <nz-icon nzType="upload" nzTheme="outline"></nz-icon>
+                    Upload Banner
+                  </button>
+                </nz-upload>
+              </nz-form-control>
+            </nz-form-item>
+
+            <!-- Logo -->
+            <nz-form-item>
+              <nz-form-label>Logo Image</nz-form-label>
+              <nz-form-control>
+                <nz-upload
+                  [nzFileList]="logoFileList"
+                  [nzBeforeUpload]="beforeUploadLogo"
+                  (nzOnRemove)="onRemoveLogo()"
+                  nzListType="picture"
+                  nzAccept="image/*"
+                >
+                  <button nz-button>
+                    <nz-icon nzType="upload" nzTheme="outline"></nz-icon>
+                    Upload Logo
+                  </button>
+                </nz-upload>
+              </nz-form-control>
+            </nz-form-item>
+
+            <div *ngIf="stepError" class="step-error">
+              {{ stepError }}
+            </div>
+          </form>
+        </div>
+
+        <!-- STEP 1 - Only show for 'add' and 'changeCoordinates' modes -->
+        <div *ngIf="currentStep === 1 && (modalMode === 'add' || modalMode === 'changeCoordinates')">
+          <form nz-form [formGroup]="addForm">
+            <div style="margin-bottom: 16px;">
+              <nz-form-item>
+                <nz-form-label [nzRequired]="true">Address</nz-form-label>
+                <nz-form-control>
+                  <input
+                    nz-input
+                    formControlName="address"
+                    placeholder="Address"
+                    [class.field-error]="isFieldInvalid('address')"
+                  />
+                  <div *ngIf="getFieldError('address')" class="error-text">{{ getFieldError('address') }}</div>
+                </nz-form-control>
+              </nz-form-item>
+
+              <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                <button nz-button nzType="primary" (click)="getGeolocation()">
+                  <nz-icon nzType="environment" nzTheme="fill"></nz-icon>
+                  Get My Location
+                </button>
+              </div>
+
+              <!-- Map Container -->
+              <div #mapContainer style="width: 100%; height: 400px; border-radius: 8px; border: 1px solid rgba(0, 0, 0, 0.1);"></div>
+
+              <!-- Coordinates Display -->
+              <div style="margin-top: 12px; display: flex; gap: 24px;">
+                <div>
+                  <small style="color: rgba(0, 0, 0, 0.45);">Latitude</small>
+                  <div style="font-weight: 600; font-size: 14px;">{{ addForm.get('latitude')?.value || '—' }}</div>
+                </div>
+                <div>
+                  <small style="color: rgba(0, 0, 0, 0.45);">Longitude</small>
+                  <div style="font-weight: 600; font-size: 14px;">{{ addForm.get('longitude')?.value || '—' }}</div>
+                </div>
+              </div>
+            </div>
+          </form>
+
+          <div *ngIf="stepError" class="step-error">
+            {{ stepError }}
+          </div>
+        </div>
+
+        <!-- STEP 2 -->
+        <div *ngIf="currentStep === 2" class="step-complete">
+          <div *ngIf="saving" class="loading-state">
+            <nz-spin nzSize="large" style="transform: scale(1.4);"></nz-spin>
+          </div>
+
+          <div *ngIf="!saving && !stepError" class="success-state">
+            <nz-icon
+              nzType="check-circle"
+              nzTheme="fill"
+              style="color: #52c41a; font-size: 48px;"
+            ></nz-icon>
+            <h3>Pharmacy Created Successfully!</h3>
+            <p>Your pharmacy has been added to the system.</p>
+          </div>
+
+          <div *ngIf="stepError" class="error-state">
+            <nz-icon
+              nzType="close-circle"
+              nzTheme="fill"
+              style="color: #ff4d4f; font-size: 48px;"
+            ></nz-icon>
+            <h3>Error Creating Pharmacy</h3>
+            <p>{{ stepError }}</p>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- ✅ CUSTOM FOOTER -->
+    <ng-container *nzModalFooter>
+      <button *ngIf="(modalMode === 'add' && currentStep < 2) || (modalMode !== 'add' && !saving)" nz-button nzType="default" (click)="cancelAdd()">
+        Cancel
+      </button>
+
+      <button
+        *ngIf="modalMode === 'add' && currentStep > 0 && currentStep < 2"
+        nz-button
+        nzType="default"
+        (click)="previousStep()"
+      >
+        Back
+      </button>
+
+      <button
+        *ngIf="modalMode === 'add' && currentStep < 2"
+        nz-button
+        nzType="primary"
+        [nzLoading]="saving"
+        (click)="nextStep()"
+      >
+        {{ currentStep === 1 ? 'Create' : 'Next' }}
+      </button>
+
+      <button
+        *ngIf="modalMode === 'editInfo' && currentStep === 0"
+        nz-button
+        nzType="primary"
+        [nzLoading]="saving"
+        (click)="nextStep()"
+      >
+        Update
+      </button>
+
+      <button
+        *ngIf="modalMode === 'changeCoordinates' && currentStep === 1"
+        nz-button
+        nzType="primary"
+        [nzLoading]="saving"
+        (click)="updateCoordinates()"
+      >
+        Update Coordinates
+      </button>
+
+      <button *ngIf="modalMode === 'add' && currentStep === 2" nz-button nzType="primary" (click)="cancelAdd()">
+        Close
+      </button>
+    </ng-container>
+  </nz-modal>
+
+  <nz-modal
+    [(nzVisible)]="isRatingModalOpen"
+    nzTitle="Rate Pharmacy"
+    [nzOkLoading]="submittingRating"
+    (nzOnOk)="submitRating()"
+    (nzOnCancel)="cancelRatingModal()"
+    nzClassName="pharmacy-modal-rounded"
+  >
+    <ng-container *nzModalContent>
+      <div class="rating-modal-content" *ngIf="selectedRatingPharmacy">
+        <div class="modal-pharmacy-name">{{ selectedRatingPharmacy.name }}</div>
+        <div class="rating-field">
+          <label>Your rating</label>
+          <nz-rate [(ngModel)]="pendingRatingValue"></nz-rate>
+        </div>
+        <div class="rating-field">
+          <label>Comment (optional)</label>
+          <textarea
+            nz-input
+            [(ngModel)]="pendingRatingComment"
+            rows="3"
+            placeholder="Write your feedback"
+          ></textarea>
+        </div>
+      </div>
+    </ng-container>
+  </nz-modal>
+
+  <nz-modal
+    [(nzVisible)]="isReportModalOpen"
+    nzTitle="Report Pharmacy"
+    [nzOkLoading]="submittingReport"
+    (nzOnOk)="submitReport()"
+    (nzOnCancel)="cancelReportModal()"
+    nzClassName="pharmacy-modal-rounded"
+  >
+    <ng-container *nzModalContent>
+      <div class="report-modal-content" *ngIf="selectedReportPharmacy">
+        <div class="modal-pharmacy-name">{{ selectedReportPharmacy.name }}</div>
+        <div class="report-field">
+          <label>Reason</label>
+          <div class="report-reasons-buttons">
+            <button 
+              *ngFor="let reason of reportReasonOptions" 
+              nz-button
+              [nzType]="selectedReportReason === reason.value ? 'primary' : 'default'"
+              (click)="selectReportReason(reason.value)"
+            >
+              {{ reason.label }}
+            </button>
+          </div>
+        </div>
+        <div class="report-field">
+          <label>Additional information (optional)</label>
+          <textarea
+            nz-input
+            [(ngModel)]="reportDescription"
+            rows="3"
+            placeholder="Provide any useful context"
+          ></textarea>
+        </div>
+      </div>
+    </ng-container>
+  </nz-modal>
+
+  <!-- ✅ MEDICATION DETAIL MODAL -->
+  <nz-modal
+    [(nzVisible)]="isMedicationDetailModalOpen"
+    nzTitle="Medication details"
+    nzCancelText="Close"
+    [nzOkText]="null"
+    (nzOnCancel)="closeMedicationDetailModal()"
+    nzClassName="pharmacy-modal-rounded"
+  >
+    <ng-container *nzModalContent>
+      <div *ngIf="selectedMedicationForDetail" class="medication-details">
+        <div class="details-image" *ngIf="selectedMedicationForDetail.imageUrl; else detailNoImage">
+          <img [src]="selectedMedicationForDetail.imageUrl" [alt]="selectedMedicationForDetail.name" />
+        </div>
+        <ng-template #detailNoImage>
+          <div class="details-image medication-no-image">
+            <nz-icon nzType="picture" nzTheme="outline"></nz-icon>
+          </div>
+        </ng-template>
+
+        <div class="details-row">
+          <span class="medication-muted">Name:</span>
+          <span>{{ selectedMedicationForDetail.name }}</span>
+        </div>
+        <div class="details-row">
+          <span class="medication-muted">Therapeutic class:</span>
+          <span>{{ formatTherapeuticClass(selectedMedicationForDetail.therapeuticClass) }}</span>
+        </div>
+        <div class="details-row">
+          <span class="medication-muted">Status:</span>
+          <span>{{ selectedMedicationForDetail.medicationStatus || 'ACCEPTED' }}</span>
+        </div>
+        <div class="details-row details-description">
+          <span class="medication-muted">Description:</span>
+          <p>{{ selectedMedicationForDetail.description || 'No description provided.' }}</p>
+        </div>
+      </div>
+    </ng-container>
+  </nz-modal>
+
+  <!-- ✅ AI OVERVIEW DRAWER -->
+  <nz-drawer
+    [nzClosable]="true"
+    [nzVisible]="aiDrawerVisible"
+    nzPlacement="right"
+    nzTitle="AI Medication Overview"
+    (nzOnClose)="closeAIDrawer()"
+    [nzWidth]="480"
+  >
+    <ng-container *nzDrawerContent>
+      <div *ngIf="aiDrawerLoading" class="ai-drawer-loading">
+        <nz-spin nzSize="large" style="transform: scale(1.4);" class="ai-drawer-spinner"></nz-spin>
+      </div>
+
+      <div *ngIf="!aiDrawerLoading && aiOverviewData" class="ai-overview-content">
+        <div *ngIf="selectedMedicationForAI" style="margin-bottom: 24px;">
+          <h3 style="margin: 0 0 8px 0;">{{ selectedMedicationForAI.name }}</h3>
+          <div style="color: #8c8c8c; font-size: 14px;">
+            {{ formatTherapeuticClass(selectedMedicationForAI.therapeuticClass) }}
+          </div>
+        </div>
+
+        <div class="ai-response" *ngIf="parsedAIData">
+          <div class="ai-section" *ngIf="parsedAIData.summary">
+            <h4>Summary</h4>
+            <p>{{ parsedAIData.summary }}</p>
+          </div>
+
+          <div class="ai-section" *ngIf="parsedAIData.indications && parsedAIData.indications.length > 0">
+            <h4>Indications</h4>
+            <ul>
+              <li *ngFor="let item of parsedAIData.indications">{{ item }}</li>
+            </ul>
+          </div>
+
+          <div class="ai-section" *ngIf="parsedAIData.sideEffects && parsedAIData.sideEffects.length > 0">
+            <h4>Side Effects</h4>
+            <div class="side-effects-grid">
+              <span *ngFor="let effect of parsedAIData.sideEffects" class="side-effect-chip">{{ effect }}</span>
+            </div>
+          </div>
+
+          <div class="ai-section" *ngIf="parsedAIData.contraindications && parsedAIData.contraindications.length > 0">
+            <h4>Contraindications</h4>
+            <ul>
+              <li *ngFor="let item of parsedAIData.contraindications">{{ item }}</li>
+            </ul>
+          </div>
+
+          <div class="ai-section" *ngIf="parsedAIData.source">
+            <h4>Source</h4>
+            <p style="font-size: 13px; color: #8c8c8c;">{{ parsedAIData.source }}</p>
+          </div>
+        </div>
+
+        <div class="ai-response" *ngIf="!parsedAIData">
+          <pre style="white-space: pre-wrap; font-family: inherit; margin: 0;">{{ aiOverviewData | json }}</pre>
+        </div>
+      </div>
+
+      <div *ngIf="!aiDrawerLoading && !aiOverviewData" style="text-align: center; padding: 40px 20px; color: #8c8c8c;">
+        No overview data available
+      </div>
+    </ng-container>
+  </nz-drawer>
+</div>

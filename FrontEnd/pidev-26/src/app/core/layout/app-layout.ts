@@ -75,6 +75,17 @@ export class AppLayout implements OnInit {
       roles: ['ROLE_DOCTOR', 'ROLE_ADMIN'],
     },
     {
+      link: '/pharmacy',
+      label: 'Pharmacy',
+      icon: 'medicine-box',
+      roles: ['ROLE_PHARMACY', 'ROLE_ADMIN', 'ROLE_CAREGIVER', 'ROLE_DOCTOR'],
+    },
+    {
+      link: '/prescriptions',
+      label: 'Prescriptions',
+      icon: 'file-text',
+      roles: ['ROLE_DOCTOR', 'ROLE_PHARMACY', 'ROLE_ADMIN', 'ROLE_CAREGIVER'],
+    }, {
       link: '/calendar',
       label: 'Calendar',
       icon: 'calendar',
@@ -120,7 +131,7 @@ export class AppLayout implements OnInit {
       link: '/equipment',
       label: 'Equipment',
       icon: 'shop',
-      roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'],
+      roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER'],
     },
     {
       link: '/complaint',

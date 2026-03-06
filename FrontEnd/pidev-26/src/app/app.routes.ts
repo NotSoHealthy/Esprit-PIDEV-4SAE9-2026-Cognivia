@@ -26,6 +26,33 @@ export const routes: Routes = [
           import('./features/dashboard/dashboard.page').then((m) => m.DashboardPage),
       },
       {
+        path: 'profile',
+        title: 'Profile',
+        loadComponent: () => import('./features/profile/profile').then((m) => m.Profile),
+      },
+      {
+        path: 'pharmacy',
+        title: 'Pharmacy',
+        canMatch: [roleGuard(['ROLE_PHARMACY', 'ROLE_ADMIN', 'ROLE_CAREGIVER', 'ROLE_DOCTOR'])],
+        loadComponent: () =>
+          import('./features/pharmacy/pharmacy').then((m) => m.Pharmacy),
+      },
+      {
+        path: 'medications/:pharmacyId',
+        title: 'Medications',
+        canMatch: [roleGuard(['ROLE_PHARMACY', 'ROLE_ADMIN', 'ROLE_CAREGIVER', 'ROLE_DOCTOR'])],
+        loadComponent: () =>
+          import('./features/pharmacy/medication/medication-page').then((m) => m.MedicationPage),
+      },
+      {
+        path: 'prescriptions',
+        title: 'Prescriptions',
+        canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_PHARMACY', 'ROLE_ADMIN', 'ROLE_CAREGIVER'])],
+        loadComponent: () =>
+          import('./features/prescription/prescription').then((m) => m.PrescriptionComponent),
+      },
+
+      {
         path: 'posts',
         canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
         loadComponent: () =>

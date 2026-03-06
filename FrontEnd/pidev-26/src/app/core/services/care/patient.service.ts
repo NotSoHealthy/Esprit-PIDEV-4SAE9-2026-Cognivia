@@ -23,4 +23,8 @@ export class PatientService {
   getPatientByUserId(userId: string): Observable<Patient> {
     return this.http.get<Patient>(`${this.apiUrl}/user/${userId}`);
   }
+
+  getPatientsByCaregiverUserId(userId: string): Observable<Patient[]> {
+    return this.http.get<Patient[]>(`${this.apiUrl}/caregiver/user/${userId}`);
+  }
 }

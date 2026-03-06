@@ -94,6 +94,13 @@ public class PatientService implements IService<Patient> {
                 .toList();
     }
 
+    public List<Patient> getByCaregiverUserId(UUID caregiverUserId) {
+        if (caregiverUserId == null) {
+            return List.of();
+        }
+        return patientRepository.findByCaregiverUserId(caregiverUserId);
+    }
+
     public Patient updateSeverity(Long id, String severity) {
         Patient existing = patientRepository.findById(id).orElse(null);
         if (existing == null) {

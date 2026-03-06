@@ -1,0 +1,70 @@
+<form
+  nz-form
+  nzLayout="vertical"
+  [formGroup]="validateForm"
+  (ngSubmit)="submit()"
+  class="max-w-2xl mx-auto p-6"
+>
+  <div class="profile-card">
+    <div class="profile-header">
+      <h2 class="profile-title">Pharmacist Profile</h2>
+      <p class="profile-subtitle">Manage your professional information</p>
+    </div>
+
+    <nz-form-item>
+      <nz-form-label nzFor="firstName" nzRequired>First Name</nz-form-label>
+      <nz-form-control nzErrorTip="Please enter your first name">
+        <input
+          nz-input
+          id="firstName"
+          formControlName="firstName"
+          placeholder="Enter your first name"
+        />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label nzFor="lastName" nzRequired>Last Name</nz-form-label>
+      <nz-form-control nzErrorTip="Please enter your last name">
+        <input
+          nz-input
+          id="lastName"
+          formControlName="lastName"
+          placeholder="Enter your last name"
+        />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label nzFor="licenseNumber" nzRequired>License Number</nz-form-label>
+      <nz-form-control nzErrorTip="Please enter a valid license number (alphanumeric only)">
+        <input
+          nz-input
+          id="licenseNumber"
+          formControlName="licenseNumber"
+          placeholder="e.g., PH123456"
+        />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label nzFor="phoneNumber" nzRequired>Phone Number</nz-form-label>
+      <nz-form-control nzErrorTip="Please enter a valid 8-digit phone number">
+        <input
+          nz-input
+          id="phoneNumber"
+          formControlName="phoneNumber"
+          placeholder="e.g., 12345678"
+          maxlength="8"
+        />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item class="form-actions">
+      <button nz-button nzType="primary" type="submit" class="submit-btn">
+        <span nz-icon nzType="save" nzTheme="outline"></span>
+        Save Profile
+      </button>
+    </nz-form-item>
+  </div>
+</form>
