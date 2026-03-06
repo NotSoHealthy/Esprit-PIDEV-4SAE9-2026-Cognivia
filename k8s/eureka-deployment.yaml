@@ -30,6 +30,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: eureka-config
+            - secretRef:
+                name: secrets
 ---
 apiVersion: v1
 kind: Service

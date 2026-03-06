@@ -32,6 +32,8 @@ spec:
                 name: dpchat-config
             - configMapRef:
                 name: service-links
+            - secretRef:
+              name: secrets
 ---
 apiVersion: v1
 kind: Service

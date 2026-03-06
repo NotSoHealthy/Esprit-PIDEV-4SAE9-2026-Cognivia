@@ -53,6 +53,7 @@ pipeline {
                     sh """
                       kubectl get namespace pidev-deployment >/dev/null 2>&1 || kubectl create namespace pidev-deployment
                       kubectl apply -f k8s/config.yaml
+                      kubectl apply -f k8s/secret.yaml
                       kubectl apply -f k8s/ -n pidev-deployment
                     """
                 }
