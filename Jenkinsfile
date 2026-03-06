@@ -58,8 +58,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                      kubectl get namespace pidev-deployment >/dev/null 2>&1 || kubectl create namespace pidev-deployment
-                      kubectl apply -f k8s/ -n pidev-deployment
+                      kubectl rollout restart deployment -n pidev-deployment
                     """
                 }
             }
