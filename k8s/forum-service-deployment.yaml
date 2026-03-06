@@ -32,8 +32,6 @@ spec:
                 name: forum-service-config
             - configMapRef:
                 name: service-links
-            - secretRef:
-              name: secret
 ---
 apiVersion: v1
 kind: Service
