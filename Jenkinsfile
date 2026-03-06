@@ -8,6 +8,13 @@ pipeline {
     environment {
         DOCKER_CREDENTIALS= credentials('docker_hub')
         DOCKER_BUILDKIT = '1'
+        PIDEV26_DB_URL = credentials('PIDEV26_DB_URL')
+        PIDEV26_DB_USERNAME = credentials('PIDEV26_DB_USERNAME')
+        PIDEV26_DB_PASSWORD = credentials('PIDEV26_DB_PASSWORD')
+        PIDEV26_KEYCLOAK_CLIENT_SECRET = credentials('PIDEV26_KEYCLOAK_CLIENT_SECRET')
+        IMGBB_API_KEY = credentials('IMGBB_API_KEY')
+        DEEPSEEK_API_KEY = credentials('DEEPSEEK_API_KEY')
+        GOOGLE_AI_API_KEY = credentials('GOOGLE_AI_API_KEY')
     }
 
     stages {
@@ -52,8 +59,6 @@ pipeline {
                 script {
                     sh """
                       kubectl get namespace pidev-deployment >/dev/null 2>&1 || kubectl create namespace pidev-deployment
-                      kubectl apply -f k8s/config.yaml
-                      kubectl apply -f k8s/secret.yaml
                       kubectl apply -f k8s/ -n pidev-deployment
                     """
                 }
