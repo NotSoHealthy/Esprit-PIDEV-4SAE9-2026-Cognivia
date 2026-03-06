@@ -57,9 +57,22 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    sh """
-                      kubectl rollout restart deployment -n pidev-deployment
-                    """
+                    sh '''
+                        kubectl -n pidev-deployment create secret generic secret \
+                            --from-literal=PIDEV26_DB_URL="$PIDEV26_DB_URL" \
+                            --from-literal=PIDEV26_DB_USERNAME="$PIDEV26_DB_USERNAME" \
+                            --from-literal=PIDEV26_DB_PASSWORD="$PIDEV26_DB_PASSWORD" \
+                            --from-literal=PIDEV26_KEYCLOAK_CLIENT_SECRET="$PIDEV26_KEYCLOAK_CLIENT_SECRET" \
+                            --from-literal=IMGBB_API_KEY="$IMGBB_API_KEY" \
+                            --from-literal=DEEPSEEK_API_KEY="$DEEPSEEK_API_KEY" \
+                            --from-literal=GOOGLE_AI_API_KEY="$GOOGLE_AI_API_KEY" \
+                            --dry-run=client -o yaml | kubectl apply -f -
+
+                        for f in k8s/*.yaml; do
+                            [ "$f" = "k8s/secret.yaml" ] && continue
+                            kubectl apply -f "$f"
+                        done
+                    '''
                 }
             }
         }

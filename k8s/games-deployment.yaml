@@ -32,6 +32,8 @@ spec:
                 name: games-config
             - configMapRef:
                 name: service-links
+            - secretRef:
+                name: secret
 ---
 apiVersion: v1
 kind: Service
