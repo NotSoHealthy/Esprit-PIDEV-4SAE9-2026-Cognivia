@@ -47,7 +47,6 @@ pipeline {
 
                     for (s in microservices) {
                         sh """
-                        echo "$PIDEV26_KEYCLOAK_CLIENT_SECRET"
                         docker build -t notsohealthy/pidev-${s}:dev BackEnd/Microservices/${s}/
                         docker push notsohealthy/pidev-${s}:dev
                         """
@@ -67,11 +66,11 @@ pipeline {
         stage('Restart Deployments') {
             steps {
                 script {
-                    sh """
+                    sh '''
                         kubectl get deployments -n pidev-deployment -o name | while read -r deploy; do
                             kubectl rollout restart -n pidev-deployment "$deploy"
                         done
-                    """
+                    '''
                 }
             }
         }
