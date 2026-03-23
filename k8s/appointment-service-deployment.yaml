@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: appointment-service-config
+  namespace: pidev-deployment
+data:
+  PORT: "8085"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: appointment-service
+  namespace: pidev-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: appointment-service
+  template:
+    metadata:
+      labels:
+        app: appointment-service
+    spec:
+      containers:
+        - name: appointment-service
+          image: notsohealthy/pidev-appointment-service:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8085
+          envFrom:
+            - configMapRef:
+                name: appointment-service-config
+            - configMapRef:
+                name: service-links
+            - secretRef:
+                name: secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: appointment-service
+  namespace: pidev-deployment
+  labels:
+    app: appointment-service
+spec:
+  selector:
+    app: appointment-service
+  ports:
+    - name: http
+      port: 8085
+      targetPort: 8085

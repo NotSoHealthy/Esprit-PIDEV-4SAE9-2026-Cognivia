@@ -8,4 +8,7 @@
   @case ('ROLE_CAREGIVER') {
     <app-profile-caregiver *ngIf="userRole === 'ROLE_CAREGIVER'"></app-profile-caregiver>
   }
+  @case ('ROLE_PHARMACY') {
+    <app-profile-pharmacist *ngIf="userRole === 'ROLE_PHARMACY'"></app-profile-pharmacist>
+  }
 }

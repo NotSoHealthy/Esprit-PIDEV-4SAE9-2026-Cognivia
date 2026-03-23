@@ -35,6 +35,7 @@ public class VisitReportService implements IService<VisitReport> {
         }
 
         existing.setContent(entity.getContent());
+        existing.setStatus(entity.getStatus());
 
         return visitReportRepository.save(existing);
     }
@@ -44,7 +45,7 @@ public class VisitReportService implements IService<VisitReport> {
         visitReportRepository.deleteById(id);
     }
 
-    public List<VisitReport> getByVisitId(Long visitId) {
-        return visitReportRepository.findByVisitId(visitId);
+    public VisitReport getByVisitId(Long visitId) {
+        return visitReportRepository.findByVisitId(visitId).orElse(null);
     }
 }

@@ -15,6 +15,7 @@ import { KeycloakService } from '../auth/keycloak.service';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { CurrentUserService } from '../user/current-user.service';
 import { StreakService } from '../../features/games/streak.service';
 import { StreakFlameComponent } from '../../shared/components/streak-flame/streak-flame.component';
@@ -29,7 +30,8 @@ import { StreakFlameComponent } from '../../shared/components/streak-flame/strea
     NzIconModule,
     NzDropdownModule,
     NzMenuModule,
-    StreakFlameComponent
+    NzTooltipModule,
+    StreakFlameComponent,
   ],
   templateUrl: './app-layout.html',
   styleUrl: './app-layout.css',
@@ -55,10 +57,39 @@ export class AppLayout implements OnInit {
       roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'],
     },
     {
+      link: '/tasks',
+      label: 'Tasks',
+      icon: 'check',
+      roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_PATIENT', 'ROLE_ADMIN'],
+    },
+    {
+      link: '/appointments',
+      label: 'Appointments',
+      icon: 'calendar',
+      roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'],
+    },
+    {
       link: '/admin/tests',
       label: 'Tests',
       icon: 'form',
       roles: ['ROLE_DOCTOR', 'ROLE_ADMIN'],
+    },
+    {
+      link: '/pharmacy',
+      label: 'Pharmacy',
+      icon: 'medicine-box',
+      roles: ['ROLE_PHARMACY', 'ROLE_ADMIN', 'ROLE_CAREGIVER', 'ROLE_DOCTOR'],
+    },
+    {
+      link: '/prescriptions',
+      label: 'Prescriptions',
+      icon: 'file-text',
+      roles: ['ROLE_DOCTOR', 'ROLE_PHARMACY', 'ROLE_ADMIN', 'ROLE_CAREGIVER'],
+    }, {
+      link: '/calendar',
+      label: 'Calendar',
+      icon: 'calendar',
+      roles: ['ROLE_CAREGIVER'],
     },
     {
       link: '/user/tests',
@@ -100,15 +131,16 @@ export class AppLayout implements OnInit {
       link: '/equipment',
       label: 'Equipment',
       icon: 'shop',
-      roles: ['ROLE_DOCTOR','ROLE_CAREGIVER' , 'ROLE_ADMIN'],
+      roles: ['ROLE_DOCTOR', 'ROLE_CAREGIVER'],
     },
     {
       link: '/complaint',
       label: 'Reports',
       icon: 'container',
       roles: ['ROLE_ADMIN'],
-    }
+    },
   ];
+
   currentRouteLabel = '';
   streakCount = 0;
   ngOnInit(): void {
@@ -131,20 +163,22 @@ export class AppLayout implements OnInit {
       this.fetchStreak();
 
       // Also poll every 30 seconds so the flame stays in sync
-      interval(30_000).pipe(
-        takeUntilDestroyed(this.destroyRef),
-        switchMap(() => {
-          const pid = this.keycloak.getUserId();
-          return pid ? this.streakService.getStreak(pid) : [];
-        }),
-      ).subscribe(s => this.streakCount = s.currentStreak);
+      interval(30_000)
+        .pipe(
+          takeUntilDestroyed(this.destroyRef),
+          switchMap(() => {
+            const pid = this.keycloak.getUserId();
+            return pid ? this.streakService.getStreak(pid) : [];
+          }),
+        )
+        .subscribe((s) => (this.streakCount = s.currentStreak));
     }
   }
 
   private fetchStreak(): void {
     const patientId = this.keycloak.getUserId();
     if (patientId) {
-      this.streakService.getStreak(patientId).subscribe(s => {
+      this.streakService.getStreak(patientId).subscribe((s) => {
         this.streakCount = s.currentStreak;
       });
     }
@@ -167,7 +201,6 @@ export class AppLayout implements OnInit {
       return;
     }
 
-    // Fallback: map URL segment to configured nav labels.
     const pathOnly = this.router.url.split('?')[0]?.split('#')[0] ?? '';
     const firstSegment = pathOnly.split('/').filter(Boolean)[0] ?? '';
     const routePath = firstSegment ? `/${firstSegment}` : '';

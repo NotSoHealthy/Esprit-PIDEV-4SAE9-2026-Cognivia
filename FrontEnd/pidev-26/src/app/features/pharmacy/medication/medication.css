@@ -1,0 +1,284 @@
+/* Global pharmacy module color */
+:host ::ng-deep {
+  --pharmacy-primary-color: #4D5CAB;
+}
+
+.medications-page {
+  max-width: 1200px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+.medications-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.back-btn {
+  padding: 4px 8px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.medications-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+  flex: 1;
+}
+
+.medications-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.medication-card {
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.medication-cover {
+  width: 100%;
+  height: 190px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafa;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.medication-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.medication-no-image {
+  color: rgba(0, 0, 0, 0.25);
+  font-size: 32px;
+}
+
+.medication-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.medication-meta-row {
+  font-size: 13px;
+  display: flex;
+  gap: 6px;
+}
+
+.medication-card-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.medication-muted {
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.medications-error {
+  background: #fff2e8;
+  border: 1px solid #ffbb96;
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #d4380d;
+  margin-bottom: 16px;
+}
+
+.spinner-wrapper {
+  display: flex;
+  justify-content: center;
+  padding-top: 200px;
+}
+
+.empty-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 48px 16px;
+}
+
+@media (max-width: 576px) {
+  .medications-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .medications-title {
+    font-size: 20px;
+  }
+
+  .medications-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 577px) and (max-width: 992px) {
+  .medications-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 993px) and (max-width: 1320px) {
+  .medications-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.add-medication-fab {
+  position: fixed;
+  right: 36px;
+  bottom: 36px;
+  z-index: 1000;
+}
+
+:host ::ng-deep .add-medication-fab .ant-float-btn-body {
+  background-color: #4D5CAB !important;
+}
+
+:host ::ng-deep .add-medication-fab .ant-float-btn-body:hover {
+  background-color: #3f4ea3 !important;
+}
+
+:host ::ng-deep .add-medication-fab .ant-float-btn-icon {
+  font-size: 24px !important;
+}
+
+:host ::ng-deep .add-medication-fab .ant-float-btn {
+  width: 200px !important;
+  height: 200px !important;
+}
+
+:host ::ng-deep .add-medication-fab .ant-float-btn-body {
+  border-radius: 999px !important;
+}
+
+:host ::ng-deep .medication-card-actions .ant-btn {
+  border-radius: 999px !important;
+}
+
+
+
+/* ========== FORM ERROR STYLING ========== */
+
+/* Spinner color override */
+:host ::ng-deep .ant-spin-dot-item {
+  background-color: #4D5CAB !important;
+}
+
+:host ::ng-deep .ant-spin-text {
+  color: #4D5CAB !important;
+}
+
+/* Therapeutic class radio buttons - allow wrapping */
+:host ::ng-deep .ant-radio-group-solid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+:host ::ng-deep .ant-radio-button-wrapper {
+  flex: 0 1 auto;
+  white-space: normal;
+  text-align: center;
+  height: auto;
+  line-height: 1.4;
+  padding: 8px 12px;
+}
+
+:host ::ng-deep .ant-pagination-item,
+:host ::ng-deep .ant-pagination-prev .ant-pagination-item-link,
+:host ::ng-deep .ant-pagination-next .ant-pagination-item-link,
+:host ::ng-deep .ant-pagination-jump-prev .ant-pagination-item-link,
+:host ::ng-deep .ant-pagination-jump-next .ant-pagination-item-link {
+  border-radius: 8px !important;
+}
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+  padding: 16px 0;
+}
+
+.medication-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.details-image {
+  width: 100%;
+  height: 260px;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafa;
+}
+
+.details-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.details-row {
+  display: flex;
+  gap: 8px;
+}
+
+.details-description {
+  display: block;
+}
+
+.details-description p {
+  margin-top: 6px;
+}
+
+/* Error text styling - RED TEXT UNDER FIELD */
+.error-text {
+  color: #d32f2f;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+  font-weight: 500;
+}
+
+.field-error {
+  border-color: #d32f2f !important;
+}
+
+:host ::ng-deep .field-error.ant-input {
+  border-color: #d32f2f !important;
+}
+
+:host ::ng-deep .field-error.ant-select-selector {
+  border-color: #d32f2f !important;
+}
+
+/* Spinner styling */
+.spinner-wrapper ::ng-deep .ant-spin-dot-item {
+  background-color: #4D5CAB !important;
+}
+
+.spinner-wrapper ::ng-deep .ant-spin-text {
+  color: #4D5CAB !important;
+  white-space: nowrap;
+}

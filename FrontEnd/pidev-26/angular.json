@@ -3,7 +3,7 @@
   "version": 1,
   "cli": {
     "packageManager": "npm",
-    "analytics": false
+    "analytics": "a3f24612-c881-4c93-b2e2-1435289475af"
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -23,11 +23,18 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/leaflet/dist/images",
+                "output": "assets/leaflet/"
               }
             ],
             "styles": [
+              "src/material-theme.scss",
               "./node_modules/ng-zorro-antd/ng-zorro-antd.min.css",
-              "src/styles.css"
+              "src/styles.css",
+               "./node_modules/leaflet/dist/leaflet.css"
             ]
           },
           "configurations": {

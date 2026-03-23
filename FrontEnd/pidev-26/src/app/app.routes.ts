@@ -1,8 +1,14 @@
 import { Routes } from '@angular/router';
-import { homeRedirectGuard } from './core/auth/home-redirect.guard';
-import { authGuard, roleGuard } from './core/auth/auth.guard';
+
+import { authGuard, homeRedirectGuard, roleGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
+  {
+    path: '',
+    pathMatch: 'full',
+    canActivate: [homeRedirectGuard],
+    loadComponent: () => import('./features/home/home').then((m) => m.Home),
+  },
   {
     path: '',
     canMatch: [authGuard],
@@ -24,6 +30,28 @@ export const routes: Routes = [
         title: 'Profile',
         loadComponent: () => import('./features/profile/profile').then((m) => m.Profile),
       },
+      {
+        path: 'pharmacy',
+        title: 'Pharmacy',
+        canMatch: [roleGuard(['ROLE_PHARMACY', 'ROLE_ADMIN', 'ROLE_CAREGIVER', 'ROLE_DOCTOR'])],
+        loadComponent: () =>
+          import('./features/pharmacy/pharmacy').then((m) => m.Pharmacy),
+      },
+      {
+        path: 'medications/:pharmacyId',
+        title: 'Medications',
+        canMatch: [roleGuard(['ROLE_PHARMACY', 'ROLE_ADMIN', 'ROLE_CAREGIVER', 'ROLE_DOCTOR'])],
+        loadComponent: () =>
+          import('./features/pharmacy/medication/medication-page').then((m) => m.MedicationPage),
+      },
+      {
+        path: 'prescriptions',
+        title: 'Prescriptions',
+        canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_PHARMACY', 'ROLE_ADMIN', 'ROLE_CAREGIVER'])],
+        loadComponent: () =>
+          import('./features/prescription/prescription').then((m) => m.PrescriptionComponent),
+      },
+
       {
         path: 'posts',
         canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
@@ -50,10 +78,7 @@ export const routes: Routes = [
       },
       {
         path: 'chat',
-        loadComponent: () =>
-          import('./features/chat/chat.component').then(
-            (m) => m.ChatComponent,
-          ),
+        loadComponent: () => import('./features/chat/chat.component').then((m) => m.ChatComponent),
       },
       {
         path: 'admin/reported-posts',
@@ -84,12 +109,14 @@ export const routes: Routes = [
       {
         path: 'equipment/maintenance',
         canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
-        loadComponent: () => import('./features/equipment/maintenance/maintenance').then((m) => m.Maintenance),
+        loadComponent: () =>
+          import('./features/equipment/maintenance/maintenance').then((m) => m.Maintenance),
       },
       {
         path: 'equipment/reservation',
         canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
-        loadComponent: () => import('./features/equipment/reservation/reservation').then((m) => m.Reservation),
+        loadComponent: () =>
+          import('./features/equipment/reservation/reservation').then((m) => m.Reservation),
       },
       {
         path: 'patient-management',
@@ -99,45 +126,112 @@ export const routes: Routes = [
           import('./features/patient-management/patient-list.route').then((m) => m.routes),
       },
       {
+
+        path: 'tasks',
+        loadComponent: () => import('./features/tasks/tasks.page').then((m) => m.TasksPage),
+      },
+      {
+        path: 'tasks/create',
+        loadComponent: () => import('./features/tasks/create/tasks-create.page').then((m) => m.TasksCreatePage),
+      },
+      {
+        path: 'tasks/list',
+        loadComponent: () => import('./features/tasks/list/tasks-list.page').then((m) => m.TasksListPage),
+      },
+      {
+        path: 'tasks/update',
+        loadComponent: () => import('./features/tasks/update/tasks-update.page').then((m) => m.TasksUpdatePage),
+      },
+      {
+        path: 'appointments',
+        title: 'Appointments',
+        canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
+        loadComponent: () =>
+          import('./features/appointments/appointments').then(m => m.Appointments),
+      },
+      {
+        path: 'calendar',
+        title: 'Calendar',
+        canMatch: [roleGuard(['ROLE_CAREGIVER'])],
+        loadComponent: () =>
+          import('./features/caregiver/calendar/calendar').then((m) => m.Calendar),
+      },
+      {
+        path: 'visit/:visitId/report',
+        title: 'Visit Report',
+        canMatch: [roleGuard(['ROLE_CAREGIVER', 'ROLE_DOCTOR', 'ROLE_ADMIN'])],
+        loadComponent: () =>
+          import('./features/caregiver/visit-report/visit-report.page').then(
+            (m) => m.VisitReportPage,
+          ),
+      },
+      {
         path: 'admin/tests',
         title: 'Admin Tests',
-        loadComponent: () => import('./features/cognitive-tests/admin/test-list/test-list.component').then(m => m.TestListComponent)
+        loadComponent: () =>
+          import('./features/cognitive-tests/admin/test-list/test-list.component').then(
+            (m) => m.TestListComponent,
+          ),
       },
       {
         path: 'admin/tests/new',
-        loadComponent: () => import('./features/cognitive-tests/admin/test-form/test-form.component').then(m => m.TestFormComponent)
+        loadComponent: () =>
+          import('./features/cognitive-tests/admin/test-form/test-form.component').then(
+            (m) => m.TestFormComponent,
+          ),
       },
       {
         path: 'admin/tests/edit/:id',
-        loadComponent: () => import('./features/cognitive-tests/admin/test-form/test-form.component').then(m => m.TestFormComponent)
+        loadComponent: () =>
+          import('./features/cognitive-tests/admin/test-form/test-form.component').then(
+            (m) => m.TestFormComponent,
+          ),
       },
       {
         path: 'admin/tests/:id/questions',
-        loadComponent: () => import('./features/cognitive-tests/admin/question-management/question-management.component').then(m => m.QuestionManagementComponent)
+        loadComponent: () =>
+          import('./features/cognitive-tests/admin/question-management/question-management.component').then(
+            (m) => m.QuestionManagementComponent,
+          ),
       },
       {
         path: 'user/tests',
         title: 'Tests',
-        loadComponent: () => import('./features/cognitive-tests/user/test-list/patient-test-list.component').then(m => m.PatientTestListComponent)
+        loadComponent: () =>
+          import('./features/cognitive-tests/user/test-list/patient-test-list.component').then(
+            (m) => m.PatientTestListComponent,
+          ),
       },
       {
         path: 'user/tests/take/:testId',
-        loadComponent: () => import('./features/cognitive-tests/user/test-take/test-take.component').then(m => m.TestTakeComponent)
+        loadComponent: () =>
+          import('./features/cognitive-tests/user/test-take/test-take.component').then(
+            (m) => m.TestTakeComponent,
+          ),
       },
       {
         path: 'results/:id',
-        loadComponent: () => import('./features/cognitive-tests/user/result-view/result-view.component').then(m => m.ResultViewComponent)
+        loadComponent: () =>
+          import('./features/cognitive-tests/user/result-view/result-view.component').then(
+            (m) => m.ResultViewComponent,
+          ),
       },
       {
         path: 'doctor/risk-assessment',
         title: 'Risk Assessments',
         canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_ADMIN'])],
-        loadComponent: () => import('./features/cognitive-tests/admin/risk-assessment/risk-assessment.component').then(m => m.RiskAssessmentComponent)
+        loadComponent: () =>
+          import('./features/cognitive-tests/admin/risk-assessment/risk-assessment.component').then(
+            (m) => m.RiskAssessmentComponent,
+          ),
       },
       {
         path: 'user/games/memory',
         title: 'Cognitive Games',
-        loadComponent: () => import('./features/games/memory-game-view/memory-game-view.component').then(m => m.MemoryGameViewComponent)
+        loadComponent: () =>
+          import('./features/games/memory-game-view/memory-game-view.component').then(
+            (m) => m.MemoryGameViewComponent,
+          ),
       },
     ],
   },

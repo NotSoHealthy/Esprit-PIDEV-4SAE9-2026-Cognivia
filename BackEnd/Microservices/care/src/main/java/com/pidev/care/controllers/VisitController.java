@@ -28,6 +28,11 @@ public class VisitController {
         return visitService.getByPatientId(patientId);
     }
 
+    @GetMapping("/caregiver/{caregiverId}")
+    public List<Visit> getVisitsByCaregiverId(@PathVariable Long caregiverId) {
+        return visitService.getByCaregiverId(caregiverId);
+    }
+
     @PostMapping
     public Visit createVisit(@RequestBody Visit visit) {
         return visitService.create(visit);
@@ -36,6 +41,11 @@ public class VisitController {
     @PutMapping("/{id}")
     public Visit updateVisit(@PathVariable Long id, @RequestBody Visit visit) {
         return visitService.update(id, visit);
+    }
+
+    @PutMapping("/mark-completed/{id}")
+    public Void markVisitAsCompleted(@PathVariable Long id) {
+        return visitService.markVisitAsCompleted(id);
     }
 
     @DeleteMapping("/{id}")

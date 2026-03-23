@@ -7,29 +7,37 @@
 
         <form id="kc-register-form" action="${url.registrationAction}" method="post">
             <div class="form-group">
-                <input type="text" id="email" name="email" value="${(register.formData.email!'')}"
+                <input type="email" required id="email" name="email" value="${(register.formData.email!'')}"
                        placeholder="${msg("customEmail")}" autocomplete="email" />
             </div>
 
             <#if passwordRequired??>
                 <div class="form-group">
-                    <input type="password" id="password" name="password"
+                    <input type="password" required id="password" name="password"
                            placeholder="${msg("customPassword")}" autocomplete="new-password" />
                 </div>
 
                 <div class="form-group">
-                    <input type="password" id="password-confirm" name="password-confirm"
+                    <input type="password" required id="password-confirm" name="password-confirm"
                            placeholder="${msg("customConfirmPassword")}" autocomplete="new-password" />
                 </div>
             </#if>
 
             <div class="form-group">
-                <input type="tel" id="user.attributes.phoneNumber" name="user.attributes.phoneNumber" value="${(register.formData['user.attributes.phoneNumber']!'')}"
-                       placeholder="${msg("customPhone")}" autocomplete="tel" />
+                <input type="tel" 
+				   required 
+				   id="user.attributes.phoneNumber" 
+				   name="user.attributes.phoneNumber" 
+				   value="${(register.formData['user.attributes.phoneNumber']!'')}"
+				   placeholder="${msg("customPhone")}" 
+				   autocomplete="tel"
+				   pattern="[0-9]{8}"
+				   maxlength="8"
+				   title="Please enter exactly 8 digits" />
             </div>
 
             <div class="form-group">
-                <select id="user.attributes.role" name="user.attributes.role" class="kc-select">
+                <select id="user.attributes.role"required name="user.attributes.role" class="kc-select">
                     <option value="" disabled <#if !(register.formData['user.attributes.role']?has_content)>selected</#if>>${msg("customRole")}</option>
                     <option value="doctor" <#if (register.formData['user.attributes.role']!'') == 'doctor'>selected</#if>>${msg("customRoleDoctor")}</option>
                     <option value="caregiver" <#if (register.formData['user.attributes.role']!'') == 'caregiver'>selected</#if>>${msg("customRoleCaregiver")}</option>

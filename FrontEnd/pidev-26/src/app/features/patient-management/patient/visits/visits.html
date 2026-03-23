@@ -6,6 +6,66 @@
   } @else if (errorMessage) {
     <div class="rounded-xl bg-[#F2F6FE] px-3 py-2 text-[#4D5CAB]">{{ errorMessage }}</div>
   } @else {
-    <app-visit-list [visits]="visits"></app-visit-list>
+    <div class="flex flex-col gap-2 rounded-2xl bg-white p-4">
+      <app-visit-list [visits]="visits"></app-visit-list>
+      @if (getUserRole() === 'doctor') {
+        <button
+          nz-button
+          nzType="primary"
+          (click)="showModal()"
+          class="w-[25%] ml-auto! rounded-sm px-6"
+        >
+          Schedule New Visit
+        </button>
+      }
+    </div>
+    <nz-modal
+      [(nzVisible)]="isVisible"
+      nzTitle="Schedule New Visit"
+      [nzOkLoading]="isSubmitting"
+      (nzOnCancel)="handleCancel()"
+      (nzOnOk)="handleOk()"
+    >
+      <ng-container *nzModalContent>
+        <form nz-form>
+          @if (scheduleErrorMessage) {
+            <div class="mb-3 rounded-lg bg-[#F2F6FE] px-3 py-2 text-[#4D5CAB]">
+              {{ scheduleErrorMessage }}
+            </div>
+          }
+          <nz-form-item>
+            <nz-form-label [nzSpan]="6" nzFor="email">Caregiver</nz-form-label>
+            <nz-select
+              nzShowSearch
+              nzAllowClear
+              nzPlaceHolder="Select a caregiver"
+              [(ngModel)]="selectedCaregiver"
+              name="caregiver"
+            >
+              @for (caregiver of caregivers; track $index) {
+                <nz-option
+                  [nzLabel]="getCaregiverName(caregiver) | titlecase"
+                  [nzValue]="caregiver.id"
+                />
+              }
+            </nz-select>
+          </nz-form-item>
+          @if (caregiverTouched && !selectedCaregiver) {
+            <div class="-mt-2 mb-2 text-xs text-red-600">Caregiver is required.</div>
+          }
+          <nz-form-item>
+            <nz-form-label [nzSpan]="6" nzFor="visitDate">Visit Date</nz-form-label>
+            <nz-date-picker
+              id="visitDate"
+              [(ngModel)]="selectedVisitDate"
+              name="visitDate"
+            ></nz-date-picker>
+          </nz-form-item>
+          @if (visitDateTouched && !selectedVisitDate) {
+            <div class="-mt-2 text-xs text-red-600">Visit date is required.</div>
+          }
+        </form>
+      </ng-container>
+    </nz-modal>
   }
 }

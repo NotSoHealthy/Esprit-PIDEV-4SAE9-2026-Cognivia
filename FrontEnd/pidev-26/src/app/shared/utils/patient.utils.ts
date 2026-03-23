@@ -14,3 +14,11 @@ export function getSeverityColor(severity: string | null): string {
   if (severity === 'HIGH') return 'error';
   return 'purple';
 }
+
+export function getStatusColor(status: string | null): string {
+  if (!status) return 'default';
+  if (status === 'SCHEDULED') return 'processing';
+  if (status === 'MISSED') return 'error';
+  if (status === 'COMPLETE') return 'success';
+  return 'blue';
+}

@@ -1,0 +1,36 @@
+@if (isLoading) {
+  <div class="rounded-2xl bg-[#F2F6FE] p-4 text-[#4D5CAB]">Loading visits...</div>
+} @else if (errorMessage) {
+  <div class="rounded-2xl bg-[#F2F6FE] p-4 text-[#4D5CAB]">
+    {{ errorMessage }}
+  </div>
+} @else {
+  <div class="rounded-2xl bg-[#F2F6FE] p-4">
+    <nz-calendar
+      [(ngModel)]="calendarDate"
+      [(nzMode)]="calendarMode"
+      (nzPanelChange)="panelChange($event)"
+    >
+      <ng-container *nzDateCell="let date">
+        @if (getVisitsForDate(date).length) {
+          <ul class="cal-events">
+            @for (visit of getVisitsForDate(date); track visit?.id ?? visit?.visitId ?? $index) {
+              <li
+                class="cal-event cursor-pointer"
+                nz-popover
+                [nzPopoverTitle]="popOverTitle(visit)"
+                [nzPopoverContent]="popOverContent(visit)"
+                (click)="openVisitReport(visit)"
+              >
+                <nz-badge
+                  [nzStatus]="badgeStatusForVisit(visit)"
+                  [nzText]="formatVisitForCalendar(visit) | titlecase"
+                />
+              </li>
+            }
+          </ul>
+        }
+      </ng-container>
+    </nz-calendar>
+  </div>
+}

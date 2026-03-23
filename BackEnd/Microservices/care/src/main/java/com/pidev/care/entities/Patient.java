@@ -2,14 +2,13 @@
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
 
 @Entity
 @Getter
@@ -20,16 +19,19 @@ public class Patient {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     private Long id;
+
     @Column(unique = true)
     private UUID userId;
+
     private String firstName;
     private String lastName;
     @Enumerated(EnumType.STRING)
     private Gender gender;
     private LocalDate dateOfBirth;
-    private int checkInFrequency; // in minutes
+    private Integer checkInFrequency; // in minutes (Integer to prevent "Cannot map null into int" error)
     @Enumerated(EnumType.STRING)
     private Severity severity;
+
     
     @JsonIgnore
     @ManyToMany

@@ -1,2 +1,3 @@
 .env
-BackEnd/run-tabs/
+run-tabs/
+k8s/secret.yaml

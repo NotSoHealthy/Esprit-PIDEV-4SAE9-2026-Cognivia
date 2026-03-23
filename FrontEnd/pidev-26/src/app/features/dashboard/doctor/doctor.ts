@@ -9,11 +9,12 @@ import { TestResult } from '../../../core/models/cognitive-tests/test-result.mod
 import { CognitiveTestService } from '../../../core/services/cognitive-tests/test.service';
 import { CommonModule } from '@angular/common';
 import { SignatureModalComponent } from '../../../shared/components/signature-modal/signature-modal.component';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-doctor',
   standalone: true,
-  imports: [CommonModule, NzIconModule, FormsModule, SignatureModalComponent],
+  imports: [CommonModule, NzIconModule, FormsModule, SignatureModalComponent, MatIconModule],
   templateUrl: './doctor.html',
   styleUrl: './doctor.css',
 })
@@ -56,19 +57,23 @@ export class Doctor implements OnInit {
         this.riskService.getAllRisks().subscribe({
           next: (risks: RiskScore[]) => {
             // 1. Update overall stats
-            this.recentRisks = [...risks].sort((a: RiskScore, b: RiskScore) => {
-              const dateA = a.generatedAt ? new Date(a.generatedAt).getTime() : 0;
-              const dateB = b.generatedAt ? new Date(b.generatedAt).getTime() : 0;
-              return dateB - dateA;
-            }).slice(0, 5);
+            this.recentRisks = [...risks]
+              .sort((a: RiskScore, b: RiskScore) => {
+                const dateA = a.generatedAt ? new Date(a.generatedAt).getTime() : 0;
+                const dateB = b.generatedAt ? new Date(b.generatedAt).getTime() : 0;
+                return dateB - dateA;
+              })
+              .slice(0, 5);
 
-            this.highRiskCount = risks.filter((r: RiskScore) => r.riskLevel?.toLowerCase() === 'high').length;
+            this.highRiskCount = risks.filter(
+              (r: RiskScore) => r.riskLevel?.toLowerCase() === 'high',
+            ).length;
             this.clinicalFlagCount = risks.filter((r: RiskScore) => r.clinicalFlag).length;
 
             // 2. Map the latest risk to each patient for the table
-            this.patients = this.patients.map(p => {
+            this.patients = this.patients.map((p) => {
               // Find the newest risk for this specific patient
-              const patientRisks = risks.filter(r => r.patientId === p.id);
+              const patientRisks = risks.filter((r) => r.patientId === p.id);
               const latestRisk = patientRisks.sort((a, b) => {
                 const dateA = a.generatedAt ? new Date(a.generatedAt).getTime() : 0;
                 const dateB = b.generatedAt ? new Date(b.generatedAt).getTime() : 0;
@@ -80,21 +85,21 @@ export class Doctor implements OnInit {
 
             this.cdr.detectChanges();
           },
-          error: (err: any) => console.error('Error loading risks:', err)
+          error: (err: any) => console.error('Error loading risks:', err),
         });
       },
-      error: (err: any) => console.error('Error loading patients:', err)
+      error: (err: any) => console.error('Error loading patients:', err),
     });
 
     this.resultService.getAllResults().subscribe({
       next: (results: TestResult[]) => {
         const today = new Date().toDateString();
         this.totalTestsToday = results.filter((r: TestResult) =>
-          r.takenAt ? new Date(r.takenAt).toDateString() === today : false
+          r.takenAt ? new Date(r.takenAt).toDateString() === today : false,
         ).length;
         this.cdr.detectChanges();
       },
-      error: (err: any) => console.error('Error loading results:', err)
+      error: (err: any) => console.error('Error loading results:', err),
     });
   }
 
@@ -103,9 +108,8 @@ export class Doctor implements OnInit {
 
     if (this.searchTerm) {
       const q = this.searchTerm.toLowerCase();
-      result = result.filter(p =>
-        p.firstName?.toLowerCase().includes(q) ||
-        p.lastName?.toLowerCase().includes(q)
+      result = result.filter(
+        (p) => p.firstName?.toLowerCase().includes(q) || p.lastName?.toLowerCase().includes(q),
       );
     }
 
@@ -113,7 +117,7 @@ export class Doctor implements OnInit {
       if (this.sortBy === 'name') {
         return (a.lastName || '').localeCompare(b.lastName || '');
       } else {
-        const severityOrder: Record<string, number> = { 'EXTREME': 0, 'HIGH': 1, 'MEDIUM': 2, 'LOW': 3 };
+        const severityOrder: Record<string, number> = { EXTREME: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
         return (severityOrder[a.severity] ?? 99) - (severityOrder[b.severity] ?? 99);
       }
     });
@@ -123,10 +127,14 @@ export class Doctor implements OnInit {
 
   getRiskClass(level: string): string {
     switch (level?.toLowerCase()) {
-      case 'high': return 'text-red-600 bg-red-50 border-red-100';
-      case 'medium': return 'text-amber-600 bg-amber-50 border-amber-100';
-      case 'low': return 'text-green-600 bg-green-50 border-green-100';
-      default: return 'text-gray-600 bg-gray-50 border-gray-100';
+      case 'high':
+        return 'text-red-600 bg-red-50 border-red-100';
+      case 'medium':
+        return 'text-amber-600 bg-amber-50 border-amber-100';
+      case 'low':
+        return 'text-green-600 bg-green-50 border-green-100';
+      default:
+        return 'text-gray-600 bg-gray-50 border-gray-100';
     }
   }
 
@@ -139,20 +147,29 @@ export class Doctor implements OnInit {
 
   getRiskBadgeClass(level: string | undefined): string {
     switch (level?.toLowerCase()) {
-      case 'high': return 'bg-red-500';
-      case 'medium': return 'bg-orange-400';
-      case 'low': return 'bg-green-500';
-      default: return 'bg-gray-400';
+      case 'high':
+        return 'bg-red-500';
+      case 'medium':
+        return 'bg-orange-400';
+      case 'low':
+        return 'bg-green-500';
+      default:
+        return 'bg-gray-400';
     }
   }
 
   getSeverityClass(severity: string): string {
     switch (severity?.toUpperCase()) {
-      case 'EXTREME': return 'bg-purple-100 text-purple-700';
-      case 'HIGH': return 'bg-red-100 text-red-700';
-      case 'MEDIUM': return 'bg-amber-100 text-amber-700';
-      case 'LOW': return 'bg-green-100 text-green-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'EXTREME':
+        return 'bg-purple-100 text-purple-700';
+      case 'HIGH':
+        return 'bg-red-100 text-red-700';
+      case 'MEDIUM':
+        return 'bg-amber-100 text-amber-700';
+      case 'LOW':
+        return 'bg-green-100 text-green-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
     }
   }
 
@@ -175,7 +192,7 @@ export class Doctor implements OnInit {
         console.error('Download failed', err);
         this.isDownloading = false;
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 
@@ -216,7 +233,7 @@ export class Doctor implements OnInit {
         console.error('Report download failed', err);
         this.selectedPatientId = null;
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 

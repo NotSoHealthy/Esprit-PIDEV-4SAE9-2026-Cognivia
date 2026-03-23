@@ -7,6 +7,7 @@ import { en_US, provideNzI18n } from 'ng-zorro-antd/i18n';
 import { registerLocaleData } from '@angular/common';
 import en from '@angular/common/locales/en';
 import { CurrentUserService } from './app/core/user/current-user.service';
+import { EnvironmentOutline } from '@ant-design/icons-angular/icons';
 
 registerLocaleData(en);
 
@@ -28,5 +29,5 @@ const keycloakProviders: Provider[] = [
 
 bootstrapApplication(App, {
   ...appConfig,
-  providers: [...appConfig.providers!, ...keycloakProviders, provideNzI18n(en_US)],
+  providers: [...appConfig.providers!, ...keycloakProviders, provideNzI18n(en_US) ],
 }).catch((err) => console.error(err));

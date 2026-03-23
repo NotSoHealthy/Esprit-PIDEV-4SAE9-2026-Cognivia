@@ -6,7 +6,7 @@ import { LanguageService } from './core/services/language.service';
   selector: 'app-root',
   imports: [RouterOutlet],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrl: './app.css',
 })
 export class App implements OnInit {
   private readonly languageService = inject(LanguageService);

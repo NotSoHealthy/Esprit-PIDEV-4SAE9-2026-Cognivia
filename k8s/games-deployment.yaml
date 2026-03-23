@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: games-config
+  namespace: pidev-deployment
+data:
+  PORT: "8087"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: games
+  namespace: pidev-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: games
+  template:
+    metadata:
+      labels:
+        app: games
+    spec:
+      containers:
+        - name: games
+          image: notsohealthy/pidev-games:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8087
+          envFrom:
+            - configMapRef:
+                name: games-config
+            - configMapRef:
+                name: service-links
+            - secretRef:
+                name: secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: games
+  namespace: pidev-deployment
+  labels:
+    app: games
+spec:
+  selector:
+    app: games
+  ports:
+    - name: http
+      port: 8087
+      targetPort: 8087
