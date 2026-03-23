@@ -1,0 +1,8 @@
+com\esprit\microservice\surveillanceandequipment\Services\ComplaintService.class
+com\esprit\microservice\surveillanceandequipment\Controllers\ComplaintController.class
+com\esprit\microservice\surveillanceandequipment\Entities\ComplaintPriority.class
+com\esprit\microservice\surveillanceandequipment\Entities\Complaint.class
+com\esprit\microservice\surveillanceandequipment\Entities\ComplaintStatus.class
+com\esprit\microservice\surveillanceandequipment\Entities\UserRole.class
+com\esprit\microservice\surveillanceandequipment\Repositories\ComplaintRepository.class
+com\esprit\microservice\surveillanceandequipment\Entities\ComplaintCategory.class
