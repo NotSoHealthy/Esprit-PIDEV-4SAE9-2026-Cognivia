@@ -2,7 +2,6 @@
 @import 'quill/dist/quill.snow.css';
 @import 'tui-image-editor/dist/tui-image-editor.css';
 @import 'tui-color-picker/dist/tui-color-picker.css';
-@import 'leaflet/dist/leaflet.css';
 @import 'leaflet-draw/dist/leaflet.draw.css';
 
 /* TUI Image Editor overlay tweaks (rendered via Angular CDK Overlay). */

@@ -8,6 +8,9 @@ window.__env = {
   // Backend API base URL
   apiBaseUrl: 'http://localhost:8080',
 
+  // Keycloak base URL
+  keycloakBaseUrl: 'http://localhost:8180',
+
   // imgbb API key (used by the frontend uploader)
   imgbbApiKey: '',
 

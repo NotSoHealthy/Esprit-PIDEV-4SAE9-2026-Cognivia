@@ -35,7 +35,9 @@
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "redirectUris": [
-        "http://localhost:4200/*"
+        "http://localhost:4200/*",
+        "http://localhost:*/*",
+        "http://127.0.0.1:*/*"
       ],
       "webOrigins": [
         "*"

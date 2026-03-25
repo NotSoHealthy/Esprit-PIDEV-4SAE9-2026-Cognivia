@@ -1,8 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PharmacyRecommendation, Prescription, PrescriptionItem } from '../models/prescription.model';
-import { environment } from '../../../../environments/environment';
+import { API_BASE_URL } from '../../../core/api/api.tokens';
 
 type UserContext = {
   userId?: string | null;
@@ -14,7 +14,8 @@ type UserContext = {
   providedIn: 'root'
 })
 export class PrescriptionService {
-  private readonly apiUrl = `${environment.apiBaseUrl}/pharmacy/prescriptions`;
+  private readonly apiBaseUrl = inject(API_BASE_URL);
+  private readonly apiUrl = `${this.apiBaseUrl}/pharmacy/prescriptions`;
 
   constructor(private http: HttpClient) {}
 

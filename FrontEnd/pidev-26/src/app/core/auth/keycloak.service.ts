@@ -1,17 +1,19 @@
 import { Injectable, inject,NgZone } from '@angular/core';
 import Keycloak from 'keycloak-js';
 import { LanguageService } from '../services/language.service';
+import { KEYCLOAK_BASE_URL } from '../api/api.tokens';
 
 @Injectable({ providedIn: 'root' })
 export class KeycloakService {
   private readonly languageService = inject(LanguageService);
+  private readonly keycloakBaseUrl = inject(KEYCLOAK_BASE_URL);
   private keycloak: Keycloak;
   private readonly unverifiedAlertKey = 'pidev.auth.alert.unverified';
   private readonly unverifiedLogoutAttemptAtKey = 'pidev.auth.unverified.logout.at';
 
   constructor(private readonly ngZone: NgZone) {
     this.keycloak = new Keycloak({
-      url: 'http://localhost:8180',
+      url: this.keycloakBaseUrl,
       realm: 'pidev',
       clientId: 'pidev-frontend',
     });

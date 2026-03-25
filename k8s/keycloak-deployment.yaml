@@ -1,0 +1,1004 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: keycloak-admin
+  namespace: pidev-deployment
+type: Opaque
+stringData:
+  KC_BOOTSTRAP_ADMIN_USERNAME: admin
+  KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-config
+  namespace: pidev-deployment
+data:
+  KC_HTTP_PORT: "8180"
+  KC_HOSTNAME_STRICT: "false"
+  KC_HOSTNAME_STRICT_HTTPS: "false"
+  KC_HEALTH_ENABLED: "true"
+  KC_DB: "postgres"
+  KC_DB_SCHEMA: "public"
+  KC_HOSTNAME: "auth.local"
+  KC_PROXY_HEADERS: "xforwarded"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-realm
+  namespace: pidev-deployment
+data:
+  realm.json: |
+    {
+      "realm": "pidev",
+      "enabled": true,
+      "accessTokenLifespan": 3600,
+      "ssoSessionIdleTimeout": 3600,
+      "roles": {
+        "realm": [
+          {
+            "name": "ROLE_UNVERIFIED"
+          },
+          {
+            "name": "ROLE_ADMIN"
+          },
+          {
+            "name": "ROLE_DOCTOR"
+          },
+          {
+            "name": "ROLE_CAREGIVER"
+          },
+          {
+            "name": "ROLE_PATIENT"
+          },
+          {
+            "name": "ROLE_PHARMACY"
+          }
+        ]
+      },
+      "clients": [
+        {
+          "clientId": "pidev-frontend",
+          "name": "PIDEV Angular FrontEnd",
+          "protocol": "openid-connect",
+          "publicClient": true,
+          "standardFlowEnabled": true,
+          "directAccessGrantsEnabled": false,
+          "serviceAccountsEnabled": false,
+          "redirectUris": [
+            "http://localhost:4200/*",
+            "http://localhost:*/*",
+            "http://127.0.0.1:*/*",
+            "http://192.168.49.2:*/*",
+            "http://app.local",
+            "http://app.local/",
+            "http://app.local/*"
+          ],
+          "webOrigins": [
+            "*"
+          ]
+        }
+      ],
+      "users": [
+        {
+          "username": "admin",
+          "enabled": true,
+          "emailVerified": true,
+          "email": "admin@example.com",
+          "credentials": [
+            {
+              "type": "password",
+              "value": "admin123",
+              "temporary": false
+            }
+          ],
+          "realmRoles": [
+            "ROLE_ADMIN"
+          ]
+        },
+        {
+          "username": "doctor1",
+          "enabled": true,
+          "emailVerified": true,
+          "email": "doctor1@example.com",
+          "credentials": [
+            {
+              "type": "password",
+              "value": "doctor123",
+              "temporary": false
+            }
+          ],
+          "realmRoles": [
+            "ROLE_DOCTOR"
+          ]
+        }
+      ]
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-theme-cognivia
+  namespace: pidev-deployment
+data:
+  theme.properties: |
+    parent=keycloak
+    import=common/keycloak
+    styles=css/styles.css
+    locales=en,fr,ar
+
+  login.ftl: |
+    <#import "template.ftl" as layout>
+    <@layout.registrationLayout displayInfo=(social.displayInfo!false) displayMessage=false displayRequiredFields=false bodyClass="login-page"; section>
+        <#if (section!"") = "header">
+            <#-- Title moved into form -->
+        <#elseif (section!"") = "form">
+            <h1 id="kc-page-title">${msg("customSignIn")}</h1>
+
+            <form id="kc-login-form" onsubmit="login.disabled = true; return true;" action="${url.loginAction}" method="post">
+                <div class="form-group">
+                    <input id="username" name="username" value="${(login.username!'')}" type="text" required autocomplete="on" placeholder="${msg("customUsernameOrEmail")}" />
+                </div>
+
+                <div class="form-group">
+                    <input id="password" name="password" type="password" required autocomplete="off" placeholder="${msg("customPassword")}" />
+                </div>
+
+                <div class="form-group">
+                    <input class="btn-primary" name="login" id="kc-login" type="submit" value="${msg("customSignIn")}" />
+                </div>
+            </form>
+
+            <#if realm.password && social.providers?? && social.providers?has_content>
+                <div id="kc-social-providers">
+                    <div class="separator">OR</div>
+                    <div class="registration-social-label">${msg("customConnectWith")}</div>
+                    <ul>
+                        <#list social.providers as p>
+                            <li>
+                                <a href="${p.loginUrl}" id="zocial-${p.alias}" class="zocial ${p.alias}">
+                                    <#if p.alias == "google">
+                                        <img src="https://www.vectorlogo.zone/logos/google/google-icon.svg" alt="Google">
+                                        <span>Google</span>
+                                    <#elseif p.alias == "facebook">
+                                        <img src="https://www.vectorlogo.zone/logos/facebook/facebook-official.svg" alt="Facebook">
+                                        <span>Facebook</span>
+                                    <#else>
+                                        <span>${p.displayName!}</span>
+                                    </#if>
+                                </a>
+                            </li>
+                        </#list>
+                    </ul>
+                </div>
+            </#if>
+
+            <#if realm.password && realm.registrationAllowed && !registrationDisabled??>
+                <div class="registration-footer">
+                    ${msg("customNoAccount")} <a href="${url.registrationUrl}">${msg("customSignUp")}</a>
+                </div>
+            </#if>
+        </#if>
+    </@layout.registrationLayout>
+
+  register.ftl: |
+    <#import "template.ftl" as layout>
+    <@layout.registrationLayout displayInfo=(social.displayInfo!false) displayMessage=true displayRequiredFields=false bodyClass="register-page"; section>
+        <#if (section!"") = "header">
+            <#-- Title moved into form -->
+        <#elseif (section!"") = "form">
+            <h1 id="kc-page-title">${msg("customCreateProfile")}</h1>
+
+            <form id="kc-register-form" action="${url.registrationAction}" method="post">
+                <div class="form-group">
+                    <input type="email" required id="email" name="email" value="${(register.formData.email!'')}"
+                           placeholder="${msg("customEmail")}" autocomplete="email" />
+                </div>
+
+                <#if passwordRequired??>
+                    <div class="form-group">
+                        <input type="password" required id="password" name="password"
+                               placeholder="${msg("customPassword")}" autocomplete="new-password" />
+                    </div>
+
+                    <div class="form-group">
+                        <input type="password" required id="password-confirm" name="password-confirm"
+                               placeholder="${msg("customConfirmPassword")}" autocomplete="new-password" />
+                    </div>
+                </#if>
+
+                <div class="form-group">
+                    <input type="tel"
+                           required
+                           id="user.attributes.phoneNumber"
+                           name="user.attributes.phoneNumber"
+                           value="${(register.formData['user.attributes.phoneNumber']!'')}"
+                           placeholder="${msg("customPhone")}"
+                           autocomplete="tel"
+                           pattern="[0-9]{8}"
+                           maxlength="8"
+                           title="Please enter exactly 8 digits" />
+                </div>
+
+                <div class="form-group">
+                    <select id="user.attributes.role" required name="user.attributes.role" class="kc-select">
+                        <option value="" disabled <#if !(register.formData['user.attributes.role']?has_content)>selected</#if>>${msg("customRole")}</option>
+                        <option value="doctor" <#if (register.formData['user.attributes.role']!'') == 'doctor'>selected</#if>>${msg("customRoleDoctor")}</option>
+                        <option value="caregiver" <#if (register.formData['user.attributes.role']!'') == 'caregiver'>selected</#if>>${msg("customRoleCaregiver")}</option>
+                        <option value="patient" <#if (register.formData['user.attributes.role']!'') == 'patient'>selected</#if>>${msg("customRolePatient")}</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <input class="btn-primary" type="submit" value="${msg("customSignUp")}" />
+                </div>
+            </form>
+
+            <#if realm.password && social.providers?? && social.providers?has_content>
+                <div id="kc-social-providers">
+                    <div class="separator">OR</div>
+                    <div class="registration-social-label">${msg("customConnectWith")}</div>
+                    <ul>
+                        <#list social.providers as p>
+                            <li>
+                                <a href="${p.loginUrl}" id="zocial-${p.alias}" class="zocial ${p.alias}">
+                                    <#if p.alias == "google">
+                                        <img src="https://www.vectorlogo.zone/logos/google/google-icon.svg" alt="Google">
+                                        <span>Google</span>
+                                    <#elseif p.alias == "facebook">
+                                        <img src="https://www.vectorlogo.zone/logos/facebook/facebook-official.svg" alt="Facebook">
+                                        <span>Facebook</span>
+                                    <#else>
+                                        <span>${p.displayName!}</span>
+                                    </#if>
+                                </a>
+                            </li>
+                        </#list>
+                    </ul>
+                </div>
+            </#if>
+
+            <div class="registration-footer">
+                ${msg("customTerms")} <a href="#">${msg("customTermsLink")}</a> ${msg("customAnd")} <a href="#">${msg("customPrivacy")}</a>
+            </div>
+        </#if>
+    </@layout.registrationLayout>
+
+  template.ftl: |
+    <#macro registrationLayout bodyClass="" displayInfo=false displayMessage=true displayRequiredFields=false showAnotherWayIfPresent=true>
+    <!DOCTYPE html>
+    <html class="${properties.kcHtmlClass!}">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="robots" content="noindex, nofollow">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <title>${msg("loginTitle",(realm.displayName!''))}</title>
+        <link rel="icon" href="${url.resourcesPath}/img/favicon.ico" />
+        <#if properties.styles?has_content>
+            <#list properties.styles?split(' ') as style>
+                <link href="${url.resourcesPath}/${style}" rel="stylesheet" />
+            </#list>
+        </#if>
+    </head>
+
+    <body class="${properties.kcBodyClass!}">
+        <header class="cognivia-header">
+            <a href="http://app.local" class="header-logo">
+                <img src="https://cdn.builder.io/api/v1/image/assets%2Fd3d69403f729419ab22b58accb7875b9%2F9db03c941d394af5b6ff65a035e69fd5?format=webp&width=800&height=1200" alt="Cognivia Logo" class="logo-img">
+                <span class="logo-text">cognivia</span>
+            </a>
+
+            <div class="header-right">
+                <div class="header-lang" id="kc-lang-toggle">
+                    <span>${msg("customSiteLanguage")}: <span id="current-lang-text">${(locale.current)!'English'}</span></span>
+                    <svg class="lang-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                    <div class="lang-dropdown" id="kc-lang-dropdown">
+                        <#if realm.internationalizationEnabled && (locale.supported)?? && locale.supported?size gt 1>
+                            <#list locale.supported as l>
+                                <a href="${l.url}" class="lang-item" data-locale="${l.label}">${l.label}</a>
+                            </#list>
+                        <#else>
+                            <a href="#" class="lang-item" data-locale="en">English</a>
+                            <a href="#" class="lang-item" data-locale="fr">Français</a>
+                            <a href="#" class="lang-item" data-locale="ar">Arabic</a>
+                        </#if>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    var toggle = document.getElementById('kc-lang-toggle');
+                    var dropdown = document.getElementById('kc-lang-dropdown');
+
+                    toggle.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        var isVisible = dropdown.style.display === 'block';
+                        dropdown.style.display = isVisible ? 'none' : 'block';
+                    });
+
+                    document.addEventListener('click', function() {
+                        dropdown.style.display = 'none';
+                    });
+
+                    var langItems = document.querySelectorAll('.lang-item');
+                    langItems.forEach(function(item) {
+                        item.addEventListener('click', function(e) {
+                            var href = this.getAttribute('href');
+                            if (href === '#') {
+                                e.preventDefault();
+                                var locale = this.getAttribute('data-locale').toLowerCase().substring(0, 2);
+                                var url = new URL(window.location.href);
+                                url.searchParams.set('kc_locale', locale);
+                                window.location.href = url.toString();
+                            } else {
+                                try {
+                                    var url = new URL(href, window.location.origin);
+                                    var currentParams = new URLSearchParams(window.location.search);
+                                    currentParams.forEach((value, key) => {
+                                        if (key !== 'kc_locale') url.searchParams.set(key, value);
+                                    });
+                                    this.setAttribute('href', url.toString());
+                                } catch(err) {}
+                            }
+                        });
+                    });
+
+                    var urlParams = new URLSearchParams(window.location.search);
+                    var currentLocale = urlParams.get('ui_locales') || urlParams.get('kc_locale');
+                    if (currentLocale) {
+                        var localeMap = {
+                            'en': 'English',
+                            'fr': 'Français',
+                            'ar': 'Arabic'
+                        };
+                        var langName = localeMap[currentLocale.toLowerCase().substring(0, 2)];
+                        if (langName) {
+                            document.getElementById('current-lang-text').textContent = langName;
+                        }
+                    }
+                });
+            </script>
+        </header>
+
+        <div id="kc-container">
+            <div id="kc-container-wrapper">
+                <div class="top-nav-container">
+                    <#if (pageId!"") = "register">
+                        <a href="${url.loginUrl}" class="btn-header-outline">${msg("customSignIn")}</a>
+                    <#elseif (pageId!"") = "login">
+                        <#if realm.password && realm.registrationAllowed && !registrationDisabled??>
+                            <a href="${url.registrationUrl}" class="btn-header-outline">${msg("customSignUp")}</a>
+                        </#if>
+                    </#if>
+                </div>
+                <div id="kc-content">
+                    <div id="kc-content-wrapper">
+
+                        <#if displayMessage && message?has_content && (message.type != 'warning' || !((isAppInitiatedAction)??))>
+                            <div class="alert-${message.type} ${properties.kcAlertClass!}">
+                                <span class="kc-feedback-text">${kcSanitize(message.summary)?no_esc}</span>
+                            </div>
+                        </#if>
+
+                        <#nested "header">
+                        <#nested "form">
+                        <#nested "info">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    </#macro>
+
+  messages_en.properties: |
+    customSignIn=Sign In
+    customUsernameOrEmail=Email
+    customPassword=Password
+    customConfirmPassword=Confirm Password
+    customConnectWith=Connect with Google or Facebook
+    customNoAccount=Don't have an account?
+    customSignUp=Sign Up
+    customCreateProfile=Create Profile
+    customAge=Age
+    customNameOptional=Name (optional)
+    customEmail=Email address
+    customPhone=Phone Number
+    customRole=Role (Select One)
+    customRoleDoctor=Doctor
+    customRoleCaregiver=Caregiver
+    customRolePatient=Patient
+    customTerms=By creating a Cognivia account, you agree to our
+    customTermsLink=Terms of Service
+    customAnd=and
+    customPrivacy=Privacy Policy
+    customSiteLanguage=Site Language
+
+  messages_fr.properties: |
+    customSignIn=Se connecter
+    customUsernameOrEmail=E-mail
+    customPassword=Mot de passe
+    customConfirmPassword=Confirmer le mot de passe
+    customConnectWith=Se connecter avec Google ou Facebook
+    customNoAccount=Vous n'avez pas de compte ?
+    customSignUp=S'inscrire
+    customCreateProfile=Cr\u00e9er un profil
+    customAge=\u00c2ge
+    customNameOptional=Nom (optionnel)
+    customEmail=Adresse e-mail
+    customPhone=Num\u00e9ro de t\u00e9l\u00e9phone
+    customRole=R\u00f4le (S\u00e9lectionnez)
+    customRoleDoctor=M\u00e9decin
+    customRoleCaregiver=Soignant
+    customRolePatient=Patient
+    customTerms=En cr\u00e9ant un compte Cognivia, vous acceptez nos
+    customTermsLink=Conditions d'utilisation
+    customAnd=et
+    customPrivacy=Politique de confidentialit\u00e9
+    customSiteLanguage=Langue du site
+
+  messages_ar.properties: |
+    customSignIn=\u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062f\u062e\u0648\u0644
+    customUsernameOrEmail=\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645 \u0623\u0648 \u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a
+    customPassword=\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631
+    customConfirmPassword=\u062a\u0623\u0643\u064a\u062f \u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631
+    customConnectWith=\u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062f\u062e\u0648\u0644 \u0628\u0627\u0633\u062a\u062e\u062f\u0627\u0645 Google \u0623\u0648 Facebook
+    customNoAccount=\u0644\u064a\u0633 \u0644\u062f\u064a\u0643 \u062d\u0633\u0627\u0628\u061f
+    customSignUp=\u0625\u0646\u0634\u0627\u0621 \u062d\u0633\u0627\u0628
+    customCreateProfile=\u0625\u0646\u0634\u0627\u0621 \u0645\u0644\u0641 \u0634\u062e\u0635\u064a
+    customAge=\u0627\u0644\u0639\u0645\u0631
+    customNameOptional=\u0627\u0644\u0627\u0633\u0645 (\u0627\u062e\u062a\u064a\u0627\u0631\u064a)
+    customEmail=\u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a
+    customPhone=\u0631\u0642\u0645 \u0627\u0644\u0647\u0627\u062a\u0641
+    customRole=\u0627\u0644\u062f\u0648\u0631 (\u0627\u062e\u062a\u0631)
+    customRoleDoctor=\u0637\u0628\u064a\u0628
+    customRoleCaregiver=\u0645\u0642\u062f\u0645 \u0631\u0639\u0627\u064a\u0629
+    customRolePatient=\u0645\u0631\u064a\u0636
+    customTerms=\u0628\u0625\u0646\u0634\u0627\u0621 \u062d\u0633\u0627\u0628 \u0641\u064a Cognivia\u060c \u0641\u0625\u0646\u0643 \u062a\u0648\u0627\u0641\u0642 \u0639\u0644\u0649
+    customTermsLink=\u0634\u0631\u0648\u0637 \u0627\u0644\u062e\u062f\u0645\u0629
+    customAnd=\u0648
+    customPrivacy=\u0633\u064a\u0627\u0633\u0629 \u0627\u0644\u062e\u0635\u0648\u0635\u064a\u0629
+    customSiteLanguage=\u0644\u063a\u0629 \u0627\u0644\u0645\u0648\u0642\u0639
+
+  styles.css: |
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;900&display=swap');
+
+    :root {
+        --cognivia-blue: #6BAED6;
+        --cognivia-teal: #4CB3A3;
+        --cognivia-bg: #F5F7FA;
+        --cognivia-slate: #6E7580;
+        --cognivia-input-bg: #FFFFFF;
+        --cognivia-border: #E5E5E5;
+        --header-height: 72px;
+    }
+
+    body {
+        font-family: 'Outfit', sans-serif !important;
+        background-color: var(--cognivia-bg) !important;
+        color: var(--cognivia-slate) !important;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+    }
+
+    /* Header Styles */
+    .cognivia-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: var(--header-height);
+        background: white;
+        border-bottom: 2px solid var(--cognivia-border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 40px;
+        z-index: 1000;
+    }
+
+    .header-logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        transition: transform 0.2s;
+    }
+
+    .header-logo:hover {
+        transform: scale(1.02);
+    }
+
+    .logo-img {
+        height: 32px;
+        width: auto;
+    }
+
+    .logo-text {
+        font-size: 2rem;
+        font-weight: 900;
+        color: var(--cognivia-blue);
+        letter-spacing: -0.05em;
+        text-transform: lowercase;
+    }
+
+    .header-right {
+        display: flex;
+        align-items: center;
+    }
+
+    .btn-header-outline {
+        display: inline-block;
+        border: 2px solid var(--cognivia-blue);
+        border-radius: 12px;
+        padding: 12px 32px;
+        color: var(--cognivia-blue);
+        font-size: 14px;
+        font-weight: 900;
+        text-transform: uppercase;
+        text-decoration: none;
+        transition: all 0.2s;
+        background: white;
+    }
+
+    .btn-header-outline:hover {
+        background: var(--cognivia-blue);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(107, 174, 214, 0.2);
+    }
+
+    .top-nav-container {
+        position: absolute;
+        top: calc(var(--header-height) + 24px);
+        right: 40px;
+        z-index: 10;
+    }
+
+    .header-lang {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 0;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+    }
+
+    .header-lang:hover {
+        filter: brightness(0.9);
+    }
+
+    .header-lang span {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--cognivia-slate);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        opacity: 0.7;
+    }
+
+    .lang-dropdown {
+        display: none;
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        background: white;
+        min-width: 140px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        border: 1px solid #e5e5e5;
+        z-index: 1000;
+        overflow: hidden;
+        padding: 8px 0;
+    }
+
+    .lang-item {
+        display: block;
+        padding: 8px 16px;
+        color: var(--cognivia-slate);
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 700;
+        transition: all 0.2s ease;
+    }
+
+    .lang-item:hover {
+        background: #F9FAFB;
+        color: var(--cognivia-blue);
+    }
+
+    .lang-arrow {
+        width: 10px;
+        height: 6px;
+        opacity: 0.5;
+    }
+
+    .registration-footer {
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid var(--cognivia-border);
+        font-size: 14px;
+        color: var(--cognivia-slate);
+        text-align: center;
+        line-height: 1.6;
+        max-width: 440px;
+        opacity: 0.8;
+    }
+
+    .registration-footer a {
+        color: var(--cognivia-blue);
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    /* Layout Adjustments */
+    #kc-container-wrapper {
+        width: 100%;
+        margin-top: var(--header-height);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 60px 20px 40px;
+        box-sizing: border-box;
+    }
+
+    #kc-header {
+        display: none;
+    }
+
+    #kc-content {
+        width: 100%;
+        max-width: 440px;
+    }
+
+    .card-pf {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        margin: 0 !important;
+    }
+
+    h1#kc-page-title {
+        text-align: center;
+        font-size: 2.25rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: -0.01em;
+        margin-bottom: 2.5rem;
+        color: var(--cognivia-slate);
+    }
+
+    /* Form Elements */
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="email"],
+    input[type="tel"],
+    select.kc-select {
+        width: 100%;
+        background-color: var(--cognivia-input-bg) !important;
+        border: 2px solid var(--cognivia-border) !important;
+        border-radius: 1rem !important;
+        padding: 1.15rem 1.25rem !important;
+        font-size: 1.1rem !important;
+        font-weight: 500 !important;
+        outline: none !important;
+        transition: all 0.2s;
+        box-sizing: border-box;
+        color: var(--cognivia-slate) !important;
+        font-family: 'Outfit', sans-serif !important;
+    }
+
+    select.kc-select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='https://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236E7580' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1.25rem center;
+        cursor: pointer;
+    }
+
+    select.kc-select option[value=""][disabled] {
+        color: #A0A5B0;
+    }
+
+    input::placeholder {
+        color: #A0A5B0 !important;
+        opacity: 1;
+    }
+
+    input:focus {
+        border-color: var(--cognivia-blue) !important;
+        box-shadow: 0 0 0 4px rgba(107, 174, 214, 0.1) !important;
+    }
+
+    /* Buttons */
+    .btn-primary {
+        width: 100%;
+        background-color: var(--cognivia-blue) !important;
+        border: none !important;
+        border-radius: 1rem !important;
+        padding: 1.25rem !important;
+        color: white !important;
+        font-size: 1.125rem !important;
+        font-weight: 900 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+        cursor: pointer !important;
+        box-shadow: 0 5px 0 0 #4A90B8 !important;
+        transition: all 0.1s !important;
+        margin-top: 1.5rem !important;
+    }
+
+    .btn-primary:active {
+        transform: translateY(3px);
+        box-shadow: 0 2px 0 0 #4A90B8 !important;
+    }
+
+    /* Social Providers */
+    #kc-social-providers {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        position: relative;
+        width: 100%;
+        max-width: 440px;
+    }
+
+    .separator {
+        position: relative;
+        text-align: center;
+        margin-bottom: 24px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #A0A5B0;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        display: flex;
+        align-items: center;
+    }
+
+    .separator::before,
+    .separator::after {
+        content: '';
+        flex: 1;
+        border-bottom: 2px solid var(--cognivia-border);
+    }
+
+    .separator::before {
+        margin-right: 16px;
+    }
+
+    .separator::after {
+        margin-left: 16px;
+    }
+
+    .registration-social-label {
+        text-align: center;
+        font-size: 14px;
+        color: var(--cognivia-slate);
+        margin-bottom: 20px;
+        font-weight: 500;
+    }
+
+    #kc-social-providers ul {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+        padding: 0;
+        list-style: none;
+        margin: 0;
+    }
+
+    .zocial {
+        background: #FFFFFF !important;
+        border: 2px solid var(--cognivia-border) !important;
+        border-radius: 100px !important;
+        padding: 12px 24px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-decoration: none !important;
+        color: var(--cognivia-slate) !important;
+        font-weight: 700 !important;
+        font-size: 13px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.1em !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        gap: 12px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+        min-width: 160px;
+    }
+
+    .zocial:hover {
+        background: #F9FAFB !important;
+        border-color: var(--cognivia-blue) !important;
+        color: var(--cognivia-blue) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07) !important;
+    }
+
+    .zocial img,
+    .zocial i {
+        height: 18px;
+        width: 18px;
+        object-fit: contain;
+    }
+
+    /* Footer / Auth Links */
+    #kc-registration {
+        text-align: center;
+        margin-top: 3rem;
+        font-size: 1rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        color: var(--cognivia-slate);
+    }
+
+    #kc-registration a {
+        color: var(--cognivia-blue);
+        text-decoration: none;
+        margin-left: 0.5rem;
+        transition: opacity 0.2s;
+    }
+
+    #kc-registration a:hover {
+        opacity: 0.8;
+    }
+
+    .forgot-password-link {
+        display: block;
+        text-align: right;
+        margin-top: 10px;
+    }
+
+    .forgot-password-link a {
+        font-size: 11px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--cognivia-slate);
+        opacity: 0.4;
+        text-decoration: none;
+        transition: opacity 0.2s;
+    }
+
+    .forgot-password-link a:hover {
+        opacity: 1;
+        color: var(--cognivia-blue);
+    }
+
+    /* Alerts */
+    .alert-error {
+        background: #FEE2E2;
+        border: 2px solid #F87171;
+        color: #991B1B;
+        border-radius: 1rem;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.875rem;
+        font-weight: 700;
+        text-align: center;
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: pidev-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:26.5
+          imagePullPolicy: IfNotPresent
+          args: ["start-dev", "--import-realm"]
+          ports:
+            - containerPort: 8180
+            - containerPort: 9000
+          env:
+            - name: KC_DB_URL
+              value: ${PIDEV26_DB_URL}/keycloak?sslmode=require&channel_binding=require
+            - name: KC_DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: PIDEV26_DB_USERNAME
+            - name: KC_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: PIDEV26_DB_PASSWORD
+          envFrom:
+            - configMapRef:
+                name: keycloak-config
+            - secretRef:
+                name: secret
+            - secretRef:
+                name: keycloak-admin
+          volumeMounts:
+            - name: keycloak-realm
+              mountPath: /opt/keycloak/data/import/realm.json
+              subPath: realm.json
+              readOnly: true
+            - name: keycloak-theme
+              mountPath: /opt/keycloak/themes
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 9000
+            initialDelaySeconds: 45
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 9000
+            initialDelaySeconds: 90
+            periodSeconds: 20
+            timeoutSeconds: 3
+      volumes:
+        - name: keycloak-realm
+          configMap:
+            name: keycloak-realm
+            items:
+              - key: realm.json
+                path: realm.json
+        - name: keycloak-theme
+          configMap:
+            name: keycloak-theme-cognivia
+            items:
+              - key: theme.properties
+                path: cognivia/login/theme.properties
+              - key: login.ftl
+                path: cognivia/login/login.ftl
+              - key: register.ftl
+                path: cognivia/login/register.ftl
+              - key: template.ftl
+                path: cognivia/login/template.ftl
+              - key: messages_en.properties
+                path: cognivia/login/messages/messages_en.properties
+              - key: messages_fr.properties
+                path: cognivia/login/messages/messages_fr.properties
+              - key: messages_ar.properties
+                path: cognivia/login/messages/messages_ar.properties
+              - key: styles.css
+                path: cognivia/login/resources/css/styles.css
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  namespace: pidev-deployment
+  labels:
+    app: keycloak
+spec:
+  selector:
+    app: keycloak
+  ports:
+    - name: http
+      port: 8180
+      targetPort: 8180
+  type: ClusterIP

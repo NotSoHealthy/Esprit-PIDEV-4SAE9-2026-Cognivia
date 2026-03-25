@@ -33,7 +33,7 @@ export class GeminiService {
     },
   ): Promise<string> {
     if (!this.apiKey || !String(this.apiKey).trim()) {
-      throw new Error('Gemini API key is not configured. Set environment.geminiApiKey.');
+      throw new Error('Gemini API key is not configured. Set window.__env.geminiApiKey (env.js) or environment.geminiApiKey.');
     }
 
     const model = options?.model || this.defaultModel;

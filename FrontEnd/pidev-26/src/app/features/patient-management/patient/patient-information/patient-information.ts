@@ -652,7 +652,7 @@ export class PatientInformation implements OnInit, AfterViewInit, OnDestroy {
     try {
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: 'assets/leaflet/marker-icon-2x.png',
-        iconUrl: 'assets/leaflet/marker-icon.png',
+        iconUrl: 'assets/leaflet/images/marker-icon.png',
         shadowUrl: 'assets/leaflet/marker-shadow.png',
       });
       leafletIconsConfigured = true;

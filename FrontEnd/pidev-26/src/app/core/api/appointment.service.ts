@@ -2,14 +2,15 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Appointment, AppointmentStatus } from './models/appointment.model';
-import { environment } from '../../../environments/environment';
+import { API_BASE_URL } from './api.tokens';
 
 @Injectable({ providedIn: 'root' })
 export class AppointmentApiService {
     private readonly http = inject(HttpClient);
+    private readonly apiBaseUrl = inject(API_BASE_URL);
 
     // Dev: /api (proxy -> 8085) | Prod: http://.../api
-    private readonly baseUrl = `${environment.apiBaseUrl}/appointments/appointments`;
+    private readonly baseUrl = `${this.apiBaseUrl}/appointments/appointments`;
 
     getAll(filters?: {
         patientId?: number;

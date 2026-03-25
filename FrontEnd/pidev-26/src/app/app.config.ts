@@ -1,4 +1,10 @@
-import { ApplicationConfig, importProvidersFrom, provideBrowserGlobalErrorListeners } from '@angular/core';
+import {
+  ApplicationConfig,
+  importProvidersFrom,
+  provideAppInitializer,
+  provideBrowserGlobalErrorListeners,
+  inject,
+} from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 
@@ -8,7 +14,7 @@ import { authInterceptor } from './core/auth/auth.interceptor';
 import { provideTranslateService, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader, provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 
-import { API_BASE_URL } from './core/api/api.tokens';
+import { API_BASE_URL, KEYCLOAK_BASE_URL } from './core/api/api.tokens';
 import { IMGBB_API_KEY } from './core/media/imgbb.tokens';
 import { GEMINI_API_KEY, GEMINI_MODEL } from './core/ai/gemini.tokens';
 import { environment } from '../environments/environment';
@@ -109,11 +115,16 @@ import {
 
 // ✅ ADD THESE
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { KeycloakService } from './core/auth/keycloak.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideAnimations(),
+    provideAppInitializer(() => {
+      const keycloak = inject(KeycloakService);
+      return keycloak.init();
+    }),
     provideRouter(routes),
 
     {
@@ -122,6 +133,14 @@ export const appConfig: ApplicationConfig = {
         const runtime = (globalThis as any)?.__env ?? null;
         const v = runtime?.apiBaseUrl;
         return (typeof v === 'string' && v.trim()) || environment.apiBaseUrl;
+      })(),
+    },
+    {
+      provide: KEYCLOAK_BASE_URL,
+      useValue: (() => {
+        const runtime = (globalThis as any)?.__env ?? null;
+        const v = runtime?.keycloakBaseUrl ?? runtime?.KeycloakBaseUrl;
+        return (typeof v === 'string' && v.trim()) || environment.KeycloakBaseUrl;
       })(),
     },
     {

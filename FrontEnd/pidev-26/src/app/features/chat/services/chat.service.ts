@@ -1,8 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../../environments/environment';
 import { Message } from '../models/chat.model';
+import { API_BASE_URL } from '../../../core/api/api.tokens';
 
 export interface UserInfo {
     id: string;
@@ -20,7 +20,8 @@ export interface ChatSummary {
     providedIn: 'root'
 })
 export class ChatService {
-    private apiUrl = `${environment.apiBaseUrl}/chat`;
+    private readonly apiBaseUrl = inject(API_BASE_URL);
+    private readonly apiUrl = `${this.apiBaseUrl}/chat`;
 
     constructor(private http: HttpClient) { }
 

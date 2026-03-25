@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pidev-frontend-env
+  namespace: pidev-deployment
+data:
+  env.js: |
+    window.__env = {
+      apiBaseUrl: window.location.protocol + "//" + "api.local",
+      keycloakBaseUrl: window.location.protocol + "//" + "auth.local",
+      imgbbApiKey: "",
+      geminiApiKey: "",
+      geminiModel: "gemini-2.5-flash"
+    };
