@@ -10,7 +10,9 @@ import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.geojson.GeoJsonReader;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -34,7 +36,10 @@ public class HousePerimeterService {
 
     public HousePerimeter getByPatientId(Long patientId) {
         return housePerimeterRepository.findByPatientId(patientId)
-                .orElseThrow(() -> new EntityNotFoundException("House perimeter not found for patientId=" + patientId));
+            .orElseThrow(() -> new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "House perimeter not found for patientId=" + patientId
+            ));
     }
 
     public HousePerimeter create(Long patientId, String geoJson) {

@@ -17,9 +17,7 @@ public class PatientController {
     private final PatientService patientService;
 
     @GetMapping
-    public List<Patient> getAllPatients() {
-        return patientService.getAll();
-    }
+    public List<Patient> getAllPatients() {return  patientService.getAll();}
 
     /** Filter patients by severity level e.g. GET /patient?severity=HIGH */
     @GetMapping(params = "severity")

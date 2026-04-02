@@ -13,6 +13,7 @@ set "SAE_DIR=BackEnd\Microservices\surveillance-and-equipment"
 set "GAM_DIR=BackEnd\Microservices\games"
 set "PHARMACY_DIR=BackEnd\Microservices\pharmacy"
 set "APPOINTMENT_DIR=BackEnd\Microservices\appointment-service"
+set "NOTIFICATION_DIR=BackEnd\Microservices\notifications"
 set "FRONTEND_DIR=FrontEnd\pidev-26"
 REM ----------------------------------------------------
 
@@ -34,6 +35,7 @@ if not exist "%CD%\%SAE_DIR%\" (echo [ERROR] Missing: %CD%\%SAE_DIR% & pause & e
 if not exist "%CD%\%GAM_DIR%\" (echo [ERROR] Missing: %CD%\%GAM_DIR% & pause & exit /b 1)
 if not exist "%CD%\%PHARMACY_DIR%\" (echo [ERROR] Missing: %CD%\%PHARMACY_DIR% & pause & exit /b 1)
 if not exist "%CD%\%APPOINTMENT_DIR%\" (echo [ERROR] Missing: %CD%\%APPOINTMENT_DIR% & pause & exit /b 1)
+if not exist "%CD%\%NOTIFICATION_DIR%\" (echo [ERROR] Missing: %CD%\%NOTIFICATION_DIR% & pause & exit /b 1)
 if not exist "%CD%\%FRONTEND_DIR%\" (echo [ERROR] Missing: %CD%\%FRONTEND_DIR% & pause & exit /b 1)
 
 REM Create runner scripts in a stable folder next to this .bat (not TEMP)
@@ -50,6 +52,7 @@ call :writeRunner     "%RUNDIR%\SurveillanceAndEquipment.cmd" "SurveillanceAndEq
 call :writeRunner     "%RUNDIR%\Games.cmd"                    "Games"                     "%CD%\%GAM_DIR%"        7
 call :writeRunner     "%RUNDIR%\pharmacy.cmd"                 "pharmacy"                  "%CD%\%PHARMACY_DIR%"   7
 call :writeRunner     "%RUNDIR%\appointment.cmd"              "appointment"               "%CD%\%APPOINTMENT_DIR%"   7
+call :writeRunner     "%RUNDIR%\notifications.cmd"              "notifications"               "%CD%\%NOTIFICATION_DIR%"  7
 call :writeFrontend   "%RUNDIR%\frontend.cmd"                 "frontend"                  "%CD%\%FRONTEND_DIR%"
 
 REM Start ONE Windows Terminal window with tabs
@@ -63,7 +66,8 @@ wt -w 0 ^
   ; new-tab --title "SurveillanceAndEquipment" cmd /k "%RUNDIR%\SurveillanceAndEquipment.cmd" ^
   ; new-tab --title "Games"                    cmd /k "%RUNDIR%\Games.cmd" ^
   ; new-tab --title "pharmacy"                 cmd /k "%RUNDIR%\pharmacy.cmd" ^
-  ; new-tab --title "appointment"                 cmd /k "%RUNDIR%\appointment.cmd" ^
+  ; new-tab --title "appointment"              cmd /k "%RUNDIR%\appointment.cmd" ^
+  ; new-tab --title "notifications"              cmd /k "%RUNDIR%\notifications.cmd" ^
   ; new-tab --title "frontend"                 cmd /k "%RUNDIR%\frontend.cmd"
 
 exit /b 0
