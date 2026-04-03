@@ -13,11 +13,13 @@ public class EventPublisher {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    public void sendGenericEvent(GenericEvent event) {
-        rabbitTemplate.convertAndSend(
-                RabbitConfig.EXCHANGE,
-                "doctor.patientList",
-                event
-        );
+    public void sendGenericEvent(GenericEvent event, String routingKey) {
+        if (event != null && event.getEventType() != null) {
+            rabbitTemplate.convertAndSend(
+                    RabbitConfig.EXCHANGE,
+                    routingKey,
+                    event
+            );
+        }
     }
 }

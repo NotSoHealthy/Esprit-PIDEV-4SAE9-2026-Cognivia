@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @AllArgsConstructor
 public class NotificationListener {
@@ -16,8 +18,8 @@ public class NotificationListener {
     @RabbitListener(queues = "notifications.queue")
     public void handle(GenericEvent event) {
         if (event != null) {
-            Notification notification = notificationMapper.fromEvent(event);
-            notificationService.saveNotification(notification);
+            List<Notification> notificationList = notificationMapper.fromEvent(event);
+            notificationList.forEach(notificationService::saveNotification);
         }
     }
 }

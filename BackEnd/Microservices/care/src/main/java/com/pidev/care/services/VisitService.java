@@ -2,6 +2,8 @@ package com.pidev.care.services;
 
 import com.pidev.care.entities.Visit;
 import com.pidev.care.entities.VisitStatus;
+import com.pidev.care.events.GenericEventGenerator;
+import com.pidev.care.rabbitMQ.EventPublisher;
 import com.pidev.care.repositories.VisitRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 public class VisitService implements IService<Visit> {
     private final VisitRepository visitRepository;
+    private final EventPublisher eventPublisher;
 
     @Override
     public List<Visit> getAll() {
@@ -25,7 +28,9 @@ public class VisitService implements IService<Visit> {
 
     @Override
     public Visit create(Visit entity) {
-        return visitRepository.save(entity);
+        Visit saved = visitRepository.save(entity);
+        eventPublisher.sendGenericEvent(GenericEventGenerator.newVisitEvent(saved), "visit.created");
+        return saved;
     }
 
     @Override
