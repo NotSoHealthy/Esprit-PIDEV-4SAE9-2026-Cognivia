@@ -1,4 +1,4 @@
-package com.pidev.notifications;
+package com.pidev.notifications.rabbitMQ;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;

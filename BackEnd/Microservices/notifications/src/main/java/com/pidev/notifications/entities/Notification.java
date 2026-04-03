@@ -1,10 +1,7 @@
 package com.pidev.notifications.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -14,15 +11,20 @@ import java.util.UUID;
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
 public class Notification {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private Long recipientId;
-    private String subject;
-    private String body;
     @Enumerated(EnumType.STRING)
-    private NotificationStatus status;
+    private RecipientType recipientType;
+    private String title;
+    private String message;
+    private String eventType;
+    private Long referenceId;
+    private Boolean seen;
+    private Instant readAt;
     @Enumerated(EnumType.STRING)
     private NotificationPriority priority;
     private Instant createdAt;
@@ -31,6 +33,12 @@ public class Notification {
     public void prePersist() {
         if (createdAt == null) {
             createdAt = Instant.now();
+        }
+        if (priority == null) {
+            priority = NotificationPriority.NORMAL;
+        }
+        if (seen == null) {
+            seen = false;
         }
     }
 }

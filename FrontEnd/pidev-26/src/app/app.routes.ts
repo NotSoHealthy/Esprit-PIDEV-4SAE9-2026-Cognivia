@@ -233,6 +233,22 @@ export const routes: Routes = [
             (m) => m.MemoryGameViewComponent,
           ),
       },
+      {
+        path: 'notifications/:eventType/:referenceId',
+        title: 'Notification',
+        loadComponent: () =>
+          import('./features/notifications/notification-redirect.page').then(
+            (m) => m.NotificationRedirectPage,
+          ),
+      },
+      {
+        path: 'notifications/:eventType',
+        title: 'Notification',
+        loadComponent: () =>
+          import('./features/notifications/notification-redirect.page').then(
+            (m) => m.NotificationRedirectPage,
+          ),
+      },
     ],
   },
   {

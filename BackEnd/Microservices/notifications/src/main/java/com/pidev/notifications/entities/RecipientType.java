@@ -4,5 +4,6 @@ public enum RecipientType {
     PATIENT,
     DOCTOR,
     CAREGIVER,
-    PHARMACY
+    PHARMACY,
+    ADMIN
 }

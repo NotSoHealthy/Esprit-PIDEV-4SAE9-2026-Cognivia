@@ -30,6 +30,11 @@ public class PatientController {
         return patientService.getById(id);
     }
 
+    @GetMapping("/dto/{id}")
+    public PatientDto getPatientDtoById(@PathVariable Long id) {
+        return PatientDto.fromPatient(patientService.getById(id));
+    }
+
     @GetMapping("/user/{userId}")
     public Patient getPatientByUserId(@PathVariable UUID userId) {
         return patientService.getByUserId(userId);
