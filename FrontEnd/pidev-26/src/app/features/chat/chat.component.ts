@@ -13,6 +13,8 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
+import { NzModalModule } from 'ng-zorro-antd/modal';
+import { NzSegmentedModule } from 'ng-zorro-antd/segmented';
 import { ChatService, UserInfo } from './services/chat.service';
 import { Message } from './models/chat.model';
 import { KeycloakService } from '../../core/auth/keycloak.service';
@@ -35,6 +37,8 @@ import { interval, Subscription, startWith, switchMap } from 'rxjs';
         NzTagModule,
         NzSpinModule,
         NzTooltipModule,
+        NzModalModule,
+        NzSegmentedModule,
         TimeAgoPipe
     ],
     templateUrl: './chat.component.html',
@@ -59,6 +63,11 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     editingMessageId: number | null = null;
     editingContent: string = '';
+
+    // Modal & Filter Properties
+    isModalVisible = false;
+    searchText = '';
+    selectedRoleFilter = 'All';
 
     reactionMessages: { [key: number]: boolean } = {};
     availableReactions = [
@@ -132,6 +141,44 @@ export class ChatComponent implements OnInit, OnDestroy {
         });
     }
 
+    showNewConversationModal(): void {
+        this.isModalVisible = true;
+        this.searchText = '';
+    }
+
+    handleModalCancel(): void {
+        this.isModalVisible = false;
+    }
+
+    startNewConversation(user: UserInfo): void {
+        // If user already in list, select them. Otherwise add to list then select.
+        const existing = this.allUsers.find(u => u.id === user.id);
+        if (!existing) {
+            this.allUsers = [user, ...this.allUsers];
+        }
+        this.selectUser(user);
+        this.isModalVisible = false;
+    }
+
+    setRoleFilter(role: string): void {
+        this.selectedRoleFilter = role;
+    }
+
+    get filteredUsers(): UserInfo[] {
+        let filtered = this.allUsers;
+        if (this.selectedRoleFilter !== 'All') {
+            filtered = filtered.filter(u => u.role.toLowerCase() === this.selectedRoleFilter.toLowerCase());
+        }
+        if (this.searchText.trim()) {
+            const lowerSearch = this.searchText.toLowerCase();
+            filtered = filtered.filter(u =>
+                u.name.toLowerCase().includes(lowerSearch) ||
+                u.role.toLowerCase().includes(lowerSearch)
+            );
+        }
+        return filtered;
+    }
+
     getInitials(user: UserInfo): string {
         const name = user?.name;
         if (!name) return '?';
@@ -149,6 +196,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         const r = (role || '').toUpperCase();
         if (r.includes('DOCTOR')) return 'blue';
         if (r.includes('CAREGIVER')) return 'green';
+        if (r.includes('PHARMACIST')) return 'magenta';
         if (r.includes('ADMIN')) return 'volcano';
         return 'default';
     }

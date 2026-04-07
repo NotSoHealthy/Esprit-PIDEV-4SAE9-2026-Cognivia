@@ -4,7 +4,13 @@
         <!-- Sidebar: Active Conversations -->
         <nz-sider [nzWidth]="320" class="chat-sider">
             <div class="sider-header">
-                <h3 nz-typography>Conversations</h3>
+                <div class="flex justify-between items-center w-full">
+                    <h3 nz-typography class="m-0">Conversations</h3>
+                    <button nz-button nzType="primary" nzShape="circle" (click)="showNewConversationModal()"
+                        nz-tooltip nzTooltipTitle="Start a New Conversation">
+                        <span nz-icon nzType="plus"></span>
+                    </button>
+                </div>
                 <small>{{ allUsers.length }} active contacts</small>
             </div>
 
@@ -162,3 +168,55 @@
         </nz-content>
     </nz-layout>
 </div>
+
+<!-- Start Conversation Modal -->
+<nz-modal [(nzVisible)]="isModalVisible" nzTitle="Start a New Conversation" (nzOnCancel)="handleModalCancel()"
+    [nzFooter]="null" [nzWidth]="540" nzClassName="user-lookup-modal">
+    <ng-container *nzModalContent>
+        <div class="user-lookup-header">
+            <div class="search-section">
+                <nz-input-group [nzPrefix]="prefixIconSearch" class="premium-search">
+                    <input type="text" nz-input placeholder="Search colleagues..." [(ngModel)]="searchText" />
+                </nz-input-group>
+                <ng-template #prefixIconSearch>
+                    <span nz-icon nzType="search" style="color: #3b429f"></span>
+                </ng-template>
+            </div>
+            <div class="filter-section">
+                <nz-segmented 
+                    [nzOptions]="['All', 'Doctor', 'Caregiver', 'Pharmacist']" 
+                    (nzValueChange)="setRoleFilter($any($event))"
+                    class="role-segmented">
+                </nz-segmented>
+            </div>
+        </div>
+        <div class="modal-user-list custom-scrollbar">
+            <div *ngIf="filteredUsers.length === 0" class="no-results py-12 text-center opacity-60">
+                <span nz-icon nzType="inbox" class="text-5xl mb-4" style="color: #cbd5e1"></span>
+                <p class="text-lg font-semibold">No matches found</p>
+                <small>Try adjusting your search or role filter</small>
+            </div>
+            <div *ngFor="let user of filteredUsers; let i = index" 
+                class="modal-user-item animate-in" 
+                [style.animation-delay]="(i * 0.04) + 's'"
+                (click)="startNewConversation(user)">
+                
+                <div class="user-avatar-container">
+                    <nz-avatar [nzSrc]="getAvatar(user.id)" [nzText]="getInitials(user)" nzSize="large" 
+                        style="background: #e2e8f0; color: #3b429f; font-weight: 700;">
+                    </nz-avatar>
+                    <div class="online-status"></div>
+                </div>
+                <div class="user-details">
+                    <span class="user-name">{{ user.name }}</span>
+                    <nz-tag [nzColor]="getRoleColor(user.role)" class="role-tag">
+                        {{ user.role }}
+                    </nz-tag>
+                </div>
+                <div class="action-hint">
+                    <span nz-icon nzType="message" nzTheme="outline" class="chat-hint-icon"></span>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+</nz-modal>
