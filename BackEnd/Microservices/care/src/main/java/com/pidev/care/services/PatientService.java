@@ -7,6 +7,7 @@ import com.pidev.care.entities.Severity;
 import com.pidev.care.keycloak.KeycloakAdminClient;
 import com.pidev.care.repositories.PatientRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

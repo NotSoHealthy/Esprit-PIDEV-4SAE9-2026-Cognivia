@@ -1,9 +1,14 @@
 package com.pidev.monitoring.services;
 
+import com.pidev.monitoring.entities.ReportStatus;
 import com.pidev.monitoring.entities.VisitReport;
+import com.pidev.monitoring.events.GenericEventGenerator;
+import com.pidev.monitoring.rabbitMQ.EventPublisher;
 import com.pidev.monitoring.repositories.VisitReportRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.List;
 
@@ -11,6 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 public class VisitReportService implements IService<VisitReport> {
     private final VisitReportRepository visitReportRepository;
+    private final EventPublisher eventPublisher;
 
     @Override
     public List<VisitReport> getAll() {
@@ -24,7 +30,14 @@ public class VisitReportService implements IService<VisitReport> {
 
     @Override
     public VisitReport create(VisitReport entity) {
-        return visitReportRepository.save(entity);
+        VisitReport saved = visitReportRepository.save(entity);
+        if (saved.getStatus() == ReportStatus.VALIDATED) {
+            eventPublisher.sendGenericEvent(
+                    GenericEventGenerator.newVisitReportEvent(saved),
+                    "visit_report.validated"
+            );
+        }
+        return saved;
     }
 
     @Override
@@ -37,7 +50,14 @@ public class VisitReportService implements IService<VisitReport> {
         existing.setContent(entity.getContent());
         existing.setStatus(entity.getStatus());
 
-        return visitReportRepository.save(existing);
+        VisitReport saved = visitReportRepository.save(existing);
+        if (saved.getStatus() == ReportStatus.VALIDATED) {
+            eventPublisher.sendGenericEvent(
+                    GenericEventGenerator.newVisitReportEvent(saved),
+                    "visit_report.validated"
+            );
+        }
+        return saved;
     }
 
     @Override
