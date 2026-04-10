@@ -105,6 +105,8 @@ import {
 
   ContainerOutline,
   ShopOutline,
+  UnorderedListOutline,
+  IdcardOutline,
 } from '@ant-design/icons-angular/icons';
 
 // ✅ ADD THESE
@@ -247,6 +249,8 @@ export const appConfig: ApplicationConfig = {
       SaveOutline,
       ContainerOutline,
       ShopOutline,
+      UnorderedListOutline,
+      IdcardOutline,
     ]),
 
     // ✅ IMPORTANT: make NzModalService available

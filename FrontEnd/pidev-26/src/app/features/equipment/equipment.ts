@@ -38,7 +38,9 @@ export class Equipment implements OnInit {
   selectedIds = new Set<number>();
   selectedImage: File | null = null;
   imagePreview = '';
+  isImagePreviewVisible = true;
   openDropdownId: number | null = null;
+  viewMode: 'cards' | 'compact' = 'cards';
   newEquipment: Omit<EquipmentModel, 'id'> = {
     name: '',
     description: '',
@@ -138,6 +140,7 @@ export class Equipment implements OnInit {
     this.formError = '';
     this.selectedImage = null;
     this.imagePreview = '';
+    this.isImagePreviewVisible = true;
     this.isModalOpen = true;
   }
 
@@ -153,6 +156,7 @@ export class Equipment implements OnInit {
     };
     this.imagePreview = equipment.imageUrl;
     this.selectedImage = null;
+    this.isImagePreviewVisible = true;
     this.formError = '';
     this.isModalOpen = true;
   }
@@ -170,11 +174,17 @@ export class Equipment implements OnInit {
     if (!input.files || input.files.length === 0) {
       this.selectedImage = null;
       this.imagePreview = '';
+      this.isImagePreviewVisible = true;
       return;
     }
 
     this.selectedImage = input.files[0];
     this.imagePreview = URL.createObjectURL(this.selectedImage);
+    this.isImagePreviewVisible = true;
+  }
+
+  toggleImagePreview(): void {
+    this.isImagePreviewVisible = !this.isImagePreviewVisible;
   }
 
   submitEquipment(): void {
@@ -335,6 +345,7 @@ export class Equipment implements OnInit {
       URL.revokeObjectURL(this.imagePreview);
     }
     this.imagePreview = '';
+    this.isImagePreviewVisible = true;
   }
 
   private clearSelection(): void {
