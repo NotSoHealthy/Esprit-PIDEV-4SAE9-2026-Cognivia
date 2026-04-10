@@ -43,7 +43,7 @@ pipeline {
             steps {
                 script {
                     sh 'echo $DOCKER_CREDENTIALS_PSW | docker login -u $DOCKER_CREDENTIALS_USR --password-stdin'
-                    def microservices = ["appointment-service", "care", "dpchat", "forum-service","games","monitoring","pharmacy","surveillance-and-equipment"]
+                    def microservices = ["appointment-service", "care", "dpchat", "forum-service","games","monitoring","notifications","pharmacy","surveillance-and-equipment"]
 
                     for (s in microservices) {
                         sh """
