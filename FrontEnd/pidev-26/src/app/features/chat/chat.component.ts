@@ -15,6 +15,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzSegmentedModule } from 'ng-zorro-antd/segmented';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { ChatService, UserInfo } from './services/chat.service';
 import { Message } from './models/chat.model';
 import { KeycloakService } from '../../core/auth/keycloak.service';
@@ -38,7 +39,9 @@ import { interval, Subscription, startWith, switchMap } from 'rxjs';
         NzSpinModule,
         NzTooltipModule,
         NzModalModule,
+        NzModalModule,
         NzSegmentedModule,
+        NzDropDownModule,
         TimeAgoPipe
     ],
     templateUrl: './chat.component.html',
@@ -66,8 +69,24 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     // Modal & Filter Properties
     isModalVisible = false;
+    isGroupModalVisible = false;
     searchText = '';
+    groupSearchText = '';
+    groupName = '';
+    selectedUserIds: Set<string> = new Set();
+    isCreatingGroup = false;
     selectedRoleFilter = 'All';
+
+    // Manage Group Modal Properties
+    isManageGroupModalVisible = false;
+    manageGroupView: 'Current Members' | 'Add Members' | 'Settings' = 'Current Members';
+    currentGroupMembers: UserInfo[] = [];
+    loadingMembers = false;
+    addMemberSearchText = '';
+    selectedNewMemberIds: Set<string> = new Set();
+    isAddingMembers = false;
+    currentManageGroupId: number | null = null;
+    isCurrentUserAdmin = false;
 
     reactionMessages: { [key: number]: boolean } = {};
     availableReactions = [
@@ -100,26 +119,46 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.chatService.getAllUsers().subscribe({
             next: (users) => {
                 // Exclude self (with normalization)
-                this.allUsers = users.filter(u => u.id.trim().toLowerCase() !== this.currentUserId);
-                this.loadingUsers = false;
+                const otherUsers = users.filter(u => u.id.trim().toLowerCase() !== this.currentUserId);
 
-                // Initialize unread counts and last messages
-                this.updateChatSummaries();
+                // Fetch groups as well
+                this.chatService.getUserGroups(this.currentUserId).subscribe({
+                    next: (groups) => {
+                        const groupUsers: UserInfo[] = groups.map(g => ({
+                            id: 'group-' + g.id,
+                            name: g.name,
+                            role: 'GROUP'
+                        }));
 
-                // Auto-select if recipientId is in query params
-                const recipientId = this.route.snapshot.queryParamMap.get('recipientId');
-                if (recipientId) {
-                    const normRecipientId = recipientId.trim().toLowerCase();
-                    const found = this.allUsers.find(u => u.id.trim().toLowerCase() === normRecipientId);
-                    if (found) {
-                        this.selectUser(found);
-                    } else {
-                        // User not in DB — create a placeholder
-                        const placeholder: UserInfo = { id: normRecipientId, name: recipientId.substring(0, 8) + '…', role: 'User' };
-                        this.allUsers = [placeholder, ...this.allUsers];
-                        this.selectUser(placeholder);
+                        this.allUsers = [...groupUsers, ...otherUsers];
+                        this.loadingUsers = false;
+                        this.cdr.detectChanges(); // Fix NG0100
+
+                        // Initialize unread counts and last messages
+                        this.updateChatSummaries();
+
+                        // Auto-select if recipientId is in query params
+                        const recipientId = this.route.snapshot.queryParamMap.get('recipientId');
+                        if (recipientId) {
+                            const normRecipientId = recipientId.trim().toLowerCase();
+                            const found = this.allUsers.find(u => u.id.trim().toLowerCase() === normRecipientId);
+                            if (found) {
+                                this.selectUser(found);
+                            } else {
+                                // User not in DB — create a placeholder
+                                const placeholder: UserInfo = { id: normRecipientId, name: recipientId.substring(0, 8) + '…', role: 'User' };
+                                this.allUsers = [placeholder, ...this.allUsers];
+                                this.selectUser(placeholder);
+                            }
+                        }
+                    },
+                    error: (err) => {
+                        console.error('Error loading groups', err);
+                        this.allUsers = otherUsers;
+                        this.loadingUsers = false;
+                        this.cdr.detectChanges();
                     }
-                }
+                });
             },
             error: (err) => {
                 console.error('Error loading users', err);
@@ -134,11 +173,25 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.loadConversation();
         this.startPolling();
 
-        // Mark as read
-        this.chatService.markConversationAsRead(this.currentUserId, user.id).subscribe(() => {
-            this.unreadCounts[user.id] = 0;
-            this.cdr.detectChanges();
-        });
+        if (user.role !== 'GROUP') {
+            // Mark as read
+            this.chatService.markConversationAsRead(this.currentUserId, user.id).subscribe(() => {
+                this.unreadCounts[user.id] = 0;
+                this.cdr.detectChanges();
+            });
+        } else {
+            const groupId = parseInt(user.id.replace('group-', ''));
+            this.chatService.markGroupAsRead(groupId, this.currentUserId!).subscribe(() => {
+                this.unreadCounts[user.id] = 0;
+                this.cdr.detectChanges();
+            });
+            // Fetch members to check admin status
+            this.chatService.getGroupMembers(groupId).subscribe((members: any[]) => {
+                const me = members.find((m: any) => (m.userId || m.id).toLowerCase() === this.currentUserId.toLowerCase());
+                this.isCurrentUserAdmin = !!(me?.isAdmin || me?.admin);
+                this.cdr.detectChanges();
+            });
+        }
     }
 
     showNewConversationModal(): void {
@@ -162,6 +215,215 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     setRoleFilter(role: string): void {
         this.selectedRoleFilter = role;
+    }
+
+    showCreateGroupModal(): void {
+        this.isGroupModalVisible = true;
+        this.selectedUserIds.clear();
+        this.groupName = '';
+        this.groupSearchText = '';
+        this.cdr.detectChanges(); // Fix NG0100
+    }
+
+    handleGroupModalCancel(): void {
+        this.isGroupModalVisible = false;
+    }
+
+    toggleUserSelection(userId: string): void {
+        if (this.selectedUserIds.has(userId)) {
+            this.selectedUserIds.delete(userId);
+        } else {
+            this.selectedUserIds.add(userId);
+        }
+    }
+
+    get filteredGroupUsers(): UserInfo[] {
+        const lowerSearch = this.groupSearchText.toLowerCase();
+        return this.allUsers.filter(u =>
+            u.id !== this.currentUserId &&
+            u.role !== 'GROUP' && (
+                u.name.toLowerCase().includes(lowerSearch) ||
+                u.role.toLowerCase().includes(lowerSearch)
+            )
+        );
+    }
+
+    createGroup(): void {
+        if (!this.groupName || this.selectedUserIds.size < 1) return;
+
+        this.isCreatingGroup = true;
+        const memberIds = Array.from(this.selectedUserIds);
+
+        this.chatService.createGroup(this.groupName, this.currentUserId!, memberIds).subscribe({
+            next: (group) => {
+                this.isCreatingGroup = false;
+                this.isGroupModalVisible = false;
+                this.nzMessage.success('Group created successfully');
+                this.loadUsers(); // Refresh groups
+            },
+            error: (err) => {
+                this.isCreatingGroup = false;
+                this.nzMessage.error('Failed to create group');
+            }
+        });
+    }
+
+    // --- Manage Group Methods ---
+    showManageGroupModal(): void {
+        if (!this.selectedUser || this.selectedUser.role !== 'GROUP') return;
+
+        this.isManageGroupModalVisible = true;
+        this.currentManageGroupId = parseInt(this.selectedUser.id.replace('group-', ''));
+
+        // Prevent NG0100 error when modal opens by deferring the view reset
+        Promise.resolve().then(() => {
+            this.manageGroupView = 'Current Members';
+            this.cdr.detectChanges();
+        });
+
+        this.fetchCurrentGroupMembers();
+    }
+
+    handleManageGroupModalCancel(): void {
+        this.isManageGroupModalVisible = false;
+    }
+
+    onManageGroupViewChange(view: any): void {
+        this.addMemberSearchText = '';
+        this.selectedNewMemberIds.clear();
+    }
+
+    fetchCurrentGroupMembers(): void {
+        if (!this.currentManageGroupId) return;
+        this.loadingMembers = true;
+
+        this.chatService.getGroupMembers(this.currentManageGroupId).subscribe({
+            next: (members: any[]) => {
+                this.currentGroupMembers = members.map(m => {
+                    const id = m.userId || m.id;
+                    const isAdmin = !!(m.isAdmin || m.admin);
+                    const found = this.allUsers.find(u => u.id.toLowerCase() === id.toLowerCase());
+                    let user: UserInfo;
+                    if (found) {
+                        user = { ...found, isAdmin: isAdmin };
+                    } else {
+                        user = { id, name: id, role: 'Loading...', isAdmin: isAdmin };
+                        this.chatService.getUserInfo(id).subscribe({
+                            next: (info) => {
+                                user.name = info.name;
+                                user.role = info.role;
+                                this.cdr.detectChanges();
+                            }
+                        });
+                    }
+                    if (id.toLowerCase() === this.currentUserId.toLowerCase()) {
+                        this.isCurrentUserAdmin = isAdmin;
+                    }
+                    return user;
+                });
+                this.loadingMembers = false;
+                this.cdr.detectChanges();
+            },
+            error: () => {
+                this.loadingMembers = false;
+                this.nzMessage.error('Failed to load group members');
+            }
+        });
+    }
+
+    promoteToAdmin(userId: string): void {
+        if (!this.currentManageGroupId) return;
+        this.chatService.promoteToAdmin(this.currentManageGroupId, userId).subscribe({
+            next: () => {
+                this.nzMessage.success('User promoted to Admin');
+                this.fetchCurrentGroupMembers();
+            },
+            error: () => this.nzMessage.error('Failed to promote user')
+        });
+    }
+
+    clearGroupHistory(): void {
+        if (!this.currentManageGroupId) return;
+        if (confirm('Clear message history for everyone?')) {
+            this.chatService.clearGroupHistory(this.currentManageGroupId).subscribe({
+                next: () => {
+                    this.nzMessage.success('Chat history cleared');
+                    this.messages = [];
+                },
+                error: () => this.nzMessage.error('Failed to clear history')
+            });
+        }
+    }
+
+    deleteGroup(): void {
+        if (!this.currentManageGroupId) return;
+        if (confirm('Permanently delete this group?')) {
+            this.chatService.deleteGroup(this.currentManageGroupId).subscribe({
+                next: () => {
+                    this.nzMessage.success('Group deleted');
+                    this.isManageGroupModalVisible = false;
+                    this.selectedUser = null;
+                    this.loadUsers();
+                },
+                error: () => this.nzMessage.error('Failed to delete group')
+            });
+        }
+    }
+
+    removeGroupMember(userId: string): void {
+        if (!this.currentManageGroupId) return;
+
+        this.chatService.removeGroupMember(this.currentManageGroupId, userId).subscribe({
+            next: () => {
+                this.currentGroupMembers = this.currentGroupMembers.filter(m => m.id !== userId);
+                this.nzMessage.success('Member removed');
+                this.cdr.detectChanges();
+            },
+            error: () => this.nzMessage.error('Failed to remove member')
+        });
+    }
+
+    get filteredEligibleNewMembers(): UserInfo[] {
+        const lowerSearch = this.addMemberSearchText.toLowerCase();
+        const currentIds = new Set(this.currentGroupMembers.map(m => m.id));
+
+        return this.allUsers.filter(u =>
+            u.role !== 'GROUP' &&
+            !currentIds.has(u.id) &&
+            (u.name.toLowerCase().includes(lowerSearch) || u.role.toLowerCase().includes(lowerSearch))
+        );
+    }
+
+    toggleAddMemberSelection(userId: string): void {
+        if (this.selectedNewMemberIds.has(userId)) {
+            this.selectedNewMemberIds.delete(userId);
+        } else {
+            this.selectedNewMemberIds.add(userId);
+        }
+    }
+
+    addSelectedMembers(): void {
+        if (!this.currentManageGroupId || this.selectedNewMemberIds.size === 0) return;
+
+        this.isAddingMembers = true;
+        const newIds = Array.from(this.selectedNewMemberIds);
+
+        this.chatService.addGroupMembers(this.currentManageGroupId, newIds).subscribe({
+            next: () => {
+                this.nzMessage.success('Members added successfully');
+                this.isAddingMembers = false;
+                Promise.resolve().then(() => {
+                    this.manageGroupView = 'Current Members';
+                    this.cdr.detectChanges();
+                });
+                this.selectedNewMemberIds.clear();
+                this.fetchCurrentGroupMembers();
+            },
+            error: () => {
+                this.nzMessage.error('Failed to add members');
+                this.isAddingMembers = false;
+            }
+        });
     }
 
     get filteredUsers(): UserInfo[] {
@@ -194,6 +456,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     getRoleColor(role: string): string {
         const r = (role || '').toUpperCase();
+        if (r.includes('GROUP')) return 'purple';
         if (r.includes('DOCTOR')) return 'blue';
         if (r.includes('CAREGIVER')) return 'green';
         if (r.includes('PHARMACIST')) return 'magenta';
@@ -203,7 +466,13 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     loadConversation(): void {
         if (!this.selectedUser) return;
-        this.chatService.getConversation(this.currentUserId, this.selectedUser.id).subscribe({
+
+        const isGroup = this.selectedUser.role === 'GROUP';
+        const loadObs = isGroup ?
+            this.chatService.getGroupMessages(parseInt(this.selectedUser.id.replace('group-', ''))) :
+            this.chatService.getConversation(this.currentUserId, this.selectedUser.id);
+
+        loadObs.subscribe({
             next: (data) => {
                 this.messages = data;
                 this.scrollToBottom();
@@ -218,7 +487,12 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.pollingSub = interval(5000)
             .pipe(
                 startWith(0),
-                switchMap(() => this.chatService.getConversation(this.currentUserId, this.selectedUser!.id))
+                switchMap(() => {
+                    const isGroup = this.selectedUser!.role === 'GROUP';
+                    return isGroup ?
+                        this.chatService.getGroupMessages(parseInt(this.selectedUser!.id.replace('group-', ''))) :
+                        this.chatService.getConversation(this.currentUserId, this.selectedUser!.id);
+                })
             )
             .subscribe({
                 next: (data) => {
@@ -248,11 +522,17 @@ export class ChatComponent implements OnInit, OnDestroy {
     sendMessage(): void {
         if (!this.newMessage.trim() || !this.selectedUser) return;
 
+        const isGroup = this.selectedUser.role === 'GROUP';
         const messageData: Partial<Message> = {
             senderId: this.currentUserId,
-            recipientId: this.selectedUser.id,
             content: this.newMessage
         };
+
+        if (isGroup) {
+            messageData.groupId = parseInt(this.selectedUser.id.replace('group-', ''));
+        } else {
+            messageData.recipientId = this.selectedUser.id;
+        }
 
         this.chatService.sendMessage(messageData).subscribe({
             next: () => {

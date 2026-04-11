@@ -6,6 +6,7 @@ import org.example.dpchat.dto.ChatSummaryDTO;
 import org.example.dpchat.entities.Message;
 import org.example.dpchat.entities.MessageReaction;
 import org.example.dpchat.entities.ReactionType;
+import org.example.dpchat.entities.GroupConversation;
 import org.example.dpchat.services.MessageService;
 import org.example.dpchat.services.UserLookupService;
 import org.springframework.http.ResponseEntity;
@@ -132,5 +133,68 @@ public class ChatController {
     public ResponseEntity<Void> deleteMessage(@PathVariable("id") Long id) {
         messageService.deleteMessage(id);
         return ResponseEntity.ok().build();
+    }
+
+    // Group Chat Endpoints
+    @PostMapping("/chat/group/create")
+    public ResponseEntity<GroupConversation> createGroup(@RequestBody CreateGroupRequest request) {
+        return ResponseEntity.ok(messageService.createGroup(request.name, request.creatorId, request.memberIds));
+    }
+
+    @GetMapping("/chat/group/user/{userId}")
+    public ResponseEntity<List<GroupConversation>> getUserGroups(@PathVariable("userId") String userId) {
+        return ResponseEntity.ok(messageService.getUserGroups(userId));
+    }
+
+    @GetMapping("/chat/group/{groupId}/messages")
+    public ResponseEntity<List<Message>> getGroupMessages(@PathVariable("groupId") Long groupId) {
+        return ResponseEntity.ok(messageService.getGroupMessages(groupId));
+    }
+
+    @GetMapping("/chat/group/{groupId}/members")
+    public ResponseEntity<List<org.example.dpchat.dto.GroupMemberInfoDTO>> getGroupMembers(@PathVariable("groupId") Long groupId) {
+        return ResponseEntity.ok(messageService.getGroupMembersInfo(groupId));
+    }
+
+    @PostMapping("/chat/group/{groupId}/members")
+    public ResponseEntity<Void> addGroupMembers(@PathVariable("groupId") Long groupId, @RequestBody List<String> userIds) {
+        messageService.addGroupMembers(groupId, userIds);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/chat/group/{groupId}/members/{userId}")
+    public ResponseEntity<Void> removeGroupMember(@PathVariable("groupId") Long groupId, @PathVariable("userId") String userId) {
+        messageService.removeGroupMember(groupId, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/chat/group/{groupId}/read/{userId}")
+    public ResponseEntity<Void> markGroupAsRead(@PathVariable("groupId") Long groupId, @PathVariable("userId") String userId) {
+        messageService.markGroupAsRead(groupId, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/chat/group/{groupId}/promote/{userId}")
+    public ResponseEntity<Void> promoteToAdmin(@PathVariable("groupId") Long groupId, @PathVariable("userId") String userId) {
+        messageService.promoteToAdmin(groupId, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/chat/group/{groupId}/history")
+    public ResponseEntity<Void> clearGroupHistory(@PathVariable("groupId") Long groupId) {
+        messageService.clearGroupHistory(groupId);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/chat/group/{groupId}")
+    public ResponseEntity<Void> deleteGroup(@PathVariable("groupId") Long groupId) {
+        messageService.deleteGroup(groupId);
+        return ResponseEntity.ok().build();
+    }
+
+    public static class CreateGroupRequest {
+        public String name;
+        public String creatorId;
+        public List<String> memberIds;
     }
 }

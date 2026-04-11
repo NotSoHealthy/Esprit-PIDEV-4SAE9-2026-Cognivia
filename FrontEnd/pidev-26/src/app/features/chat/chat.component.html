@@ -6,10 +6,16 @@
             <div class="sider-header">
                 <div class="flex justify-between items-center w-full">
                     <h3 nz-typography class="m-0">Conversations</h3>
-                    <button nz-button nzType="primary" nzShape="circle" (click)="showNewConversationModal()"
-                        nz-tooltip nzTooltipTitle="Start a New Conversation">
-                        <span nz-icon nzType="plus"></span>
-                    </button>
+                    <div class="flex gap-2">
+                        <button nz-button nzType="default" nzShape="circle" (click)="showCreateGroupModal()" nz-tooltip
+                            nzTooltipTitle="Create Group">
+                            <span nz-icon nzType="team"></span>
+                        </button>
+                        <button nz-button nzType="primary" nzShape="circle" (click)="showNewConversationModal()"
+                            nz-tooltip nzTooltipTitle="Start a New Conversation">
+                            <span nz-icon nzType="plus"></span>
+                        </button>
+                    </div>
                 </div>
                 <small>{{ allUsers.length }} active contacts</small>
             </div>
@@ -68,6 +74,11 @@
                         <nz-tag [nzColor]="getRoleColor(selectedUser.role)" class="header-role">
                             {{ selectedUser.role }}
                         </nz-tag>
+                    </div>
+                    <div class="header-actions" *ngIf="selectedUser.role === 'GROUP'">
+                        <button nz-button nzType="default" nzShape="round" (click)="showManageGroupModal()">
+                            <span nz-icon nzType="team"></span> Manage Members
+                        </button>
                     </div>
                 </header>
 
@@ -183,10 +194,8 @@
                 </ng-template>
             </div>
             <div class="filter-section">
-                <nz-segmented 
-                    [nzOptions]="['All', 'Doctor', 'Caregiver', 'Pharmacist']" 
-                    (nzValueChange)="setRoleFilter($any($event))"
-                    class="role-segmented">
+                <nz-segmented [nzOptions]="['All', 'Doctor', 'Caregiver', 'Pharmacist']"
+                    (nzValueChange)="setRoleFilter($any($event))" class="role-segmented">
                 </nz-segmented>
             </div>
         </div>
@@ -196,13 +205,11 @@
                 <p class="text-lg font-semibold">No matches found</p>
                 <small>Try adjusting your search or role filter</small>
             </div>
-            <div *ngFor="let user of filteredUsers; let i = index" 
-                class="modal-user-item animate-in" 
-                [style.animation-delay]="(i * 0.04) + 's'"
-                (click)="startNewConversation(user)">
-                
+            <div *ngFor="let user of filteredUsers; let i = index" class="modal-user-item animate-in"
+                [style.animation-delay]="(i * 0.04) + 's'" (click)="startNewConversation(user)">
+
                 <div class="user-avatar-container">
-                    <nz-avatar [nzSrc]="getAvatar(user.id)" [nzText]="getInitials(user)" nzSize="large" 
+                    <nz-avatar [nzSrc]="getAvatar(user.id)" [nzText]="getInitials(user)" nzSize="large"
                         style="background: #e2e8f0; color: #3b429f; font-weight: 700;">
                     </nz-avatar>
                     <div class="online-status"></div>
@@ -215,6 +222,168 @@
                 </div>
                 <div class="action-hint">
                     <span nz-icon nzType="message" nzTheme="outline" class="chat-hint-icon"></span>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+</nz-modal>
+
+<!-- Create Group Modal -->
+<nz-modal [(nzVisible)]="isGroupModalVisible" nzTitle="Create New Group" (nzOnCancel)="handleGroupModalCancel()"
+    [nzFooter]="groupModalFooter" [nzWidth]="540" nzClassName="user-lookup-modal group-modal">
+    <ng-container *nzModalContent>
+        <div class="user-lookup-header">
+            <div class="group-name-section mb-0">
+                <input nz-input placeholder="Enter Group Name..." [(ngModel)]="groupName" class="premium-group-input" />
+            </div>
+            <div class="search-section mt-4">
+                <nz-input-group [nzPrefix]="prefixIconSearchGroup" class="premium-search">
+                    <input type="text" nz-input placeholder="Add participants..." [(ngModel)]="groupSearchText" />
+                </nz-input-group>
+                <ng-template #prefixIconSearchGroup>
+                    <span nz-icon nzType="search"></span>
+                </ng-template>
+            </div>
+        </div>
+
+        <div class="modal-user-list custom-scrollbar">
+            <div *ngFor="let user of filteredGroupUsers" class="modal-user-item animate-in"
+                (click)="toggleUserSelection(user.id)" [class.selected]="selectedUserIds.has(user.id)">
+                <div class="user-avatar-container">
+                    <nz-avatar [nzSrc]="getAvatar(user.id)" [nzSize]="48"></nz-avatar>
+                    <div class="selection-check" *ngIf="selectedUserIds.has(user.id)">
+                        <span nz-icon nzType="check"></span>
+                    </div>
+                </div>
+                <div class="user-details">
+                    <span class="user-name">{{ user.name }}</span>
+                    <nz-tag [nzColor]="getRoleColor(user.role)" class="role-tag">{{ user.role }}</nz-tag>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+    <ng-template #groupModalFooter>
+        <div class="flex justify-between items-center p-4 border-t">
+            <span class="text-gray-500">{{ selectedUserIds.size }} members selected</span>
+            <div class="flex gap-2">
+                <button nz-button (click)="handleGroupModalCancel()">Cancel</button>
+                <button nz-button nzType="primary" [nzLoading]="isCreatingGroup"
+                    [disabled]="!groupName || selectedUserIds.size < 1" (click)="createGroup()">
+                    Create Group
+                </button>
+            </div>
+        </div>
+    </ng-template>
+</nz-modal>
+
+<!-- Manage Group Members Modal -->
+<nz-modal [(nzVisible)]="isManageGroupModalVisible" nzTitle="Manage Group Members"
+    (nzOnCancel)="handleManageGroupModalCancel()" [nzFooter]="null" [nzWidth]="600"
+    nzClassName="user-lookup-modal manage-group-modal">
+    <ng-container *nzModalContent>
+        <nz-segmented [nzOptions]="isCurrentUserAdmin ? ['Current Members', 'Add Members', 'Settings'] : ['Current Members', 'Add Members']" 
+            [(ngModel)]="manageGroupView" (ngModelChange)="onManageGroupViewChange($event)" class="w-full mb-4 group-segmented"></nz-segmented>
+
+        <!-- Current Members View -->
+        <div *ngIf="manageGroupView === 'Current Members'" class="modal-user-list custom-scrollbar">
+            <h4 nz-typography class="mb-3 px-2 text-gray-500 text-sm font-semibold">Active Participants ({{ currentGroupMembers.length }})</h4>
+            <div *ngIf="loadingMembers" class="flex justify-center p-8"><nz-spin></nz-spin></div>
+            <div *ngFor="let user of currentGroupMembers" class="modal-user-item animate-in flex justify-between items-center bg-white">
+                <div class="flex items-center gap-3">
+                    <div class="user-avatar-container">
+                        <nz-avatar [nzSrc]="getAvatar(user.id)" [nzSize]="40"></nz-avatar>
+                        <span *ngIf="user.isAdmin" class="admin-crown-badge">
+                            <span nz-icon nzType="crown" nzTheme="fill"></span>
+                        </span>
+                    </div>
+                    <div>
+                        <div class="user-name text-[15px] font-semibold text-[#1e293b]">
+                            {{ user.name }}
+                        </div>
+                        <nz-tag [nzColor]="getRoleColor(user.role)" class="role-tag scale-90 ml-0 mt-1">{{ user.role }}</nz-tag>
+                    </div>
+                </div>
+                
+                <!-- Member Actions Dropdown -->
+                <button *ngIf="isCurrentUserAdmin && user.id !== currentUserId" nz-button nzType="text" nz-dropdown [nzDropdownMenu]="memberMenu" nzPlacement="bottomRight" class="action-menu-btn">
+                    <span nz-icon nzType="more" class="text-lg"></span>
+                </button>
+                <nz-dropdown-menu #memberMenu="nzDropdownMenu">
+                    <ul nz-menu>
+                        <li nz-menu-item *ngIf="!user.isAdmin" (click)="promoteToAdmin(user.id)">
+                            <span nz-icon nzType="up-circle" nzTheme="outline" class="mr-2"></span> Promote to Admin
+                        </li>
+                        <li nz-menu-divider *ngIf="!user.isAdmin"></li>
+                        <li nz-menu-item nzDanger (click)="removeGroupMember(user.id)">
+                            <span nz-icon nzType="user-delete" nzTheme="outline" class="mr-2"></span> Remove from Group
+                        </li>
+                    </ul>
+                </nz-dropdown-menu>
+            </div>
+            <nz-empty *ngIf="!loadingMembers && currentGroupMembers.length === 0" nzNotFoundContent="No other members"></nz-empty>
+        </div>
+
+        <!-- Add Members View -->
+        <div *ngIf="manageGroupView === 'Add Members'">
+            <div class="search-section mb-4">
+                <nz-input-group [nzPrefix]="prefixIconAddMember" class="premium-search">
+                    <input type="text" nz-input placeholder="Search contacts to add..." [(ngModel)]="addMemberSearchText" />
+                </nz-input-group>
+                <ng-template #prefixIconAddMember>
+                    <span nz-icon nzType="search"></span>
+                </ng-template>
+            </div>
+            <div class="modal-user-list custom-scrollbar" style="max-height: 300px;">
+                <div *ngFor="let user of filteredEligibleNewMembers" class="modal-user-item animate-in flex justify-between items-center" 
+                    (click)="toggleAddMemberSelection(user.id)" [class.selected]="selectedNewMemberIds.has(user.id)">
+                    <div class="flex items-center gap-3">
+                        <div class="user-avatar-container">
+                            <nz-avatar [nzSrc]="getAvatar(user.id)" [nzSize]="40"></nz-avatar>
+                            <div class="selection-check !w-5 !h-5 !top-[-4px] !right-[-4px]" *ngIf="selectedNewMemberIds.has(user.id)">
+                                <span nz-icon nzType="check"></span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="user-name text-[15px] font-medium">{{ user.name }}</div>
+                            <nz-tag [nzColor]="getRoleColor(user.role)" class="role-tag scale-90 ml-0 mt-1">{{ user.role }}</nz-tag>
+                        </div>
+                    </div>
+                </div>
+                <nz-empty *ngIf="filteredEligibleNewMembers.length === 0" nzNotFoundContent="No eligible contacts found"></nz-empty>
+            </div>
+            <div class="flex justify-end mt-4 pt-4 border-t gap-2">
+                <span class="text-gray-500 self-center mr-auto text-sm">{{ selectedNewMemberIds.size }} members selected</span>
+                <button nz-button (click)="handleManageGroupModalCancel()">Cancel</button>
+                <button nz-button nzType="primary" [nzLoading]="isAddingMembers" 
+                    [disabled]="selectedNewMemberIds.size < 1" (click)="addSelectedMembers()">
+                    Add to Group
+                </button>
+            </div>
+        </div>
+
+        <!-- Group Settings View (Admin Only) -->
+        <div *ngIf="manageGroupView === 'Settings'" class="animate-in">
+            <div class="settings-list">
+                <div class="settings-item" (click)="clearGroupHistory()">
+                    <div class="settings-icon-wrapper clear">
+                        <span nz-icon nzType="clear" nzTheme="outline"></span>
+                    </div>
+                    <div class="settings-content">
+                        <div class="settings-title">Clear Chat History</div>
+                        <div class="settings-desc">Wipe all messages. This cannot be undone.</div>
+                    </div>
+                    <span nz-icon nzType="right" class="settings-arrow"></span>
+                </div>
+
+                <div class="settings-item delete" (click)="deleteGroup()">
+                    <div class="settings-icon-wrapper delete">
+                        <span nz-icon nzType="delete" nzTheme="outline"></span>
+                    </div>
+                    <div class="settings-content">
+                        <div class="settings-title">Delete Group</div>
+                        <div class="settings-desc">Permanently remove this group for everyone.</div>
+                    </div>
+                    <span nz-icon nzType="right" class="settings-arrow"></span>
                 </div>
             </div>
         </div>

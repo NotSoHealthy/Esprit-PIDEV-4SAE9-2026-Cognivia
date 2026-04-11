@@ -804,3 +804,218 @@ $radius-md: 12px;
         }
     }
 }
+
+/* ──────────────────────── GROUP MODAL ────────────────────────── */
+::ng-deep .group-modal {
+    .premium-group-input {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        height: 52px;
+        font-size: 16px;
+        font-weight: 500;
+        padding: 0 16px;
+        transition: all 0.3s;
+        width: 100%;
+
+        &:focus {
+            border-color: #3b429f;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(59, 66, 159, 0.1);
+            outline: none;
+        }
+    }
+
+    .modal-user-item {
+        &.selected {
+            background: rgba(59, 66, 159, 0.08) !important;
+        }
+
+        .user-avatar-container {
+            position: relative;
+            
+            .selection-check {
+                position: absolute;
+                top: -6px;
+                right: -6px;
+                width: 24px;
+                height: 24px;
+                background: #3b429f;
+                color: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 11px;
+                border: 2px solid white;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                z-index: 10;
+                animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+            }
+        }
+    }
+}
+
+@keyframes popIn {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+// ──────────────────────── MANAGE GROUP MODAL ──────────────────────────
+::ng-deep .manage-group-modal {
+    .ant-modal-content {
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+    }
+
+    .group-segmented {
+        margin-bottom: 24px;
+        background: #f1f5f9;
+        padding: 4px;
+        border-radius: 12px;
+
+        & ::ng-deep .ant-segmented-item {
+            font-weight: 600;
+            color: $text-muted;
+            padding: 4px 12px;
+            transition: all 0.3s;
+        }
+
+        & ::ng-deep .ant-segmented-item-selected {
+            background: white !important;
+            color: $primary !important;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+    }
+
+    .user-avatar-container {
+        position: relative;
+
+        .admin-crown-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ca8a04;
+            color: white;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(202, 138, 4, 0.3);
+            z-index: 2;
+        }
+    }
+
+    .action-menu-btn {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        color: $text-muted;
+
+        &:hover {
+            background: $bg-app;
+            color: $primary;
+        }
+    }
+
+    // ─── Settings Tab ───
+    .settings-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 8px 4px;
+    }
+
+    .settings-item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+        &:hover {
+            border-color: #cbd5e1;
+            transform: translateY(-2px);
+            box-shadow: $shadow-md;
+
+            .settings-arrow {
+                transform: translateX(4px);
+                opacity: 1;
+            }
+        }
+
+        &.delete:hover {
+            border-color: #fecaca;
+            background: #fffafa;
+
+            .settings-icon-wrapper.delete {
+                background: #ef4444;
+                color: white;
+            }
+
+            .settings-title {
+                color: #b91c1c;
+            }
+        }
+
+        .settings-icon-wrapper {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-size: 20px;
+            flex-shrink: 0;
+            transition: all 0.3s;
+
+            &.clear {
+                background: #f0f9ff;
+                color: #0369a1;
+            }
+
+            &.delete {
+                background: #fef2f2;
+                color: #ef4444;
+            }
+        }
+
+        .settings-content {
+            flex: 1;
+
+            .settings-title {
+                font-weight: 700;
+                font-size: 15px;
+                color: $text-main;
+                margin-bottom: 2px;
+                transition: all 0.3s;
+            }
+
+            .settings-desc {
+                font-size: 12px;
+                color: $text-muted;
+                line-height: 1.4;
+            }
+        }
+
+        .settings-arrow {
+            color: #cbd5e1;
+            font-size: 14px;
+            opacity: 0.5;
+            transition: all 0.3s;
+        }
+    }
+}
+

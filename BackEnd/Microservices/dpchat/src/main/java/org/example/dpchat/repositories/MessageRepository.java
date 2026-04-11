@@ -17,6 +17,8 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     List<Message> findByRecipientIdOrderByTimestampDesc(String recipientId);
 
+    List<Message> findByGroupIdOrderByTimestampAsc(Long groupId);
+
     @EntityGraph(attributePaths = { "reactions" })
     @Query("SELECT m FROM Message m WHERE (m.senderId = :user1 AND m.recipientId = :user2) OR (m.senderId = :user2 AND m.recipientId = :user1) ORDER BY m.timestamp ASC")
     List<Message> findConversation(String user1, String user2);
@@ -36,4 +38,8 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     @Transactional
     @Query("UPDATE Message m SET m.read = true WHERE m.recipientId = :recipientId AND m.senderId = :senderId AND m.read = false")
     void markConversationAsRead(@Param("recipientId") String recipientId, @Param("senderId") String senderId);
+
+    int countByGroupIdAndTimestampAfter(Long groupId, java.time.LocalDateTime timestamp);
+
+    java.util.Optional<Message> findTopByGroupIdOrderByTimestampDesc(Long groupId);
 }

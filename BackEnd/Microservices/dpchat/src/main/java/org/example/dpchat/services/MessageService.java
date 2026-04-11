@@ -1,6 +1,7 @@
 package org.example.dpchat.services;
 import org.example.dpchat.entities.Message;
 import org.example.dpchat.entities.ReactionType;
+import org.example.dpchat.entities.GroupConversation;
 import org.example.dpchat.dto.ChatSummaryDTO;
 import java.util.List;
 import java.util.Optional;
@@ -30,4 +31,16 @@ public interface MessageService {
     List<ChatSummaryDTO> getChatSummary(String userId);
 
     void deleteMessage(Long id);
+    
+    // Group Chat Methods
+    GroupConversation createGroup(String name, String creatorId, List<String> memberIds);
+    List<GroupConversation> getUserGroups(String userId);
+    List<Message> getGroupMessages(Long groupId);
+    List<org.example.dpchat.dto.GroupMemberInfoDTO> getGroupMembersInfo(Long groupId);
+    void addGroupMembers(Long groupId, List<String> userIds);
+    void removeGroupMember(Long groupId, String userId);
+    void markGroupAsRead(Long groupId, String userId);
+    void promoteToAdmin(Long groupId, String userId);
+    void clearGroupHistory(Long groupId);
+    void deleteGroup(Long groupId);
 }

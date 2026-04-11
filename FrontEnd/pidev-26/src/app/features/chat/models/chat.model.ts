@@ -8,7 +8,8 @@ export interface MessageReaction {
 export interface Message {
     id?: number;
     senderId: string;
-    recipientId: string;
+    recipientId?: string;
+    groupId?: number;
     content: string;
     timestamp: string; // ISO string
     isRead: boolean;

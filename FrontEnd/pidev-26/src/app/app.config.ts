@@ -105,6 +105,9 @@ import {
 
   ContainerOutline,
   ShopOutline,
+  UpCircleOutline,
+  UserDeleteOutline,
+  CrownFill,
 } from '@ant-design/icons-angular/icons';
 
 // ✅ ADD THESE
@@ -247,6 +250,10 @@ export const appConfig: ApplicationConfig = {
       SaveOutline,
       ContainerOutline,
       ShopOutline,
+      UpCircleOutline,
+      UserDeleteOutline,
+      CrownFill,
+      ClearOutline,
     ]),
 
     // ✅ IMPORTANT: make NzModalService available

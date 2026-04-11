@@ -24,6 +24,7 @@ public class Message {
 
     private String senderId;
     private String recipientId;
+    private Long groupId; // Added for group chat support
     private String content;
     private LocalDateTime timestamp;
 
