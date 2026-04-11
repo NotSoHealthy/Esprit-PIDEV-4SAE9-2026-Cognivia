@@ -108,6 +108,7 @@ import {
   UpCircleOutline,
   UserDeleteOutline,
   CrownFill,
+  VideoCameraOutline,
 } from '@ant-design/icons-angular/icons';
 
 // ✅ ADD THESE
@@ -254,6 +255,7 @@ export const appConfig: ApplicationConfig = {
       UserDeleteOutline,
       CrownFill,
       ClearOutline,
+      VideoCameraOutline,
     ]),
 
     // ✅ IMPORTANT: make NzModalService available

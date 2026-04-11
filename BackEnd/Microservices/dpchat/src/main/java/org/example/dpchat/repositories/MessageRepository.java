@@ -42,4 +42,8 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     int countByGroupIdAndTimestampAfter(Long groupId, java.time.LocalDateTime timestamp);
 
     java.util.Optional<Message> findTopByGroupIdOrderByTimestampDesc(Long groupId);
+
+    @Modifying
+    @Transactional
+    void deleteByGroupId(Long groupId);
 }

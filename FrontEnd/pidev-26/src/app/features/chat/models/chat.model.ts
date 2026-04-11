@@ -11,6 +11,7 @@ export interface Message {
     recipientId?: string;
     groupId?: number;
     content: string;
+    type?: string;
     timestamp: string; // ISO string
     isRead: boolean;
     isDeleted?: boolean;

@@ -1019,3 +1019,160 @@ $radius-md: 12px;
     }
 }
 
+// ──────────────────────── CALLING FEATURE STYLES ──────────────────────────
+.header-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+
+    .call-btn {
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        
+        &.video {
+            background: linear-gradient(135deg, $accent, #059669);
+            border: none;
+            box-shadow: 0 4px 12px rgba($accent, 0.3);
+            
+            &:hover {
+                transform: scale(1.1) rotate(5deg);
+                box-shadow: 0 6px 20px rgba($accent, 0.4);
+            }
+        }
+
+        &.audio {
+            &:hover {
+                transform: scale(1.1) rotate(-5deg);
+                color: $primary;
+                border-color: $primary;
+            }
+        }
+    }
+}
+
+.call-invitation {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: $radius-md;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    min-width: 220px;
+
+    .message-wrapper:not(.sent) & {
+        background: rgba($primary, 0.05);
+        border-color: rgba($primary, 0.1);
+    }
+
+    .call-icon-box {
+        width: 44px;
+        height: 44px;
+        background: white;
+        color: $primary;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        box-shadow: $shadow-sm;
+
+        .message-wrapper.sent & {
+            color: $primary;
+        }
+    }
+
+    .call-details {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+
+        .call-title {
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .call-status {
+            font-size: 11px;
+            opacity: 0.8;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+    }
+
+    .join-btn {
+        border-radius: 8px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 11px;
+        height: 32px;
+        padding: 0 16px;
+        background: white;
+        color: $primary;
+        border: none;
+        
+        .message-wrapper.sent & {
+            background: white;
+            color: $primary;
+        }
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            background: white !important;
+        }
+    }
+}
+
+::ng-deep .call-modal {
+    .ant-modal-content {
+        background: #1a1a1a;
+        padding: 0;
+        overflow: hidden;
+        border-radius: 24px;
+        height: 85vh;
+    }
+
+    .ant-modal-body {
+        padding: 0;
+        height: 100%;
+    }
+
+    .call-modal-container {
+        height: 100%;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+
+        #jitsi-container {
+            flex: 1;
+            width: 100%;
+        }
+
+        .call-overlay-actions {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            gap: 20px;
+
+            .hangup-btn {
+                width: 64px;
+                height: 64px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+                box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
+                
+                &:hover {
+                    transform: scale(1.1);
+                    box-shadow: 0 12px 32px rgba(239, 68, 68, 0.6);
+                }
+            }
+        }
+    }
+}

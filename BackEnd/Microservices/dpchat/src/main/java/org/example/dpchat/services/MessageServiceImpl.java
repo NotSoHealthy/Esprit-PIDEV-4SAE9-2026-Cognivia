@@ -219,7 +219,6 @@ public class MessageServiceImpl implements MessageService {
         return messages;
     }
 
-    @Override
     public List<String> getGroupMemberIds(Long groupId) {
         return groupMemberRepository.findByGroupId(groupId).stream()
                 .map(GroupMember::getUserId)
@@ -254,5 +253,32 @@ public class MessageServiceImpl implements MessageService {
             member.setLastReadTimestamp(java.time.LocalDateTime.now());
             groupMemberRepository.save(member);
         });
+    }
+
+    @Override
+    public List<org.example.dpchat.dto.GroupMemberInfoDTO> getGroupMembersInfo(Long groupId) {
+        return groupMemberRepository.findByGroupId(groupId).stream()
+                .map(m -> new org.example.dpchat.dto.GroupMemberInfoDTO(m.getUserId(), m.isAdmin()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void promoteToAdmin(Long groupId, String userId) {
+        groupMemberRepository.findByGroupIdAndUserId(groupId, userId).ifPresent(member -> {
+            member.setAdmin(true);
+            groupMemberRepository.save(member);
+        });
+    }
+
+    @Override
+    public void clearGroupHistory(Long groupId) {
+        messageRepository.deleteByGroupId(groupId);
+    }
+
+    @Override
+    public void deleteGroup(Long groupId) {
+        messageRepository.deleteByGroupId(groupId);
+        groupMemberRepository.deleteByGroupId(groupId);
+        groupRepository.deleteById(groupId);
     }
 }

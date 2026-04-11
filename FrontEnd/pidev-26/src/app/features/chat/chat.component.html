@@ -75,9 +75,19 @@
                             {{ selectedUser.role }}
                         </nz-tag>
                     </div>
-                    <div class="header-actions" *ngIf="selectedUser.role === 'GROUP'">
-                        <button nz-button nzType="default" nzShape="round" (click)="showManageGroupModal()">
-                            <span nz-icon nzType="team"></span> Manage Members
+                    <div class="header-actions">
+                        <ng-container *ngIf="selectedUser.role === 'GROUP'">
+                            <button nz-button nzType="default" nzShape="round" (click)="showManageGroupModal()">
+                                <span nz-icon nzType="team"></span> Manage Members
+                            </button>
+                        </ng-container>
+                        <button nz-button nzType="primary" nzShape="circle" (click)="startCall('video')" nz-tooltip
+                            nzTooltipTitle="Video Call" class="call-btn video">
+                            <span nz-icon nzType="video-camera"></span>
+                        </button>
+                        <button nz-button nzType="default" nzShape="circle" (click)="startCall('audio')" nz-tooltip
+                            nzTooltipTitle="Voice Call" class="call-btn audio">
+                            <span nz-icon nzType="phone"></span>
                         </button>
                     </div>
                 </header>
@@ -115,8 +125,22 @@
                                 </span>
                             </div>
 
+                            <!-- Call Invitation Content -->
+                            <div class="call-invitation" *ngIf="msg.type === 'call' && !msg.isDeleted">
+                                <div class="call-icon-box">
+                                    <span nz-icon [nzType]="msg.content.includes('video') ? 'video-camera' : 'phone'" nzTheme="outline"></span>
+                                </div>
+                                <div class="call-details">
+                                    <span class="call-title">{{ msg.content.includes('video') ? 'Video Call' : 'Voice Call' }}</span>
+                                    <span class="call-status">Active Session</span>
+                                </div>
+                                <button nz-button nzType="primary" nzSize="small" (click)="joinCall(msg.content.split(':')[1])" class="join-btn">
+                                    Join
+                                </button>
+                            </div>
+
                             <!-- Body Content -->
-                            <div class="content" *ngIf="editingMessageId !== msg.id">
+                            <div class="content" *ngIf="editingMessageId !== msg.id && msg.type !== 'call'">
                                 <span *ngIf="msg.isDeleted" class="deleted-text">
                                     <span nz-icon nzType="stop" class="mr-1"></span>
                                     <i>This message was deleted</i>
@@ -223,6 +247,21 @@
                 <div class="action-hint">
                     <span nz-icon nzType="message" nzTheme="outline" class="chat-hint-icon"></span>
                 </div>
+            </div>
+        </div>
+    </ng-container>
+</nz-modal>
+
+<!-- Jitsi Call Modal -->
+<nz-modal [(nzVisible)]="isCallModalVisible" [nzTitle]="undefined" (nzOnCancel)="endCall()"
+    [nzFooter]="null" [nzWidth]="'90%'" nzClassName="call-modal" [nzCentered]="true" [nzClosable]="false">
+    <ng-container *nzModalContent>
+        <div class="call-modal-container">
+            <div id="jitsi-container"></div>
+            <div class="call-overlay-actions">
+                <button nz-button nzType="primary" nzDanger nzShape="circle" (click)="endCall()" nzSize="large" class="hangup-btn">
+                    <span nz-icon nzType="phone" [nzRotate]="135"></span>
+                </button>
             </div>
         </div>
     </ng-container>

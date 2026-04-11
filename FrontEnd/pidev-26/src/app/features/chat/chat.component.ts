@@ -22,6 +22,8 @@ import { KeycloakService } from '../../core/auth/keycloak.service';
 import { TimeAgoPipe } from '../../shared/pipes/time-ago.pipe';
 import { interval, Subscription, startWith, switchMap } from 'rxjs';
 
+declare var JitsiMeetExternalAPI: any;
+
 @Component({
     selector: 'app-chat',
     standalone: true,
@@ -97,6 +99,11 @@ export class ChatComponent implements OnInit, OnDestroy {
         { type: 'SAD', emoji: '😢' },
         { type: 'ANGRY', emoji: '😡' }
     ];
+
+    // Call Properties
+    isCallModalVisible = false;
+    jitsiApi: any;
+
 
     private pollingSub?: Subscription;
     private chatService = inject(ChatService);
@@ -543,6 +550,84 @@ export class ChatComponent implements OnInit, OnDestroy {
             error: () => this.nzMessage.error('Failed to send message')
         });
     }
+
+    // --- Call Methods ---
+    startCall(type: 'video' | 'audio'): void {
+        if (!this.selectedUser) return;
+
+        const roomId = `pidev-call-${Math.random().toString(36).substring(2, 9)}`;
+        const content = `${type}:${roomId}`;
+
+        const isGroup = this.selectedUser.role === 'GROUP';
+        const messageData: Partial<Message> = {
+            senderId: this.currentUserId,
+            content: content,
+            type: 'call'
+        };
+
+        if (isGroup) {
+            messageData.groupId = parseInt(this.selectedUser.id.replace('group-', ''));
+        } else {
+            messageData.recipientId = this.selectedUser.id;
+        }
+
+        this.chatService.sendMessage(messageData).subscribe({
+            next: () => {
+                this.joinCall(roomId);
+            },
+            error: () => this.nzMessage.error('Failed to start call')
+        });
+    }
+
+    joinCall(roomName: string): void {
+        this.isCallModalVisible = true;
+        this.cdr.detectChanges();
+
+        const domain = 'meet.jit.si';
+        const options = {
+            roomName: roomName,
+            width: '100%',
+            height: '100%',
+            parentNode: document.querySelector('#jitsi-container'),
+            userInfo: {
+                displayName: 'Me' // Ideally fetch real name from service
+            },
+            configOverwrite: {
+                prejoinPageEnabled: false,
+                disableDeepLinking: true
+            },
+            interfaceConfigOverwrite: {
+                TOOLBAR_BUTTONS: [
+                    'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
+                    'fodeviceselection', 'hangup', 'profile', 'chat', 'recording',
+                    'livestreaming', 'etherpad', 'sharedvideo', 'settings', 'raisehand',
+                    'videoquality', 'filmstrip', 'invite', 'feedback', 'stats', 'shortcuts',
+                    'tileview', 'videobackgroundblur', 'download', 'help', 'mute-everyone',
+                    'security'
+                ]
+            }
+        };
+
+        setTimeout(() => {
+            if (this.jitsiApi) this.jitsiApi.dispose();
+            this.jitsiApi = new JitsiMeetExternalAPI(domain, options);
+
+            this.jitsiApi.addEventListeners({
+                readyToClose: () => this.endCall(),
+                videoConferenceLeft: () => this.endCall()
+            });
+        }, 300);
+    }
+
+    endCall(): void {
+        if (this.jitsiApi) {
+            this.jitsiApi.dispose();
+            this.jitsiApi = null;
+        }
+        this.isCallModalVisible = false;
+        this.cdr.detectChanges();
+    }
+
 
     startEdit(message: Message) {
         this.editingMessageId = message.id ?? null;

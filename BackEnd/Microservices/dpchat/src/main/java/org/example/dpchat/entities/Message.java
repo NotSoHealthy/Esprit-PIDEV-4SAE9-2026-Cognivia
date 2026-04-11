@@ -26,6 +26,7 @@ public class Message {
     private String recipientId;
     private Long groupId; // Added for group chat support
     private String content;
+    private String type = "text";
     private LocalDateTime timestamp;
 
     @JsonProperty("isRead")
