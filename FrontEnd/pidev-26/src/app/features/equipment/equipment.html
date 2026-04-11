@@ -2,6 +2,13 @@
   <div class="page-header">
     <h1 class="page-title">Equipment List</h1>
     <div class="header-actions">
+      <input
+        #extractFileInput
+        type="file"
+        accept=".pdf,.docx,.doc,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword"
+        hidden
+        (change)="onExtractionFileSelected($event)"
+      />
       <button
         class="bulk-delete-button"
         type="button"
@@ -10,11 +17,16 @@
       >
         Delete Selected ({{ selectedCount }})
       </button>
+      <button class="import-button" type="button" (click)="extractFileInput.click()">
+        Import From File
+      </button>
       <button class="add-button" type="button" (click)="openModal()">
         Add Equipment
       </button>
     </div>
   </div>
+
+  <p class="form-error extraction-error" *ngIf="extractionError">{{ extractionError }}</p>
 
   <div *ngIf="equipments.length === 0" class="loading" role="status" aria-live="polite">
     Loading equipments...
@@ -281,6 +293,16 @@
       </div>
 
       <form class="modal-form" (ngSubmit)="submitEquipment()">
+        <div class="prefill-banner" *ngIf="!isEditMode && isPrefilledFromDocument">
+          <nz-icon nzType="file-search" nzTheme="outline"></nz-icon>
+          <div>
+            <p class="prefill-banner-title">Prefilled from document</p>
+            <p class="prefill-banner-text">
+              Review the extracted fields and adjust anything before creating the equipment.
+            </p>
+          </div>
+        </div>
+
         <div class="form-field">
           <label for="equipment-name">Name</label>
           <input
@@ -354,6 +376,14 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <div class="modal-overlay processing-overlay" *ngIf="isExtractingFromDocument" role="dialog" aria-modal="true">
+    <div class="processing-modal">
+      <div class="spinner" aria-hidden="true"></div>
+      <h3>Analyzing Document</h3>
+      <p>Extracting text and image, then preparing the equipment form...</p>
     </div>
   </div>
 

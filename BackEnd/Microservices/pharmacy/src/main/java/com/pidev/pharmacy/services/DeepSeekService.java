@@ -309,7 +309,7 @@ public class DeepSeekService {
                 .orElseThrow(() -> new RuntimeException("Medication not found with id: " + id));
     }
 
-    private String askDeepSeek(String systemPrompt, String userPrompt) {
+    public String askDeepSeek(String systemPrompt, String userPrompt) {
         if (deepSeekApiKey == null || deepSeekApiKey.isBlank()) {
             return "{\"error\":\"deepseek.api.key is not configured\"}";
         }

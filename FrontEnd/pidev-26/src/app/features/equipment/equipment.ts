@@ -10,6 +10,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { switchMap, forkJoin } from 'rxjs';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import mammoth from 'mammoth';
+import * as pdfjsLib from 'pdfjs-dist';
+
+type EquipmentFormModel = Omit<EquipmentModel, 'id' | 'conditionScore'> & {
+  conditionScore: number | null;
+};
 
 @Component({
   selector: 'app-equipment',
@@ -32,7 +38,10 @@ export class Equipment implements OnInit {
   equipmentToDelete: EquipmentModel | null = null;
   equipmentToDetail: EquipmentModel | null = null;
   isSaving = false;
+  isExtractingFromDocument = false;
+  isPrefilledFromDocument = false;
   formError = '';
+  extractionError = '';
   deleteError = '';
   bulkDeleteError = '';
   selectedIds = new Set<number>();
@@ -41,11 +50,11 @@ export class Equipment implements OnInit {
   isImagePreviewVisible = true;
   openDropdownId: number | null = null;
   viewMode: 'cards' | 'compact' = 'cards';
-  newEquipment: Omit<EquipmentModel, 'id'> = {
+  newEquipment: EquipmentFormModel = {
     name: '',
     description: '',
     status: 'AVAILABLE',
-    conditionScore: 0,
+    conditionScore: null,
     imageUrl: ''
   };
 
@@ -56,6 +65,8 @@ export class Equipment implements OnInit {
     private cdr: ChangeDetectorRef,
     private router: Router
   ) {}
+
+  private static isPdfWorkerConfigured = false;
 
   ngOnInit(): void {
     this.loadEquipments();
@@ -137,7 +148,9 @@ export class Equipment implements OnInit {
   openModal(): void {
     this.isEditMode = false;
     this.editingEquipmentId = null;
+    this.isPrefilledFromDocument = false;
     this.formError = '';
+    this.extractionError = '';
     this.selectedImage = null;
     this.imagePreview = '';
     this.isImagePreviewVisible = true;
@@ -147,6 +160,7 @@ export class Equipment implements OnInit {
   openEditModal(equipment: EquipmentModel): void {
     this.isEditMode = true;
     this.editingEquipmentId = equipment.id;
+    this.isPrefilledFromDocument = false;
     this.newEquipment = {
       name: equipment.name,
       description: equipment.description,
@@ -158,6 +172,7 @@ export class Equipment implements OnInit {
     this.selectedImage = null;
     this.isImagePreviewVisible = true;
     this.formError = '';
+    this.extractionError = '';
     this.isModalOpen = true;
   }
 
@@ -199,8 +214,14 @@ export class Equipment implements OnInit {
       return;
     }
 
-    if (this.newEquipment.conditionScore > 100) {
-      this.formError = 'Condition score cannot exceed 100.';
+    const conditionScore = Number(this.newEquipment.conditionScore);
+    if (this.newEquipment.conditionScore === null || Number.isNaN(conditionScore)) {
+      this.formError = 'Condition score is required.';
+      return;
+    }
+
+    if (conditionScore < 0 || conditionScore > 100) {
+      this.formError = 'Condition score must be between 0 and 100.';
       return;
     }
 
@@ -216,6 +237,7 @@ export class Equipment implements OnInit {
               this.equipmentService.update({
                 id: this.editingEquipmentId!,
                 ...this.newEquipment,
+                conditionScore,
                 status: this.newEquipment.status,
                 imageUrl
               })
@@ -237,6 +259,7 @@ export class Equipment implements OnInit {
         this.equipmentService.update({
           id: this.editingEquipmentId,
           ...this.newEquipment,
+          conditionScore,
           status: this.newEquipment.status
         }).subscribe({
           next: () => {
@@ -258,6 +281,7 @@ export class Equipment implements OnInit {
           switchMap((imageUrl) =>
             this.equipmentService.create({
               ...this.newEquipment,
+              conditionScore,
               status: 'AVAILABLE',
               imageUrl
             })
@@ -275,6 +299,197 @@ export class Equipment implements OnInit {
           }
         });
     }
+  }
+
+  async onExtractionFileSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+
+    if (!file) return;
+
+    this.extractionError = '';
+    this.isExtractingFromDocument = true;
+
+    try {
+      const { text, firstImageFile } = await this.extractTextAndFirstImage(file);
+
+      if (!text.trim()) {
+        throw new Error('No text content found in the selected file.');
+      }
+
+      this.equipmentService.extractEquipmentFromText(text).subscribe({
+        next: (equipmentFromText) => {
+          this.openModal();
+          this.isPrefilledFromDocument = true;
+
+          this.newEquipment.name = String(equipmentFromText?.name ?? '').trim();
+          this.newEquipment.description = String(equipmentFromText?.description ?? '').trim();
+          this.newEquipment.conditionScore =
+            typeof equipmentFromText?.conditionScore === 'number'
+              ? equipmentFromText.conditionScore
+              : null;
+
+          if (firstImageFile) {
+            this.selectedImage = firstImageFile;
+            if (this.imagePreview) {
+              URL.revokeObjectURL(this.imagePreview);
+            }
+            this.imagePreview = URL.createObjectURL(firstImageFile);
+            this.isImagePreviewVisible = true;
+          }
+
+          this.isExtractingFromDocument = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.extractionError = 'Failed to extract equipment information from the document.';
+          this.isExtractingFromDocument = false;
+          this.cdr.detectChanges();
+        }
+      });
+    } catch (error) {
+      this.extractionError =
+        error instanceof Error ? error.message : 'Failed to process the selected file.';
+      this.isExtractingFromDocument = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  private async extractTextAndFirstImage(
+    file: File
+  ): Promise<{ text: string; firstImageFile: File | null }> {
+    const extension = file.name.toLowerCase().split('.').pop();
+    const arrayBuffer = await file.arrayBuffer();
+
+    if (extension === 'pdf') {
+      return this.extractFromPdf(arrayBuffer);
+    }
+
+    if (extension === 'docx') {
+      return this.extractFromDocx(arrayBuffer);
+    }
+
+    if (extension === 'doc') {
+      throw new Error('Legacy .doc files are not supported. Please use .docx or .pdf.');
+    }
+
+    throw new Error('Unsupported file type. Please upload a .pdf or .docx file.');
+  }
+
+  private async extractFromDocx(
+    arrayBuffer: ArrayBuffer
+  ): Promise<{ text: string; firstImageFile: File | null }> {
+    const rawText = await mammoth.extractRawText({ arrayBuffer });
+
+    let firstImageFile: File | null = null;
+    await mammoth.convertToHtml(
+      { arrayBuffer },
+      {
+        convertImage: mammoth.images.imgElement(async (image: any) => {
+          if (!firstImageFile) {
+            const base64 = await image.read('base64');
+            const bytes = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
+            const blob = new Blob([bytes], { type: image.contentType });
+            firstImageFile = new File([blob], 'docx-image.png', { type: image.contentType });
+          }
+
+          return { src: '' };
+        })
+      }
+    );
+
+    return {
+      text: rawText.value ?? '',
+      firstImageFile
+    };
+  }
+
+  private async extractFromPdf(
+    arrayBuffer: ArrayBuffer
+  ): Promise<{ text: string; firstImageFile: File | null }> {
+    if (!Equipment.isPdfWorkerConfigured) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+        'pdfjs-dist/build/pdf.worker.mjs',
+        import.meta.url
+      ).toString();
+      Equipment.isPdfWorkerConfigured = true;
+    }
+
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
+
+    let combinedText = '';
+    let firstImageFile: File | null = null;
+
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+      const page = await pdf.getPage(pageNumber);
+
+      const textContent = await page.getTextContent();
+      combinedText +=
+        textContent.items
+          .map((item: any) => ('str' in item ? item.str : ''))
+          .join(' ')
+          .trim() + '\n';
+
+      if (!firstImageFile) {
+        firstImageFile = await this.extractFirstImageFromPdfPage(page);
+      }
+    }
+
+    return {
+      text: combinedText,
+      firstImageFile
+    };
+  }
+
+  private async extractFirstImageFromPdfPage(page: any): Promise<File | null> {
+    const operatorList = await page.getOperatorList();
+    const imageOpCodes = [
+      (pdfjsLib as any).OPS.paintImageXObject,
+      (pdfjsLib as any).OPS.paintJpegXObject
+    ];
+
+    for (let i = 0; i < operatorList.fnArray.length; i++) {
+      if (!imageOpCodes.includes(operatorList.fnArray[i])) continue;
+
+      const objectId = operatorList.argsArray[i]?.[0];
+      if (!objectId) continue;
+
+      const imageData = await new Promise<any>((resolve) => {
+        page.objs.get(objectId, (obj: any) => resolve(obj));
+      });
+
+      if (!imageData) continue;
+
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      if (!context) continue;
+
+      if (imageData.bitmap) {
+        canvas.width = imageData.bitmap.width;
+        canvas.height = imageData.bitmap.height;
+        context.drawImage(imageData.bitmap, 0, 0);
+      } else if (imageData.data && imageData.width && imageData.height) {
+        canvas.width = imageData.width;
+        canvas.height = imageData.height;
+        const clamped =
+          imageData.data instanceof Uint8ClampedArray
+            ? imageData.data
+            : new Uint8ClampedArray(imageData.data);
+        const image = new ImageData(clamped, imageData.width, imageData.height);
+        context.putImageData(image, 0, 0);
+      } else {
+        continue;
+      }
+
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
+      if (!blob) continue;
+
+      return new File([blob], 'pdf-image.png', { type: 'image/png' });
+    }
+
+    return null;
   }
 
   openDeleteModal(equipment: EquipmentModel): void {
@@ -337,9 +552,10 @@ export class Equipment implements OnInit {
       name: '',
       description: '',
       status: 'AVAILABLE',
-      conditionScore: 0,
+      conditionScore: null,
       imageUrl: ''
     };
+    this.isPrefilledFromDocument = false;
     this.selectedImage = null;
     if (this.imagePreview) {
       URL.revokeObjectURL(this.imagePreview);

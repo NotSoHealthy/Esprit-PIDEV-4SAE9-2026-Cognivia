@@ -52,6 +52,23 @@
   transform: translateY(0);
 }
 
+.import-button {
+  background: #eef2ff;
+  color: #32427e;
+  border: 1px solid #d8e0fb;
+  padding: 0.75rem 1.2rem;
+  border-radius: 999px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.import-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 18px rgba(77, 92, 171, 0.18);
+}
+
 .bulk-delete-button {
   background: linear-gradient(135deg, #d66c8f 0%, #b85777 100%);
   color: #ffffff;
@@ -77,6 +94,10 @@
   font-size: 1.1rem;
   padding: 3rem 2rem;
   animation: pulse 2s infinite;
+}
+
+.extraction-error {
+  margin-bottom: 1rem;
 }
 
 .grid-toolbar {
@@ -749,6 +770,47 @@
   animation: fadeIn 0.2s ease;
 }
 
+.processing-overlay {
+  z-index: 1100;
+}
+
+.processing-modal {
+  background: #fff;
+  border-radius: 18px;
+  padding: 1.5rem 1.6rem;
+  width: min(420px, 100%);
+  box-shadow: 0 24px 44px rgba(20, 28, 64, 0.28);
+  text-align: center;
+}
+
+.processing-modal h3 {
+  margin: 0.75rem 0 0.35rem;
+  color: #32427e;
+  font-size: 1.1rem;
+}
+
+.processing-modal p {
+  margin: 0;
+  color: #5f678f;
+  font-size: 0.92rem;
+}
+
+.spinner {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 4px solid #d8e0fb;
+  border-top-color: #4d5cab;
+  margin: 0 auto;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .modal {
   background: #ffffff;
   border-radius: 20px;
@@ -807,6 +869,35 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.prefill-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 12px;
+  background: #eef4ff;
+  border: 1px solid #d7e3ff;
+}
+
+.prefill-banner nz-icon {
+  color: #4156a3;
+  font-size: 1.05rem;
+  margin-top: 2px;
+}
+
+.prefill-banner-title {
+  margin: 0;
+  color: #344788;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.prefill-banner-text {
+  margin: 0.15rem 0 0;
+  color: #5c6d9f;
+  font-size: 0.82rem;
 }
 
 .form-field {

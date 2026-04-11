@@ -39,4 +39,8 @@ export class EquipmentService {
       .post<{ data: { url: string } }>(this.imageUploadEndpoint, formData)
       .pipe(map((response) => response.data.url));
   }
+
+  extractEquipmentFromText(text: string): Observable<Partial<EquipmentModel>> {
+    return this.http.post<Partial<EquipmentModel>>(`${this.endpoint}/extract-from-text`, { text });
+  }
 }
