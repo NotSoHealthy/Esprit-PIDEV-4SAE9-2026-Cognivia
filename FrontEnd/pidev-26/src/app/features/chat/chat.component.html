@@ -63,6 +63,25 @@
 
         <!-- Main Workspace -->
         <nz-content class="chat-main">
+            <!-- Restriction Warning Alert -->
+            <div *ngIf="activeRestriction" class="px-4 pt-4">
+                <nz-alert
+                    [nzType]="activeRestriction.type === 'BAN' ? 'error' : 'warning'"
+                    [nzMessage]="activeRestriction.type === 'BAN' ? 'Account Permanently Restricted' : 'Account Temporarily Restricted'"
+                    [nzDescription]="restrictionDesc"
+                    nzShowIcon>
+                    <ng-template #restrictionDesc>
+                        <div class="restriction-details">
+                            <p class="mb-1"><strong>Reason:</strong> {{ activeRestriction.reason }}</p>
+                            <p *ngIf="activeRestriction.type === 'TIMEOUT' && restrictionTimeRemaining" class="mb-0 font-medium">
+                                <span nz-icon nzType="clock-circle" class="mr-1"></span>
+                                Access will be restored in: {{ restrictionTimeRemaining }}
+                            </p>
+                        </div>
+                    </ng-template>
+                </nz-alert>
+            </div>
+
             <div *ngIf="selectedUser; else noSelection" class="chat-window">
 
                 <!-- Dynamic Chat Header -->
@@ -89,12 +108,16 @@
                             nzTooltipTitle="Voice Call" class="call-btn audio">
                             <span nz-icon nzType="phone"></span>
                         </button>
+                        <button nz-button nzType="default" nzDanger nzShape="circle" (click)="openReportDialog()" nz-tooltip
+                            nzTooltipTitle="Report" class="ml-2">
+                            <span nz-icon nzType="alert"></span>
+                        </button>
                     </div>
                 </header>
 
                 <!-- Discussion Stream -->
                 <div #scrollContainer class="message-area">
-                    <div *ngFor="let msg of messages" class="message-wrapper"
+                    <div *ngFor="let msg of messages; let i = index" class="message-wrapper"
                         [class.sent]="msg.senderId === currentUserId"
                         [attr.aria-label]="msg.senderId === currentUserId ? 'Sent message' : 'Received message'">
 
@@ -115,6 +138,10 @@
                                         <span nz-icon nzType="delete"></span>
                                     </button>
                                 </ng-container>
+                                <button *ngIf="msg.senderId !== currentUserId" nz-button nzType="text" nzSize="small" nzDanger
+                                    (click)="openReportDialog(msg)" nz-tooltip nzTooltipTitle="Report">
+                                    <span nz-icon nzType="alert"></span>
+                                </button>
                             </div>
 
                             <!-- Floating Reaction Picker -->
@@ -171,6 +198,25 @@
 
                             <div class="meta">{{ msg.timestamp | timeAgo }}</div>
                         </div>
+
+                        <!-- Status Indicators (Messenger Style) -->
+                        <div class="status-indicator" *ngIf="msg.senderId === currentUserId">
+                            <ng-container *ngIf="getLastSeenBy(msg, i) as seenList">
+                                <div class="seen-avatars" *ngIf="seenList.length > 0">
+                                    <nz-avatar *ngFor="let uid of seenList" 
+                                               [nzSrc]="getAvatar(uid)" 
+                                               nzSize="small" 
+                                               class="tiny-seen-avatar">
+                                    </nz-avatar>
+                                </div>
+                                <span *ngIf="seenList.length === 0 && isLastSentMessage(msg, i)" 
+                                      nz-icon 
+                                      nzType="check-circle" 
+                                      nzTheme="fill" 
+                                      class="sent-icon">
+                                </span>
+                            </ng-container>
+                        </div>
                     </div>
 
                     <div *ngIf="messages.length === 0"
@@ -182,10 +228,13 @@
 
                 <!-- Smart Composer -->
                 <footer class="chat-footer">
-                    <div class="input-wrapper">
-                        <input nz-input placeholder="Write a message…" [(ngModel)]="newMessage"
-                            (keyup.enter)="sendMessage()" class="chat-input-field" />
-                        <button nz-button (click)="sendMessage()" [disabled]="!newMessage.trim()">
+                    <div class="input-wrapper" [class.disabled]="activeRestriction">
+                        <input nz-input [placeholder]="activeRestriction ? 'Sending messages is restricted' : 'Write a message…'" 
+                            [(ngModel)]="newMessage"
+                            (keyup.enter)="sendMessage()" 
+                            [disabled]="activeRestriction"
+                            class="chat-input-field" />
+                        <button nz-button (click)="sendMessage()" [disabled]="!newMessage.trim() || activeRestriction">
                             <span nz-icon nzType="send"></span>
                         </button>
                     </div>

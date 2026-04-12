@@ -128,6 +128,12 @@ export class AppLayout implements OnInit {
       roles: ['ROLE_ADMIN'],
     },
     {
+      link: '/admin/reported-chats',
+      label: 'Reported Chats',
+      icon: 'alert',
+      roles: ['ROLE_ADMIN'],
+    },
+    {
       link: '/equipment',
       label: 'Equipment',
       icon: 'shop',

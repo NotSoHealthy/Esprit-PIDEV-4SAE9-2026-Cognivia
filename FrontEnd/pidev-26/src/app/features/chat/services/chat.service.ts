@@ -130,4 +130,36 @@ export class ChatService {
     deleteGroup(groupId: number): Observable<void> {
         return this.http.delete<void>(`${this.apiUrl}/group/${groupId}`);
     }
+
+    // Reporting & Admin Methods
+    reportChat(report: { reporterId: string, reportedUserId?: string, groupId?: number, messageId?: number, reason: string }): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/report`, report);
+    }
+
+    getReports(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/admin/reports`);
+    }
+
+    resolveReport(reportId: number): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/admin/reports/${reportId}/resolve`, {});
+    }
+
+    getUserRestriction(userId: string): Observable<any> {
+        return this.http.get<any>(`${this.apiUrl}/restriction/${userId}`);
+    }
+
+    restrictUser(restriction: { userId: string, type: string, durationInHours?: number, reason: string }): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/admin/restrict`, restriction);
+    }
+
+    getConversationContext(params: { user1?: string, user2?: string, groupId?: number, messageId?: number }): Observable<Message[]> {
+        const cleanedParams: any = {};
+        Object.keys(params).forEach(key => {
+            const val = (params as any)[key];
+            if (val !== null && val !== undefined) {
+                cleanedParams[key] = val;
+            }
+        });
+        return this.http.get<Message[]>(`${this.apiUrl}/admin/conversation-context`, { params: cleanedParams });
+    }
 }

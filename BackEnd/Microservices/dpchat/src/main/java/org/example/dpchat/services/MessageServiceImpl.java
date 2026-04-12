@@ -11,6 +11,10 @@ import org.example.dpchat.repositories.MessageReactionRepository;
 import org.example.dpchat.repositories.MessageRepository;
 import org.example.dpchat.repositories.GroupConversationRepository;
 import org.example.dpchat.repositories.GroupMemberRepository;
+import org.example.dpchat.entities.ChatReport;
+import org.example.dpchat.entities.UserRestriction;
+import org.example.dpchat.repositories.ChatReportRepository;
+import org.example.dpchat.repositories.UserRestrictionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,9 +32,14 @@ public class MessageServiceImpl implements MessageService {
     private final UserLookupService userLookupService;
     private final GroupConversationRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
+    private final ChatReportRepository reportRepository;
+    private final UserRestrictionRepository restrictionRepository;
 
     @Override
     public Message sendMessage(Message message) {
+        if (isUserRestricted(message.getSenderId())) {
+            throw new RuntimeException("You are restricted from sending messages.");
+        }
         if (message.getSenderId() != null) {
             message.setSenderId(message.getSenderId().trim().toLowerCase());
         }
@@ -49,7 +58,15 @@ public class MessageServiceImpl implements MessageService {
         String u1 = (user1 != null) ? user1.trim().toLowerCase() : "";
         String u2 = (user2 != null) ? user2.trim().toLowerCase() : "";
         List<Message> messages = messageRepository.findConversation(u1, u2);
-        messages.forEach(this::populateUserInfo);
+        messages.forEach(m -> {
+            populateUserInfo(m);
+            if (m.getRead() != null && m.getRead()) {
+                // If the sender is u1, u2 has read it. If sender is u2, u1 has read it.
+                // We add the RECIPIENT to the seenBy list.
+                String recipientId = m.getSenderId().equals(u1) ? u2 : u1;
+                m.getSeenBy().add(recipientId);
+            }
+        });
         return messages;
     }
 
@@ -215,7 +232,21 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public List<Message> getGroupMessages(Long groupId) {
         List<Message> messages = messageRepository.findByGroupIdOrderByTimestampAsc(groupId);
-        messages.forEach(this::populateUserInfo);
+        List<GroupMember> members = groupMemberRepository.findByGroupId(groupId);
+        
+        messages.forEach(m -> {
+            populateUserInfo(m);
+            for (GroupMember member : members) {
+                // Ignore sender
+                if (member.getUserId().equalsIgnoreCase(m.getSenderId())) continue;
+                
+                // If user read time is after message timestamp
+                if (member.getLastReadTimestamp() != null && 
+                    !member.getLastReadTimestamp().isBefore(m.getTimestamp())) {
+                    m.getSeenBy().add(member.getUserId());
+                }
+            }
+        });
         return messages;
     }
 
@@ -280,5 +311,127 @@ public class MessageServiceImpl implements MessageService {
         messageRepository.deleteByGroupId(groupId);
         groupMemberRepository.deleteByGroupId(groupId);
         groupRepository.deleteById(groupId);
+    }
+
+    @Override
+    public void reportChat(String reporterId, String reportedUserId, Long groupId, Long messageId, String reason) {
+        ChatReport report = new ChatReport();
+        report.setReporterId(reporterId);
+        report.setReportedUserId(reportedUserId);
+        report.setGroupId(groupId);
+        report.setMessageId(messageId);
+        report.setReason(reason);
+        reportRepository.save(report);
+    }
+
+    @Override
+    public List<org.example.dpchat.dto.ChatReportDTO> getAllReports() {
+        return reportRepository.findAll().stream().map(report -> {
+            org.example.dpchat.dto.ChatReportDTO dto = org.example.dpchat.dto.ChatReportDTO.builder()
+                    .id(report.getId())
+                    .reporterId(report.getReporterId())
+                    .reportedUserId(report.getReportedUserId())
+                    .groupId(report.getGroupId())
+                    .messageId(report.getMessageId())
+                    .reason(report.getReason())
+                    .timestamp(report.getTimestamp())
+                    .status(report.getStatus())
+                    .build();
+
+            // Populate Names
+            if (report.getReporterId() != null) {
+                userLookupService.lookupUser(report.getReporterId())
+                        .ifPresent(p -> dto.setReporterName(p.name));
+            }
+            if (report.getReportedUserId() != null) {
+                userLookupService.lookupUser(report.getReportedUserId())
+                        .ifPresent(p -> dto.setReportedUserName(p.name));
+            }
+            if (report.getGroupId() != null) {
+                groupRepository.findById(report.getGroupId())
+                        .ifPresent(g -> dto.setGroupName(g.getName()));
+            }
+
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public void resolveReport(Long reportId) {
+        reportRepository.findById(reportId).ifPresent(report -> {
+            report.setStatus("RESOLVED");
+            reportRepository.save(report);
+        });
+    }
+
+    @Override
+    public List<Message> getConversationContext(String user1, String user2, Long groupId, Long messageId) {
+        if (messageId != null) {
+            Optional<Message> reportedOpt = messageRepository.findById(messageId);
+            if (reportedOpt.isPresent()) {
+                Message reported = reportedOpt.get();
+                List<Message> before;
+                List<Message> after;
+                
+                if (groupId != null) {
+                    before = messageRepository.findGroupBefore(groupId, reported.getTimestamp(), 10);
+                    after = messageRepository.findGroupAfter(groupId, reported.getTimestamp(), 5);
+                } else {
+                    before = messageRepository.findPrivateBefore(user1, user2, reported.getTimestamp(), 10);
+                    after = messageRepository.findPrivateAfter(user1, user2, reported.getTimestamp(), 5);
+                }
+                
+                Collections.reverse(before);
+                List<Message> combined = new ArrayList<>(before);
+                combined.add(reported);
+                combined.addAll(after);
+                
+                combined.forEach(this::populateUserInfo);
+                return combined;
+            }
+        }
+        
+        // Fallback to full history
+        if (groupId != null) {
+            return getGroupMessages(groupId);
+        } else {
+            return getConversation(user1, user2);
+        }
+    }
+
+    @Override
+    public void restrictUser(String userId, String type, Integer durationInHours, String reason) {
+        UserRestriction restriction = restrictionRepository.findByUserId(userId)
+                .orElse(new UserRestriction());
+        
+        restriction.setUserId(userId);
+        restriction.setType(type);
+        restriction.setReason(reason);
+        
+        if (durationInHours != null && durationInHours > 0) {
+            restriction.setUntil(LocalDateTime.now().plusHours(durationInHours));
+        } else {
+            restriction.setUntil(null); // Permanent BAN
+        }
+        
+        restrictionRepository.save(restriction);
+    }
+
+    @Override
+    public boolean isUserRestricted(String userId) {
+        return restrictionRepository.findByUserId(userId)
+                .map(UserRestriction::isActive)
+                .orElse(false);
+    }
+
+    @Override
+    public Optional<org.example.dpchat.dto.UserRestrictionDTO> getUserRestriction(String userId) {
+        return restrictionRepository.findByUserId(userId)
+                .filter(UserRestriction::isActive)
+                .map(res -> org.example.dpchat.dto.UserRestrictionDTO.builder()
+                        .type(res.getType())
+                        .reason(res.getReason())
+                        .until(res.getUntil())
+                        .build());
     }
 }

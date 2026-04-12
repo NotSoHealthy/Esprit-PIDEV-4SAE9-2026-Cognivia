@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, inject, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -14,10 +14,13 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzModalModule } from 'ng-zorro-antd/modal';
+import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzSegmentedModule } from 'ng-zorro-antd/segmented';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { ChatService, UserInfo } from './services/chat.service';
 import { Message } from './models/chat.model';
+import { ChatReportDialog } from './components/chat-report-dialog/chat-report-dialog';
+import { NzModalService } from 'ng-zorro-antd/modal';
 import { KeycloakService } from '../../core/auth/keycloak.service';
 import { TimeAgoPipe } from '../../shared/pipes/time-ago.pipe';
 import { interval, Subscription, startWith, switchMap } from 'rxjs';
@@ -41,7 +44,7 @@ declare var JitsiMeetExternalAPI: any;
         NzSpinModule,
         NzTooltipModule,
         NzModalModule,
-        NzModalModule,
+        NzAlertModule,
         NzSegmentedModule,
         NzDropDownModule,
         TimeAgoPipe
@@ -99,6 +102,11 @@ export class ChatComponent implements OnInit, OnDestroy {
         { type: 'SAD', emoji: '😢' },
         { type: 'ANGRY', emoji: '😡' }
     ];
+    
+    // Restriction state
+    activeRestriction: any = null;
+    restrictionTimeRemaining: string = '';
+    private restrictionTimer?: any;
 
     // Call Properties
     isCallModalVisible = false;
@@ -111,14 +119,83 @@ export class ChatComponent implements OnInit, OnDestroy {
     private nzMessage = inject(NzMessageService);
     private cdr = inject(ChangeDetectorRef);
     private route = inject(ActivatedRoute);
+    private modal = inject(NzModalService);
 
     ngOnInit(): void {
         this.currentUserId = (this.keycloakService.getUserId() || '').trim().toLowerCase();
+        this.cleanUrl();
         this.loadUsers();
+        this.checkRestriction();
+    }
+
+    /**
+     * Cleans Jitsi-unfriendly URL parameters (like Keycloak state) from the browser address bar.
+     * These parameters cause Jitsi's internal parser to throw SyntaxErrors.
+     */
+    private cleanUrl(): void {
+        const url = new URL(window.location.href);
+        const paramsToClear = ['state', 'session_state', 'code', 'iss', 'client_id'];
+        let changed = false;
+
+        paramsToClear.forEach(p => {
+            if (url.searchParams.has(p)) {
+                url.searchParams.delete(p);
+                changed = true;
+            }
+        });
+
+        if (changed) {
+            window.history.replaceState({}, '', url.toString().split('#')[0]);
+        }
     }
 
     ngOnDestroy(): void {
         this.pollingSub?.unsubscribe();
+        if (this.restrictionTimer) clearInterval(this.restrictionTimer);
+    }
+
+    checkRestriction(): void {
+        if (!this.currentUserId) return;
+        this.chatService.getUserRestriction(this.currentUserId).subscribe(res => {
+            if (res) {
+                this.activeRestriction = res;
+                this.startRestrictionCountdown();
+            } else {
+                this.activeRestriction = null;
+            }
+            this.cdr.detectChanges();
+        });
+    }
+
+    private startRestrictionCountdown(): void {
+        if (this.restrictionTimer) clearInterval(this.restrictionTimer);
+        
+        const update = () => {
+            if (!this.activeRestriction || !this.activeRestriction.until) {
+                this.restrictionTimeRemaining = '';
+                return;
+            }
+            
+            const until = new Date(this.activeRestriction.until).getTime();
+            const now = new Date().getTime();
+            const diff = until - now;
+            
+            if (diff <= 0) {
+                this.activeRestriction = null;
+                this.restrictionTimeRemaining = '';
+                clearInterval(this.restrictionTimer);
+                this.cdr.detectChanges();
+                return;
+            }
+            
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            this.restrictionTimeRemaining = `${hours}h ${mins}m remaining`;
+            this.cdr.detectChanges();
+        };
+        
+        update();
+        this.restrictionTimer = setInterval(update, 60000); // Update every minute
     }
 
     loadUsers(): void {
@@ -503,11 +580,32 @@ export class ChatComponent implements OnInit, OnDestroy {
             )
             .subscribe({
                 next: (data) => {
-                    if (data.length !== this.messages.length) {
+                    const lengthChanged = data.length !== this.messages.length;
+                    const hasSeenChanged = JSON.stringify(data.map(m => m.seenBy)) !== JSON.stringify(this.messages.map(m => m.seenBy));
+                    
+                    if (lengthChanged || hasSeenChanged) {
                         this.messages = data;
-                        this.scrollToBottom();
+                        if (lengthChanged) {
+                            this.scrollToBottom();
+                        }
                         this.cdr.detectChanges();
                     }
+
+                    // Auto-read logic: If we have the conversation open and receive new unread messages
+                    if (this.selectedUser && this.selectedUser.role !== 'GROUP') {
+                        const hasUnread = data.some(m => m.recipientId === this.currentUserId && !m.seenBy?.includes(this.currentUserId));
+                        if (hasUnread) {
+                            this.chatService.markConversationAsRead(this.currentUserId, this.selectedUser.id).subscribe();
+                        }
+                    } else if (this.selectedUser && this.selectedUser.role === 'GROUP') {
+                        // For groups, check if we need to update lastReadTimestamp
+                        const groupId = parseInt(this.selectedUser.id.replace('group-', ''));
+                        const lastMsg = data[data.length - 1];
+                        if (lastMsg && !lastMsg.seenBy?.includes(this.currentUserId)) {
+                            this.chatService.markGroupAsRead(groupId, this.currentUserId).subscribe();
+                        }
+                    }
+
                     // Update unread counts and last messages efficiently
                     this.updateChatSummaries();
                 }
@@ -544,7 +642,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.chatService.sendMessage(messageData).subscribe({
             next: () => {
                 this.newMessage = '';
-                this.scrollToBottom();
+                this.loadConversation();
                 this.cdr.detectChanges();
             },
             error: () => this.nzMessage.error('Failed to send message')
@@ -665,7 +763,22 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     toggleReactionPicker(messageId: number | undefined): void {
         if (!messageId) return;
+        // Close others first
+        Object.keys(this.reactionMessages).forEach(id => {
+            const numId = parseInt(id);
+            if (numId !== messageId) this.reactionMessages[numId] = false;
+        });
         this.reactionMessages[messageId] = !this.reactionMessages[messageId];
+    }
+
+    @HostListener('document:click', ['$event'])
+    onClickOutside(event: MouseEvent): void {
+        const target = event.target as HTMLElement;
+        // Check if we clicked on a reaction trigger or reaction picker
+        if (!target.closest('.reaction-trigger') && !target.closest('.reaction-picker')) {
+            // Reset all reaction pickers
+            this.reactionMessages = {};
+        }
     }
 
     addReaction(messageId: number | undefined, type: string): void {
@@ -713,5 +826,56 @@ export class ChatComponent implements OnInit, OnDestroy {
                 }
             } catch (err) { }
         }, 100);
+    }
+
+    getLastSeenBy(msg: Message, index: number): string[] {
+        if (!msg.seenBy || msg.seenBy.length === 0) return [];
+        
+        // Avoid showing "seen" indicator for own messages read if we're not the sender
+        // In local logic, if I'm the recipient, I don't see my own avatar on my seen messages.
+        // We only show seenBy users who are NOT the sender.
+        
+        return msg.seenBy.filter(userId => {
+            if (userId === msg.senderId) return false;
+            
+            // Check if this userId has seen any message AFTER this index
+            for (let i = index + 1; i < this.messages.length; i++) {
+                if (this.messages[i].seenBy?.includes(userId)) {
+                    return false;
+                }
+            }
+            return true;
+        });
+    }
+
+    isLastSentMessage(msg: Message, index: number): boolean {
+        if (msg.senderId !== this.currentUserId) return false;
+        if (msg.seenBy && msg.seenBy.length > 0) return false;
+        
+        for (let i = index + 1; i < this.messages.length; i++) {
+            if (this.messages[i].senderId === this.currentUserId && (!this.messages[i].seenBy || this.messages[i].seenBy?.length === 0)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    openReportDialog(message?: Message): void {
+        if (!this.selectedUser) return;
+        
+        const isGroup = this.selectedUser.role === 'GROUP';
+        const modalData = {
+            reporterId: this.currentUserId,
+            reportedUserId: message ? message.senderId : (isGroup ? null : this.selectedUser.id),
+            groupId: isGroup ? parseInt(this.selectedUser.id.replace('group-', '')) : null,
+            messageId: message ? message.id : null
+        };
+
+        this.modal.create({
+            nzTitle: message ? 'Report Message' : 'Report Conversation',
+            nzContent: ChatReportDialog,
+            nzData: modalData,
+            nzFooter: null
+        });
     }
 }

@@ -89,6 +89,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'admin/reported-chats',
+        canMatch: [roleGuard(['ROLE_ADMIN'])],
+        loadComponent: () =>
+          import('./features/chat/components/admin-reported-chats/admin-reported-chats').then(
+            (m) => m.AdminReportedChats,
+          ),
+      },
+      {
         path: 'careteam',
         title: 'Care Team',
         canMatch: [roleGuard(['ROLE_PATIENT'])],

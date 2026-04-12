@@ -280,6 +280,11 @@ $radius-md: 12px;
                 &.sent {
                     align-self: flex-end;
 
+                    .reaction-picker {
+                        right: 0 !important;
+                        left: auto !important;
+                    }
+
                     .message-bubble {
                         background: linear-gradient(135deg, $primary, $primary-light);
                         color: white;
@@ -301,10 +306,15 @@ $radius-md: 12px;
                     }
                 }
 
-                &:not(.sent) {
-                    align-self: flex-start;
+                    &:not(.sent) {
+                        align-self: flex-start;
 
-                    .message-bubble {
+                        .reaction-picker {
+                            left: 0 !important;
+                            right: auto !important;
+                        }
+
+                        .message-bubble {
                         background: white;
                         color: $text-main;
                         border-radius: $radius-lg $radius-lg $radius-lg 4px;
@@ -396,26 +406,28 @@ $radius-md: 12px;
 
                     .reaction-picker {
                         position: absolute;
-                        bottom: calc(100% + 10px);
-                        left: 50%;
-                        transform: translateX(-50%);
+                        bottom: calc(100% + 12px);
                         background: white;
-                        border: 1px solid rgba(0, 0, 0, 0.05);
-                        border-radius: 30px;
-                        padding: 6px 14px;
+                        border: 1px solid rgba(0, 0, 0, 0.08);
+                        border-radius: 40px;
+                        padding: 8px 16px;
                         display: flex;
                         gap: 12px;
-                        box-shadow: $shadow-lg;
+                        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
                         z-index: 100;
                         animation: spring-up 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                        white-space: nowrap;
+                        width: max-content;
 
                         .reaction-option {
                             cursor: pointer;
-                            font-size: 22px;
-                            transition: transform 0.2s;
+                            font-size: 24px;
+                            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                            display: flex;
+                            align-items: center;
 
                             &:hover {
-                                transform: scale(1.5) translateY(-5px);
+                                transform: scale(1.6) translateY(-8px);
                             }
                         }
                     }
@@ -462,6 +474,41 @@ $radius-md: 12px;
                             font-size: 10px;
                             opacity: 0.8;
                         }
+                    }
+                }
+
+                .status-indicator {
+                    margin-top: 4px;
+                    align-self: flex-end;
+                    display: flex;
+                    justify-content: flex-end;
+                    min-height: 16px;
+                    padding-right: 4px;
+
+                    .seen-avatars {
+                        display: flex;
+                        flex-direction: row-reverse;
+                        
+                        .tiny-seen-avatar {
+                            width: 14px;
+                            height: 14px;
+                            border: 1px solid white;
+                            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                            margin-left: -4px;
+                            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                            animation: avatar-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+                            &:hover {
+                                transform: scale(1.5);
+                                z-index: 10;
+                            }
+                        }
+                    }
+
+                    .sent-icon {
+                        font-size: 12px;
+                        color: #cbd5e1;
+                        animation: icon-pop 0.3s ease-out;
                     }
                 }
             }
@@ -751,12 +798,12 @@ $radius-md: 12px;
 @keyframes spring-up {
     0% {
         opacity: 0;
-        transform: translateX(-50%) translateY(20px) scale(0.8);
+        transform: translateY(15px) scale(0.85);
     }
 
     100% {
         opacity: 1;
-        transform: translateX(-50%) translateY(0) scale(1);
+        transform: translateY(0) scale(1);
     }
 }
 
@@ -775,6 +822,17 @@ $radius-md: 12px;
         transform: scale(1);
         box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
     }
+}
+
+@keyframes avatar-pop {
+    0% { transform: scale(0); opacity: 0; }
+    80% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes icon-pop {
+    0% { transform: scale(0); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
 }
 
 // ──────────────────────── Responsiveness ──────────────────────────

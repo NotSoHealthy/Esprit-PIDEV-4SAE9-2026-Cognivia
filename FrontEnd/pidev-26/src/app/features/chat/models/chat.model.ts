@@ -18,5 +18,6 @@ export interface Message {
     isEdited?: boolean;
     senderName?: string;
     senderRole?: string;
+    seenBy?: string[];
     reactions?: MessageReaction[];
 }

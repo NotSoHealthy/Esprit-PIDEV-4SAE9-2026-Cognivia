@@ -83,6 +83,21 @@ public class UserLookupService {
                     userCache.put(id, userMap.get(id));
                 }
             }
+
+            // Fetch Patients from care database
+            List<Map<String, Object>> patients = careJdbc.queryForList(
+                    "SELECT user_id::text AS user_id, COALESCE(first_name,'') AS first_name, COALESCE(last_name,'') AS last_name FROM patient WHERE user_id IS NOT NULL",
+                    Collections.emptyMap());
+            for (Map<String, Object> row : patients) {
+                String id = String.valueOf(row.get("user_id")).trim().toLowerCase();
+                String name = (row.get("first_name") + " " + row.get("last_name")).trim();
+                if (name.isEmpty())
+                    name = "Unknown Patient";
+                if (!userMap.containsKey(id)) {
+                    userMap.put(id, new UserProfile(id, name, "Patient"));
+                    userCache.put(id, userMap.get(id));
+                }
+            }
         } catch (Exception e) {
             System.err.println("Error fetching all users: " + e.getMessage());
         }
@@ -134,6 +149,18 @@ public class UserLookupService {
                 Map<String, Object> ph = pharmacists.get(0);
                 String name = (ph.get("first_name") + " " + ph.get("last_name")).trim();
                 UserProfile profile = new UserProfile(normalizedId, name, "Pharmacist");
+                userCache.put(normalizedId, profile);
+                return Optional.of(profile);
+            }
+
+            // Check Patient table
+            List<Map<String, Object>> patients = careJdbc.queryForList(
+                    "SELECT first_name, last_name FROM patient WHERE user_id = :userId", params);
+
+            if (!patients.isEmpty()) {
+                Map<String, Object> pt = patients.get(0);
+                String name = (pt.get("first_name") + " " + pt.get("last_name")).trim();
+                UserProfile profile = new UserProfile(normalizedId, name, "Patient");
                 userCache.put(normalizedId, profile);
                 return Optional.of(profile);
             }

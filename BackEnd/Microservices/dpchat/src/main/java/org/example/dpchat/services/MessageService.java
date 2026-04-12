@@ -43,4 +43,13 @@ public interface MessageService {
     void promoteToAdmin(Long groupId, String userId);
     void clearGroupHistory(Long groupId);
     void deleteGroup(Long groupId);
+
+    // Admin & Reporting Methods
+    void reportChat(String reporterId, String reportedUserId, Long groupId, Long messageId, String reason);
+    List<org.example.dpchat.dto.ChatReportDTO> getAllReports();
+    void resolveReport(Long reportId);
+    List<Message> getConversationContext(String user1, String user2, Long groupId, Long messageId);
+    void restrictUser(String userId, String type, Integer durationInHours, String reason);
+    boolean isUserRestricted(String userId);
+    Optional<org.example.dpchat.dto.UserRestrictionDTO> getUserRestriction(String userId);
 }

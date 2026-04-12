@@ -192,6 +192,27 @@ public class ChatController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/chat/report")
+    public ResponseEntity<Void> reportChat(@RequestBody ReportRequest request) {
+        messageService.reportChat(request.reporterId, request.reportedUserId, request.groupId, request.messageId, request.reason);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/chat/restriction/{userId}")
+    public ResponseEntity<org.example.dpchat.dto.UserRestrictionDTO> getUserRestriction(@PathVariable("userId") String userId) {
+        return messageService.getUserRestriction(userId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
+    }
+
+    public static class ReportRequest {
+        public String reporterId;
+        public String reportedUserId;
+        public Long groupId;
+        public Long messageId;
+        public String reason;
+    }
+
     public static class CreateGroupRequest {
         public String name;
         public String creatorId;
