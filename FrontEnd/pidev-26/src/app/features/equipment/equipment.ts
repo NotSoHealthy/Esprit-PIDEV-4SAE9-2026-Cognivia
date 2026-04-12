@@ -24,6 +24,8 @@ type EquipmentFormModel = Omit<EquipmentModel, 'id' | 'conditionScore'> & {
   styleUrls: ['./equipment.css']
 })
 export class Equipment implements OnInit {
+  private static readonly MAX_EXTRACTED_TEXT_LENGTH = 15000;
+
   equipments: EquipmentModel[] = [];
   closestMaintenanceMap: Map<number, Maintenance | null> = new Map();
   closestReservationMap: Map<number, ReservationModel | null> = new Map();
@@ -313,12 +315,13 @@ export class Equipment implements OnInit {
 
     try {
       const { text, firstImageFile } = await this.extractTextAndFirstImage(file);
+      const sanitizedText = this.prepareTextForExtraction(text);
 
-      if (!text.trim()) {
-        throw new Error('No text content found in the selected file.');
+      if (!sanitizedText) {
+        throw new Error('No usable text content found in the selected file.');
       }
 
-      this.equipmentService.extractEquipmentFromText(text).subscribe({
+      this.equipmentService.extractEquipmentFromText(sanitizedText).subscribe({
         next: (equipmentFromText) => {
           this.openModal();
           this.isPrefilledFromDocument = true;
@@ -342,8 +345,11 @@ export class Equipment implements OnInit {
           this.isExtractingFromDocument = false;
           this.cdr.detectChanges();
         },
-        error: () => {
-          this.extractionError = 'Failed to extract equipment information from the document.';
+        error: (err) => {
+          this.extractionError =
+            err?.status === 400
+              ? 'The document content is too long or contains unsupported characters. Try a shorter/cleaner file.'
+              : 'Failed to extract equipment information from the document.';
           this.isExtractingFromDocument = false;
           this.cdr.detectChanges();
         }
@@ -375,6 +381,29 @@ export class Equipment implements OnInit {
     }
 
     throw new Error('Unsupported file type. Please upload a .pdf or .docx file.');
+  }
+
+  private prepareTextForExtraction(text: string): string {
+    if (!text) return '';
+
+    // Remove problematic control characters while preserving line breaks and tabs.
+    let cleaned = text.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, ' ');
+
+    // Normalize whitespace to reduce payload size without losing semantic structure.
+    cleaned = cleaned
+      .replace(/\r\n?/g, '\n')
+      .replace(/[\t ]+/g, ' ')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+
+    if (cleaned.length <= Equipment.MAX_EXTRACTED_TEXT_LENGTH) {
+      return cleaned;
+    }
+
+    // Keep the beginning and tail of the document, where key summary info often appears.
+    const headLength = Math.floor(Equipment.MAX_EXTRACTED_TEXT_LENGTH * 0.8);
+    const tailLength = Equipment.MAX_EXTRACTED_TEXT_LENGTH - headLength - 24;
+    return `${cleaned.slice(0, headLength)}\n\n[...trimmed...]\n\n${cleaned.slice(-tailLength)}`;
   }
 
   private async extractFromDocx(
@@ -447,49 +476,138 @@ export class Equipment implements OnInit {
     const operatorList = await page.getOperatorList();
     const imageOpCodes = [
       (pdfjsLib as any).OPS.paintImageXObject,
-      (pdfjsLib as any).OPS.paintJpegXObject
+      (pdfjsLib as any).OPS.paintJpegXObject,
+      (pdfjsLib as any).OPS.paintInlineImageXObject,
+      (pdfjsLib as any).OPS.paintInlineImageXObjectGroup,
+      (pdfjsLib as any).OPS.paintImageMaskXObject
     ];
 
     for (let i = 0; i < operatorList.fnArray.length; i++) {
       if (!imageOpCodes.includes(operatorList.fnArray[i])) continue;
 
-      const objectId = operatorList.argsArray[i]?.[0];
-      if (!objectId) continue;
+      const imageData = await this.resolvePdfImageData(page, operatorList.argsArray[i]);
+      const file = await this.convertPdfImageDataToFile(imageData);
+      if (file) {
+        return file;
+      }
+    }
 
-      const imageData = await new Promise<any>((resolve) => {
-        page.objs.get(objectId, (obj: any) => resolve(obj));
-      });
+    return this.renderFirstPdfPageAsImage(page);
+  }
 
-      if (!imageData) continue;
+  private async resolvePdfImageData(page: any, operatorArgs: any): Promise<any | null> {
+    if (!operatorArgs || operatorArgs.length === 0) {
+      return null;
+    }
 
-      const canvas = document.createElement('canvas');
-      const context = canvas.getContext('2d');
-      if (!context) continue;
+    const candidates = this.flattenPdfImageCandidates(operatorArgs);
+    for (const candidate of candidates) {
+      if (!candidate) continue;
 
-      if (imageData.bitmap) {
-        canvas.width = imageData.bitmap.width;
-        canvas.height = imageData.bitmap.height;
-        context.drawImage(imageData.bitmap, 0, 0);
-      } else if (imageData.data && imageData.width && imageData.height) {
-        canvas.width = imageData.width;
-        canvas.height = imageData.height;
-        const clamped =
-          imageData.data instanceof Uint8ClampedArray
-            ? imageData.data
-            : new Uint8ClampedArray(imageData.data);
-        const image = new ImageData(clamped, imageData.width, imageData.height);
-        context.putImageData(image, 0, 0);
-      } else {
+      if (typeof candidate === 'string') {
+        const resolved = await this.getPdfObject(page, candidate);
+        if (resolved) {
+          return resolved;
+        }
         continue;
       }
 
-      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
-      if (!blob) continue;
+      if (typeof candidate?.objId === 'string') {
+        const resolved = await this.getPdfObject(page, candidate.objId);
+        if (resolved) {
+          return resolved;
+        }
+      }
 
-      return new File([blob], 'pdf-image.png', { type: 'image/png' });
+      if (typeof candidate?.id === 'string') {
+        const resolved = await this.getPdfObject(page, candidate.id);
+        if (resolved) {
+          return resolved;
+        }
+      }
+
+      if ((candidate?.data && candidate?.width && candidate?.height) || candidate?.bitmap) {
+        return candidate;
+      }
     }
 
     return null;
+  }
+
+  private flattenPdfImageCandidates(value: any): any[] {
+    if (!Array.isArray(value)) {
+      return [value];
+    }
+
+    const flattened: any[] = [];
+    for (const item of value) {
+      if (Array.isArray(item)) {
+        flattened.push(...item);
+      } else {
+        flattened.push(item);
+      }
+    }
+
+    return flattened;
+  }
+
+  private async getPdfObject(page: any, objectId: string): Promise<any | null> {
+    const resolvedFrom = async (source: any): Promise<any | null> => {
+      if (!source?.get) return null;
+
+      return new Promise<any>((resolve) => {
+        source.get(objectId, (obj: any) => resolve(obj || null));
+      });
+    };
+
+    return (await resolvedFrom(page.objs)) || (await resolvedFrom(page.commonObjs));
+  }
+
+  private async convertPdfImageDataToFile(imageData: any): Promise<File | null> {
+    if (!imageData) return null;
+
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    if (!context) return null;
+
+    if (imageData.bitmap) {
+      canvas.width = imageData.bitmap.width;
+      canvas.height = imageData.bitmap.height;
+      context.drawImage(imageData.bitmap, 0, 0);
+    } else if (imageData.data && imageData.width && imageData.height) {
+      canvas.width = imageData.width;
+      canvas.height = imageData.height;
+      const clamped =
+        imageData.data instanceof Uint8ClampedArray
+          ? imageData.data
+          : new Uint8ClampedArray(imageData.data);
+      const image = new ImageData(clamped, imageData.width, imageData.height);
+      context.putImageData(image, 0, 0);
+    } else {
+      return null;
+    }
+
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
+    if (!blob) return null;
+
+    return new File([blob], 'pdf-image.png', { type: 'image/png' });
+  }
+
+  private async renderFirstPdfPageAsImage(page: any): Promise<File | null> {
+    const viewport = page.getViewport({ scale: 1.2 });
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    if (!context) return null;
+
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    await page.render({ canvasContext: context, viewport }).promise;
+
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
+    if (!blob) return null;
+
+    return new File([blob], 'pdf-page-preview.png', { type: 'image/png' });
   }
 
   openDeleteModal(equipment: EquipmentModel): void {
