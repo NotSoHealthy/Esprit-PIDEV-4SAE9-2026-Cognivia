@@ -162,4 +162,15 @@ export class ChatService {
         });
         return this.http.get<Message[]>(`${this.apiUrl}/admin/conversation-context`, { params: cleanedParams });
     }
+
+    // Activity & Typing methods
+    sendTypingStatus(convId: string, userId: string): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/activity/typing/${convId}`, {}, {
+            params: { userId }
+        });
+    }
+
+    getTypingStatus(convId: string): Observable<UserInfo[]> {
+        return this.http.get<UserInfo[]>(`${this.apiUrl}/activity/status/${convId}`);
+    }
 }

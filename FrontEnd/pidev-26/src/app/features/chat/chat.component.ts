@@ -23,7 +23,7 @@ import { ChatReportDialog } from './components/chat-report-dialog/chat-report-di
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { KeycloakService } from '../../core/auth/keycloak.service';
 import { TimeAgoPipe } from '../../shared/pipes/time-ago.pipe';
-import { interval, Subscription, startWith, switchMap } from 'rxjs';
+import { interval, Subscription, startWith, switchMap, Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 
 declare var JitsiMeetExternalAPI: any;
 
@@ -68,6 +68,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     unreadCounts: { [key: string]: number } = {};
     lastMessages: { [key: string]: Message } = {};
     pollingInterval: any;
+    typingUsers: UserInfo[] = [];
+    private typingSubject = new Subject<void>();
+    private typingPollerSub?: Subscription;
+    private typingSignalSub?: Subscription;
 
     editingMessageId: number | null = null;
     editingContent: string = '';
@@ -102,7 +106,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         { type: 'SAD', emoji: '😢' },
         { type: 'ANGRY', emoji: '😡' }
     ];
-    
+
     // Restriction state
     activeRestriction: any = null;
     restrictionTimeRemaining: string = '';
@@ -151,6 +155,8 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(): void {
         this.pollingSub?.unsubscribe();
+        this.typingPollerSub?.unsubscribe();
+        this.typingSignalSub?.unsubscribe();
         if (this.restrictionTimer) clearInterval(this.restrictionTimer);
     }
 
@@ -169,17 +175,17 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     private startRestrictionCountdown(): void {
         if (this.restrictionTimer) clearInterval(this.restrictionTimer);
-        
+
         const update = () => {
             if (!this.activeRestriction || !this.activeRestriction.until) {
                 this.restrictionTimeRemaining = '';
                 return;
             }
-            
+
             const until = new Date(this.activeRestriction.until).getTime();
             const now = new Date().getTime();
             const diff = until - now;
-            
+
             if (diff <= 0) {
                 this.activeRestriction = null;
                 this.restrictionTimeRemaining = '';
@@ -187,13 +193,13 @@ export class ChatComponent implements OnInit, OnDestroy {
                 this.cdr.detectChanges();
                 return;
             }
-            
+
             const hours = Math.floor(diff / (1000 * 60 * 60));
             const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
             this.restrictionTimeRemaining = `${hours}h ${mins}m remaining`;
             this.cdr.detectChanges();
         };
-        
+
         update();
         this.restrictionTimer = setInterval(update, 60000); // Update every minute
     }
@@ -573,6 +579,8 @@ export class ChatComponent implements OnInit, OnDestroy {
                 startWith(0),
                 switchMap(() => {
                     const isGroup = this.selectedUser!.role === 'GROUP';
+                    const convId = isGroup ? 'group-' + this.selectedUser!.id.replace('group-', '') : [this.currentUserId, this.selectedUser!.id].sort().join('_');
+
                     return isGroup ?
                         this.chatService.getGroupMessages(parseInt(this.selectedUser!.id.replace('group-', ''))) :
                         this.chatService.getConversation(this.currentUserId, this.selectedUser!.id);
@@ -582,9 +590,13 @@ export class ChatComponent implements OnInit, OnDestroy {
                 next: (data) => {
                     const lengthChanged = data.length !== this.messages.length;
                     const hasSeenChanged = JSON.stringify(data.map(m => m.seenBy)) !== JSON.stringify(this.messages.map(m => m.seenBy));
-                    
+
                     if (lengthChanged || hasSeenChanged) {
-                        this.messages = data;
+                        // Filter out optimistic messages if we have real messages now
+                        this.messages = [
+                            ...data,
+                            ...this.messages.filter(m => m.status === 'sending')
+                        ];
                         if (lengthChanged) {
                             this.scrollToBottom();
                         }
@@ -610,6 +622,39 @@ export class ChatComponent implements OnInit, OnDestroy {
                     this.updateChatSummaries();
                 }
             });
+
+        // Add Typing Poller
+        this.typingPollerSub?.unsubscribe();
+        this.typingPollerSub = interval(2000)
+            .pipe(
+                switchMap(() => {
+                    const isGroup = this.selectedUser!.role === 'GROUP';
+                    const convId = isGroup ? 'group-' + this.selectedUser!.id.replace('group-', '') : [this.currentUserId, this.selectedUser!.id].sort().join('_');
+                    return this.chatService.getTypingStatus(convId);
+                })
+            )
+            .subscribe(users => {
+                const wasTyping = this.typingUsers.length > 0;
+                this.typingUsers = users.filter(u => u.id !== this.currentUserId);
+                if (this.typingUsers.length > 0 && !wasTyping) {
+                    this.scrollToBottom();
+                }
+                this.cdr.detectChanges();
+            });
+
+        // Setup Typing Signal Sender
+        this.typingSignalSub?.unsubscribe();
+        this.typingSignalSub = this.typingSubject.pipe(
+            debounceTime(500)
+        ).subscribe(() => {
+            const isGroup = this.selectedUser!.role === 'GROUP';
+            const convId = isGroup ? 'group-' + this.selectedUser!.id.replace('group-', '') : [this.currentUserId, this.selectedUser!.id].sort().join('_');
+            this.chatService.sendTypingStatus(convId, this.currentUserId).subscribe();
+        });
+    }
+
+    onTyping(): void {
+        this.typingSubject.next();
     }
 
     private updateChatSummaries(): void {
@@ -628,24 +673,53 @@ export class ChatComponent implements OnInit, OnDestroy {
         if (!this.newMessage.trim() || !this.selectedUser) return;
 
         const isGroup = this.selectedUser.role === 'GROUP';
+        const messageContent = this.newMessage;
+        const tempId = Date.now();
+
+        // Optimistic UI Update
+        const optimisticMessage: Message = {
+            id: tempId,
+            senderId: this.currentUserId,
+            content: messageContent,
+            timestamp: new Date().toISOString(),
+            status: 'sending' as any,
+            isRead: false
+        };
+        
+        if (isGroup) {
+            optimisticMessage.groupId = parseInt(this.selectedUser.id.replace('group-', ''));
+        } else {
+            optimisticMessage.recipientId = this.selectedUser.id;
+        }
+
+        this.messages = [...this.messages, optimisticMessage];
+        this.newMessage = '';
+        this.scrollToBottom();
+        this.cdr.detectChanges();
+
         const messageData: Partial<Message> = {
             senderId: this.currentUserId,
-            content: this.newMessage
+            content: messageContent
         };
 
         if (isGroup) {
-            messageData.groupId = parseInt(this.selectedUser.id.replace('group-', ''));
+            messageData.groupId = optimisticMessage.groupId;
         } else {
-            messageData.recipientId = this.selectedUser.id;
+            messageData.recipientId = optimisticMessage.recipientId;
         }
 
         this.chatService.sendMessage(messageData).subscribe({
-            next: () => {
-                this.newMessage = '';
-                this.loadConversation();
+            next: (realMsg) => {
+                // Replace optimistic message with real message
+                this.messages = this.messages.map(m => m.id === tempId ? realMsg : m);
                 this.cdr.detectChanges();
             },
-            error: () => this.nzMessage.error('Failed to send message')
+            error: () => {
+                this.nzMessage.error('Failed to send message');
+                // Remove optimistic message on error
+                this.messages = this.messages.filter(m => m.id !== tempId);
+                this.cdr.detectChanges();
+            }
         });
     }
 
@@ -796,10 +870,10 @@ export class ChatComponent implements OnInit, OnDestroy {
         return this.availableReactions.find(r => r.type === type)?.emoji || '❓';
     }
 
-    getGroupedReactions(message: Message): { type: string, emoji: string, count: number, me: boolean }[] {
-        if (!message.reactions || message.reactions.length === 0) return [];
+    getGroupedReactions(msg: Message): { type: string, emoji: string, count: number, me: boolean }[] {
+        if (!msg.reactions || msg.reactions.length === 0) return [];
 
-        const groups = message.reactions.reduce((acc, r) => {
+        const groups = msg.reactions.reduce((acc, r) => {
             if (!acc[r.type]) {
                 acc[r.type] = { count: 0, me: false };
             }
@@ -830,14 +904,14 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     getLastSeenBy(msg: Message, index: number): string[] {
         if (!msg.seenBy || msg.seenBy.length === 0) return [];
-        
+
         // Avoid showing "seen" indicator for own messages read if we're not the sender
         // In local logic, if I'm the recipient, I don't see my own avatar on my seen messages.
         // We only show seenBy users who are NOT the sender.
-        
+
         return msg.seenBy.filter(userId => {
             if (userId === msg.senderId) return false;
-            
+
             // Check if this userId has seen any message AFTER this index
             for (let i = index + 1; i < this.messages.length; i++) {
                 if (this.messages[i].seenBy?.includes(userId)) {
@@ -851,7 +925,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     isLastSentMessage(msg: Message, index: number): boolean {
         if (msg.senderId !== this.currentUserId) return false;
         if (msg.seenBy && msg.seenBy.length > 0) return false;
-        
+
         for (let i = index + 1; i < this.messages.length; i++) {
             if (this.messages[i].senderId === this.currentUserId && (!this.messages[i].seenBy || this.messages[i].seenBy?.length === 0)) {
                 return false;
@@ -862,7 +936,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     openReportDialog(message?: Message): void {
         if (!this.selectedUser) return;
-        
+
         const isGroup = this.selectedUser.role === 'GROUP';
         const modalData = {
             reporterId: this.currentUserId,

@@ -1,3 +1,4 @@
+@use 'sass:color';
 // ──────────────────────────── Design Tokens ────────────────────────────
 
 $primary: #3b429f;
@@ -280,6 +281,14 @@ $radius-md: 12px;
                 &.sent {
                     align-self: flex-end;
 
+                    &.optimistic {
+                        opacity: 0.7;
+                        .message-bubble {
+                            box-shadow: none;
+                            background: linear-gradient(135deg, color.adjust($primary, $lightness: 20%), color.adjust($primary-light, $lightness: 20%));
+                        }
+                    }
+
                     .reaction-picker {
                         right: 0 !important;
                         left: auto !important;
@@ -509,6 +518,48 @@ $radius-md: 12px;
                         font-size: 12px;
                         color: #cbd5e1;
                         animation: icon-pop 0.3s ease-out;
+                    }
+                }
+            }
+
+            .typing-indicator-wrapper {
+                align-self: flex-start;
+                margin-top: -8px;
+                animation: slideIn 0.3s ease-out;
+
+                .typing-bubble {
+                    background: white;
+                    padding: 8px 16px;
+                    border-radius: 18px 18px 18px 4px;
+                    box-shadow: $shadow-sm;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    border: 1px solid rgba(0, 0, 0, 0.03);
+
+                    .typing-dots {
+                        display: flex;
+                        gap: 4px;
+
+                        span {
+                            width: 6px;
+                            height: 6px;
+                            background: $primary-light;
+                            border-radius: 50%;
+                            animation: typing-dot 1s infinite ease-in-out;
+                            opacity: 0.6;
+
+                            &:nth-child(2) { animation-delay: 0.2s; }
+                            &:nth-child(3) { animation-delay: 0.4s; }
+                        }
+                    }
+
+                    .typing-text {
+                        font-size: 11px;
+                        font-weight: 700;
+                        color: $text-muted;
+                        text-transform: uppercase;
+                        letter-spacing: 0.05em;
                     }
                 }
             }
@@ -1233,4 +1284,14 @@ $radius-md: 12px;
             }
         }
     }
+}
+@keyframes typing-dot {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-6px); opacity: 1; }
+}
+
+@keyframes pulse-red {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+    70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }

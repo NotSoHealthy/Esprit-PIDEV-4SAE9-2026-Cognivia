@@ -20,4 +20,5 @@ export interface Message {
     senderRole?: string;
     seenBy?: string[];
     reactions?: MessageReaction[];
+    status?: 'sending' | 'sent' | 'error';
 }

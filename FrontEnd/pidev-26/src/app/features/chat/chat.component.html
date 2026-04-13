@@ -119,6 +119,7 @@
                 <div #scrollContainer class="message-area">
                     <div *ngFor="let msg of messages; let i = index" class="message-wrapper"
                         [class.sent]="msg.senderId === currentUserId"
+                        [class.optimistic]="msg.status === 'sending'"
                         [attr.aria-label]="msg.senderId === currentUserId ? 'Sent message' : 'Received message'">
 
                         <div class="message-bubble">
@@ -224,6 +225,23 @@
                         <span nz-icon nzType="coffee" class="text-6xl mb-4"></span>
                         <p class="text-lg font-medium">No messages yet. Break the ice!</p>
                     </div>
+
+                    <!-- Typing Indicator Bubble -->
+                    <div class="typing-indicator-wrapper" *ngIf="typingUsers.length > 0">
+                        <div class="typing-bubble">
+                            <div class="typing-dots">
+                                <span></span><span></span><span></span>
+                            </div>
+                            <span class="typing-text">
+                                <ng-container *ngIf="selectedUser.role === 'GROUP'; else privateTyping">
+                                    {{ typingUsers.length === 1 ? typingUsers[0].name + ' is typing...' : typingUsers.length + ' people are typing...' }}
+                                </ng-container>
+                                <ng-template #privateTyping>
+                                    Typing...
+                                </ng-template>
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Smart Composer -->
@@ -231,6 +249,7 @@
                     <div class="input-wrapper" [class.disabled]="activeRestriction">
                         <input nz-input [placeholder]="activeRestriction ? 'Sending messages is restricted' : 'Write a message…'" 
                             [(ngModel)]="newMessage"
+                            (ngModelChange)="onTyping()"
                             (keyup.enter)="sendMessage()" 
                             [disabled]="activeRestriction"
                             class="chat-input-field" />
