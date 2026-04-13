@@ -1,10 +1,16 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, Injector, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({ providedIn: 'root' })
 export class LanguageService {
-    private readonly translate = inject(TranslateService);
+    private readonly injector = inject(Injector);
     private readonly LANG_KEY = 'pidev.locale';
+
+    /** Lazily resolved so the root injector doesn't fail during test setup
+     *  when TranslateService isn't yet registered (e.g. Patient/Doctor specs). */
+    private get translate(): TranslateService {
+        return this.injector.get(TranslateService);
+    }
 
     initLanguage(): void {
         this.translate.addLangs(['en', 'fr', 'ar']);

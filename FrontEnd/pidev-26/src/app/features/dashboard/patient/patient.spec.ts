@@ -1,10 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Patient } from './patient';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { provideTranslateService } from '@ngx-translate/core';
+import { provideRouter } from '@angular/router';
 import { KeycloakService } from '../../../core/auth/keycloak.service';
 import { LanguageService } from '../../../core/services/language.service';
-import { RouterTestingModule } from '@angular/router/testing';
 
 const keycloakServiceMock = {
   isLoggedIn: () => true,
@@ -23,9 +22,11 @@ describe('Patient', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Patient, HttpClientTestingModule, RouterTestingModule],
+      imports: [Patient, HttpClientTestingModule],
       providers: [
-        provideTranslateService({ defaultLanguage: 'en' }),
+        // provideRouter([]) → registers an empty router so navigate() is a no-op
+        // and no route guards (which inject real KeycloakService) are ever called
+        provideRouter([]),
         { provide: KeycloakService, useValue: keycloakServiceMock },
         { provide: LanguageService, useValue: languageServiceMock }
       ]
@@ -34,6 +35,7 @@ describe('Patient', () => {
 
     fixture = TestBed.createComponent(Patient);
     component = fixture.componentInstance;
+    fixture.detectChanges();
     await fixture.whenStable();
   });
 
