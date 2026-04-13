@@ -98,6 +98,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     isCurrentUserAdmin = false;
 
     reactionMessages: { [key: number]: boolean } = {};
+    showSummaryOption = false;
+    isSummarizing = false;
     availableReactions = [
         { type: 'LIKE', emoji: '👍' },
         { type: 'LOVE', emoji: '❤️' },
@@ -259,6 +261,15 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
 
     selectUser(user: UserInfo): void {
+        const backlogCount = this.unreadCounts[user.id] || 0;
+        
+        // If we switch to a new user, or if we discover a backlog for the first time
+        if (this.selectedUser?.id !== user.id) {
+            this.showSummaryOption = backlogCount >= 10;
+        } else if (backlogCount >= 10) {
+            this.showSummaryOption = true;
+        }
+        
         this.selectedUser = user;
         this.loadConversation();
         this.startPolling();
@@ -664,6 +675,11 @@ export class ChatComponent implements OnInit, OnDestroy {
                 if (s.lastMessage) {
                     this.lastMessages = { ...this.lastMessages, [s.contactId]: s.lastMessage };
                 }
+                
+                // If we're currently looking at this chat and we just discovered a backlog, show the summary option
+                if (this.selectedUser?.id === s.contactId && s.unreadCount >= 10 && !this.showSummaryOption) {
+                    this.showSummaryOption = true;
+                }
             });
             this.cdr.detectChanges();
         });
@@ -950,6 +966,57 @@ export class ChatComponent implements OnInit, OnDestroy {
             nzContent: ChatReportDialog,
             nzData: modalData,
             nzFooter: null
+        });
+    }
+
+    generateAISummary(): void {
+        if (!this.selectedUser) return;
+
+        const isGroup = this.selectedUser.role === 'GROUP';
+        const convId = isGroup 
+            ? 'group-' + this.selectedUser.id.replace('group-', '') 
+            : [this.currentUserId, this.selectedUser.id].sort().join('_');
+
+        this.isSummarizing = true;
+        this.cdr.detectChanges();
+
+        this.chatService.getAIChatSummary(convId).subscribe({
+            next: (summary) => {
+                this.isSummarizing = false;
+                this.showSummaryOption = false; // Hide after summarizing
+                
+                this.modal.success({
+                    nzTitle: undefined,
+                    nzContent: `
+                        <div class="premium-ai-summary">
+                            <div class="summary-header">
+                                <span nz-icon nzType="robot" class="ai-header-icon"></span>
+                                <h2>AI Insights</h2>
+                                <div class="ai-badge">GEN AI</div>
+                            </div>
+                            <div class="summary-body">
+                                <div class="quote-mark">“</div>
+                                <p class="summary-text">${summary}</p>
+                                <div class="summary-footer">
+                                    <span class="source">Generated from the last 10 messages</span>
+                                    <div class="glow-effect"></div>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    nzClassName: 'premium-ai-modal',
+                    nzWidth: 900,
+                    nzCentered: true,
+                    nzMaskClosable: true,
+                    nzFooter: null
+                });
+                this.cdr.detectChanges();
+            },
+            error: (err) => {
+                this.isSummarizing = false;
+                this.nzMessage.error('AI summary temporarily unavailable');
+                this.cdr.detectChanges();
+            }
         });
     }
 }

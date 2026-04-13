@@ -52,4 +52,5 @@ public interface MessageService {
     void restrictUser(String userId, String type, Integer durationInHours, String reason);
     boolean isUserRestricted(String userId);
     Optional<org.example.dpchat.dto.UserRestrictionDTO> getUserRestriction(String userId);
+    String getSummary(String user1, String user2, Long groupId);
 }

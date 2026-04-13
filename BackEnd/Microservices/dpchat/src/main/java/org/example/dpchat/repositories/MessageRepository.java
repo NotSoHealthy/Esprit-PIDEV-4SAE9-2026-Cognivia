@@ -59,4 +59,10 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     @Query(value = "SELECT * FROM message WHERE group_id = :groupId AND timestamp > :timestamp ORDER BY timestamp ASC LIMIT :limit", nativeQuery = true)
     List<Message> findGroupAfter(@Param("groupId") Long groupId, @Param("timestamp") java.time.LocalDateTime timestamp, @Param("limit") int limit);
+
+    @Query(value = "SELECT * FROM message WHERE ((sender_id = :u1 AND recipient_id = :u2) OR (sender_id = :u2 AND recipient_id = :u1)) ORDER BY timestamp DESC LIMIT :limit", nativeQuery = true)
+    List<Message> findLastPrivateMessages(@Param("u1") String u1, @Param("u2") String u2, @Param("limit") int limit);
+
+    @Query(value = "SELECT * FROM message WHERE group_id = :groupId ORDER BY timestamp DESC LIMIT :limit", nativeQuery = true)
+    List<Message> findLastGroupMessages(@Param("groupId") Long groupId, @Param("limit") int limit);
 }

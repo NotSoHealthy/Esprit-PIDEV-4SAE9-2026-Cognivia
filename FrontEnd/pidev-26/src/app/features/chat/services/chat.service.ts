@@ -173,4 +173,8 @@ export class ChatService {
     getTypingStatus(convId: string): Observable<UserInfo[]> {
         return this.http.get<UserInfo[]>(`${this.apiUrl}/activity/status/${convId}`);
     }
+
+    getAIChatSummary(convId: string): Observable<string> {
+        return this.http.get(`${this.apiUrl}/ai/summary/${convId}`, { responseType: 'text' });
+    }
 }

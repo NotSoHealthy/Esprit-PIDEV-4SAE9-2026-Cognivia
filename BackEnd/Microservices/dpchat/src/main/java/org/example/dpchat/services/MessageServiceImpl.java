@@ -34,6 +34,7 @@ public class MessageServiceImpl implements MessageService {
     private final GroupMemberRepository groupMemberRepository;
     private final ChatReportRepository reportRepository;
     private final UserRestrictionRepository restrictionRepository;
+    private final AIService aiService;
 
     @Override
     public Message sendMessage(Message message) {
@@ -433,5 +434,32 @@ public class MessageServiceImpl implements MessageService {
                         .reason(res.getReason())
                         .until(res.getUntil())
                         .build());
+    }
+
+    @Override
+    public String getSummary(String user1, String user2, Long groupId) {
+        List<Message> lastMessages;
+        if (groupId != null) {
+            lastMessages = messageRepository.findLastGroupMessages(groupId, 10);
+        } else {
+            lastMessages = messageRepository.findLastPrivateMessages(user1, user2, 10);
+        }
+
+        if (lastMessages.isEmpty()) {
+            return "No messages to summarize.";
+        }
+
+        // Reverse to get chronological order (since we fetched DESC limit 10)
+        Collections.reverse(lastMessages);
+
+        StringBuilder sb = new StringBuilder();
+        for (Message m : lastMessages) {
+            if (Boolean.TRUE.equals(m.getDeleted())) continue;
+            populateUserInfo(m);
+            String name = (m.getSenderName() != null) ? m.getSenderName() : m.getSenderId();
+            sb.append(name).append(": ").append(m.getContent()).append("\n");
+        }
+
+        return aiService.generateSummary(sb.toString());
     }
 }

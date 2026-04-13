@@ -205,6 +205,24 @@ public class ChatController {
                 .orElse(ResponseEntity.noContent().build());
     }
 
+    @GetMapping("/chat/ai/summary/{convId}")
+    public ResponseEntity<String> getSummary(
+            @PathVariable("convId") String convId,
+            @RequestParam(value = "userId", required = false) String userId) {
+        
+        if (convId.startsWith("group-")) {
+            Long groupId = Long.parseLong(convId.replace("group-", ""));
+            return ResponseEntity.ok(messageService.getSummary(null, null, groupId));
+        } else {
+            // convId is user1_user2
+            String[] users = convId.split("_");
+            if (users.length == 2) {
+                return ResponseEntity.ok(messageService.getSummary(users[0], users[1], null));
+            }
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
     public static class ReportRequest {
         public String reporterId;
         public String reportedUserId;

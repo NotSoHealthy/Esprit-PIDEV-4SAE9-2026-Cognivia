@@ -114,9 +114,25 @@
                         </button>
                     </div>
                 </header>
+                
+                <!-- Floating AI Catch Up Pill -->
+                <div *ngIf="showSummaryOption" class="ai-pill-wrapper">
+                    <div class="ai-pill" (click)="generateAISummary()">
+                        <div class="pill-glow"></div>
+                        <span nz-icon nzType="robot" class="pill-icon" [class.spinning]="isSummarizing"></span>
+                        <div class="pill-text">
+                            <span class="main-text">Catch up with AI</span>
+                            <span class="sub-text">10+ messages unread</span>
+                        </div>
+                        <button nz-button nzType="text" nzSize="small" class="pill-close" (click)="$event.stopPropagation(); showSummaryOption = false">
+                            <span nz-icon nzType="close"></span>
+                        </button>
+                    </div>
+                </div>
 
                 <!-- Discussion Stream -->
                 <div #scrollContainer class="message-area">
+
                     <div *ngFor="let msg of messages; let i = index" class="message-wrapper"
                         [class.sent]="msg.senderId === currentUserId"
                         [class.optimistic]="msg.status === 'sending'"
