@@ -19,7 +19,7 @@ public class AIServiceImpl implements AIService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${google.ai.api.key}")
+    @Value("${deepseek.ai.api.key}")
     private String apiKey;
 
     private String normalizedApiKey() {
@@ -43,27 +43,32 @@ public class AIServiceImpl implements AIService {
                 "Provide a concise summary in 2-3 sentences max.\n\n" + messagesText;
 
         try {
-            return callGemini(prompt, effectiveKey);
+            return callDeepSeek(prompt, effectiveKey);
         } catch (Exception e) {
-            log.error("Error calling Gemini API", e);
+            log.error("Error calling DeepSeek API", e);
             return "Unable to generate summary at this time.";
         }
     }
 
-    private String callGemini(String prompt, String effectiveKey) {
-        String url = "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=" + effectiveKey;
+    private String callDeepSeek(String prompt, String effectiveKey) {
+        String url = "https://api.deepseek.com/chat/completions";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(effectiveKey);
 
-        Map<String, Object> part = new HashMap<>();
-        part.put("text", prompt);
+        Map<String, Object> systemMessage = new HashMap<>();
+        systemMessage.put("role", "system");
+        systemMessage.put("content", "You are a helpful assistant that summarizes chat messages concisely.");
 
-        Map<String, Object> content = new HashMap<>();
-        content.put("parts", Collections.singletonList(part));
+        Map<String, Object> userMessage = new HashMap<>();
+        userMessage.put("role", "user");
+        userMessage.put("content", prompt);
 
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("contents", Collections.singletonList(content));
+        requestBody.put("model", "deepseek-chat");
+        requestBody.put("messages", List.of(systemMessage, userMessage));
+        requestBody.put("stream", false);
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
@@ -71,16 +76,12 @@ public class AIServiceImpl implements AIService {
             ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
                 Map<String, Object> body = response.getBody();
-                List candidates = (List) body.get("candidates");
-                if (candidates != null && !candidates.isEmpty()) {
-                    Map firstCandidate = (Map) candidates.get(0);
-                    Map resContent = (Map) firstCandidate.get("content");
-                    if (resContent != null) {
-                        List parts = (List) resContent.get("parts");
-                        if (parts != null && !parts.isEmpty()) {
-                            Map firstPart = (Map) parts.get(0);
-                            return ((String) firstPart.get("text")).trim();
-                        }
+                List choices = (List) body.get("choices");
+                if (choices != null && !choices.isEmpty()) {
+                    Map firstChoice = (Map) choices.get(0);
+                    Map message = (Map) firstChoice.get("message");
+                    if (message != null) {
+                        return ((String) message.get("content")).trim();
                     }
                 }
             }
