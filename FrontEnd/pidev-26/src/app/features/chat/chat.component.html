@@ -512,3 +512,42 @@
         </div>
     </ng-container>
 </nz-modal>
+
+<!-- AI Summary Template -->
+<ng-template #aiSummaryTpl let-data>
+    <div class="premium-ai-summary">
+        <div class="summary-glow"></div>
+        <div class="summary-header">
+            <div class="ai-icon-wrapper">
+                <span nz-icon nzType="robot" class="ai-header-icon"></span>
+                <div class="icon-pulse"></div>
+            </div>
+            <div class="header-text-group">
+                <h2>AI Insights</h2>
+                <span class="ai-subtitle">Powered by Cognivia Intelligence</span>
+            </div>
+            <div class="ai-badge">GEN AI</div>
+        </div>
+        <div class="summary-body">
+            <div class="quote-mark left-quote">“</div>
+            <div class="summary-text-container">
+                <p class="summary-text ai-shimmer">{{ data.summary }}</p>
+            </div>
+            <div class="quote-mark right-quote">”</div>
+        </div>
+        <div class="summary-footer">
+            <div class="footer-left">
+                <span class="source-pill">
+                    <span class="status-dot"></span>
+                    Generated from recent messages
+                </span>
+            </div>
+            <div class="footer-actions">
+                <button class="action-btn copy-btn" (click)="copyToClipboard(data.summary)">
+                    <span nz-icon nzType="copy"></span>
+                    Copy
+                </button>
+            </div>
+        </div>
+    </div>
+</ng-template>

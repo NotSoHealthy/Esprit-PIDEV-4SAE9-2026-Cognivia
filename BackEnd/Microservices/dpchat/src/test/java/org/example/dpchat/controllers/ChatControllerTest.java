@@ -1,9 +1,11 @@
 package org.example.dpchat.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.dpchat.entities.Message;
+import org.example.dpchat.entities.*;
 import org.example.dpchat.services.MessageService;
 import org.example.dpchat.services.UserLookupService;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -13,7 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Collections;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -77,5 +79,51 @@ public class ChatControllerTest {
                         .param("senderId", "user1"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("5"));
+    }
+
+    @Test
+    void testCreateGroup() throws Exception {
+        ChatController.CreateGroupRequest request = new ChatController.CreateGroupRequest();
+        request.name = "Test Group";
+        request.creatorId = "creator";
+        request.memberIds = List.of("user1", "user2");
+
+        GroupConversation group = new GroupConversation("Test Group", "creator");
+        when(messageService.createGroup(anyString(), anyString(), anyList())).thenReturn(group);
+
+        mockMvc.perform(post("/chat/group/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Test Group"));
+    }
+
+    @Test
+    void testReactToMessage() throws Exception {
+        Map<String, String> body = Map.of("userId", "user1", "type", "LIKE");
+        MessageReaction reaction = new MessageReaction();
+        reaction.setType(ReactionType.LIKE);
+
+        when(messageService.addReaction(anyLong(), anyString(), any(ReactionType.class)))
+                .thenReturn(reaction);
+
+        mockMvc.perform(post("/chat/react/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.type").value("LIKE"));
+    }
+
+    @Test
+    void testReportChat() throws Exception {
+        ChatController.ReportRequest request = new ChatController.ReportRequest();
+        request.reporterId = "reporter";
+        request.reportedUserId = "reported";
+        request.reason = "Spam";
+
+        mockMvc.perform(post("/chat/report")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
     }
 }

@@ -65,4 +65,19 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     @Query(value = "SELECT * FROM message WHERE group_id = :groupId ORDER BY timestamp DESC LIMIT :limit", nativeQuery = true)
     List<Message> findLastGroupMessages(@Param("groupId") Long groupId, @Param("limit") int limit);
+    @Query(value = "SELECT DISTINCT ON (contact_id) * FROM (" +
+            "  SELECT m.*, CASE WHEN m.sender_id = :userId THEN m.recipient_id ELSE m.sender_id END as contact_id " +
+            "  FROM message m " +
+            "  WHERE (m.sender_id = :userId OR m.recipient_id = :userId) AND m.group_id IS NULL" +
+            ") sub " +
+            "ORDER BY contact_id, id DESC", nativeQuery = true)
+    List<Message> findLastMessagesForAllContacts(@Param("userId") String userId);
+
+    @Query(value = "SELECT DISTINCT ON (group_id) * FROM (" +
+            "  SELECT m2.* FROM message m2 " +
+            "  INNER JOIN group_member gm ON m2.group_id = gm.group_id " +
+            "  WHERE gm.user_id = :userId" +
+            ") sub2 " +
+            "ORDER BY group_id, id DESC", nativeQuery = true)
+    List<Message> findLastMessagesForUserGroups(@Param("userId") String userId);
 }

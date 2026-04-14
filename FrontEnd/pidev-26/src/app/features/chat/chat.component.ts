@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, inject, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, inject, ChangeDetectorRef, HostListener, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -54,6 +54,7 @@ declare var JitsiMeetExternalAPI: any;
 })
 export class ChatComponent implements OnInit, OnDestroy {
     @ViewChild('scrollContainer') private scrollContainer!: ElementRef;
+    @ViewChild('aiSummaryTpl', { static: false }) aiSummaryTpl!: TemplateRef<any>;
 
     /** All users fetched from the backend */
     allUsers: UserInfo[] = [];
@@ -120,6 +121,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
 
     private pollingSub?: Subscription;
+    private summaryPollingSub?: Subscription;
     private chatService = inject(ChatService);
     private keycloakService = inject(KeycloakService);
     private nzMessage = inject(NzMessageService);
@@ -132,6 +134,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.cleanUrl();
         this.loadUsers();
         this.checkRestriction();
+        this.startSummaryPolling();
     }
 
     /**
@@ -157,6 +160,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(): void {
         this.pollingSub?.unsubscribe();
+        this.summaryPollingSub?.unsubscribe();
         this.typingPollerSub?.unsubscribe();
         this.typingSignalSub?.unsubscribe();
         if (this.restrictionTimer) clearInterval(this.restrictionTimer);
@@ -585,7 +589,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     startPolling(): void {
         this.pollingSub?.unsubscribe();
-        this.pollingSub = interval(5000)
+        this.pollingSub = interval(2000)
             .pipe(
                 startWith(0),
                 switchMap(() => {
@@ -628,9 +632,6 @@ export class ChatComponent implements OnInit, OnDestroy {
                             this.chatService.markGroupAsRead(groupId, this.currentUserId).subscribe();
                         }
                     }
-
-                    // Update unread counts and last messages efficiently
-                    this.updateChatSummaries();
                 }
             });
 
@@ -668,6 +669,32 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.typingSubject.next();
     }
 
+    private startSummaryPolling(): void {
+        this.summaryPollingSub?.unsubscribe();
+        this.summaryPollingSub = interval(2000)
+            .pipe(
+                startWith(0),
+                switchMap(() => this.chatService.getChatSummary(this.currentUserId))
+            )
+            .subscribe({
+                next: (summaries) => {
+                    summaries.forEach(s => {
+                        this.unreadCounts = { ...this.unreadCounts, [s.contactId]: s.unreadCount };
+                        if (s.lastMessage) {
+                            this.lastMessages = { ...this.lastMessages, [s.contactId]: s.lastMessage };
+                        }
+                        
+                        // If we're currently looking at this chat and we just discovered a backlog, show the summary option
+                        if (this.selectedUser?.id === s.contactId && s.unreadCount >= 10 && !this.showSummaryOption) {
+                            this.showSummaryOption = true;
+                        }
+                    });
+                    this.cdr.detectChanges();
+                },
+                error: (err) => console.error('Error polling chat summaries', err)
+            });
+    }
+
     private updateChatSummaries(): void {
         this.chatService.getChatSummary(this.currentUserId).subscribe(summaries => {
             summaries.forEach(s => {
@@ -686,6 +713,15 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
 
     sendMessage(): void {
+        const trimmedMsg = this.newMessage.trim().toLowerCase();
+        
+        // Intercept AI Commands
+        if (trimmedMsg === '@cognivia summarize' || trimmedMsg === '@coginivia summarize') {
+            this.newMessage = '';
+            this.generateAISummary();
+            return;
+        }
+
         if (!this.newMessage.trim() || !this.selectedUser) return;
 
         const isGroup = this.selectedUser.role === 'GROUP';
@@ -728,6 +764,13 @@ export class ChatComponent implements OnInit, OnDestroy {
             next: (realMsg) => {
                 // Replace optimistic message with real message
                 this.messages = this.messages.map(m => m.id === tempId ? realMsg : m);
+                
+                // Optimistically update the sidebar summary
+                const contactId = isGroup ? `group-${realMsg.groupId}` : realMsg.recipientId;
+                if (contactId) {
+                    this.lastMessages = { ...this.lastMessages, [contactId]: realMsg };
+                }
+                
                 this.cdr.detectChanges();
             },
             error: () => {
@@ -982,34 +1025,26 @@ export class ChatComponent implements OnInit, OnDestroy {
 
         this.chatService.getAIChatSummary(convId).subscribe({
             next: (summary) => {
+                console.log('AI Summary Received:', summary);
                 this.isSummarizing = false;
                 this.showSummaryOption = false; // Hide after summarizing
                 
-                this.modal.success({
+                this.modal.create({
                     nzTitle: undefined,
-                    nzContent: `
-                        <div class="premium-ai-summary">
-                            <div class="summary-header">
-                                <span nz-icon nzType="robot" class="ai-header-icon"></span>
-                                <h2>AI Insights</h2>
-                                <div class="ai-badge">GEN AI</div>
-                            </div>
-                            <div class="summary-body">
-                                <div class="quote-mark">“</div>
-                                <p class="summary-text">${summary}</p>
-                                <div class="summary-footer">
-                                    <span class="source">Generated from the last 10 messages</span>
-                                    <div class="glow-effect"></div>
-                                </div>
-                            </div>
-                        </div>
-                    `,
+                    nzContent: this.aiSummaryTpl,
+                    nzData: { summary },
                     nzClassName: 'premium-ai-modal',
-                    nzWidth: 900,
+                    nzWidth: 800,
                     nzCentered: true,
                     nzMaskClosable: true,
+                    nzMaskStyle: { 
+                        'background-color': 'rgba(0, 0, 0, 0.1)', 
+                        'backdrop-filter': 'blur(5px)',
+                        '-webkit-backdrop-filter': 'blur(5px)'
+                    },
                     nzFooter: null
                 });
+
                 this.cdr.detectChanges();
             },
             error: (err) => {
@@ -1017,6 +1052,16 @@ export class ChatComponent implements OnInit, OnDestroy {
                 this.nzMessage.error('AI summary temporarily unavailable');
                 this.cdr.detectChanges();
             }
+        });
+    }
+
+    copyToClipboard(text: string): void {
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => {
+            this.nzMessage.success('Summary copied to clipboard');
+        }).catch(err => {
+            console.error('Failed to copy text: ', err);
+            this.nzMessage.error('Failed to copy to clipboard');
         });
     }
 }

@@ -110,35 +110,69 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public List<ChatSummaryDTO> getChatSummary(String userId) {
         String normalizedId = (userId != null) ? userId.trim().toLowerCase() : "";
-        List<String> contacts = messageRepository.findRecentContacts(normalizedId);
-
+        
+        // 1. Fetch unread counts for private messages
         List<Object[]> counts = messageRepository.getUnreadCountsBySender(normalizedId);
         Map<String, Long> unreadMap = new HashMap<>();
         for (Object[] row : counts) {
-            unreadMap.put((String) row[0], (Long) row[1]);
+            if (row[0] != null && row[1] != null) {
+                // Safely convert to long regardless of whether DB returns Integer, BigInteger, or Long
+                unreadMap.put(((String) row[0]).toLowerCase(), ((Number) row[1]).longValue());
+            }
         }
 
-        List<ChatSummaryDTO> summaries = contacts.stream().map(contactId -> {
+        // 2. Fetch last messages for all private contacts in one query
+        List<Message> lastPrivateMessages = messageRepository.findLastMessagesForAllContacts(normalizedId);
+        Map<String, Message> lastMsgMap = new HashMap<>();
+        for (Message m : lastPrivateMessages) {
+            String sId = m.getSenderId() != null ? m.getSenderId().toLowerCase() : "";
+            String rId = m.getRecipientId() != null ? m.getRecipientId().toLowerCase() : "";
+            String contactId = sId.equals(normalizedId) ? rId : sId;
+            if (!contactId.isEmpty()) {
+                lastMsgMap.put(contactId, m);
+            }
+        }
+
+        // 3. Assemble private chat summaries
+        List<ChatSummaryDTO> summaries = lastMsgMap.entrySet().stream().map(entry -> {
+            String contactId = entry.getKey();
+            Message msg = entry.getValue();
+            populateUserInfo(msg);
             long unreadCount = unreadMap.getOrDefault(contactId, 0L);
-            Optional<Message> lastMessage = messageRepository.findLastMessage(normalizedId, contactId);
-            Message msg = lastMessage.orElse(null);
-            if (msg != null)
-                populateUserInfo(msg);
             return new ChatSummaryDTO(contactId, unreadCount, msg);
         }).collect(Collectors.toList());
 
-        // Add group summaries
+        // 4. Fetch group summaries
         List<GroupMember> userGroups = groupMemberRepository.findByUserId(normalizedId);
+        List<Message> lastGroupMessages = messageRepository.findLastMessagesForUserGroups(normalizedId);
+        
+        // Use three-argument toMap to safely handle any potential duplicates
+        Map<Long, Message> lastGroupMsgMap = lastGroupMessages.stream()
+                .filter(m -> m.getGroupId() != null)
+                .collect(Collectors.toMap(
+                    Message::getGroupId, 
+                    m -> m, 
+                    (existing, replacement) -> existing
+                ));
+
         for (GroupMember member : userGroups) {
             String contactId = "group-" + member.getGroupId();
             int unreadCount = messageRepository.countByGroupIdAndTimestampAfter(member.getGroupId(),
                     member.getLastReadTimestamp());
-            Optional<Message> lastMessage = messageRepository.findTopByGroupIdOrderByTimestampDesc(member.getGroupId());
-            Message msg = lastMessage.orElse(null);
+            Message msg = lastGroupMsgMap.get(member.getGroupId());
             if (msg != null)
                 populateUserInfo(msg);
             summaries.add(new ChatSummaryDTO(contactId, (long) unreadCount, msg));
         }
+
+        // Sort by last message timestamp desc (NPE safe)
+        summaries.sort((a, b) -> {
+            LocalDateTime aTs = (a.getLastMessage() != null && a.getLastMessage().getTimestamp() != null) 
+                                ? a.getLastMessage().getTimestamp() : LocalDateTime.MIN;
+            LocalDateTime bTs = (b.getLastMessage() != null && b.getLastMessage().getTimestamp() != null) 
+                                ? b.getLastMessage().getTimestamp() : LocalDateTime.MIN;
+            return bTs.compareTo(aTs);
+        });
 
         return summaries;
     }
@@ -198,10 +232,15 @@ public class MessageServiceImpl implements MessageService {
     private void populateUserInfo(Message message) {
         if (message.getSenderId() == null)
             return;
-        userLookupService.lookupUser(message.getSenderId()).ifPresent(profile -> {
-            message.setSenderName(profile.name);
-            message.setSenderRole(profile.role);
-        });
+        try {
+            userLookupService.lookupUser(message.getSenderId()).ifPresent(profile -> {
+                message.setSenderName(profile.name);
+                message.setSenderRole(profile.role);
+            });
+        } catch (Exception e) {
+            // Log and allow summary generation to continue even if one user lookup fails
+            System.err.println("Error populating user info for summary: " + e.getMessage());
+        }
     }
 
     @Override

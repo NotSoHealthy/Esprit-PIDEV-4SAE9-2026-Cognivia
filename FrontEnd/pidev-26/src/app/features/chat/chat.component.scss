@@ -1467,121 +1467,241 @@ $radius-md: 12px;
     }
 }
 
-.premium-ai-summary {
+::ng-deep .premium-ai-summary {
     position: relative;
     padding: 0;
-    font-family: 'Inter', -apple-system, sans-serif;
+    font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
+    color: #1e293b;
+    overflow: hidden;
+    border-radius: 28px;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(30px) saturate(200%);
+    -webkit-backdrop-filter: blur(30px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.15);
+
+    .summary-glow {
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle at center, rgba($primary-light, 0.1) 0%, transparent 50%);
+        pointer-events: none;
+        animation: rotate-slow 20s linear infinite;
+        z-index: 0;
+    }
 
     .summary-header {
-        background: #1e293b;
-        padding: 32px 40px;
+        position: relative;
+        padding: 40px 48px;
         display: flex;
         align-items: center;
-        gap: 16px;
-        color: white;
-        position: relative;
-        overflow: hidden;
+        gap: 24px;
+        background: linear-gradient(135deg, rgba($primary, 0.05) 0%, rgba($accent, 0.05) 100%);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+        z-index: 1;
 
-        &::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(125deg, $primary 0%, $primary-light 50%, $accent 100%);
-            opacity: 0.9;
+        .ai-icon-wrapper {
+            position: relative;
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, $primary, $primary-light);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 12px 24px rgba($primary, 0.3);
+
+            .ai-header-icon {
+                font-size: 32px;
+                color: white;
+                z-index: 2;
+            }
+
+            .icon-pulse {
+                position: absolute;
+                inset: -4px;
+                border-radius: 24px;
+                background: $primary;
+                opacity: 0.2;
+                animation: icon-pulse-anim 2s infinite;
+                z-index: 1;
+            }
         }
 
-        &::after {
-            content: '';
-            position: absolute;
-            top: -20%;
-            left: -20%;
-            right: -20%;
-            bottom: -20%;
-            background: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.2) 0%, transparent 60%),
-                        radial-gradient(circle at 80% 70%, rgba(255,255,255,0.1) 0%, transparent 60%);
-            filter: blur(40px);
-            animation: aurora 15s ease infinite alternate;
-        }
+        .header-text-group {
+            flex: 1;
+            
+            h2 {
+                margin: 0;
+                font-size: 28px;
+                font-weight: 900;
+                color: $text-main;
+                letter-spacing: -1px;
+                line-height: 1.2;
+            }
 
-        .ai-header-icon {
-            font-size: 32px;
-            z-index: 10;
-        }
-
-        h2 {
-            margin: 0;
-            color: white;
-            font-size: 24px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            z-index: 10;
+            .ai-subtitle {
+                font-size: 13px;
+                color: $text-muted;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
         }
 
         .ai-badge {
-            margin-left: auto;
-            background: rgba(255,255,255,0.15);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: 900;
+            background: rgba($primary, 0.1);
+            color: $primary;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 11px;
+            font-weight: 800;
             letter-spacing: 0.05em;
-            border: 1px solid rgba(255,255,255,0.2);
-            z-index: 10;
+            border: 1px solid rgba($primary, 0.1);
+            box-shadow: 0 4px 12px rgba($primary, 0.05);
         }
     }
 
     .summary-body {
-        padding: 40px;
         position: relative;
-        background: white;
+        padding: 48px;
+        min-height: 200px;
+        z-index: 1;
 
         .quote-mark {
             position: absolute;
-            top: 20px;
-            left: 30px;
-            font-size: 80px;
-            color: rgba($primary, 0.05);
-            font-family: serif;
-            line-height: 1;
+            font-size: 120px;
+            color: rgba($primary, 0.08);
+            font-family: 'Georgia', serif;
+            line-height: 0.8;
+            pointer-events: none;
+            
+            &.left-quote {
+                top: 0;
+                left: 24px;
+            }
+
+            &.right-quote {
+                bottom: -20px;
+                right: 24px;
+            }
         }
 
-        .summary-text {
-            font-size: 17px;
-            line-height: 1.7;
-            color: #1e293b;
-            font-weight: 500;
-            margin: 0;
+        .summary-text-container {
             position: relative;
-            z-index: 1;
-            letter-spacing: -0.01em;
-        }
+            z-index: 2;
 
-        .summary-footer {
-            margin-top: 32px;
-            padding-top: 24px;
-            border-top: 1px solid #f1f5f9;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            .summary-text {
+                font-size: 20px;
+                line-height: 1.8;
+                color: #334155 !important;
+                font-weight: 500;
+                margin: 0;
+                letter-spacing: -0.01em;
+                text-align: justify;
+                hyphens: auto;
 
-            .source {
-                font-size: 12px;
-                color: $text-muted;
-                font-weight: 600;
-                display: flex;
-                align-items: center;
-                gap: 6px;
-
-                &::before {
-                    content: '';
-                    width: 6px;
-                    height: 6px;
-                    background: $accent;
-                    border-radius: 50%;
+                &.ai-shimmer {
+                    background: linear-gradient(110deg, #334155 20%, $primary-light 40%, $primary 60%, #334155 80%);
+                    background-size: 200% auto;
+                    color: #334155; // Visible fallback
+                    background-clip: text;
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    animation: text-shimmer 3s linear infinite;
+                    
+                    // Specific fix for browsers that might struggle with the clip
+                    @supports not (background-clip: text) {
+                        -webkit-text-fill-color: #334155;
+                    }
                 }
             }
         }
     }
+
+    .summary-footer {
+        padding: 32px 48px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(255, 255, 255, 0.3);
+        border-top: 1px solid rgba(0, 0, 0, 0.03);
+        z-index: 1;
+
+        .source-pill {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-size: 12px;
+            color: $text-muted;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.02);
+
+            .status-dot {
+                width: 8px;
+                height: 8px;
+                background: $accent;
+                border-radius: 50%;
+                box-shadow: 0 0 10px $accent;
+                animation: pulse-green 2s infinite;
+            }
+        }
+
+        .action-btn {
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            padding: 10px 24px;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            color: $text-main;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+
+            &:hover {
+                transform: translateY(-2px);
+                border-color: rgba($primary, 0.3);
+                box-shadow: 0 10px 20px rgba($primary, 0.1);
+                background: $bg-app;
+                color: $primary;
+            }
+
+            &:active {
+                transform: scale(0.95);
+            }
+
+            span {
+                font-size: 18px;
+            }
+        }
+    }
+}
+
+// Additional Keyframes for Premium Effects
+@keyframes text-shimmer {
+    to { background-position: 200% center; }
+}
+
+@keyframes icon-pulse-anim {
+    0% { transform: scale(1); opacity: 0.2; }
+    50% { transform: scale(1.15); opacity: 0.4; }
+    100% { transform: scale(1); opacity: 0.2; }
+}
+
+@keyframes pulse-green {
+    0% { box-shadow: 0 0 0 0 rgba($accent, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba($accent, 0); }
+    100% { box-shadow: 0 0 0 0 rgba($accent, 0); }
 }
 
 @keyframes rotate-slow {
@@ -1603,4 +1723,44 @@ $radius-md: 12px;
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
+}
+
+// ──────────────────────── SHADOW DOM / GLOBAL OVERRIDES ──────────────────────────
+::ng-deep .premium-ai-modal {
+    .ant-modal-content {
+        background: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+    }
+
+    .ant-modal-body {
+        padding: 0 !important;
+    }
+
+    .ant-modal-close {
+        top: 24px;
+        right: 24px;
+        color: white;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+
+        &:hover {
+            background: rgba(0, 0, 0, 0.4);
+            transform: rotate(90deg);
+        }
+
+        .ant-modal-close-x {
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    }
 }
