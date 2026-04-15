@@ -1,5 +1,6 @@
 package com.pidev.care.controllers;
 
+import com.pidev.care.dto.CaregiverDto;
 import com.pidev.care.entities.Caregiver;
 import com.pidev.care.services.CaregiverService;
 import lombok.AllArgsConstructor;
@@ -22,6 +23,11 @@ public class CaregiverController {
     @GetMapping("/{id}")
     public Caregiver getCaregiverById(@PathVariable("id") Long id) {
         return careGiverService.getById(id);
+    }
+
+    @GetMapping("/dto/{id}")
+    public CaregiverDto getCaregiverDtoById(@PathVariable Long id) {
+        return CaregiverDto.fromCaregiver(careGiverService.getById(id));
     }
 
     @GetMapping("/user/{userId}")

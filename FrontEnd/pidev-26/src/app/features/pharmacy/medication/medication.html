@@ -1,0 +1,219 @@
+<div class="medications-page">
+  <!-- Header with back button and pharmacy name -->
+  <div class="medications-header" *ngIf="!embedded">
+    <button nz-button nzType="text" class="back-btn" (click)="goBack()">
+      <nz-icon nzType="arrow-left" nzTheme="outline"></nz-icon>
+      Back
+    </button>
+    <h1 class="medications-title">{{ pharmacy?.name || 'Loading...' }}</h1>
+  </div>
+
+  <!-- Loading spinner -->
+  <div *ngIf="loading" class="spinner-wrapper">
+    <nz-spin nzTip="Loading medications..." nzSize="large" style="transform: scale(1.4);"></nz-spin>
+  </div>
+
+  <!-- Error message -->
+  <div *ngIf="errorMsg" class="medications-error">{{ errorMsg }}</div>
+
+  <!-- Empty state -->
+  <div *ngIf="!loading && !errorMsg && filteredMedications.length === 0" class="empty-wrapper">
+    <nz-empty nzNotFoundContent="No medications found"></nz-empty>
+  </div>
+
+  <!-- Medications cards -->
+  <div class="medications-grid" *ngIf="paginatedMedications.length > 0">
+    <nz-card
+      *ngFor="let medication of paginatedMedications"
+      class="medication-card"
+      nzHoverable
+      (click)="openDetails(medication)"
+      [nzCover]="coverTemplate"
+    >
+      <ng-template #coverTemplate>
+        <div class="medication-cover" *ngIf="medication.imageUrl; else noImage">
+          <img [src]="medication.imageUrl" [alt]="medication.name" />
+        </div>
+      </ng-template>
+
+      <ng-template #noImage>
+        <div class="medication-cover medication-no-image">
+          <nz-icon nzType="picture" nzTheme="outline"></nz-icon>
+        </div>
+      </ng-template>
+
+      <nz-card-meta [nzTitle]="medication.name"></nz-card-meta>
+
+      <div class="medication-card-body">
+        <div class="medication-meta-row">
+          <span class="medication-muted">Class:</span>
+          <span>{{ formatTherapeuticClass(medication.therapeuticClass) }}</span>
+        </div>
+      </div>
+
+      <div class="medication-card-actions" (click)="$event.stopPropagation()">
+        <button 
+          *ngIf="showAIButton" 
+          nz-button 
+          nzType="primary" 
+          nzShape="round" 
+          nzSize="small" 
+          (click)="onAIButtonClick(medication, $event)"
+          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;"
+        >
+          AI Overview
+        </button>
+        <button nz-button nzShape="round" nzSize="small" (click)="editMedication(medication, $event)">
+          Edit
+        </button>
+        <button nz-button nzDanger nzShape="round" nzSize="small" (click)="deleteMedication(medication, $event)">
+          Delete
+        </button>
+      </div>
+    </nz-card>
+  </div>
+
+  <div class="pagination-wrapper" *ngIf="totalFilteredMedications > 0">
+    <nz-pagination
+      [nzPageIndex]="pageIndex"
+      [nzTotal]="totalFilteredMedications"
+      [nzPageSize]="pageSize"
+      (nzPageIndexChange)="onPageChange($event)"
+    ></nz-pagination>
+  </div>
+
+  <!-- ✅ FLOAT BUTTON (always visible) -->
+  <nz-float-button
+    *ngIf="showFloatingAddButton"
+    class="add-medication-fab"
+    nzType="primary"
+    nzShape="circle"
+    nzTooltipTitle="Add medication"
+    (click)="addMedication()"
+  >
+    <nz-float-button-content>
+      <nz-icon nzType="plus" nzTheme="outline" class="fab-plus-icon"></nz-icon>
+    </nz-float-button-content>
+  </nz-float-button>
+
+  <!-- ✅ ADD MEDICATION MODAL -->
+  <nz-modal
+    [(nzVisible)]="isAddModalOpen"
+    [nzTitle]="isEditMode ? 'Edit medication' : (createStatus === 'PENDING' ? 'Request new medication' : 'Add medication')"
+    [nzOkLoading]="submitting"
+    [nzOkText]="isEditMode ? 'Update' : 'Save'"
+    nzCancelText="Cancel"
+    (nzOnOk)="submitAddMedication()"
+    (nzOnCancel)="closeAddModal()"
+    nzClassName="pharmacy-modal-rounded"
+  >
+    <ng-container *nzModalContent>
+      <form nz-form [formGroup]="addForm">
+        <!-- Name -->
+        <nz-form-item>
+          <nz-form-label [nzRequired]="true" nzFor="name">Name</nz-form-label>
+
+          <nz-form-control>
+            <input
+              id="name"
+              nz-input
+              formControlName="name"
+              placeholder="e.g. Donepezil"
+              [class.field-error]="isFieldInvalid('name')"
+            />
+            <div *ngIf="getFieldError('name')" class="error-text">{{ getFieldError('name') }}</div>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Description -->
+        <nz-form-item>
+          <nz-form-label [nzRequired]="true">Description</nz-form-label>
+          <nz-form-control>
+            <textarea
+              nz-input
+              formControlName="description"
+              rows="3"
+              placeholder="Medication description"
+              [class.field-error]="isFieldInvalid('description')"
+            ></textarea>
+            <div *ngIf="getFieldError('description')" class="error-text">{{ getFieldError('description') }}</div>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Therapeutic Class -->
+        <nz-form-item>
+          <nz-form-label [nzRequired]="true">Therapeutic class</nz-form-label>
+
+          <nz-form-control>
+            <nz-radio-group formControlName="therapeuticClass" nzButtonStyle="solid">
+              <label
+                *ngFor="let option of therapeuticOptions"
+                nz-radio-button
+                [nzValue]="option.value"
+              >
+                {{ option.label }}
+              </label>
+            </nz-radio-group>
+            <div *ngIf="getFieldError('therapeuticClass')" class="error-text">{{ getFieldError('therapeuticClass') }}</div>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Image Upload -->
+        <nz-form-item>
+          <nz-form-label [nzRequired]="!isEditMode">Photo</nz-form-label>
+
+          <nz-form-control>
+            <nz-upload
+              [nzFileList]="fileList"
+              [nzBeforeUpload]="beforeUpload"
+              (nzOnRemove)="onRemove()"
+              nzListType="picture"
+              nzAccept="image/*"
+            >
+              <button nz-button>
+                <nz-icon nzType="upload" nzTheme="outline"></nz-icon>
+                Upload Photo
+              </button>
+            </nz-upload>
+            <div *ngIf="photoMissing && !isEditMode" class="error-text">Photo is required for new medications</div>
+          </nz-form-control>
+        </nz-form-item>
+      </form>
+    </ng-container>
+  </nz-modal>
+
+  <nz-modal
+    [(nzVisible)]="isDetailsModalOpen"
+    nzTitle="Medication details"
+    nzCancelText="Close"
+    [nzOkText]="null"
+    (nzOnCancel)="closeDetailsModal()"
+    nzClassName="pharmacy-modal-rounded"
+  >
+    <ng-container *nzModalContent>
+      <div *ngIf="selectedMedication" class="medication-details">
+        <div class="details-image" *ngIf="selectedMedication.imageUrl; else detailNoImage">
+          <img [src]="selectedMedication.imageUrl" [alt]="selectedMedication.name" />
+        </div>
+        <ng-template #detailNoImage>
+          <div class="details-image medication-no-image">
+            <nz-icon nzType="picture" nzTheme="outline"></nz-icon>
+          </div>
+        </ng-template>
+
+        <div class="details-row">
+          <span class="medication-muted">Name:</span>
+          <span>{{ selectedMedication.name }}</span>
+        </div>
+        <div class="details-row">
+          <span class="medication-muted">Therapeutic class:</span>
+          <span>{{ formatTherapeuticClass(selectedMedication.therapeuticClass) }}</span>
+        </div>
+        <div class="details-row details-description">
+          <span class="medication-muted">Description:</span>
+          <p>{{ selectedMedication.description || 'No description provided.' }}</p>
+        </div>
+      </div>
+    </ng-container>
+  </nz-modal>
+</div>

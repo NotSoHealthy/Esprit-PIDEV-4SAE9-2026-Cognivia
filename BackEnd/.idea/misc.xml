@@ -6,12 +6,17 @@
       <list>
         <option value="$PROJECT_DIR$/eureka/pom.xml" />
         <option value="$PROJECT_DIR$/gateway/pom.xml" />
-        <option value="$PROJECT_DIR$/Microservices/appointment-service/pom.xml" />
         <option value="$PROJECT_DIR$/Microservices/care/pom.xml" />
+        <option value="$PROJECT_DIR$/Microservices/Games/pom.xml" />
+        <option value="$PROJECT_DIR$/Microservices/dpchat/pom.xml" />
+        <option value="$PROJECT_DIR$/Microservices/monitoring/pom.xml" />
+        <option value="$PROJECT_DIR$/Microservices/forum-service/pom.xml" />
+        <option value="$PROJECT_DIR$/Microservices/appointment-service/pom.xml" />
+        <option value="$PROJECT_DIR$/Microservices/SurveillanceAndEquipment/pom.xml" />
       </list>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" default="true" project-jdk-name="17 (2)" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_X" default="true" project-jdk-name="openjdk-23 (2)" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
 </project>

@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pharmacy-config
+  namespace: pidev-deployment
+data:
+  PORT: "8091"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pharmacy
+  namespace: pidev-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pharmacy
+  template:
+    metadata:
+      labels:
+        app: pharmacy
+    spec:
+      containers:
+        - name: pharmacy
+          image: notsohealthy/pidev-pharmacy:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8091
+          envFrom:
+            - configMapRef:
+                name: pharmacy-config
+            - configMapRef:
+                name: service-links
+            - secretRef:
+                name: secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pharmacy
+  namespace: pidev-deployment
+  labels:
+    app: pharmacy
+spec:
+  selector:
+    app: pharmacy
+  ports:
+    - name: http
+      port: 8091
+      targetPort: 8091

@@ -2,6 +2,13 @@
   <div class="page-header">
     <h1 class="page-title">Equipment List</h1>
     <div class="header-actions">
+      <input
+        #extractFileInput
+        type="file"
+        accept=".pdf,.docx,.doc,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword"
+        hidden
+        (change)="onExtractionFileSelected($event)"
+      />
       <button
         class="bulk-delete-button"
         type="button"
@@ -10,139 +17,270 @@
       >
         Delete Selected ({{ selectedCount }})
       </button>
+      <button class="import-button" type="button" (click)="extractFileInput.click()">
+        Import From File
+      </button>
       <button class="add-button" type="button" (click)="openModal()">
         Add Equipment
       </button>
     </div>
   </div>
 
+  <p class="form-error extraction-error" *ngIf="extractionError">{{ extractionError }}</p>
+
   <div *ngIf="equipments.length === 0" class="loading" role="status" aria-live="polite">
     Loading equipments...
   </div>
 
-  <div class="table-container" *ngIf="equipments.length > 0">
-    <table class="equipment-table" role="table" aria-label="Equipment inventory table">
-      <thead>
-        <tr>
-          <th scope="col" class="checkbox-col">
-            <input
-              type="checkbox"
-              class="table-checkbox"
-              [checked]="equipments.length > 0 && selectedCount === equipments.length"
-              [indeterminate]="selectedCount > 0 && selectedCount < equipments.length"
-              (change)="toggleSelectAll($event)"
-              aria-label="Select all equipment"
-            />
-          </th>
-          <th scope="col" class="image-col">Image</th>
-          <th scope="col">Name</th>
-          <th scope="col">Description</th>
-          <th scope="col">Condition Score</th>
-          <th scope="col">Status</th>
-          <th scope="col" class="action-col"></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let eq of equipments" (click)="openDetailModal(eq)" class="table-row-clickable">
-          <td data-label="Select" class="checkbox-col" (click)="$event.stopPropagation()">
+  <div class="grid-toolbar" *ngIf="equipments.length > 0">
+    <label class="select-all-label" (click)="$event.stopPropagation()">
+      <input
+        type="checkbox"
+        class="table-checkbox"
+        [checked]="equipments.length > 0 && selectedCount === equipments.length"
+        [indeterminate]="selectedCount > 0 && selectedCount < equipments.length"
+        (change)="toggleSelectAll($event)"
+        aria-label="Select all equipment"
+      />
+      <span>Select all</span>
+    </label>
+
+    <div class="view-toggle" (click)="$event.stopPropagation()">
+      <button
+        type="button"
+        class="view-toggle-btn"
+        [class.active]="viewMode === 'cards'"
+        (click)="viewMode = 'cards'"
+      >
+        <nz-icon nzType="idcard" nzTheme="outline" />
+      </button>
+      <button
+        type="button"
+        class="view-toggle-btn"
+        [class.active]="viewMode === 'compact'"
+        (click)="viewMode = 'compact'"
+      >
+        <nz-icon nzType="unordered-list" nzTheme="outline" />
+      </button>
+    </div>
+  </div>
+
+  <div class="equipment-grid" *ngIf="equipments.length > 0 && viewMode === 'cards'">
+    <article class="equipment-card" *ngFor="let eq of equipments" (click)="openDetailModal(eq)">
+      <div class="card-top-row" (click)="$event.stopPropagation()">
+        <label class="card-select">
+          <input
+            type="checkbox"
+            class="table-checkbox"
+            [checked]="isSelected(eq.id)"
+            (change)="toggleSelection(eq, $event)"
+            [attr.aria-label]="'Select ' + eq.name"
+          />
+        </label>
+
+        <div class="dropdown-container">
+          <button
+            class="menu-button"
+            type="button"
+            (click)="toggleDropdown(eq.id)"
+            [attr.aria-expanded]="openDropdownId === eq.id"
+            [attr.aria-label]="'More actions for ' + eq.name"
+          >
+            <nz-icon nzType="ellipsis" nzTheme="outline"></nz-icon>
+          </button>
+          <div class="dropdown-menu" *ngIf="openDropdownId === eq.id" (click)="$event.stopPropagation()">
+            <button
+              class="dropdown-item edit-item"
+              type="button"
+              (click)="openEditModal(eq); closeDropdown()"
+            >
+              <nz-icon nzType="edit" nzTheme="outline"></nz-icon>
+              <span>Edit</span>
+            </button>
+            <button
+              class="dropdown-item delete-item"
+              type="button"
+              (click)="openDeleteModal(eq); closeDropdown()"
+            >
+              <nz-icon nzType="delete" nzTheme="outline"></nz-icon>
+              <span>Delete</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-image-wrap">
+        <img
+          *ngIf="eq.imageUrl"
+          class="equipment-image"
+          [src]="eq.imageUrl"
+          [alt]="eq.name + ' image'"
+        />
+        <span *ngIf="!eq.imageUrl" class="image-placeholder">No image</span>
+      </div>
+
+      <div class="card-content">
+        <h3 class="card-name">{{ eq.name }}</h3>
+        <p class="card-description">{{ eq.description }}</p>
+
+        <div class="card-meta-row">
+          <span class="condition-badge" [attr.aria-label]="'Condition score: ' + eq.conditionScore">
+            Score {{ eq.conditionScore }}
+          </span>
+
+          <div class="status-wrapper">
+            <span
+              class="status-badge"
+              [ngClass]="{
+                'status-available': eq.status === 'AVAILABLE',
+                'status-maintenance': eq.status === 'MAINTENANCE',
+                'status-unavailable': eq.status === 'UNAVAILABLE',
+                'status-reserved': eq.status === 'RESERVED'
+              }"
+              [attr.aria-label]="'Status: ' + eq.status"
+              (mouseenter)="onStatusHover(eq.id)"
+              (mouseleave)="onStatusLeave()"
+            >
+              {{ eq.status }}
+            </span>
+            <div
+              class="maintenance-tooltip"
+              *ngIf="shouldShowMaintenanceTooltip(eq.id) && getClosestMaintenanceForEquipment(eq.id) as maintenance"
+            >
+              <div class="tooltip-content">
+                <p class="tooltip-label">Maintenance Ends:</p>
+                <p class="tooltip-date">
+                  {{ maintenance.maintenanceCompletionTime ? (maintenance.maintenanceCompletionTime | date:'medium') : (maintenance.maintenanceTime | date:'medium') }}
+                </p>
+              </div>
+            </div>
+            <div
+              class="maintenance-tooltip"
+              *ngIf="shouldShowReservationTooltip(eq.id) && getClosestReservationForEquipment(eq.id) as reservation"
+            >
+              <div class="tooltip-content">
+                <p class="tooltip-label">Reservation Ends:</p>
+                <p class="tooltip-date">
+                  {{ reservation.returnDate | date:'medium' }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <div class="equipment-compact-list" *ngIf="equipments.length > 0 && viewMode === 'compact'">
+    <article
+      class="equipment-compact-item"
+      *ngFor="let eq of equipments"
+      [class.dropdown-open]="openDropdownId === eq.id"
+      (click)="openDetailModal(eq)"
+    >
+      <div class="compact-main-row">
+        <div class="compact-left">
+          <label class="card-select">
             <input
               type="checkbox"
               class="table-checkbox"
               [checked]="isSelected(eq.id)"
               (change)="toggleSelection(eq, $event)"
+              (click)="$event.stopPropagation()"
               [attr.aria-label]="'Select ' + eq.name"
             />
-          </td>
-          <td data-label="Image" class="image-col">
-            <img
-              *ngIf="eq.imageUrl"
-              class="equipment-image"
-              [src]="eq.imageUrl"
-              [alt]="eq.name + ' image'"
-            />
-            <span *ngIf="!eq.imageUrl" class="image-placeholder">No image</span>
-          </td>
-          <td data-label="Name">{{ eq.name }}</td>
-          <td data-label="Description">{{ eq.description }}</td>
-          <td data-label="Condition Score">
-            <span class="condition-badge" [attr.aria-label]="'Condition score: ' + eq.conditionScore">
-              {{ eq.conditionScore }}
+          </label>
+
+          <img
+            *ngIf="eq.imageUrl"
+            class="compact-image"
+            [src]="eq.imageUrl"
+            [alt]="eq.name + ' image'"
+          />
+          <span *ngIf="!eq.imageUrl" class="compact-image-placeholder">No image</span>
+
+          <div class="compact-info">
+            <h3 class="compact-name">{{ eq.name }}</h3>
+            <p class="compact-description">{{ eq.description }}</p>
+          </div>
+        </div>
+
+        <div class="compact-right">
+          <span class="condition-badge" [attr.aria-label]="'Condition score: ' + eq.conditionScore">
+            Score {{ eq.conditionScore }}
+          </span>
+
+          <div class="status-wrapper">
+            <span
+              class="status-badge"
+              [ngClass]="{
+                'status-available': eq.status === 'AVAILABLE',
+                'status-maintenance': eq.status === 'MAINTENANCE',
+                'status-unavailable': eq.status === 'UNAVAILABLE',
+                'status-reserved': eq.status === 'RESERVED'
+              }"
+              [attr.aria-label]="'Status: ' + eq.status"
+              (mouseenter)="onStatusHover(eq.id)"
+              (mouseleave)="onStatusLeave()"
+            >
+              {{ eq.status }}
             </span>
-          </td>
-          <td data-label="Status">
-            <div class="status-wrapper">
-              <span 
-                class="status-badge"
-                [ngClass]="{
-                  'status-available': eq.status === 'AVAILABLE',
-                  'status-maintenance': eq.status === 'MAINTENANCE',
-                  'status-unavailable': eq.status === 'UNAVAILABLE',
-                  'status-reserved': eq.status === 'RESERVED'
-                }"
-                [attr.aria-label]="'Status: ' + eq.status"
-                (mouseenter)="onStatusHover(eq.id)"
-                (mouseleave)="onStatusLeave()"
-              >
-                {{ eq.status }}
-              </span>
-              <div 
-                class="maintenance-tooltip" 
-                *ngIf="shouldShowMaintenanceTooltip(eq.id) && getClosestMaintenanceForEquipment(eq.id) as maintenance"
-              >
-                <div class="tooltip-content">
-                  <p class="tooltip-label">Maintenance Ends:</p>
-                  <p class="tooltip-date">
-                    {{ maintenance.maintenanceCompletionTime ? (maintenance.maintenanceCompletionTime | date:'medium') : (maintenance.maintenanceTime | date:'medium') }}
-                  </p>
-                </div>
-              </div>
-              <div 
-                class="maintenance-tooltip" 
-                *ngIf="shouldShowReservationTooltip(eq.id) && getClosestReservationForEquipment(eq.id) as reservation"
-              >
-                <div class="tooltip-content">
-                  <p class="tooltip-label">Reservation Ends:</p>
-                  <p class="tooltip-date">
-                    {{ reservation.returnDate | date:'medium' }}
-                  </p>
-                </div>
+            <div
+              class="maintenance-tooltip"
+              *ngIf="shouldShowMaintenanceTooltip(eq.id) && getClosestMaintenanceForEquipment(eq.id) as maintenance"
+            >
+              <div class="tooltip-content">
+                <p class="tooltip-label">Maintenance Ends:</p>
+                <p class="tooltip-date">
+                  {{ maintenance.maintenanceCompletionTime ? (maintenance.maintenanceCompletionTime | date:'medium') : (maintenance.maintenanceTime | date:'medium') }}
+                </p>
               </div>
             </div>
-          </td>
-          <td data-label="Actions" class="action-col" (click)="$event.stopPropagation()">
-            <div class="dropdown-container">
-              <button 
-                class="menu-button" 
-                type="button" 
-                (click)="toggleDropdown(eq.id)"
-                [attr.aria-expanded]="openDropdownId === eq.id"
-                [attr.aria-label]="'More actions for ' + eq.name"
+            <div
+              class="maintenance-tooltip"
+              *ngIf="shouldShowReservationTooltip(eq.id) && getClosestReservationForEquipment(eq.id) as reservation"
+            >
+              <div class="tooltip-content">
+                <p class="tooltip-label">Reservation Ends:</p>
+                <p class="tooltip-date">
+                  {{ reservation.returnDate | date:'medium' }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="dropdown-container">
+            <button
+              class="menu-button"
+              type="button"
+              (click)="toggleDropdown(eq.id); $event.stopPropagation()"
+              [attr.aria-expanded]="openDropdownId === eq.id"
+              [attr.aria-label]="'More actions for ' + eq.name"
+            >
+              <nz-icon nzType="ellipsis" nzTheme="outline"></nz-icon>
+            </button>
+            <div class="dropdown-menu" *ngIf="openDropdownId === eq.id" (click)="$event.stopPropagation()">
+              <button
+                class="dropdown-item edit-item"
+                type="button"
+                (click)="openEditModal(eq); closeDropdown()"
               >
-                <nz-icon nzType="ellipsis" nzTheme="outline"></nz-icon>
+                <nz-icon nzType="edit" nzTheme="outline"></nz-icon>
+                <span>Edit</span>
               </button>
-              <div class="dropdown-menu" *ngIf="openDropdownId === eq.id" (click)="$event.stopPropagation()">
-                <button 
-                  class="dropdown-item edit-item" 
-                  type="button" 
-                  (click)="openEditModal(eq); closeDropdown()"
-                >
-                  <nz-icon nzType="edit" nzTheme="outline"></nz-icon>
-                  <span>Edit</span>
-                </button>
-                <button 
-                  class="dropdown-item delete-item" 
-                  type="button" 
-                  (click)="openDeleteModal(eq); closeDropdown()"
-                >
-                  <nz-icon nzType="delete" nzTheme="outline"></nz-icon>
-                  <span>Delete</span>
-                </button>
-              </div>
+              <button
+                class="dropdown-item delete-item"
+                type="button"
+                (click)="openDeleteModal(eq); closeDropdown()"
+              >
+                <nz-icon nzType="delete" nzTheme="outline"></nz-icon>
+                <span>Delete</span>
+              </button>
             </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+          </div>
+        </div>
+      </div>
+    </article>
   </div>
 
   <div class="modal-overlay" *ngIf="isModalOpen" (click)="closeModal()" role="dialog" aria-modal="true">
@@ -155,6 +293,16 @@
       </div>
 
       <form class="modal-form" (ngSubmit)="submitEquipment()">
+        <div class="prefill-banner" *ngIf="!isEditMode && isPrefilledFromDocument">
+          <nz-icon nzType="file-search" nzTheme="outline"></nz-icon>
+          <div>
+            <p class="prefill-banner-title">Prefilled from document</p>
+            <p class="prefill-banner-text">
+              Review the extracted fields and adjust anything before creating the equipment.
+            </p>
+          </div>
+        </div>
+
         <div class="form-field">
           <label for="equipment-name">Name</label>
           <input
@@ -187,8 +335,16 @@
             (change)="onImageSelected($event)"
             [required]="!isEditMode"
           />
-          <img
+          <button
             *ngIf="imagePreview"
+            type="button"
+            class="preview-toggle-button"
+            (click)="toggleImagePreview()"
+          >
+            {{ isImagePreviewVisible ? 'Hide image preview' : 'Show image preview' }}
+          </button>
+          <img
+            *ngIf="imagePreview && isImagePreviewVisible"
             class="image-preview"
             [src]="imagePreview"
             alt="Selected equipment preview"
@@ -220,6 +376,14 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <div class="modal-overlay processing-overlay" *ngIf="isExtractingFromDocument" role="dialog" aria-modal="true">
+    <div class="processing-modal">
+      <div class="spinner" aria-hidden="true"></div>
+      <h3>Analyzing Document</h3>
+      <p>Extracting text and image, then preparing the equipment form...</p>
     </div>
   </div>
 
@@ -282,15 +446,19 @@
 
       <div class="detail-content">
         <div class="detail-image-section">
-          <img 
-            *ngIf="equipmentToDetail?.imageUrl"
-            class="detail-image" 
-            [src]="equipmentToDetail?.imageUrl" 
-            [alt]="equipmentToDetail?.name + ' image'"
-          />
-          <div *ngIf="!equipmentToDetail?.imageUrl" class="detail-image-placeholder">
-            No image available
+          <div *ngIf="equipmentToDetail?.imageUrl; else noDetailImage">
+            <img
+              class="detail-image"
+              [src]="equipmentToDetail?.imageUrl"
+              [alt]="equipmentToDetail?.name + ' image'"
+            />
           </div>
+
+          <ng-template #noDetailImage>
+            <div class="detail-image-placeholder">
+              No image available
+            </div>
+          </ng-template>
         </div>
 
         <div class="detail-info-section">
@@ -358,6 +526,15 @@
 
       <div class="modal-actions">
         <div class="action-buttons-group">
+          <button
+            class="action-icon-button annotation-button"
+            type="button"
+            (click)="openAnnotationModal()"
+            aria-label="Annotate Image"
+          >
+            <nz-icon nzType="select" nzTheme="outline" />
+            <span>Annotate Condition</span>
+          </button>
           <button 
             class="action-icon-button maintenance-button" 
             type="button" 
@@ -405,6 +582,120 @@
               </button>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay annotation-overlay" *ngIf="isAnnotationModalOpen" (click)="closeAnnotationModal()" role="dialog" aria-modal="true">
+    <div class="modal modal-annotation" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Annotate Equipment Condition</h2>
+        <button class="icon-button" type="button" (click)="closeAnnotationModal()" aria-label="Close">
+          ×
+        </button>
+      </div>
+
+      <div class="annotation-workspace">
+        <div class="annotation-stage">
+          <div class="annotation-container" #annotationContainer *ngIf="equipmentToDetail?.imageUrl; else noAnnotationImage">
+            <img
+              #annotationImage
+              class="detail-image annotation-image"
+              [src]="equipmentToDetail?.imageUrl"
+              [alt]="equipmentToDetail?.name + ' image'"
+              draggable="false"
+              style="user-select: none; -webkit-user-drag: none; pointer-events: none;"
+              (load)="onDetailImageLoad()"
+            />
+            <div
+              class="annotation-layer"
+              (pointerdown)="onAnnotationPointerDown($event)"
+              (pointermove)="onAnnotationPointerMove($event)"
+              (pointerup)="onAnnotationPointerUp($event)"
+              (pointercancel)="onAnnotationPointerCancel()"
+            >
+              <div
+                *ngFor="let part of annotationParts"
+                class="annotation-part"
+                [class.annotation-part-selected]="selectedAnnotationPart?.id === part.id"
+                [ngStyle]="getPartBoxStyle(part)"
+                (pointerdown)="onPartPointerDown(part, $event)"
+              >
+                <span class="annotation-part-label" [ngStyle]="getPartLabelStyle(part)">
+                  {{ part.name }}
+                </span>
+              </div>
+
+              <div
+                *ngIf="draftRectPx"
+                class="annotation-draft"
+                [ngStyle]="getDraftBoxStyle()"
+              ></div>
+            </div>
+
+          </div>
+
+          <ng-template #noAnnotationImage>
+            <div class="detail-image-placeholder annotation-placeholder">
+              No image available
+            </div>
+          </ng-template>
+
+          <div
+            class="part-popup"
+            *ngIf="isPartPopupVisible"
+            [style.left.px]="partPopupX"
+            [style.top.px]="partPopupY"
+          >
+            <p class="part-popup-title">{{ partPopupTitle }}</p>
+            <label>
+              <span>Part Name</span>
+              <input type="text" [(ngModel)]="partName" maxlength="120" />
+            </label>
+            <label>
+              <span>Condition Score (0-100)</span>
+              <input type="number" min="0" max="100" [(ngModel)]="partConditionScore" />
+            </label>
+            <p class="part-popup-error" *ngIf="annotationError">{{ annotationError }}</p>
+            <div class="part-popup-actions">
+              <button class="secondary-button" type="button" (click)="cancelPartAnnotation()">Cancel</button>
+              <button class="primary-button" type="button" (click)="savePartAnnotation()">{{ partPopupSaveLabel }}</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="annotation-sidebar">
+          <div class="detail-field">
+            <label>Instructions</label>
+            <p>Click and drag on the image to create a part area.</p>
+          </div>
+
+          <div class="detail-field" *ngIf="selectedAnnotationPart as part">
+            <label>Selected Part</label>
+            <p class="selected-part-details">
+              <strong>{{ part.name }}</strong>
+              <span>Score: {{ part.conditionScore }}</span>
+            </p>
+            <button
+              type="button"
+              class="secondary-button edit-part-button"
+              *ngIf="part.id"
+              (click)="beginEditSelectedPart()"
+            >
+              Edit Part
+            </button>
+            <button
+              type="button"
+              class="danger-button"
+              *ngIf="part.id"
+              (click)="deleteSelectedPart()"
+            >
+              Delete Part
+            </button>
+          </div>
+
+          <p class="form-error" *ngIf="annotationError && !isPartPopupVisible">{{ annotationError }}</p>
         </div>
       </div>
     </div>

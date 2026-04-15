@@ -34,4 +34,15 @@ public class DataSourceConfig {
     public NamedParameterJdbcTemplate careJdbcTemplate(@Qualifier("careDataSource") DataSource careDataSource) {
         return new NamedParameterJdbcTemplate(careDataSource);
     }
+
+    @Bean(name = "pharmacyDataSource")
+    @ConfigurationProperties(prefix = "pharmacy.datasource")
+    public DataSource pharmacyDataSource() {
+        return DataSourceBuilder.create().build();
+    }
+
+    @Bean(name = "pharmacyJdbcTemplate")
+    public NamedParameterJdbcTemplate pharmacyJdbcTemplate(@Qualifier("pharmacyDataSource") DataSource pharmacyDataSource) {
+        return new NamedParameterJdbcTemplate(pharmacyDataSource);
+    }
 }

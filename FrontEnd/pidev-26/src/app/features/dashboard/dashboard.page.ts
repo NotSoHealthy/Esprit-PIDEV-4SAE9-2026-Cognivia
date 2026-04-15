@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { KeycloakService } from '../../core/auth/keycloak.service';
 import { Doctor } from './doctor/doctor';
 import { Patient } from './patient/patient';
+import { DashboardPharmacy } from './pharmacy/pharmacy';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -41,6 +42,11 @@ export class DashboardPage implements OnInit {
 
     if (roles.has('patient')) {
       void this.router.navigateByUrl('/user/tests', { replaceUrl: true });
+      return;
+    }
+
+    if (roles.has('pharmacy')) {
+      this.dashboardComponent = DashboardPharmacy;
       return;
     }
 

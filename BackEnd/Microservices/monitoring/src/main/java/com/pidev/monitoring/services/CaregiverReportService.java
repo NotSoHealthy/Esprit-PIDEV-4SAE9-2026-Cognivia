@@ -9,6 +9,7 @@ import com.pidev.monitoring.repositories.RiskScoreRepository;
 import com.pidev.monitoring.repositories.TestResultRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.thymeleaf.TemplateEngine;
@@ -36,13 +37,23 @@ public class CaregiverReportService {
     private static final String CARE_SERVICE_URL = "http://localhost:8081";
     private static final String GAMES_SERVICE_URL = "http://localhost:8086";
 
-    public CaregiverReportService(TestResultRepository testResultRepository,
+    @Autowired
+    public CaregiverReportService(
+            TestResultRepository testResultRepository,
             RiskScoreRepository riskScoreRepository,
             TemplateEngine templateEngine) {
+        this(testResultRepository, riskScoreRepository, templateEngine, WebClient.builder().build());
+    }
+
+    public CaregiverReportService(
+            TestResultRepository testResultRepository,
+            RiskScoreRepository riskScoreRepository,
+            TemplateEngine templateEngine,
+            WebClient webClient) {
         this.testResultRepository = testResultRepository;
         this.riskScoreRepository = riskScoreRepository;
         this.templateEngine = templateEngine;
-        this.webClient = WebClient.builder().build();
+        this.webClient = webClient;
     }
 
     public byte[] generatePatientReportPdf(Long patientId, String signatureBase64) throws IOException {

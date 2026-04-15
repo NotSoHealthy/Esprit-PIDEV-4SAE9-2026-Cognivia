@@ -31,6 +31,28 @@ export const routes: Routes = [
         loadComponent: () => import('./features/profile/profile').then((m) => m.Profile),
       },
       {
+        path: 'pharmacy',
+        title: 'Pharmacy',
+        canMatch: [roleGuard(['ROLE_PHARMACY', 'ROLE_ADMIN', 'ROLE_CAREGIVER', 'ROLE_DOCTOR'])],
+        loadComponent: () =>
+          import('./features/pharmacy/pharmacy').then((m) => m.Pharmacy),
+      },
+      {
+        path: 'medications/:pharmacyId',
+        title: 'Medications',
+        canMatch: [roleGuard(['ROLE_PHARMACY', 'ROLE_ADMIN', 'ROLE_CAREGIVER', 'ROLE_DOCTOR'])],
+        loadComponent: () =>
+          import('./features/pharmacy/medication/medication-page').then((m) => m.MedicationPage),
+      },
+      {
+        path: 'prescriptions',
+        title: 'Prescriptions',
+        canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_PHARMACY', 'ROLE_ADMIN', 'ROLE_CAREGIVER'])],
+        loadComponent: () =>
+          import('./features/prescription/prescription').then((m) => m.PrescriptionComponent),
+      },
+
+      {
         path: 'posts',
         canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
         loadComponent: () =>
@@ -64,6 +86,14 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/forum/components/admin-reported-posts/admin-reported-posts').then(
             (m) => m.AdminReportedPosts,
+          ),
+      },
+      {
+        path: 'admin/reported-chats',
+        canMatch: [roleGuard(['ROLE_ADMIN'])],
+        loadComponent: () =>
+          import('./features/chat/components/admin-reported-chats/admin-reported-chats').then(
+            (m) => m.AdminReportedChats,
           ),
       },
       {
@@ -101,7 +131,8 @@ export const routes: Routes = [
         title: 'Patients',
         canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
         loadChildren: () =>
-          import('./features/patient-management/patient-list.route').then((m) => m.routes),},
+          import('./features/patient-management/patient-list.route').then((m) => m.routes),
+      },
       {
 
         path: 'tasks',
@@ -129,7 +160,7 @@ export const routes: Routes = [
         canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN', 'ROLE_PATIENT'])],
         loadComponent: () =>
           import('./features/appointments/appointments').then(m => m.Appointments),
-},
+      },
       {
         path: 'calendar',
         title: 'Calendar',
@@ -212,6 +243,22 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/games/memory-game-view/memory-game-view.component').then(
             (m) => m.MemoryGameViewComponent,
+          ),
+      },
+      {
+        path: 'notifications/:eventType/:referenceId',
+        title: 'Notification',
+        loadComponent: () =>
+          import('./features/notifications/notification-redirect.page').then(
+            (m) => m.NotificationRedirectPage,
+          ),
+      },
+      {
+        path: 'notifications/:eventType',
+        title: 'Notification',
+        loadComponent: () =>
+          import('./features/notifications/notification-redirect.page').then(
+            (m) => m.NotificationRedirectPage,
           ),
       },
     ],

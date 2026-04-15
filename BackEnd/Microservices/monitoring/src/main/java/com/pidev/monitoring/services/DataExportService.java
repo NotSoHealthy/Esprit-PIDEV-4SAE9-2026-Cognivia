@@ -2,6 +2,7 @@ package com.pidev.monitoring.services;
 
 import com.pidev.monitoring.entities.TestResult;
 import com.pidev.monitoring.repositories.TestResultRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -20,9 +21,14 @@ public class DataExportService {
 
     private static final String CARE_SERVICE_URL = "http://localhost:8081";
 
-    public DataExportService(TestResultRepository testResultRepository) {
+    public DataExportService(TestResultRepository testResultRepository, RestTemplate restTemplate) {
         this.testResultRepository = testResultRepository;
-        this.restTemplate = new RestTemplate();
+        this.restTemplate = restTemplate;
+    }
+
+    @Autowired
+    public DataExportService(TestResultRepository testResultRepository) {
+        this(testResultRepository, new RestTemplate());
     }
 
     public String exportMLDataAsCsv() {

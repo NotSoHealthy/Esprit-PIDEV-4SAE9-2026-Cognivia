@@ -1,2 +1,3 @@
 .env
 run-tabs/
+k8s/secret.yaml

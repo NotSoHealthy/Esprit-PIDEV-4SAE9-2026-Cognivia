@@ -17,9 +17,7 @@ public class PatientController {
     private final PatientService patientService;
 
     @GetMapping
-    public List<Patient> getAllPatients() {
-        return patientService.getAll();
-    }
+    public List<Patient> getAllPatients() {return  patientService.getAll();}
 
     /** Filter patients by severity level e.g. GET /patient?severity=HIGH */
     @GetMapping(params = "severity")
@@ -32,6 +30,11 @@ public class PatientController {
         return patientService.getById(id);
     }
 
+    @GetMapping("/dto/{id}")
+    public PatientDto getPatientDtoById(@PathVariable Long id) {
+        return PatientDto.fromPatient(patientService.getById(id));
+    }
+
     @GetMapping("/user/{userId}")
     public Patient getPatientByUserId(@PathVariable("userId") UUID userId) {
         return patientService.getByUserId(userId);
@@ -40,6 +43,11 @@ public class PatientController {
     @GetMapping("/doctor/{doctorId}")
     public List<Patient> getPatientsByDoctorId(@PathVariable("doctorId") Long doctorId) {
         return patientService.getByDoctorId(doctorId);
+    }
+
+    @GetMapping("/caregiver/user/{userId}")
+    public List<Patient> getPatientsByCaregiverUserId(@PathVariable UUID userId) {
+        return patientService.getByCaregiverUserId(userId);
     }
 
     @GetMapping("{patientId}/contact")
