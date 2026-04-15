@@ -39,6 +39,16 @@
               </div>
 
               <div class="prescription-actions">
+                <button
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  class="pdf-generate-btn"
+                  [nzLoading]="isPdfProcessing(prescription.id)"
+                  (click)="onGeneratePdf(prescription, $event)"
+                >
+                  Generate PDF
+                </button>
                 <ng-container *ngIf="canModifyPrescription(prescription)">
                   <button
                     nz-button
@@ -242,7 +252,7 @@
     [nzOkLoading]="savingPrescription"
     (nzOnOk)="savePrescription()"
     (nzOnCancel)="isAddModalOpen = false"
-    nzClassName="pharmacy-modal-rounded"
+    nzClassName="prescription-modal-rounded"
   >
     <ng-container *nzModalContent>
       <form [formGroup]="addPrescriptionForm">

@@ -115,6 +115,20 @@
   margin-top: 10px;
 }
 
+.pdf-generate-btn {
+  margin-top: 10px;
+  border-radius: 999px;
+  border-color: #4D5CAB !important;
+  color: #4D5CAB !important;
+  font-weight: 600;
+}
+
+.pdf-generate-btn:hover,
+.pdf-generate-btn:focus {
+  border-color: #3f4ea3 !important;
+  color: #3f4ea3 !important;
+}
+
 .menu-delete {
   color: #ff4d4f;
 }
@@ -605,3 +619,5 @@
 :host ::ng-deep nz-form-control {
   position: relative;
 }
+
+

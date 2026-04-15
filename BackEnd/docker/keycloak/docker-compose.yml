@@ -18,4 +18,46 @@ services:
       KC_HOSTNAME_STRICT_HTTPS: "false"
     volumes:
       - ./realm-export.json:/opt/keycloak/data/import/realm.json
+      - ./themes:/opt/keycloak/themesservices:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.5
+    command: start-dev --import-realm
+    ports:
+      - "8180:8180"services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.5
+    command: start-dev --import-realm
+    ports:
+      - "8180:8180"
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: "${KC_DB_URL}"
+      KC_DB_USERNAME: "${KC_DB_USERNAME}"
+      KC_DB_PASSWORD: "${KC_DB_PASSWORD}"
+      KC_DB_SCHEMA: public
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HTTP_PORT: 8180
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+    volumes:
+      - ./realm-export.json:/opt/keycloak/data/import/realm.json
+      - ./themes:/opt/keycloak/themes
+    env_file:
+      - .env
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: "${KC_DB_URL}"
+      KC_DB_USERNAME: "${KC_DB_USERNAME}"
+      KC_DB_PASSWORD: "${KC_DB_PASSWORD}"
+      KC_DB_SCHEMA: public
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HTTP_PORT: 8180
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+    volumes:
+      - ./realm-export.json:/opt/keycloak/data/import/realm.json
       - ./themes:/opt/keycloak/themes

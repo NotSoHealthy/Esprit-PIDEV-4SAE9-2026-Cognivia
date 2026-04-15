@@ -347,6 +347,76 @@ h6 {
   background-color: #4D5CAB !important;
 }
 
+/* ========== PRESCRIPTION MODAL (same look as pharmacy) ========== */
+
+.prescription-modal-rounded .ant-modal-content {
+  border-radius: 24px !important;
+  overflow: hidden !important;
+}
+
+.prescription-modal-rounded .ant-modal-header {
+  border-radius: 24px 24px 0 0 !important;
+  background-color: #4D5CAB !important;
+}
+
+.prescription-modal-rounded .ant-modal-title {
+  color: #ffffff !important;
+}
+
+.prescription-modal-rounded .ant-modal-close {
+  color: #ffffff !important;
+}
+
+.prescription-modal-rounded .ant-modal-close:hover {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.prescription-modal-rounded .ant-modal-footer {
+  border-radius: 0 0 24px 24px !important;
+}
+
+.prescription-modal-rounded .ant-input,
+.prescription-modal-rounded .ant-input-number,
+.prescription-modal-rounded .ant-input-number-input,
+.prescription-modal-rounded textarea.ant-input,
+.prescription-modal-rounded .ant-select-selector {
+  border-radius: 12px !important;
+}
+
+.prescription-modal-rounded .ant-btn {
+  border-radius: 10px !important;
+}
+
+.prescription-modal-rounded .ant-btn-primary {
+  background-color: #4D5CAB !important;
+  border-color: #4D5CAB !important;
+}
+
+.prescription-modal-rounded .ant-btn-primary:hover,
+.prescription-modal-rounded .ant-btn-primary:focus {
+  background-color: #3f4ea3 !important;
+  border-color: #3f4ea3 !important;
+}
+
+.prescription-modal-rounded .ant-btn-primary:active {
+  background-color: #364292 !important;
+  border-color: #364292 !important;
+}
+
+.prescription-modal-rounded .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled) {
+  background-color: #4D5CAB !important;
+  border-color: #4D5CAB !important;
+}
+
+.prescription-modal-rounded .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled):hover {
+  background-color: #3f4ea3 !important;
+  border-color: #3f4ea3 !important;
+}
+
+.prescription-modal-rounded .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled):before {
+  background-color: #4D5CAB !important;
+}
+
 /* Upload list item icons */
 .pharmacy-modal-rounded .ant-upload-list-item .anticon-paper-clip,
 .pharmacy-modal-rounded .ant-upload-list-item .anticon-loading,
