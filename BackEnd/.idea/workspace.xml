@@ -4,55 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="82081fe6-4443-4532-84f1-9450777081fb" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/compiler.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/encodings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/jarRepositories.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Microservices/appointment-service/src/main/java/com/esprit/microservice/appointmentservice/controller/AppointmentController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/appointment-service/src/main/java/com/esprit/microservice/appointmentservice/controller/AppointmentController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Microservices/appointment-service/src/main/java/com/esprit/microservice/appointmentservice/entity/Appointment.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/appointment-service/src/main/java/com/esprit/microservice/appointmentservice/entity/Appointment.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Microservices/appointment-service/src/main/java/com/esprit/microservice/appointmentservice/entity/AppointmentStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/appointment-service/src/main/java/com/esprit/microservice/appointmentservice/entity/AppointmentStatus.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Microservices/appointment-service/src/main/java/com/esprit/microservice/appointmentservice/mail/MailService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/appointment-service/src/main/java/com/esprit/microservice/appointmentservice/mail/MailService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Microservices/appointment-service/src/main/java/com/esprit/microservice/appointmentservice/repository/AppointmentRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/appointment-service/src/main/java/com/esprit/microservice/appointmentservice/repository/AppointmentRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Microservices/appointment-service/src/main/java/com/esprit/microservice/appointmentservice/service/AppointmentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/appointment-service/src/main/java/com/esprit/microservice/appointmentservice/service/AppointmentService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Microservices/appointment-service/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/appointment-service/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Microservices/care/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/care/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/controllers/CaregiverController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/controllers/CaregiverController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/controllers/DoctorController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/controllers/DoctorController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/controllers/PatientController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/controllers/PatientController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/controllers/TaskController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/controllers/TaskController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/entities/Task.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/entities/Task.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/entities/TaskType.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/entities/TaskType.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/repositories/TaskRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/repositories/TaskRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/services/TaskService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/services/TaskService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/services/TaskServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/services/TaskServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Microservices/care/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/care/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/angular.json" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/angular.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/proxy.conf.json" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/proxy.conf.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/public/i18n/en.json" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/public/i18n/en.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/public/i18n/fr.json" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/public/i18n/fr.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/app.routes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/app.routes.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/core/api/appointment.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/core/api/appointment.service.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/core/api/models/appointment.model.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/core/api/models/appointment.model.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/core/api/task.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/core/api/task.service.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/appointments/appointments.css" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/appointments/appointments.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/appointments/appointments.html" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/appointments/appointments.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/appointments/appointments.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/appointments/appointments.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/home/home.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/home/home.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/tasks/list/tasks-list.page.css" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/tasks/list/tasks-list.page.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/tasks/list/tasks-list.page.html" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/tasks/list/tasks-list.page.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/tasks/list/tasks-list.page.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/tasks/list/tasks-list.page.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/tasks/tasks.page.css" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/tasks/tasks.page.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/tasks/tasks.page.html" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/tasks/tasks.page.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/tasks/tasks.page.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/tasks/tasks.page.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/styles.css" afterDir="false" />
-    </list>
+    <list default="true" id="82081fe6-4443-4532-84f1-9450777081fb" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -246,7 +198,7 @@
       <workItem from="1775943478610" duration="2134000" />
       <workItem from="1775994273640" duration="4751000" />
       <workItem from="1776091832736" duration="11000" />
-      <workItem from="1776245765314" duration="2278000" />
+      <workItem from="1776245765314" duration="2945000" />
     </task>
     <servers />
   </component>

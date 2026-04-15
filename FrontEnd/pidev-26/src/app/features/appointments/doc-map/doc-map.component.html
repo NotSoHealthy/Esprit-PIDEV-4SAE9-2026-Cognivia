@@ -12,131 +12,80 @@
   <div class="corner corner-bl"></div>
   <div class="corner corner-br"></div>
 
-  <!-- Floating particles -->
-  <svg class="particles-svg" viewBox="0 0 940 540" xmlns="http://www.w3.org/2000/svg">
-    <circle *ngFor="let p of particles"
-      [attr.cx]="p.x" [attr.cy]="p.y" [attr.r]="p.size"
-      [attr.opacity]="p.opacity" [attr.fill]="p.color"/>
-  </svg>
+  <!-- ═══ MAP CANVAS (CAMERA FOLLOW) ═══ -->
+  <div class="map-canvas" 
+       [style.transform]="'translate(' + cameraX + 'px, ' + cameraY + 'px)'"
+       [style.width.px]="MAP_W" 
+       [style.height.px]="MAP_H">
 
-  <!-- ═══ CLINIC FLOOR PLAN ═══ -->
-  <svg class="floor-svg" viewBox="0 0 940 540" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <filter id="glow-blue">
-        <feGaussianBlur stdDeviation="3" result="blur"/>
-        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
-    </defs>
+    <!-- Floating particles -->
+    <svg class="particles-svg" [attr.viewBox]="'0 0 ' + MAP_W + ' ' + MAP_H" xmlns="http://www.w3.org/2000/svg">
+      <circle *ngFor="let p of particles"
+        [attr.cx]="p.x" [attr.cy]="p.y" [attr.r]="p.size"
+        [attr.opacity]="p.opacity" [attr.fill]="p.color"/>
+    </svg>
 
-    <!-- Outer clinic border with glow -->
-    <rect x="8" y="8" width="924" height="524" rx="16"
-          fill="none" stroke="#1e3a5f" stroke-width="1" opacity="0.5"/>
-    <rect x="12" y="12" width="916" height="516" rx="14"
-          fill="none" stroke="#0ea5e9" stroke-width="0.4" opacity="0.3"/>
+    <!-- ═══ CLINIC FLOOR PLAN (DYNAMIC) ═══ -->
+    <svg class="floor-svg" [attr.viewBox]="'0 0 ' + MAP_W + ' ' + MAP_H" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="glow-blue">
+          <feGaussianBlur stdDeviation="3" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
 
-    <!-- ═══ MAIN CORRIDORS ═══ -->
-    <!-- Horizontal corridor -->
-    <rect x="0" y="236" width="940" height="68" fill="rgba(10,20,50,0.6)"/>
-    <!-- Vertical corridor -->
-    <rect x="436" y="0" width="68" height="540" fill="rgba(10,20,50,0.6)"/>
+      <!-- Outer clinic border with glow -->
+      <rect x="8" y="8" width="1984" [attr.height]="MAP_H - 16" rx="16" fill="none" stroke="#1e3a5f" stroke-width="1" opacity="0.5"/>
+      <rect x="12" y="12" width="1976" [attr.height]="MAP_H - 24" rx="14" fill="none" stroke="#0ea5e9" stroke-width="0.4" opacity="0.3"/>
 
-    <!-- Corridor border lines with glow -->
-    <line x1="0"   y1="236" x2="940" y2="236" stroke="#0ea5e9" stroke-width="0.8" opacity="0.4"/>
-    <line x1="0"   y1="304" x2="940" y2="304" stroke="#0ea5e9" stroke-width="0.8" opacity="0.4"/>
-    <line x1="436" y1="0"   x2="436" y2="540" stroke="#0ea5e9" stroke-width="0.8" opacity="0.4"/>
-    <line x1="504" y1="0"   x2="504" y2="540" stroke="#0ea5e9" stroke-width="0.8" opacity="0.4"/>
+      <!-- ═══ MAIN CORRIDORS ═══ -->
+      <g *ngFor="let row of rowArray">
+        <rect x="0" [attr.y]="500 + (row * 650)" width="2000" height="100" fill="rgba(10,20,50,0.6)"/>
+        <line x1="0" [attr.y1]="500 + (row * 650)" x2="2000" [attr.y2]="500 + (row * 650)" stroke="#0ea5e9" stroke-width="0.8" opacity="0.4"/>
+        <line x1="0" [attr.y1]="600 + (row * 650)" x2="2000" [attr.y2]="600 + (row * 650)" stroke="#0ea5e9" stroke-width="0.8" opacity="0.4"/>
+        <line x1="0" [attr.y1]="550 + (row * 650)" x2="2000" [attr.y2]="550 + (row * 650)" stroke="#1e3a5f" stroke-width="0.4" opacity="0.6" stroke-dasharray="8 12"/>
+      </g>
 
-    <!-- Corridor floor tiles -->
-    <line x1="0" y1="270" x2="940" y2="270" stroke="#1e3a5f" stroke-width="0.4" opacity="0.6" stroke-dasharray="4 8"/>
-    <line x1="470" y1="0" x2="470" y2="540" stroke="#1e3a5f" stroke-width="0.4" opacity="0.6" stroke-dasharray="4 8"/>
+      <g stroke="#0ea5e9" stroke-width="0.8" opacity="0.4">
+        <rect x="462" y="0" width="88" [attr.height]="MAP_H" fill="rgba(10,20,50,0.6)" stroke="none" opacity="1"/>
+        <line x1="462" y1="0" x2="462" [attr.y2]="MAP_H"/><line x1="550" y1="0" x2="550" [attr.y2]="MAP_H"/>
 
-    <!-- ═══ OFFICE ROOMS ═══ -->
-    <!-- Office A — Top Left -->
-    <rect x="14" y="14" width="412" height="212" rx="10"
-          fill="rgba(4,10,28,0.8)" stroke="#1e3a5f" stroke-width="1.2"/>
-    <!-- Door gap -->
-    <rect x="14" y="218" width="412" height="18" fill="rgba(4,10,28,0.8)"/>
-    <rect x="185" y="224" width="60" height="12" fill="rgba(10,20,50,0.6)"/>
-    <path d="M185 224 Q215 218 245 224" stroke="#38bdf8" stroke-width="0.6" fill="none" opacity="0.5"/>
+        <rect x="962" y="0" width="88" [attr.height]="MAP_H" fill="rgba(10,20,50,0.6)" stroke="none" opacity="1"/>
+        <line x1="962" y1="0" x2="962" [attr.y2]="MAP_H"/><line x1="1050" y1="0" x2="1050" [attr.y2]="MAP_H"/>
 
-    <!-- Office A interior details -->
-    <!-- Window -->
-    <rect x="30" y="30" width="80" height="50" rx="4" fill="rgba(56,189,248,0.04)" stroke="rgba(56,189,248,0.15)" stroke-width="0.8"/>
-    <line x1="70" y1="30" x2="70" y2="80" stroke="rgba(56,189,248,0.1)" stroke-width="0.5"/>
-    <line x1="30" y1="55" x2="110" y2="55" stroke="rgba(56,189,248,0.1)" stroke-width="0.5"/>
-    <!-- Desk -->
-    <rect x="290" y="160" width="110" height="50" rx="6" fill="rgba(56,189,248,0.04)" stroke="rgba(56,189,248,0.15)" stroke-width="0.8"/>
-    <circle cx="395" cy="185" r="12" fill="rgba(56,189,248,0.05)" stroke="rgba(56,189,248,0.12)" stroke-width="0.8"/>
-    <!-- Medical cross -->
-    <text x="34" y="28" font-size="7" fill="rgba(56,189,248,0.4)" font-family="monospace" font-weight="bold">OFFICE A</text>
-    <text x="34" y="38" font-size="6" fill="rgba(56,189,248,0.2)" font-family="monospace">General Medicine</text>
+        <rect x="1462" y="0" width="88" [attr.height]="MAP_H" fill="rgba(10,20,50,0.6)" stroke="none" opacity="1"/>
+        <line x1="1462" y1="0" x2="1462" [attr.y2]="MAP_H"/><line x1="1550" y1="0" x2="1550" [attr.y2]="MAP_H"/>
+      </g>
+      <g stroke="#1e3a5f" stroke-width="0.4" opacity="0.6" stroke-dasharray="8 12">
+        <line x1="506" y1="0" x2="506" [attr.y2]="MAP_H"/>
+        <line x1="1006" y1="0" x2="1006" [attr.y2]="MAP_H"/>
+        <line x1="1506" y1="0" x2="1506" [attr.y2]="MAP_H"/>
+      </g>
 
-    <!-- Office B — Top Right -->
-    <rect x="514" y="14" width="412" height="212" rx="10"
-          fill="rgba(4,10,28,0.8)" stroke="#1e3a5f" stroke-width="1.2"/>
-    <rect x="514" y="218" width="412" height="18" fill="rgba(4,10,28,0.8)"/>
-    <rect x="685" y="224" width="60" height="12" fill="rgba(10,20,50,0.6)"/>
-    <path d="M685 224 Q715 218 745 224" stroke="#34d399" stroke-width="0.6" fill="none" opacity="0.5"/>
+      <!-- ═══ 8 LARGE IDENTICAL ROOMS ═══ -->
+      <g *ngFor="let rm of svgRooms">
+        <rect [attr.x]="rm.x" [attr.y]="rm.y" width="412" height="212" rx="10" fill="rgba(4,10,28,0.8)" stroke="#1e3a5f" stroke-width="1.2"/>
+        <rect [attr.x]="rm.x" [attr.y]="rm.y + 205" width="412" height="18" fill="rgba(4,10,28,0.8)"/>
+        
+        <!-- Doorway rendering correctly dependent on room row -->
+        <rect [attr.x]="rm.x + 171" [attr.y]="rm.y + (rm.y < 500 ? 211 : -11)" width="70" height="12" fill="rgba(10,20,50,0.6)"/>
+        <path [attr.d]="rm.y < 500 ? ('M'+(rm.x+171)+' '+(rm.y+211)+' Q'+(rm.x+206)+' '+(rm.y+205)+' '+(rm.x+241)+' '+(rm.y+211)) : ('M'+(rm.x+171)+' '+(rm.y-11)+' Q'+(rm.x+206)+' '+(rm.y-5)+' '+(rm.x+241)+' '+(rm.y-11))" [attr.stroke]="rm.color" stroke-width="0.6" fill="none" opacity="0.5"/>
 
-    <!-- Office B interior details -->
-    <rect x="820" y="30" width="80" height="50" rx="4" fill="rgba(52,211,153,0.04)" stroke="rgba(52,211,153,0.15)" stroke-width="0.8"/>
-    <line x1="860" y1="30" x2="860" y2="80" stroke="rgba(52,211,153,0.1)" stroke-width="0.5"/>
-    <line x1="820" y1="55" x2="900" y2="55" stroke="rgba(52,211,153,0.1)" stroke-width="0.5"/>
-    <rect x="530" y="160" width="110" height="50" rx="6" fill="rgba(52,211,153,0.04)" stroke="rgba(52,211,153,0.15)" stroke-width="0.8"/>
-    <circle cx="635" cy="185" r="12" fill="rgba(52,211,153,0.05)" stroke="rgba(52,211,153,0.12)" stroke-width="0.8"/>
-    <text x="534" y="28" font-size="7" fill="rgba(52,211,153,0.4)" font-family="monospace" font-weight="bold">OFFICE B</text>
-    <text x="534" y="38" font-size="6" fill="rgba(52,211,153,0.2)" font-family="monospace">Cardiology</text>
+        <!-- Interior details shared across all rooms -->
+        <rect [attr.x]="rm.x + 16" [attr.y]="rm.y + 16" width="80" height="50" rx="4" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.1)" stroke-width="0.8"/>
+        <line [attr.x1]="rm.x + 56" [attr.y1]="rm.y + 16" [attr.x2]="rm.x + 56" [attr.y2]="rm.y + 66" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+        <line [attr.x1]="rm.x + 16" [attr.y1]="rm.y + 41" [attr.x2]="rm.x + 96" [attr.y2]="rm.y + 41" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+        
+        <rect [attr.x]="rm.x + 276" [attr.y]="rm.y + 146" width="110" height="50" rx="6" [attr.fill]="rm.color" fill-opacity="0.04" [attr.stroke]="rm.color" stroke-opacity="0.15" stroke-width="0.8"/>
+        <circle [attr.cx]="rm.x + 381" [attr.cy]="rm.y + 171" r="12" [attr.fill]="rm.color" fill-opacity="0.05" [attr.stroke]="rm.color" stroke-opacity="0.12" stroke-width="0.8"/>
+        
+        <!-- Room labels -->
+        <text [attr.x]="rm.x + 20" [attr.y]="rm.y + 14" font-size="7" [attr.fill]="rm.color" fill-opacity="0.5" font-family="monospace" font-weight="bold">{{rm.label}}</text>
+        <text [attr.x]="rm.x + 20" [attr.y]="rm.y + 24" font-size="6" [attr.fill]="rm.color" fill-opacity="0.3" font-family="monospace">{{rm.desc}}</text>
+      </g>
+    </svg>
 
-    <!-- Office C — Bottom Left -->
-    <rect x="14" y="314" width="412" height="212" rx="10"
-          fill="rgba(4,10,28,0.8)" stroke="#1e3a5f" stroke-width="1.2"/>
-    <rect x="14" y="307" width="412" height="10" fill="rgba(4,10,28,0.8)"/>
-    <rect x="185" y="305" width="60" height="12" fill="rgba(10,20,50,0.6)"/>
-    <path d="M185 317 Q215 311 245 317" stroke="#f472b6" stroke-width="0.6" fill="none" opacity="0.5"/>
-
-    <rect x="30" y="450" width="80" height="50" rx="4" fill="rgba(244,114,182,0.04)" stroke="rgba(244,114,182,0.15)" stroke-width="0.8"/>
-    <line x1="70" y1="450" x2="70" y2="500" stroke="rgba(244,114,182,0.1)" stroke-width="0.5"/>
-    <line x1="30" y1="475" x2="110" y2="475" stroke="rgba(244,114,182,0.1)" stroke-width="0.5"/>
-    <rect x="290" y="325" width="110" height="50" rx="6" fill="rgba(244,114,182,0.04)" stroke="rgba(244,114,182,0.15)" stroke-width="0.8"/>
-    <circle cx="395" cy="350" r="12" fill="rgba(244,114,182,0.05)" stroke="rgba(244,114,182,0.12)" stroke-width="0.8"/>
-    <text x="34" y="330" font-size="7" fill="rgba(244,114,182,0.4)" font-family="monospace" font-weight="bold">OFFICE C</text>
-    <text x="34" y="340" font-size="6" fill="rgba(244,114,182,0.2)" font-family="monospace">Neurology</text>
-
-    <!-- Office D — Bottom Right -->
-    <rect x="514" y="314" width="412" height="212" rx="10"
-          fill="rgba(4,10,28,0.8)" stroke="#1e3a5f" stroke-width="1.2"/>
-    <rect x="514" y="307" width="412" height="10" fill="rgba(4,10,28,0.8)"/>
-    <rect x="685" y="305" width="60" height="12" fill="rgba(10,20,50,0.6)"/>
-    <path d="M685 317 Q715 311 745 317" stroke="#fb923c" stroke-width="0.6" fill="none" opacity="0.5"/>
-
-    <rect x="820" y="450" width="80" height="50" rx="4" fill="rgba(251,146,60,0.04)" stroke="rgba(251,146,60,0.15)" stroke-width="0.8"/>
-    <line x1="860" y1="450" x2="860" y2="500" stroke="rgba(251,146,60,0.1)" stroke-width="0.5"/>
-    <line x1="820" y1="475" x2="900" y2="475" stroke="rgba(251,146,60,0.1)" stroke-width="0.5"/>
-    <rect x="530" y="325" width="110" height="50" rx="6" fill="rgba(251,146,60,0.04)" stroke="rgba(251,146,60,0.15)" stroke-width="0.8"/>
-    <circle cx="635" cy="350" r="12" fill="rgba(251,146,60,0.05)" stroke="rgba(251,146,60,0.12)" stroke-width="0.8"/>
-    <text x="534" y="330" font-size="7" fill="rgba(251,146,60,0.4)" font-family="monospace" font-weight="bold">OFFICE D</text>
-    <text x="534" y="340" font-size="6" fill="rgba(251,146,60,0.2)" font-family="monospace">Pediatrics</text>
-
-    <!-- ═══ CLINIC CENTER (corridor intersection) ═══ -->
-    <circle cx="470" cy="270" r="28" fill="rgba(8,16,40,0.9)" stroke="rgba(56,189,248,0.2)" stroke-width="1"/>
-    <circle cx="470" cy="270" r="22" fill="none" stroke="rgba(56,189,248,0.12)" stroke-width="0.8" stroke-dasharray="3 3"/>
-    <text x="470" y="267" text-anchor="middle" font-size="8" fill="rgba(248,113,113,0.7)" font-weight="bold">+</text>
-    <text x="470" y="277" text-anchor="middle" font-size="5.5" fill="rgba(100,116,139,0.6)" font-family="monospace" letter-spacing="0.5">RECEPTION</text>
-
-    <!-- ═══ WALKING PATH ARROWS ═══ -->
-    <!-- Top corridor paths -->
-    <path d="M 280 270 L 436 270" stroke="rgba(56,189,248,0.15)" stroke-width="1.5" stroke-dasharray="6 5" fill="none"/>
-    <path d="M 504 270 L 660 270" stroke="rgba(52,211,153,0.15)" stroke-width="1.5" stroke-dasharray="6 5" fill="none"/>
-    <!-- Vertical paths -->
-    <path d="M 470 130 L 470 236" stroke="rgba(56,189,248,0.12)" stroke-width="1.5" stroke-dasharray="6 5" fill="none"/>
-    <path d="M 470 304 L 470 410" stroke="rgba(244,114,182,0.12)" stroke-width="1.5" stroke-dasharray="6 5" fill="none"/>
-
-    <!-- ═══ FLOOR HINT ═══ -->
-    <text x="470" y="532" text-anchor="middle" font-size="7.5" fill="rgba(71,85,105,0.65)"
-          font-family="monospace" letter-spacing="2.5">WASD / ARROWS  ·  MOVE  —  ENTER  ·  INTERACT</text>
-  </svg>
-
-  <!-- ═══ DOCTOR OFFICE NODES ═══ -->
+    <!-- ═══ DOCTOR OFFICE NODES ═══ -->
   <div class="office-unit"
        *ngFor="let doc of doctors; let i = index"
        [style.left.px]="officePositions[i % 4].x"
@@ -169,6 +118,35 @@
 
     <div class="nearby-prompt" *ngIf="checkProximity(i)">
       <span class="key-chip">ENTER</span> to open records
+    </div>
+  </div>
+
+  <!-- ═══ PATIENT NODES ═══ -->
+  <div class="office-unit"
+       *ngFor="let pat of patients; let i = index"
+       [style.left.px]="patientPositions[i]?.x"
+       [style.top.px]="patientPositions[i]?.y"
+       [class.nearby]="checkPatientProximity(i)"
+       [style.--accent]="getPatientColor(i).accent"
+       [style.--glow]="getPatientColor(i).glow"
+       [style.--dkbg]="getPatientColor(i).bg"
+       [style.--border]="getPatientColor(i).border">
+
+    <div class="office-box">
+      <div class="ring-anim"></div>
+      <div class="ring-anim-2"></div>
+      <div class="doc-avatar"
+           [style.border-color]="getPatientColor(i).accent"
+           [style.color]="getPatientColor(i).accent"
+           [style.background]="getPatientColor(i).bg">
+        {{ pat?.firstName?.[0] }}{{ pat?.lastName?.[0] }}
+      </div>
+      <div class="doc-name">{{ pat?.firstName | uppercase }} {{ pat?.lastName | uppercase }}</div>
+      <div class="doc-spec">INPATIENT</div>
+    </div>
+
+    <div class="nearby-prompt" *ngIf="checkPatientProximity(i)">
+      <span class="key-chip">ENTER</span> to view Patient History
     </div>
   </div>
 
@@ -220,6 +198,8 @@
       </svg>
     </div>
   </div>
+
+  </div> <!-- /map-canvas -->
 
   <!-- ═══ D-PAD ═══ -->
   <div class="dpad">
@@ -295,7 +275,7 @@
         <div class="appt-scroll">
           <div class="appt-row" *ngFor="let appt of detailedAppts" (click)="selectApptDetail(appt)">
             <div class="appt-patient">{{ appt.patientName }}</div>
-            <div class="appt-date">{{ appt.dateTime | date:'dd MMM · HH:mm' }}</div>
+            <div class="appt-date">{{ appt.appointmentDate ? (appt.appointmentDate | date:'dd MMM · HH:mm') : 'TBD' }}</div>
             <div (click)="$event.stopPropagation()">
               <select class="status-sel" [ngClass]="getStatusClass(appt.status)"
                       [(ngModel)]="appt.status" (ngModelChange)="changeStatusInline(appt, $event)">
@@ -364,7 +344,7 @@
             </svg>
           </div>
           <div class="side-title del-title-text">Delete appointment?</div>
-          <div class="del-confirm-info"><strong>{{ pendingDeleteAppt?.patientName }}</strong><br>{{ pendingDeleteAppt?.dateTime | date:'dd MMM yyyy · HH:mm' }}</div>
+          <div class="del-confirm-info"><strong>{{ pendingDeleteAppt?.patientName }}</strong><br>{{ pendingDeleteAppt?.appointmentDate ? (pendingDeleteAppt?.appointmentDate | date:'dd MMM yyyy · HH:mm') : 'TBD' }}</div>
           <p class="del-warn">This action cannot be undone.</p>
           <div class="side-actions">
             <button class="side-cancel" (click)="cancelSide()">Cancel</button>
@@ -385,7 +365,7 @@
         <div class="detail-patient">{{ selectedAppt?.patientName }}</div>
       </div>
       <div class="detail-grid">
-        <div class="detail-cell"><div class="detail-cell-label">DATE &amp; TIME</div><div class="detail-cell-val">{{ selectedAppt?.dateTime | date:'dd MMM yyyy · HH:mm' }}</div></div>
+        <div class="detail-cell"><div class="detail-cell-label">DATE &amp; TIME</div><div class="detail-cell-val">{{ selectedAppt?.appointmentDate ? (selectedAppt?.appointmentDate | date:'dd MMM yyyy · HH:mm') : 'TBD' }}</div></div>
         <div class="detail-cell"><div class="detail-cell-label">STATUS</div><div class="detail-status" [ngClass]="getStatusClass(selectedAppt?.status)">{{ selectedAppt?.status }}</div></div>
         <div class="detail-cell"><div class="detail-cell-label">DOCTOR</div><div class="detail-cell-val">Dr. {{ activeDoctor?.firstName }} {{ activeDoctor?.lastName }}</div></div>
         <div class="detail-cell"><div class="detail-cell-label">SPECIALITY</div><div class="detail-cell-val">{{ activeDoctor?.speciality }}</div></div>
@@ -393,6 +373,57 @@
       <div class="detail-notes-label">NOTES</div>
       <div class="detail-notes">{{ selectedAppt?.notes || 'No notes attached to this appointment.' }}</div>
       <button class="detail-back" (click)="goBackToList()">← Back to appointments</button>
+    </div>
+  </div>
+
+  <!-- ═══ OVERLAY: PATIENT HISTORY ═══ -->
+  <div class="overlay" *ngIf="uiState === 'patient-history'">
+    <div class="list-layout">
+      <div class="glass-panel patient-history-panel list-panel">
+        <div class="panel-glow"></div>
+        <div class="list-header">
+          <button class="back-btn" (click)="closeUI()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <div class="list-doc-av" style="color: #c084fc; border-color: rgba(192,132,252,0.3); background: rgba(192,132,252,0.1)">
+            {{ activePatient?.firstName?.[0] }}{{ activePatient?.lastName?.[0] }}
+          </div>
+          <div>
+            <div class="list-doc-name">{{ activePatient?.firstName }} {{ activePatient?.lastName }}</div>
+            <div class="list-doc-spec">Patient Records — <span class="appt-count" style="color: #c084fc">{{ patientAppointments.length }} appointments</span></div>
+          </div>
+        </div>
+        <div class="list-col-head" style="grid-template-columns: 1.2fr 1.5fr 150px 100px;">
+          <span>Doctor</span><span>Observations</span><span>Date &amp; Time</span><span>Status</span>
+        </div>
+        <div class="appt-scroll">
+          <div class="appt-row" *ngFor="let appt of patientAppointments" style="grid-template-columns: 1.2fr 1.5fr 150px 100px; align-items: start;">
+            <div style="display: flex; flex-direction: column;">
+              <div class="appt-patient" style="color: #e2e8f0">{{ appt.doctorName }}</div>
+              <div style="font-size: 9px; color: #64748b; margin-top: 2px;">{{ appt.doctorSpeciality }}</div>
+              <div style="font-size: 8.5px; color: #475569; margin-top: 5px; font-family: monospace;">APPT: #{{ appt.id }}</div>
+            </div>
+            <div style="font-size: 10px; color: #cbd5e1; line-height: 1.5; padding-right: 8px;">
+              {{ appt.notes || '—' }}
+            </div>
+            <div class="appt-date" style="color: #94a3b8; font-family: monospace; font-size: 10.5px;">
+              {{ appt.appointmentDate ? (appt.appointmentDate | date:'dd MMM yyyy · HH:mm') : 'TBD' }}
+            </div>
+            <div>
+              <span class="detail-status" [ngClass]="getStatusClass(appt.status)">{{ appt.status }}</span>
+            </div>
+          </div>
+          <div class="empty-state" *ngIf="patientAppointments.length === 0">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" style="margin-bottom:8px;">
+              <circle cx="16" cy="16" r="14" stroke="#334155" stroke-width="1.5"/>
+              <path d="M10 16h12M16 10v12" stroke="#334155" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            No appointments found
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 

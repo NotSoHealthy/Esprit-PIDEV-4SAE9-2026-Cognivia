@@ -14,8 +14,16 @@
 }
 
 /* ═══════════════════════════════════════════
-   BACKGROUND
+   BACKGROUND & CANVAS
 ═══════════════════════════════════════════ */
+.map-canvas {
+  position: absolute;
+  top: 0; left: 0;
+  will-change: transform;
+  /* smooth camera interpolation */
+  transition: transform 0.08s linear;
+}
+
 .bg-base {
   position: absolute; inset: 0;
   background: radial-gradient(ellipse at 30% 40%, #020d24 0%, #010812 60%, #000508 100%);
@@ -179,6 +187,8 @@
   border-radius: 4px; padding: 1px 5px;
   font-size: 8px; font-weight: 700;
 }
+
+/* Removed redundant patient CSS, reusing office-unit instead */
 
 /* ═══════════════════════════════════════════
    CHARACTER

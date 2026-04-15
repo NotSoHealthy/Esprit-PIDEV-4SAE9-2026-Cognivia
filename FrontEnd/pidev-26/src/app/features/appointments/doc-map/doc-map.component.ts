@@ -24,31 +24,38 @@ export class DocMapComponent implements OnInit, OnDestroy {
 
   @ViewChild('charSvg') charSvg!: ElementRef<SVGSVGElement>;
 
-  readonly MAP_W = 940;
-  readonly MAP_H = 540;
+  readonly MAP_W = 2000;
+  MAP_H = 1200;
   readonly SPEED = 5.5;
-  readonly PROXIMITY = 110;
+  readonly PROXIMITY = 120;
+  
+  rowArray: number[] = [0];
 
-  charX = 470;
-  charY = 270;
+  charX = 1000;
+  charY = 550;
+  cameraX = -530;
+  cameraY = -280;
   isLeft = false;
   isMoving = false;
   stepPhase = 0;
 
   particles: { x: number; y: number; opacity: number; size: number; vx: number; vy: number; color: string }[] = [];
 
-  uiState: 'map' | 'menu' | 'list' | 'detail' = 'map';
+  uiState: 'map' | 'menu' | 'list' | 'detail' | 'patient-history' = 'map';
   menuIndex = 0;
 
   doctors: Doctor[] = [];
   patients: Patient[] = [];
   doctorApptsStore = new Map<number, Appointment[]>();
 
-  activeDoctor: Doctor | null = null;
-  activeDoctorIndex = -1;
-
   detailedAppts: any[] = [];
   selectedAppt: any | null = null;
+  patientAppointments: any[] = [];
+
+  activeDoctor: Doctor | null = null;
+  activeDoctorIndex = -1;
+  activePatient: Patient | null = null;
+  activePatientIndex = -1;
 
   toastMessage = '';
   toastVisible = false;
@@ -59,12 +66,19 @@ export class DocMapComponent implements OnInit, OnDestroy {
   pendingDeleteAppt: any | null = null;
   editForm = { status: 'PENDING', notes: '' };
 
-  // Doctor positions — centered inside each office room
+  svgRooms: any[] = [
+    { type: 'office', x: 50, y: 50, label: 'OFFICE A', desc: 'General Medicine', color: '#38bdf8' },
+    { type: 'office', x: 550, y: 50, label: 'OFFICE B', desc: 'Cardiology', color: '#34d399' },
+    { type: 'office', x: 1050, y: 50, label: 'OFFICE C', desc: 'Neurology', color: '#f472b6' },
+    { type: 'office', x: 1550, y: 50, label: 'OFFICE D', desc: 'Pediatrics', color: '#fb923c' }
+  ];
+
+  // Doctor positions — centered inside each top office room
   officePositions = [
-    { x: 222, y: 108 },   // Office A — top-left room center
-    { x: 718, y: 108 },   // Office B — top-right room center
-    { x: 222, y: 418 },   // Office C — bottom-left room center
-    { x: 718, y: 418 }    // Office D — bottom-right room center
+    { x: 256, y: 156 },   // Office A — top row 1
+    { x: 756, y: 156 },   // Office B — top row 2
+    { x: 1256, y: 156 },  // Office C — top row 3
+    { x: 1756, y: 156 }   // Office D — top row 4
   ];
 
   doctorColors = [
@@ -72,6 +86,16 @@ export class DocMapComponent implements OnInit, OnDestroy {
     { accent: '#34d399', glow: 'rgba(52,211,153,0.4)',  bg: 'rgba(52,211,153,0.1)',  border: '#10b981' },
     { accent: '#f472b6', glow: 'rgba(244,114,182,0.4)', bg: 'rgba(244,114,182,0.1)', border: '#ec4899' },
     { accent: '#fb923c', glow: 'rgba(251,146,60,0.4)',  bg: 'rgba(251,146,60,0.1)',  border: '#f97316' }
+  ];
+
+  // Patient properties - Generated dynamically
+  patientPositions: {x: number, y: number}[] = [];
+
+  patientColors = [
+    { accent: '#c084fc', glow: 'rgba(192,132,252,0.4)', bg: 'rgba(192,132,252,0.1)', border: '#a855f7' },
+    { accent: '#e879f9', glow: 'rgba(232,121,249,0.4)', bg: 'rgba(232,121,249,0.1)', border: '#d946ef' },
+    { accent: '#818cf8', glow: 'rgba(129,140,248,0.4)', bg: 'rgba(129,140,248,0.1)', border: '#6366f1' },
+    { accent: '#f8fafc', glow: 'rgba(248,250,252,0.4)', bg: 'rgba(248,250,252,0.1)', border: '#cbd5e1' }
   ];
 
   private keys = new Set<string>();
@@ -94,9 +118,9 @@ export class DocMapComponent implements OnInit, OnDestroy {
   }
 
   private initParticles() {
-    this.particles = Array.from({ length: 22 }, (_, i) => ({
-      x: Math.random() * 940,
-      y: Math.random() * 540,
+    this.particles = Array.from({ length: 45 }, (_, i) => ({
+      x: Math.random() * this.MAP_W,
+      y: Math.random() * this.MAP_H,
       opacity: Math.random() * 0.5 + 0.1,
       size: Math.random() * 2.5 + 0.8,
       vx: (Math.random() - 0.5) * 0.4,
@@ -109,10 +133,10 @@ export class DocMapComponent implements OnInit, OnDestroy {
     this.particles.forEach(p => {
       p.x += p.vx;
       p.y += p.vy;
-      if (p.x < 0)   p.x = 940;
-      if (p.x > 940) p.x = 0;
-      if (p.y < 0)   p.y = 540;
-      if (p.y > 540) p.y = 0;
+      if (p.x < 0)   p.x = this.MAP_W;
+      if (p.x > this.MAP_W) p.x = 0;
+      if (p.y < 0)   p.y = this.MAP_H;
+      if (p.y > this.MAP_H) p.y = 0;
     });
   }
 
@@ -135,6 +159,16 @@ export class DocMapComponent implements OnInit, OnDestroy {
           this.menuIndex = 0;
           this.keys.clear();
           this.zone.run(() => this.cdr.markForCheck());
+        } else {
+          // Check if near a patient ward
+          const patIdx = this.patients.findIndex((_, i) => this.checkPatientProximity(i));
+          if (patIdx >= 0) {
+            this.activePatient = this.patients[patIdx];
+            this.activePatientIndex = patIdx;
+            this.openPatientHistory();
+            this.keys.clear();
+            this.zone.run(() => this.cdr.markForCheck());
+          }
         }
       }
     } else {
@@ -166,6 +200,25 @@ export class DocMapComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
+  openPatientHistory() {
+    this.uiState = 'patient-history';
+    const allAppts: any[] = [];
+    this.doctorApptsStore.forEach((appts, docId) => {
+      const doc = this.doctors.find(d => d.id === docId);
+      const filtered = appts.filter(a => a.patientId === this.activePatient!.id);
+      filtered.forEach(a => {
+        allAppts.push({
+          ...a,
+          doctorName: doc ? `Dr. ${doc.firstName} ${doc.lastName}` : `Doctor #${docId}`,
+          doctorSpeciality: doc ? doc.speciality : 'General'
+        });
+      });
+    });
+    // Sort descending by date
+    this.patientAppointments = allAppts.sort((a, b) => new Date(b.appointmentDate || 0).getTime() - new Date(a.appointmentDate || 0).getTime());
+    this.cdr.markForCheck();
+  }
+
   private engineLoop() {
     const frame = () => {
       this.updateParticles();
@@ -180,12 +233,16 @@ export class DocMapComponent implements OnInit, OnDestroy {
         if (this.isMoving) {
           this.charX = Math.max(40, Math.min(this.MAP_W - 40, this.charX + dx));
           this.charY = Math.max(40, Math.min(this.MAP_H - 40, this.charY + dy));
-          this.stepPhase += 0.22;
+          this.stepPhase += 0.35;
           this.animateStep(Math.sin(this.stepPhase) * 18);
         } else {
           this.stepPhase = 0;
           this.animateStep(0);
         }
+
+        // Camera Update
+        this.cameraX = Math.min(0, Math.max(940 - this.MAP_W, 470 - this.charX));
+        this.cameraY = Math.min(0, Math.max(540 - this.MAP_H, 270 - this.charY));
       }
       this.zone.run(() => this.cdr.detectChanges());
       this.rafId = requestAnimationFrame(frame);
@@ -201,6 +258,29 @@ export class DocMapComponent implements OnInit, OnDestroy {
     }).subscribe(({ docs, pts }) => {
       this.doctors  = docs;
       this.patients = pts;
+
+      // Expand map dynamically based on patient count
+      const ptRows = Math.ceil(this.patients.length / 4);
+      this.MAP_H = 500 + (Math.max(1, ptRows) * 650);
+      this.rowArray = Array.from({ length: ptRows }, (_, i) => i);
+
+      // Rebuild arrays
+      this.patientPositions = [];
+      this.svgRooms = this.svgRooms.filter(r => r.type === 'office');
+      this.patients.forEach((pat, index) => {
+        const row = Math.floor(index / 4);
+        const col = index % 4;
+        this.patientPositions.push({ x: 256 + (col * 500), y: 906 + (row * 650) });
+        this.svgRooms.push({
+          type: 'patient',
+          x: 50 + (col * 500),
+          y: 800 + (row * 650),
+          label: `ROOM 10${index + 1}`,
+          desc: 'Inpatient Ward',
+          color: this.getPatientColor(index).accent
+        });
+      });
+
       docs.forEach(d => {
         this.api.getAppointmentsByDoctor(d.id).subscribe({
           next: appts => {
@@ -220,6 +300,14 @@ export class DocMapComponent implements OnInit, OnDestroy {
 
   getDocColor(i: number) { return this.doctorColors[i % this.doctorColors.length]; }
 
+  checkPatientProximity(patientIndex: number): boolean {
+    const pos = this.patientPositions[patientIndex];
+    if (!pos) return false;
+    return Math.hypot(this.charX - pos.x, this.charY - pos.y) < this.PROXIMITY;
+  }
+
+  getPatientColor(i: number) { return this.patientColors[i % this.patientColors.length]; }
+
   getPendingCount(doctorId: number): number {
     return (this.doctorApptsStore.get(doctorId) || []).filter(a => a.status === 'PENDING').length;
   }
@@ -236,6 +324,8 @@ export class DocMapComponent implements OnInit, OnDestroy {
     this.uiState = 'map';
     this.activeDoctor = null;
     this.activeDoctorIndex = -1;
+    this.activePatient = null;
+    this.activePatientIndex = -1;
     this.sideMode = null;
     this.editingAppt = null;
     this.pendingDeleteAppt = null;
