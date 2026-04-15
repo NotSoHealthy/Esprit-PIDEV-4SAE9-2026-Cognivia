@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/equipment")
@@ -36,5 +37,10 @@ public class EquipmentController {
     @DeleteMapping("/{id}")
     public void deleteEquipment(@PathVariable Long id) {
         equipmentService.deleteEquipment(id);
+    }
+
+    @PostMapping("/extract-from-text")
+    public Equipment extractEquipmentFromText(@RequestBody Map<String, String> body) {
+        return equipmentService.buildEquipmentFromText(body.get("text"));
     }
 }

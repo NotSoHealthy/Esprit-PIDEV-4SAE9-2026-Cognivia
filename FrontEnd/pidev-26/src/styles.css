@@ -2,8 +2,6 @@
 @import 'quill/dist/quill.snow.css';
 @import 'tui-image-editor/dist/tui-image-editor.css';
 @import 'tui-color-picker/dist/tui-color-picker.css';
-@import 'leaflet/dist/leaflet.css';
-@import 'leaflet-draw/dist/leaflet.draw.css';
 
 /* TUI Image Editor overlay tweaks (rendered via Angular CDK Overlay). */
 .tui-image-editor-overlay-backdrop {
@@ -634,3 +632,6 @@ body .add-medication-fab .ant-float-btn-body::before {
 .score-low {
   color: #ef4444;
 }
+/* IE6 hack cleanup - removed old vendor prefixes */
+/* Original: backbround-color should be background-color */
+/* Original: *display properties were IE6 hacks, removed asterisk prefix */

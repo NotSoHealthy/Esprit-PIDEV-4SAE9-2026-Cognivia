@@ -1,19 +1,26 @@
 package com.pidev.care.services;
 
+import com.pidev.care.dto.TaskHistoryEventDTO;
 import com.pidev.care.entities.Task;
+import com.pidev.care.entities.TaskSubmission;
 import com.pidev.care.repositories.TaskRepository;
-import org.springframework.data.jpa.repository.JpaRepository;
+import com.pidev.care.repositories.TaskSubmissionRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
 public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
+    private final TaskSubmissionRepository submissionRepository;
 
-    public TaskServiceImpl(TaskRepository taskRepository) {
+    public TaskServiceImpl(TaskRepository taskRepository, TaskSubmissionRepository submissionRepository) {
         this.taskRepository = taskRepository;
+        this.submissionRepository = submissionRepository;
     }
 
     @Override
@@ -98,5 +105,126 @@ public class TaskServiceImpl implements TaskService {
     public void delete(Long id) {
         Task existing = getById(id);
         taskRepository.delete(existing);
+    }
+
+    @Override
+    public List<TaskHistoryEventDTO> getTaskHistory(Long taskId) {
+        Task task = getById(taskId);
+        LocalDateTime now = LocalDateTime.now();
+        List<TaskHistoryEventDTO> events = new ArrayList<>();
+
+        // ── 1. Task Created ──────────────────────────────────────────────────
+        if (task.getCreatedAt() != null) {
+            events.add(new TaskHistoryEventDTO(
+                "TASK_CREATED",
+                "Task Created",
+                "Task \"" + task.getTask() + "\" was created.",
+                task.getCreatedAt(),
+                "System",
+                "INFO",
+                null, "SYSTEM", null, "PENDING"
+            ));
+        }
+
+        // ── 2. Due Date Scheduled ────────────────────────────────────────────
+        if (task.getDueAt() != null) {
+            events.add(new TaskHistoryEventDTO(
+                "TASK_SCHEDULED",
+                "Due Date Scheduled",
+                "Scheduled for " + task.getDueAt().toString().replace("T", " at ") + ".",
+                task.getCreatedAt() != null ? task.getCreatedAt() : task.getDueAt(),
+                "System",
+                "INFO",
+                null, "SYSTEM", "PENDING", "SCHEDULED"
+            ));
+        }
+
+        // ── 3. Submissions: each generates 1-3 events ────────────────────────
+        List<TaskSubmission> submissions = submissionRepository.findByTaskId(taskId);
+        for (TaskSubmission sub : submissions) {
+
+            // 3a. Submission Added (Task Started/Validated by Patient)
+            if (sub.getSubmittedAt() != null) {
+                events.add(new TaskHistoryEventDTO(
+                    "SUBMISSION_ADDED",
+                    "Task Validated by Patient",
+                    "The patient confirmed task completion.",
+                    sub.getSubmittedAt(),
+                    "Patient #" + sub.getPatientId(),
+                    "INFO",
+                    sub.getDescription(), "PATIENT", "SCHEDULED", "PENDING_VALIDATION"
+                ));
+            }
+
+            // 3b. Submission Approved
+            if ("approved".equalsIgnoreCase(sub.getValidationStatus()) && sub.getValidatedAt() != null) {
+                events.add(new TaskHistoryEventDTO(
+                    "SUBMISSION_APPROVED",
+                    "Validation Approved",
+                    "The caregiver approved the completion.",
+                    sub.getValidatedAt(),
+                    sub.getValidatedBy() != null ? sub.getValidatedBy() : "Caregiver",
+                    "SUCCESS",
+                    sub.getValidationComments(), "CAREGIVER", "PENDING_VALIDATION", "COMPLETED"
+                ));
+            }
+
+            // 3c. Submission Rejected
+            if ("rejected".equalsIgnoreCase(sub.getValidationStatus()) && sub.getValidatedAt() != null) {
+                events.add(new TaskHistoryEventDTO(
+                    "SUBMISSION_REJECTED",
+                    "Validation Rejected",
+                    "The completion was rejected by the caregiver.",
+                    sub.getValidatedAt(),
+                    sub.getValidatedBy() != null ? sub.getValidatedBy() : "Caregiver",
+                    "DANGER",
+                    sub.getValidationComments(), "CAREGIVER", "PENDING_VALIDATION", "REJECTED"
+                ));
+            }
+        }
+
+        // ── 4. Task Completed ────────────────────────────────────────────────
+        if (Boolean.TRUE.equals(task.getIsDone())) {
+            LocalDateTime completedAt = submissions.stream()
+                .filter(s -> "approved".equalsIgnoreCase(s.getValidationStatus()) && s.getValidatedAt() != null)
+                .map(TaskSubmission::getValidatedAt)
+                .max(Comparator.naturalOrder())
+                .orElse(null);
+
+            if (completedAt != null) {
+                events.add(new TaskHistoryEventDTO(
+                    "TASK_COMPLETED",
+                    "Task Completed",
+                    "The task is officially marked as completed.",
+                    completedAt,
+                    "System",
+                    "SUCCESS",
+                    null, "SYSTEM", "PENDING_VALIDATION", "COMPLETED"
+                ));
+            }
+        }
+
+        // ── 5. Task Overdue ──────────────────────────────────────────────────
+        if (!Boolean.TRUE.equals(task.getIsDone())
+                && task.getDueAt() != null
+                && task.getDueAt().isBefore(now)) {
+            events.add(new TaskHistoryEventDTO(
+                "TASK_OVERDUE",
+                "Task Overdue",
+                "The task deadline has passed.",
+                task.getDueAt(),
+                "System",
+                "DANGER",
+                null, "SYSTEM", "SCHEDULED", "OVERDUE"
+            ));
+        }
+
+        // ── Sort by date ascending ───────────────────────────────────────────
+        events.sort(Comparator.comparing(
+            TaskHistoryEventDTO::getEventDate,
+            Comparator.nullsLast(Comparator.naturalOrder())
+        ));
+
+        return events;
     }
 }

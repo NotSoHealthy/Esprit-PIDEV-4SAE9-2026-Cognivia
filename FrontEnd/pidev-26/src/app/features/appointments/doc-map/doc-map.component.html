@@ -1,0 +1,430 @@
+<div class="clinic-viewport">
+
+  <!-- ═══ BACKGROUND ═══ -->
+  <div class="bg-base"></div>
+  <div class="bg-grid"></div>
+  <div class="bg-vignette"></div>
+  <div class="bg-scanlines"></div>
+
+  <!-- Animated corner decorations -->
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+
+  <!-- ═══ MAP CANVAS (CAMERA FOLLOW) ═══ -->
+  <div class="map-canvas" 
+       [style.transform]="'translate(' + cameraX + 'px, ' + cameraY + 'px)'"
+       [style.width.px]="MAP_W" 
+       [style.height.px]="MAP_H">
+
+    <!-- Floating particles -->
+    <svg class="particles-svg" [attr.viewBox]="'0 0 ' + MAP_W + ' ' + MAP_H" xmlns="http://www.w3.org/2000/svg">
+      <circle *ngFor="let p of particles"
+        [attr.cx]="p.x" [attr.cy]="p.y" [attr.r]="p.size"
+        [attr.opacity]="p.opacity" [attr.fill]="p.color"/>
+    </svg>
+
+    <!-- ═══ CLINIC FLOOR PLAN (DYNAMIC) ═══ -->
+    <svg class="floor-svg" [attr.viewBox]="'0 0 ' + MAP_W + ' ' + MAP_H" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="glow-blue">
+          <feGaussianBlur stdDeviation="3" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <!-- Outer clinic border with glow -->
+      <rect x="8" y="8" width="1984" [attr.height]="MAP_H - 16" rx="16" fill="none" stroke="#1e3a5f" stroke-width="1" opacity="0.5"/>
+      <rect x="12" y="12" width="1976" [attr.height]="MAP_H - 24" rx="14" fill="none" stroke="#0ea5e9" stroke-width="0.4" opacity="0.3"/>
+
+      <!-- ═══ MAIN CORRIDORS ═══ -->
+      <g *ngFor="let row of rowArray">
+        <rect x="0" [attr.y]="500 + (row * 650)" width="2000" height="100" fill="rgba(10,20,50,0.6)"/>
+        <line x1="0" [attr.y1]="500 + (row * 650)" x2="2000" [attr.y2]="500 + (row * 650)" stroke="#0ea5e9" stroke-width="0.8" opacity="0.4"/>
+        <line x1="0" [attr.y1]="600 + (row * 650)" x2="2000" [attr.y2]="600 + (row * 650)" stroke="#0ea5e9" stroke-width="0.8" opacity="0.4"/>
+        <line x1="0" [attr.y1]="550 + (row * 650)" x2="2000" [attr.y2]="550 + (row * 650)" stroke="#1e3a5f" stroke-width="0.4" opacity="0.6" stroke-dasharray="8 12"/>
+      </g>
+
+      <g stroke="#0ea5e9" stroke-width="0.8" opacity="0.4">
+        <rect x="462" y="0" width="88" [attr.height]="MAP_H" fill="rgba(10,20,50,0.6)" stroke="none" opacity="1"/>
+        <line x1="462" y1="0" x2="462" [attr.y2]="MAP_H"/><line x1="550" y1="0" x2="550" [attr.y2]="MAP_H"/>
+
+        <rect x="962" y="0" width="88" [attr.height]="MAP_H" fill="rgba(10,20,50,0.6)" stroke="none" opacity="1"/>
+        <line x1="962" y1="0" x2="962" [attr.y2]="MAP_H"/><line x1="1050" y1="0" x2="1050" [attr.y2]="MAP_H"/>
+
+        <rect x="1462" y="0" width="88" [attr.height]="MAP_H" fill="rgba(10,20,50,0.6)" stroke="none" opacity="1"/>
+        <line x1="1462" y1="0" x2="1462" [attr.y2]="MAP_H"/><line x1="1550" y1="0" x2="1550" [attr.y2]="MAP_H"/>
+      </g>
+      <g stroke="#1e3a5f" stroke-width="0.4" opacity="0.6" stroke-dasharray="8 12">
+        <line x1="506" y1="0" x2="506" [attr.y2]="MAP_H"/>
+        <line x1="1006" y1="0" x2="1006" [attr.y2]="MAP_H"/>
+        <line x1="1506" y1="0" x2="1506" [attr.y2]="MAP_H"/>
+      </g>
+
+      <!-- ═══ 8 LARGE IDENTICAL ROOMS ═══ -->
+      <g *ngFor="let rm of svgRooms">
+        <rect [attr.x]="rm.x" [attr.y]="rm.y" width="412" height="212" rx="10" fill="rgba(4,10,28,0.8)" stroke="#1e3a5f" stroke-width="1.2"/>
+        <rect [attr.x]="rm.x" [attr.y]="rm.y + 205" width="412" height="18" fill="rgba(4,10,28,0.8)"/>
+        
+        <!-- Doorway rendering correctly dependent on room row -->
+        <rect [attr.x]="rm.x + 171" [attr.y]="rm.y + (rm.y < 500 ? 211 : -11)" width="70" height="12" fill="rgba(10,20,50,0.6)"/>
+        <path [attr.d]="rm.y < 500 ? ('M'+(rm.x+171)+' '+(rm.y+211)+' Q'+(rm.x+206)+' '+(rm.y+205)+' '+(rm.x+241)+' '+(rm.y+211)) : ('M'+(rm.x+171)+' '+(rm.y-11)+' Q'+(rm.x+206)+' '+(rm.y-5)+' '+(rm.x+241)+' '+(rm.y-11))" [attr.stroke]="rm.color" stroke-width="0.6" fill="none" opacity="0.5"/>
+
+        <!-- Interior details shared across all rooms -->
+        <rect [attr.x]="rm.x + 16" [attr.y]="rm.y + 16" width="80" height="50" rx="4" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.1)" stroke-width="0.8"/>
+        <line [attr.x1]="rm.x + 56" [attr.y1]="rm.y + 16" [attr.x2]="rm.x + 56" [attr.y2]="rm.y + 66" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+        <line [attr.x1]="rm.x + 16" [attr.y1]="rm.y + 41" [attr.x2]="rm.x + 96" [attr.y2]="rm.y + 41" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+        
+        <rect [attr.x]="rm.x + 276" [attr.y]="rm.y + 146" width="110" height="50" rx="6" [attr.fill]="rm.color" fill-opacity="0.04" [attr.stroke]="rm.color" stroke-opacity="0.15" stroke-width="0.8"/>
+        <circle [attr.cx]="rm.x + 381" [attr.cy]="rm.y + 171" r="12" [attr.fill]="rm.color" fill-opacity="0.05" [attr.stroke]="rm.color" stroke-opacity="0.12" stroke-width="0.8"/>
+        
+        <!-- Room labels -->
+        <text [attr.x]="rm.x + 20" [attr.y]="rm.y + 14" font-size="7" [attr.fill]="rm.color" fill-opacity="0.5" font-family="monospace" font-weight="bold">{{rm.label}}</text>
+        <text [attr.x]="rm.x + 20" [attr.y]="rm.y + 24" font-size="6" [attr.fill]="rm.color" fill-opacity="0.3" font-family="monospace">{{rm.desc}}</text>
+      </g>
+    </svg>
+
+    <!-- ═══ DOCTOR OFFICE NODES ═══ -->
+  <div class="office-unit"
+       *ngFor="let doc of doctors; let i = index"
+       [style.left.px]="officePositions[i % 4].x"
+       [style.top.px]="officePositions[i % 4].y"
+       [class.nearby]="checkProximity(i)"
+       [style.--accent]="getDocColor(i).accent"
+       [style.--glow]="getDocColor(i).glow"
+       [style.--dkbg]="getDocColor(i).bg"
+       [style.--border]="getDocColor(i).border">
+
+    <div class="office-box">
+      <div class="ring-anim"></div>
+      <div class="ring-anim-2"></div>
+      <div class="doc-avatar"
+           [style.border-color]="getDocColor(i).accent"
+           [style.color]="getDocColor(i).accent"
+           [style.background]="getDocColor(i).bg">
+        {{ doc.firstName[0] }}{{ doc.lastName[0] }}
+      </div>
+      <div class="doc-name">DR. {{ doc.lastName | uppercase }}</div>
+      <div class="doc-spec">{{ doc.speciality }}</div>
+      <div class="doc-appt-count">
+        <span class="appt-dot"></span>
+        {{ (doctorApptsStore.get(doc.id) || []).length }} appts
+      </div>
+      <div class="badge" *ngIf="getPendingCount(doc.id) > 0">
+        {{ getPendingCount(doc.id) }}
+      </div>
+    </div>
+
+    <div class="nearby-prompt" *ngIf="checkProximity(i)">
+      <span class="key-chip">ENTER</span> to open records
+    </div>
+  </div>
+
+  <!-- ═══ PATIENT NODES ═══ -->
+  <div class="office-unit"
+       *ngFor="let pat of patients; let i = index"
+       [style.left.px]="patientPositions[i]?.x"
+       [style.top.px]="patientPositions[i]?.y"
+       [class.nearby]="checkPatientProximity(i)"
+       [style.--accent]="getPatientColor(i).accent"
+       [style.--glow]="getPatientColor(i).glow"
+       [style.--dkbg]="getPatientColor(i).bg"
+       [style.--border]="getPatientColor(i).border">
+
+    <div class="office-box">
+      <div class="ring-anim"></div>
+      <div class="ring-anim-2"></div>
+      <div class="doc-avatar"
+           [style.border-color]="getPatientColor(i).accent"
+           [style.color]="getPatientColor(i).accent"
+           [style.background]="getPatientColor(i).bg">
+        {{ pat?.firstName?.[0] }}{{ pat?.lastName?.[0] }}
+      </div>
+      <div class="doc-name">{{ pat?.firstName | uppercase }} {{ pat?.lastName | uppercase }}</div>
+      <div class="doc-spec">INPATIENT</div>
+    </div>
+
+    <div class="nearby-prompt" *ngIf="checkPatientProximity(i)">
+      <span class="key-chip">ENTER</span> to view Patient History
+    </div>
+  </div>
+
+  <!-- ═══ CHARACTER ═══ -->
+  <div class="character-wrap"
+       [style.left.px]="charX"
+       [style.top.px]="charY"
+       [class.moving]="isMoving">
+    <div class="char-shadow"></div>
+    <div [style.transform]="isLeft ? 'scaleX(-1)' : 'scaleX(1)'"
+         style="display:flex;justify-content:center;">
+      <svg #charSvg width="56" height="70" viewBox="0 0 44 58" class="char-svg">
+        <!-- Head glow -->
+        <circle cx="22" cy="12" r="13" fill="rgba(56,189,248,0.08)"/>
+        <!-- Head -->
+        <circle cx="22" cy="12" r="9" fill="#fde68a"/>
+        <!-- Eyes -->
+        <circle cx="18" cy="10.5" r="2" fill="#1e293b"/>
+        <circle cx="26" cy="10.5" r="2" fill="#1e293b"/>
+        <circle cx="18.7" cy="9.8" r="0.8" fill="white"/>
+        <circle cx="26.7" cy="9.8" r="0.8" fill="white"/>
+        <!-- Smile -->
+        <path d="M18.5 15.5 Q22 18 25.5 15.5" stroke="#b45309" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+        <!-- Hair -->
+        <path d="M13 12 Q13 3 22 2.5 Q31 3 31 12" fill="#78350f"/>
+        <path d="M13 10 Q13 5 22 4.5 Q31 5 31 10" fill="#92400e"/>
+        <!-- White coat -->
+        <rect x="10" y="21" width="24" height="20" rx="5" fill="#ffffff"/>
+        <!-- Medical cross -->
+        <rect x="20" y="23" width="4" height="1.5" rx="0.5" fill="#ef4444"/>
+        <rect x="21.5" y="21.5" width="1.5" height="4.5" rx="0.5" fill="#ef4444"/>
+        <!-- Coat collar -->
+        <path d="M17 21 L22 27 L27 21" stroke="#e2e8f0" stroke-width="0.8" fill="none"/>
+        <!-- Pockets -->
+        <rect x="12" y="33" width="7" height="5" rx="1.5" fill="rgba(148,163,184,0.25)" stroke="rgba(148,163,184,0.3)" stroke-width="0.5"/>
+        <rect x="25" y="33" width="7" height="5" rx="1.5" fill="rgba(148,163,184,0.25)" stroke="rgba(148,163,184,0.3)" stroke-width="0.5"/>
+        <!-- Arms -->
+        <g id="L-Arm"><rect x="3" y="21" width="7.5" height="15" rx="3.5" fill="#fde68a"/></g>
+        <g id="R-Arm"><rect x="33.5" y="21" width="7.5" height="15" rx="3.5" fill="#fde68a"/></g>
+        <!-- Legs -->
+        <g id="L-Leg">
+          <rect x="12" y="40" width="8.5" height="16" rx="3" fill="#1e40af"/>
+          <rect x="11" y="53" width="10" height="5" rx="2" fill="#1e3a8a"/>
+        </g>
+        <g id="R-Leg">
+          <rect x="23.5" y="40" width="8.5" height="16" rx="3" fill="#1e40af"/>
+          <rect x="23" y="53" width="10" height="5" rx="2" fill="#1e3a8a"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  </div> <!-- /map-canvas -->
+
+  <!-- ═══ D-PAD ═══ -->
+  <div class="dpad">
+    <button class="dpad-btn" (mousedown)="startMove('up')"    (mouseup)="stopMove('up')"    (mouseleave)="stopMove('up')"    (touchstart)="$event.preventDefault();startMove('up')"    (touchend)="stopMove('up')">▲</button>
+    <div class="dpad-row">
+      <button class="dpad-btn" (mousedown)="startMove('left')"  (mouseup)="stopMove('left')"  (mouseleave)="stopMove('left')"  (touchstart)="$event.preventDefault();startMove('left')"  (touchend)="stopMove('left')">◀</button>
+      <div class="dpad-center">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <circle cx="7" cy="7" r="6" stroke="rgba(56,189,248,0.3)" stroke-width="1"/>
+          <circle cx="7" cy="7" r="2.5" fill="rgba(56,189,248,0.2)"/>
+        </svg>
+      </div>
+      <button class="dpad-btn" (mousedown)="startMove('right')" (mouseup)="stopMove('right')" (mouseleave)="stopMove('right')" (touchstart)="$event.preventDefault();startMove('right')" (touchend)="stopMove('right')">▶</button>
+    </div>
+    <button class="dpad-btn" (mousedown)="startMove('down')"   (mouseup)="stopMove('down')"   (mouseleave)="stopMove('down')"  (touchstart)="$event.preventDefault();startMove('down')"  (touchend)="stopMove('down')">▼</button>
+  </div>
+
+  <!-- ═══ OVERLAY: MENU ═══ -->
+  <div class="overlay" *ngIf="uiState === 'menu'">
+    <div class="glass-panel menu-panel">
+      <div class="panel-glow"></div>
+      <div class="menu-header">
+        <div class="menu-doc-av">{{ activeDoctor?.firstName?.[0] }}{{ activeDoctor?.lastName?.[0] }}</div>
+        <div>
+          <div class="menu-doc-name">Dr. {{ activeDoctor?.firstName }} {{ activeDoctor?.lastName }}</div>
+          <div class="menu-doc-spec">{{ activeDoctor?.speciality }}</div>
+        </div>
+      </div>
+      <div class="menu-items">
+        <div class="menu-item" [class.active]="menuIndex === 0" (click)="menuIndex=0; executeMenuSelection()">
+          <div class="menu-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="1" y="3" width="14" height="2" rx="1" fill="currentColor"/>
+              <rect x="1" y="7" width="10" height="2" rx="1" fill="currentColor"/>
+              <rect x="1" y="11" width="12" height="2" rx="1" fill="currentColor"/>
+            </svg>
+          </div>
+          View Appointments
+        </div>
+        <div class="menu-item" [class.active]="menuIndex === 1" (click)="closeUI()">
+          <div class="menu-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M10 3L6 8l4 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          Back to Map
+        </div>
+      </div>
+      <p class="menu-hint">ARROWS + ENTER to navigate</p>
+    </div>
+  </div>
+
+  <!-- ═══ OVERLAY: LIST ═══ -->
+  <div class="overlay" *ngIf="uiState === 'list'">
+    <div class="list-layout">
+      <div class="glass-panel list-panel">
+        <div class="panel-glow"></div>
+        <div class="list-header">
+          <button class="back-btn" (click)="goBackToMenu()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <div class="list-doc-av">{{ activeDoctor?.firstName?.[0] }}{{ activeDoctor?.lastName?.[0] }}</div>
+          <div>
+            <div class="list-doc-name">Dr. {{ activeDoctor?.firstName }} {{ activeDoctor?.lastName }}</div>
+            <div class="list-doc-spec">{{ activeDoctor?.speciality }} — <span class="appt-count">{{ detailedAppts.length }} appointments</span></div>
+          </div>
+        </div>
+        <div class="list-col-head">
+          <span>Patient</span><span>Date &amp; Time</span><span>Status</span><span>Actions</span>
+        </div>
+        <div class="appt-scroll">
+          <div class="appt-row" *ngFor="let appt of detailedAppts" (click)="selectApptDetail(appt)">
+            <div class="appt-patient">{{ appt.patientName }}</div>
+            <div class="appt-date">{{ appt.appointmentDate ? (appt.appointmentDate | date:'dd MMM · HH:mm') : 'TBD' }}</div>
+            <div (click)="$event.stopPropagation()">
+              <select class="status-sel" [ngClass]="getStatusClass(appt.status)"
+                      [(ngModel)]="appt.status" (ngModelChange)="changeStatusInline(appt, $event)">
+                <option value="PENDING">PENDING</option>
+                <option value="CONFIRMED">CONFIRMED</option>
+                <option value="COMPLETED">COMPLETED</option>
+                <option value="CANCELLED">CANCELLED</option>
+              </select>
+            </div>
+            <div class="appt-actions" (click)="$event.stopPropagation()">
+              <button class="act-btn edit-btn" (click)="openEdit(appt)">
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                  <path d="M1.5 11.5l2.5-.5 7-7-2-2-7 7-.5 2.5z" stroke="currentColor" stroke-width="1.1" fill="none"/>
+                  <path d="M8.5 2.5l2 2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+                </svg>
+              </button>
+              <button class="act-btn del-btn" (click)="openDeleteConfirm(appt)">
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                  <path d="M2 4h9M5 4V2.5h3V4M3.5 4l.5 7h5l.5-7" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="empty-state" *ngIf="detailedAppts.length === 0">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" style="margin-bottom:8px;">
+              <circle cx="16" cy="16" r="14" stroke="#334155" stroke-width="1.5"/>
+              <path d="M10 16h12M16 10v12" stroke="#334155" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            No appointments found
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-panel side-panel" *ngIf="sideMode !== null">
+        <div class="panel-glow"></div>
+        <ng-container *ngIf="sideMode === 'edit'">
+          <div class="side-title">
+            <svg width="14" height="14" viewBox="0 0 13 13" fill="none">
+              <path d="M1.5 11.5l2.5-.5 7-7-2-2-7 7-.5 2.5z" stroke="#38bdf8" stroke-width="1.1" fill="none"/>
+            </svg>
+            Edit Appointment
+          </div>
+          <div class="form-field"><label>Patient</label><div class="locked-val">{{ editingAppt?.patientName }}</div></div>
+          <div class="form-field">
+            <label>Status</label>
+            <select class="form-select" [(ngModel)]="editForm.status">
+              <option value="PENDING">PENDING</option>
+              <option value="CONFIRMED">CONFIRMED</option>
+              <option value="COMPLETED">COMPLETED</option>
+              <option value="CANCELLED">CANCELLED</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Notes</label>
+            <textarea class="form-textarea" [(ngModel)]="editForm.notes" placeholder="Doctor notes..."></textarea>
+          </div>
+          <div class="side-actions">
+            <button class="side-cancel" (click)="cancelSide()">Cancel</button>
+            <button class="side-save" (click)="saveEdit()">Save</button>
+          </div>
+        </ng-container>
+        <ng-container *ngIf="sideMode === 'delete'">
+          <div class="del-icon-wrap">
+            <svg width="26" height="26" viewBox="0 0 22 22" fill="none">
+              <path d="M3 6h16M8 6V4.5a2.5 2.5 0 015 0V6M5 6l1 13h10l1-13" stroke="#f87171" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="side-title del-title-text">Delete appointment?</div>
+          <div class="del-confirm-info"><strong>{{ pendingDeleteAppt?.patientName }}</strong><br>{{ pendingDeleteAppt?.appointmentDate ? (pendingDeleteAppt?.appointmentDate | date:'dd MMM yyyy · HH:mm') : 'TBD' }}</div>
+          <p class="del-warn">This action cannot be undone.</p>
+          <div class="side-actions">
+            <button class="side-cancel" (click)="cancelSide()">Cancel</button>
+            <button class="side-delete" (click)="confirmDelete()">Delete</button>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+    <div class="toast" [class.show]="toastVisible">{{ toastMessage }}</div>
+  </div>
+
+  <!-- ═══ OVERLAY: DETAIL ═══ -->
+  <div class="overlay" *ngIf="uiState === 'detail'">
+    <div class="glass-panel detail-panel">
+      <div class="panel-glow"></div>
+      <div class="detail-header">
+        <div class="detail-label">MEDICAL RECORD</div>
+        <div class="detail-patient">{{ selectedAppt?.patientName }}</div>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-cell"><div class="detail-cell-label">DATE &amp; TIME</div><div class="detail-cell-val">{{ selectedAppt?.appointmentDate ? (selectedAppt?.appointmentDate | date:'dd MMM yyyy · HH:mm') : 'TBD' }}</div></div>
+        <div class="detail-cell"><div class="detail-cell-label">STATUS</div><div class="detail-status" [ngClass]="getStatusClass(selectedAppt?.status)">{{ selectedAppt?.status }}</div></div>
+        <div class="detail-cell"><div class="detail-cell-label">DOCTOR</div><div class="detail-cell-val">Dr. {{ activeDoctor?.firstName }} {{ activeDoctor?.lastName }}</div></div>
+        <div class="detail-cell"><div class="detail-cell-label">SPECIALITY</div><div class="detail-cell-val">{{ activeDoctor?.speciality }}</div></div>
+      </div>
+      <div class="detail-notes-label">NOTES</div>
+      <div class="detail-notes">{{ selectedAppt?.notes || 'No notes attached to this appointment.' }}</div>
+      <button class="detail-back" (click)="goBackToList()">← Back to appointments</button>
+    </div>
+  </div>
+
+  <!-- ═══ OVERLAY: PATIENT HISTORY ═══ -->
+  <div class="overlay" *ngIf="uiState === 'patient-history'">
+    <div class="list-layout">
+      <div class="glass-panel patient-history-panel list-panel">
+        <div class="panel-glow"></div>
+        <div class="list-header">
+          <button class="back-btn" (click)="closeUI()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <div class="list-doc-av" style="color: #c084fc; border-color: rgba(192,132,252,0.3); background: rgba(192,132,252,0.1)">
+            {{ activePatient?.firstName?.[0] }}{{ activePatient?.lastName?.[0] }}
+          </div>
+          <div>
+            <div class="list-doc-name">{{ activePatient?.firstName }} {{ activePatient?.lastName }}</div>
+            <div class="list-doc-spec">Patient Records — <span class="appt-count" style="color: #c084fc">{{ patientAppointments.length }} appointments</span></div>
+          </div>
+        </div>
+        <div class="list-col-head" style="grid-template-columns: 1.2fr 1.5fr 150px 100px;">
+          <span>Doctor</span><span>Observations</span><span>Date &amp; Time</span><span>Status</span>
+        </div>
+        <div class="appt-scroll">
+          <div class="appt-row" *ngFor="let appt of patientAppointments" style="grid-template-columns: 1.2fr 1.5fr 150px 100px; align-items: start;">
+            <div style="display: flex; flex-direction: column;">
+              <div class="appt-patient" style="color: #e2e8f0">{{ appt.doctorName }}</div>
+              <div style="font-size: 9px; color: #64748b; margin-top: 2px;">{{ appt.doctorSpeciality }}</div>
+              <div style="font-size: 8.5px; color: #475569; margin-top: 5px; font-family: monospace;">APPT: #{{ appt.id }}</div>
+            </div>
+            <div style="font-size: 10px; color: #cbd5e1; line-height: 1.5; padding-right: 8px;">
+              {{ appt.notes || '—' }}
+            </div>
+            <div class="appt-date" style="color: #94a3b8; font-family: monospace; font-size: 10.5px;">
+              {{ appt.appointmentDate ? (appt.appointmentDate | date:'dd MMM yyyy · HH:mm') : 'TBD' }}
+            </div>
+            <div>
+              <span class="detail-status" [ngClass]="getStatusClass(appt.status)">{{ appt.status }}</span>
+            </div>
+          </div>
+          <div class="empty-state" *ngIf="patientAppointments.length === 0">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" style="margin-bottom:8px;">
+              <circle cx="16" cy="16" r="14" stroke="#334155" stroke-width="1.5"/>
+              <path d="M10 16h12M16 10v12" stroke="#334155" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            No appointments found
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

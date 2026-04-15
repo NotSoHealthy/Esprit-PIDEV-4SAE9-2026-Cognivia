@@ -9,8 +9,8 @@
         "SITE_LANGUAGE": "SITE LANGUAGE",
         "LANGUAGES": {
             "EN": "English",
-            "FR": "Français",
-            "AR": "العربية"
+            "FR": "French",
+            "AR": "Arabic"
         }
     }
 }

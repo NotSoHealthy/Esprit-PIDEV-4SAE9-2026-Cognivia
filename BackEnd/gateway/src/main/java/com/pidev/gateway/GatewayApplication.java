@@ -6,6 +6,8 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
@@ -20,12 +22,15 @@ public class GatewayApplication {
         @Bean
         public SecurityWebFilterChain security(ServerHttpSecurity http) {
                 return http
+                                .cors(Customizer.withDefaults())
                                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                                 .authorizeExchange(exchanges -> exchanges
+                                                .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                                .pathMatchers("/notifications/ws/**", "/notifications/ws").permitAll()
                                                 .pathMatchers("/auth/**").permitAll()
                                                 .pathMatchers("/admin/**").hasRole("ADMIN")
                                                 .anyExchange().authenticated())
-                                .oauth2ResourceServer(oauth -> oauth.jwt())
+                                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                                 .build();
         }
 
@@ -65,6 +70,15 @@ public class GatewayApplication {
                                                 r -> r.path("/Equipment/**")
                                                                 .filters(f -> f.stripPrefix(1))
                                                                 .uri("lb://SurveillanceAndEquipment"))
+                                // WebSocket (STOMP) endpoint for notifications: /notifications/ws ->
+                                // lb:ws://notifications/ws
+                                .route("notifications-ws",
+                                                r -> r.path("/notifications/ws/**", "/notifications/ws")
+                                                                .filters(f -> f.stripPrefix(1))
+                                                                .uri("lb:ws://notifications"))
+                                .route("notifications",
+                                                r -> r.path("/notifications/**")
+                                                                .uri("lb://notifications"))
                                 .build();
 
         }

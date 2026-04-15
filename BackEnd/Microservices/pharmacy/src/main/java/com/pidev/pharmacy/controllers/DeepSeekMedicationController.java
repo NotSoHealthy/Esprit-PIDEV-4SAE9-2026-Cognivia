@@ -44,5 +44,10 @@ public class DeepSeekMedicationController {
     public Map<String, Object> autoSuggestAndAddMedication(@RequestParam(defaultValue = "") String context) {
         return deepSeekService.autoSuggestAndAddMedication(context);
     }
+
+    @GetMapping("/askDeepSeek")
+    public String askDeepSeek(@RequestParam String systemPrompt, @RequestParam String userPrompt) {
+        return deepSeekService.askDeepSeek(systemPrompt, userPrompt);
+    }
 }
 

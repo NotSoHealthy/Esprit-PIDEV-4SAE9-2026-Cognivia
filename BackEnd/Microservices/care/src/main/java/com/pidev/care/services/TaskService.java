@@ -2,6 +2,7 @@ package com.pidev.care.services;
 
 
 
+import com.pidev.care.dto.TaskHistoryEventDTO;
 import com.pidev.care.entities.Task;
 
 import java.util.List;
@@ -15,4 +16,5 @@ public interface TaskService {
     Task update(Long id, Task newData);
     Task markDone(Long id, boolean isDone);
     void delete(Long id);
+    List<TaskHistoryEventDTO> getTaskHistory(Long taskId);
 }

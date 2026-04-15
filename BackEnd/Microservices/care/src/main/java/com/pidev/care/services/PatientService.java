@@ -7,6 +7,7 @@ import com.pidev.care.entities.Severity;
 import com.pidev.care.keycloak.KeycloakAdminClient;
 import com.pidev.care.repositories.PatientRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,8 +35,6 @@ public class PatientService implements IService<Patient> {
     public Patient create(Patient entity) {
         if (entity.getUserId() != null) {
             List<Patient> existingPatients = patientRepository.findByUserId(entity.getUserId());
-
-            // ✅ List check (NO Optional)
             if (!existingPatients.isEmpty()) {
                 throw new IllegalStateException(
                         "Patient with userId " + entity.getUserId() + " already exists"

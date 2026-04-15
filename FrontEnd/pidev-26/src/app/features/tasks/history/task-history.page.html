@@ -1,0 +1,82 @@
+<section class="history-page">
+  <!-- Debug: loading={{loading}} events={{events?.length}} error={{error}} -->
+
+  <!-- ── Header ── -->
+  <div class="history-header">
+    <button class="btn-back" (click)="goBack()">
+      <span class="back-arrow">←</span> Back to Tasks
+    </button>
+    <div class="header-title">
+      <h1>Task History</h1>
+      <p class="task-label" *ngIf="taskLabel">{{ taskLabel }}</p>
+    </div>
+  </div>
+
+  <!-- ── Loading ── -->
+  <div class="state-box" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Loading history…</p>
+  </div>
+
+  <!-- ── Error ── -->
+  <div class="state-box error-box" *ngIf="!loading && error">
+    <span class="error-icon">⚠</span>
+    <p>{{ error }}</p>
+  </div>
+
+  <!-- ── Empty ── -->
+  <div class="state-box empty-box" *ngIf="!loading && !error && events.length === 0">
+    <span class="empty-icon">📋</span>
+    <p>No history available for this task yet.</p>
+  </div>
+
+  <!-- ── Timeline ── -->
+  <div class="timeline" *ngIf="!loading && events.length > 0">
+    <div
+      class="timeline-item"
+      *ngFor="let event of events; let last = last"
+      [class.last]="last"
+    >
+      <!-- Connector line -->
+      <div class="connector">
+        <div class="dot" [ngClass]="statusClass(event.status)">
+          <span class="icon">{{ eventIcon(event.type) }}</span>
+        </div>
+        <div class="line" *ngIf="!last"></div>
+      </div>
+
+      <!-- Event card -->
+      <div class="event-card" [ngClass]="statusClass(event.status)">
+        <div class="event-header">
+          <div class="header-main">
+            <span class="event-title">{{ event.title }}</span>
+            <span class="actor-badge" [ngClass]="actorTypeClass(event.actorType)" *ngIf="event.actor">
+              {{ event.actor }}
+            </span>
+          </div>
+          <span class="event-date">
+            {{ event.eventDate | date:'dd MMM yyyy · HH:mm' }}
+          </span>
+        </div>
+
+        <p class="event-description" *ngIf="event.description">
+          {{ event.description }}
+        </p>
+
+        <!-- Status Transition -->
+        <div class="status-transition" *ngIf="event.statusBefore || event.statusAfter">
+          <span class="status-pill before" *ngIf="event.statusBefore">{{ formatStatus(event.statusBefore) }}</span>
+          <span class="arrow" *ngIf="event.statusBefore && event.statusAfter">→</span>
+          <span class="status-pill after" *ngIf="event.statusAfter">{{ formatStatus(event.statusAfter) }}</span>
+        </div>
+
+        <!-- Comment Box -->
+        <div class="comment-box" *ngIf="event.comment">
+          <span class="quote-icon">"</span>
+          <p class="comment-text">{{ event.comment }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>

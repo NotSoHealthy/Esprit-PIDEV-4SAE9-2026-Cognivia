@@ -5,22 +5,55 @@
     <!-- Optional top header like appointments -->
     <div class="page-head">
       <div class="page-head-left">
-        <h1 class="page-title">
-          {{ selectedPatientId ? getPatientName(selectedPatientId) + "'s Tasks" : 'Tasks' }}
-        </h1>
+        <div class="title-with-toggle">
+          <button class="btn-sidebar-toggle" [title]="isSidebarVisible ? 'Hide Sidebar' : 'Show Sidebar'"
+            (click)="toggleSidebar()">
+            <svg *ngIf="isSidebarVisible" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="9" y1="3" x2="9" y2="21"></line>
+              <path d="M14 9l-3 3 3 3"></path>
+            </svg>
+            <svg *ngIf="!isSidebarVisible" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <path d="M9 3v18"></path>
+              <path d="M14 15l3-3-3-3"></path>
+            </svg>
+          </button>
+          <h1 class="page-title">
+            {{ selectedPatientId ? getPatientName(selectedPatientId) + "'s Tasks" : 'Tasks' }}
+          </h1>
+
+          <!-- Premium SaaS 'AI Summary' Pill Button -->
+          <button *ngIf="selectedPatientId !== null" class="btn-saas-ai-pill" (click)="generateHandover()"
+            title="Details">
+            <span class="pill-sparkle">✨</span>
+            <span>Details</span>
+          </button>
+        </div>
         <p class="page-subtitle">Manage patient care activities and submissions</p>
       </div>
 
-      <button *ngIf="canCreate" class="btn-primary" (click)="goCreate()">
-        <span class="btn-icon">+</span>
-        Create Task
-      </button>
+      <div class="page-head-right">
+        <div class="search-container">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" class="search-input" [(ngModel)]="searchQuery"
+            placeholder="Search tasks by description or type..." />
+        </div>
+
+        <button *ngIf="canCreate" class="btn-primary" (click)="goCreate()">
+          <span class="btn-icon">+</span>
+          Create Task
+        </button>
+      </div>
     </div>
 
-    <div class="tasks-dashboard">
+    <div class="tasks-dashboard" [class.sidebar-hidden]="!isSidebarVisible">
 
       <!-- Sidebar: Patient List (Only for Staff) -->
-      <aside class="sidebar" *ngIf="isCaregiverOrDoctor">
+      <aside class="sidebar" *ngIf="isCaregiverOrDoctor" [class.hidden]="!isSidebarVisible">
         <div class="sidebar-header">
           <div>
             <h2 class="sidebar-title">Patients</h2>
@@ -29,9 +62,7 @@
         </div>
 
         <div class="patient-list">
-          <div class="patient-item"
-               [class.active]="selectedPatientId === null"
-               (click)="selectPatient(null)">
+          <div class="patient-item" [class.active]="selectedPatientId === null" (click)="selectPatient(null)">
             <div class="patient-avatar patient-avatar--all">ALL</div>
             <div class="patient-info">
               <span class="patient-name">All Patients</span>
@@ -39,11 +70,12 @@
             </div>
           </div>
 
-          <div class="patient-item"
-               *ngFor="let p of patients"
-               [class.active]="selectedPatientId === p.id"
-               (click)="selectPatient(p.id)">
-            <div class="patient-avatar">{{ p.firstName[0] }}{{ p.lastName[0] }}</div>
+          <div class="patient-item" *ngFor="let p of patients" [class.active]="selectedPatientId === p.id"
+            (click)="selectPatient(p.id)">
+            <div class="patient-avatar-container">
+              <img [src]="getPatientAvatarUrl(p.id)" [alt]="p.firstName + ' ' + p.lastName" class="patient-avatar-img"
+                loading="lazy" />
+            </div>
             <div class="patient-info">
               <span class="patient-name">{{ p.firstName }} {{ p.lastName }}</span>
               <span class="patient-status">Room {{ p.roomNumber || '?' }}</span>
@@ -103,8 +135,8 @@
             <span>Loading...</span>
           </div>
 
-          <!-- Empty State -->
-          <div *ngIf="!loading && filteredTasks.length === 0" class="empty-state">
+          <!-- Empty State (No results at all) -->
+          <div *ngIf="!loading && tasks.length === 0" class="empty-state">
             <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
               <rect x="9" y="3" width="6" height="4" rx="1" />
@@ -115,13 +147,17 @@
             <p class="empty-sub" *ngIf="canCreate">Select a patient or create a new task.</p>
           </div>
 
+          <!-- No results from Search/Filter -->
+          <div *ngIf="!loading && tasks.length > 0 && filteredTasks.length === 0" class="empty-state">
+            <div class="empty-art">🔍</div>
+            <p class="empty-text">No tasks match your search.</p>
+            <p class="empty-sub">Try adjusting your keywords or filters.</p>
+          </div>
+
           <!-- Task Cards -->
           <div class="task-grid" *ngIf="!loading && filteredTasks.length > 0">
-            <div class="task-card"
-                 *ngFor="let t of filteredTasks"
-                 [class.task-card--completed]="t.isDone"
-                 [class.selected]="selectedTask?.id === t.id"
-                 (click)="selectTaskDetail(t)">
+            <div class="task-card" *ngFor="let t of filteredTasks" [class.task-card--completed]="t.isDone"
+              [class.selected]="selectedTask?.id === t.id" (click)="selectTaskDetail(t)">
 
               <!-- Top row -->
               <div class="task-card-top">
@@ -131,20 +167,16 @@
                 </div>
 
                 <div class="task-card-actions">
-                  <button class="icon-btn icon-btn--edit"
-                          title="Edit"
-                          *ngIf="canCreate"
-                          (click)="$event.stopPropagation(); openEdit(t)">
+                  <button class="icon-btn icon-btn--edit" title="Edit" *ngIf="canCreate"
+                    (click)="$event.stopPropagation(); openEdit(t)">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
                       <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
                     </svg>
                   </button>
 
-                  <button class="icon-btn icon-btn--delete"
-                          title="Delete"
-                          *ngIf="canCreate"
-                          (click)="$event.stopPropagation(); remove(t.id)">
+                  <button class="icon-btn icon-btn--delete" title="Delete" *ngIf="canCreate"
+                    (click)="$event.stopPropagation(); remove(t.id)">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <polyline points="3 6 5 6 21 6" />
                       <path d="M19 6l-1 14H6L5 6" />
@@ -178,6 +210,12 @@
                   </svg>
                   {{ t.dueAt | date:'MMM d, y · h:mm a' }}
                 </span>
+
+                <button class="history-chip" title="View Full History"
+                  (click)="$event.stopPropagation(); viewHistory(t)">
+                  <span class="chip-icon">🕒</span>
+                  History
+                </button>
               </div>
 
             </div>
@@ -195,7 +233,12 @@
               <span class="detail-label">Task Details</span>
               <h2 class="detail-title">{{ selectedTask.task }}</h2>
             </div>
-            <button class="close-detail" (click)="selectedTask = null">&times;</button>
+            <div class="header-actions">
+              <button class="btn-history-small" title="View History" (click)="viewHistory(selectedTask)">
+                <span class="btn-icon">🕒</span> History
+              </button>
+              <button class="close-detail" (click)="selectedTask = null">&times;</button>
+            </div>
           </div>
 
           <div class="detail-section">
@@ -242,17 +285,15 @@
                     <div class="upload-text">Click to upload photo</div>
                     <div class="upload-hint">PNG, JPG up to 5MB</div>
                   </div>
-                  <img [src]="submissionForm.picturePreview"
-                       class="upload-preview"
-                       *ngIf="submissionForm.picturePreview" />
+                  <img [src]="submissionForm.picturePreview" class="upload-preview"
+                    *ngIf="submissionForm.picturePreview" />
                 </div>
               </div>
 
               <div class="form-group">
                 <label class="form-label">Description</label>
-                <textarea class="form-input textarea"
-                          [(ngModel)]="submissionForm.description"
-                          placeholder="Describe what you did..."></textarea>
+                <textarea class="form-input textarea" [(ngModel)]="submissionForm.description"
+                  placeholder="Describe what you did..."></textarea>
               </div>
 
               <div class="submission-form-actions">
@@ -268,8 +309,7 @@
           <div class="submissions-history" *ngIf="currentSubmissions.length > 0">
             <h3 class="submissions-title">{{ isPatient ? 'Your Submission' : 'Patient Submissions' }}</h3>
 
-            <div *ngFor="let sub of currentSubmissions"
-                 [class]="'submission-item submission-' + sub.validationStatus">
+            <div *ngFor="let sub of currentSubmissions" [class]="'submission-item submission-' + sub.validationStatus">
 
               <div class="submission-header">
                 <span [class]="'submission-badge badge-' + sub.validationStatus">{{ sub.validationStatus }}</span>
@@ -288,30 +328,28 @@
               </div>
 
               <div class="caregiver-validation-section"
-                   *ngIf="isCaregiverOrDoctor && sub.validationStatus === 'pending'">
+                *ngIf="isCaregiverOrDoctor && sub.validationStatus === 'pending'">
                 <label class="validation-label">Validation Comments</label>
-                <textarea class="form-input textarea"
-                          [(ngModel)]="validationComments[sub.id!]"
-                          placeholder="Add feedback for the patient..."></textarea>
+                <textarea class="form-input textarea" [(ngModel)]="validationComments[sub.id!]"
+                  placeholder="Add feedback for the patient..."></textarea>
 
                 <div class="validation-actions">
                   <button class="btn-reject"
-                          (click)="rejectSubmission(sub.id!, validationComments[sub.id!])">Reject</button>
+                    (click)="rejectSubmission(sub.id!, validationComments[sub.id!])">Reject</button>
                   <button class="btn-approve"
-                          (click)="approveSubmission(sub.id!, validationComments[sub.id!])">Approve</button>
+                    (click)="approveSubmission(sub.id!, validationComments[sub.id!])">Approve</button>
                 </div>
               </div>
 
-              <button class="btn-delete-submission"
-                      *ngIf="isPatient && sub.validationStatus === 'pending'"
-                      (click)="deleteSubmission(sub.id)">
+              <button class="btn-delete-submission" *ngIf="isPatient && sub.validationStatus === 'pending'"
+                (click)="deleteSubmission(sub.id)">
                 Delete Submission
               </button>
             </div>
           </div>
 
           <div class="no-submissions"
-               *ngIf="!submissionLoading && currentSubmissions.length === 0 && selectedTask.isDone">
+            *ngIf="!submissionLoading && currentSubmissions.length === 0 && selectedTask.isDone">
             No photo evidence provided for this task.
           </div>
 
@@ -382,3 +420,83 @@
     </div>
   </form>
 </div>
+
+<!-- AI Handover Drawer - Premium SaaS Edition -->
+<div class="handover-backdrop" *ngIf="isHandoverVisible" (click)="closeHandover()"></div>
+<aside class="handover-drawer" [class.open]="isHandoverVisible">
+  <div class="drawer-header">
+    <div class="drawer-title-group">
+      <span class="drawer-icon-saas">✨</span>
+      <div>
+        <h2 class="drawer-title">Details</h2>
+        <p class="drawer-subtitle">Patient Summary</p>
+      </div>
+    </div>
+    <button class="btn-close-drawer-premium" (click)="closeHandover()">×</button>
+  </div>
+
+  <div class="drawer-content">
+    <!-- Loading State: AI 'Thinking' -->
+    <div class="ai-loading-premium" *ngIf="isGeneratingHandover">
+      <div class="saas-spinner"></div>
+      <p class="loading-text">Generating insights...</p>
+    </div>
+
+    <!-- Result Content -->
+    <div class="ai-result-premium" *ngIf="!isGeneratingHandover && handoverSummary">
+      <!-- Summary Card - Condition -->
+      <div class="ai-insight-card">
+        <span class="ai-badge-premium">CONDITION</span>
+        <h3 class="section-heading"><strong>Condition</strong></h3>
+        <p class="ai-text-summary">{{ handoverSummary.global }}</p>
+      </div>
+
+      <!-- Achievements Section -->
+      <section class="ai-summary-section">
+        <h3 class="section-heading"><strong>Achievements</strong></h3>
+        <p class="section-subtitle">Tasks completed today</p>
+        <ul class="saas-bullet-list">
+          <li *ngFor="let item of handoverSummary.done">{{ item }}</li>
+        </ul>
+      </section>
+
+      <!-- Next Steps Section -->
+      <section class="ai-summary-section">
+        <h3 class="section-heading"><strong>Next Steps</strong></h3>
+        <p class="section-subtitle">Critical actions required</p>
+        <ul class="saas-bullet-list critical-list">
+          <li *ngFor="let item of handoverSummary.critical">{{ item }}</li>
+        </ul>
+      </section>
+
+      <!-- Pending Tasks Section -->
+      <section class="ai-summary-section">
+        <h3 class="section-heading"><strong>Pending Tasks</strong></h3>
+        <p class="section-subtitle">To be completed</p>
+        <ul class="saas-bullet-list">
+          <li *ngFor="let item of handoverSummary.todo">{{ item }}</li>
+        </ul>
+      </section>
+    </div>
+  </div>
+
+  <div class="drawer-footer-premium" *ngIf="!isGeneratingHandover && handoverSummary">
+    <div class="drawer-actions">
+      <button class="btn-saas-copy" (click)="copyHandoverToClipboard()">
+        <svg class="copy-icon-saas" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+        </svg>
+        Copy Summary
+      </button>
+      <button class="btn-pdf-download" (click)="downloadPDF()">
+        <svg class="pdf-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Download PDF
+      </button>
+    </div>
+  </div>
+</aside>

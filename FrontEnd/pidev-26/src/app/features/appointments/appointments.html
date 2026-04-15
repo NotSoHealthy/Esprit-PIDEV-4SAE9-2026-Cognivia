@@ -8,8 +8,12 @@
       <button nz-button nzType="primary" nzSize="large" (click)="openCreate()">
         <i nz-icon nzType="plus"></i> New Appointment
       </button>
+      <button nz-button nzSize="large" (click)="toggleMap()" [class.active]="showMap">
+        {{ showMap ? 'Close Map' : '+ Open Map' }}
+      </button>
     </div>
 
+    <ng-container *ngIf="!showMap">
     <div class="search-filters">
       <nz-input-group [nzPrefix]="searchIcon" class="search-box">
         <input
@@ -39,74 +43,113 @@
 
     <nz-table
       #basicTable
-      [nzData]="filteredItems ?? []"
+      [nzData]="filteredItems"
       [nzLoading]="loading"
       nzBordered
       class="premium-table"
     >
       <thead>
         <tr>
-          <th nzWidth="60px">ID</th>
-          <th>Caregiver</th>
-          <th>Patient</th>
-          <th>Doctor</th>
-          <th>Date & Time</th>
-          <th>Duration</th>
-          <th>Status</th>
+          <th nzWidth="140px">Caregiver</th>
+          <th nzWidth="160px">Patient</th>
+          <th nzWidth="140px">Doctor</th>
+          <th nzWidth="140px">Date & Time</th>
+          <th nzWidth="80px">Duration</th>
+          <th nzWidth="90px">Status</th>
           <th>Notes</th>
-          <th nzWidth="150px">Actions</th>
+          <th nzWidth="100px">Actions</th>
         </tr>
       </thead>
 
       <tbody>
-        <tr *ngFor="let item of basicTable.data">
-          <td class="id-cell">{{ item.id }}</td>
-          <td><i nz-icon nzType="user"></i> {{ item.caregiverId }}</td>
-          <td><i nz-icon nzType="user"></i> {{ item.patientId }}</td>
-          <td><i nz-icon nzType="user"></i> {{ item.doctorId }}</td>
-
-          <td class="date-cell">
+        <tr *ngFor="let item of basicTable.data" class="main-row">
+          <!-- CELL 1: Caregiver -->
+          <td class="col-caregiver cell-person">
+            <div class="person-content">
+              <div class="person-avatar">
+                <img [src]="getAvatarUrl()" [alt]="caregiverNameById(item.caregiverId)" class="avatar-img" />
+              </div>
+              <span class="person-name">{{ caregiverNameById(item.caregiverId) }}</span>
+            </div>
+          </td>
+          
+          <!-- CELL 2: Patient -->
+          <td class="col-patient cell-person">
+            <div class="person-content">
+              <div class="person-avatar">
+                <img [src]="getAvatarUrl()" [alt]="patientNameById(item.patientId)" class="avatar-img" />
+              </div>
+              <span class="person-name patient-name">{{ patientNameById(item.patientId) }}</span>
+            </div>
+          </td>
+          
+          <!-- CELL 3: Doctor -->
+          <td class="col-doctor cell-person">
+            <div class="person-content">
+              <div class="person-avatar">
+                <img [src]="getAvatarUrl()" [alt]="doctorNameById(item.doctorId)" class="avatar-img" />
+              </div>
+              <span class="person-name">{{ doctorNameById(item.doctorId) }}</span>
+            </div>
+          </td>
+          
+          <!-- CELL 4: Date & Time -->
+          <td class="col-datetime cell-date">
             <div class="main-date">{{ item.appointmentDate | date: 'MMM d, y' }}</div>
             <div class="sub-date">{{ item.appointmentDate | date: 'HH:mm' }}</div>
           </td>
-
-          <td>{{ item.durationMinutes ?? 60 }} min</td>
-
-          <td>
+          
+          <!-- CELL 5: Duration -->
+          <td class="col-duration cell-center">
+            {{ item.durationMinutes ?? 60 }} min
+          </td>
+          
+          <!-- CELL 6: Status -->
+          <td class="col-status cell-center">
             <span class="status-badge status-{{ item.status | lowercase }}">{{ item.status }}</span>
           </td>
-
-          <td class="notes-cell" [nzTooltipTitle]="item.notes" nz-tooltip>
+          
+          <!-- CELL 7: Notes -->
+          <td class="col-notes cell-notes" [nzTooltipTitle]="item.notes" nz-tooltip>
             {{ item.notes }}
           </td>
-
-          <td class="actions">
-            <button
-              nz-button
-              nzType="text"
-              class="edit-btn"
-              (click)="openEdit(item)"
-              nz-tooltip
-              nzTooltipTitle="Edit"
-            >
-              <i nz-icon nzType="edit"></i>
-            </button>
-
-            <button
-              nz-button
-              nzType="text"
-              nzDanger
-              class="delete-btn"
-              (click)="confirmDelete(item)"
-              nz-tooltip
-              nzTooltipTitle="Delete"
-            >
-              <i nz-icon nzType="delete"></i>
-            </button>
+          
+          <!-- CELL 8: Actions -->
+          <td class="col-actions cell-actions">
+            <div class="actions-content">
+              <button
+                nz-button
+                nzType="text"
+                class="edit-btn"
+                (click)="openEdit(item)"
+                nz-tooltip
+                nzTooltipTitle="Edit"
+                *ngIf="!isPatient()"
+              >
+                <i nz-icon nzType="edit"></i>
+              </button>
+              <button
+                nz-button
+                nzType="text"
+                nzDanger
+                class="delete-btn"
+                (click)="confirmDelete(item)"
+                nz-tooltip
+                nzTooltipTitle="Delete"
+                *ngIf="!isPatient()"
+              >
+                <i nz-icon nzType="delete"></i>
+              </button>
+            </div>
           </td>
         </tr>
       </tbody>
     </nz-table>
+    </ng-container>
+
+    <div class="map-panel" *ngIf="showMap" @mapPanel>
+      <app-doc-map></app-doc-map>
+    </div>
   </nz-card>
 
   <!-- ✅ MODAL -->

@@ -8,12 +8,18 @@ export interface UserInfo {
     id: string;
     name: string;
     role: string;
+    isAdmin?: boolean;
 }
 
 export interface ChatSummary {
     contactId: string;
     unreadCount: number;
     lastMessage: Message;
+}
+
+export interface GroupMemberInfo {
+    userId: string;
+    isAdmin: boolean;
 }
 
 @Injectable({
@@ -82,5 +88,93 @@ export class ChatService {
 
     getChatSummary(userId: string): Observable<ChatSummary[]> {
         return this.http.get<ChatSummary[]>(`${this.apiUrl}/summary/${userId}`);
+    }
+
+    // Group Chat Methods
+    createGroup(name: string, creatorId: string, memberIds: string[]): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/group/create`, { name, creatorId, memberIds });
+    }
+
+    getUserGroups(userId: string): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/group/user/${userId}`);
+    }
+
+    getGroupMessages(groupId: number): Observable<Message[]> {
+        return this.http.get<Message[]>(`${this.apiUrl}/group/${groupId}/messages`);
+    }
+
+    getGroupMembers(groupId: number): Observable<GroupMemberInfo[]> {
+        return this.http.get<GroupMemberInfo[]>(`${this.apiUrl}/group/${groupId}/members`);
+    }
+
+    addGroupMembers(groupId: number, userIds: string[]): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/group/${groupId}/members`, userIds);
+    }
+
+    removeGroupMember(groupId: number, userId: string): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}/group/${groupId}/members/${userId}`);
+    }
+
+    markGroupAsRead(groupId: number, userId: string): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/group/${groupId}/read/${userId}`, {});
+    }
+
+    promoteToAdmin(groupId: number, userId: string): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/group/${groupId}/promote/${userId}`, {});
+    }
+
+    clearGroupHistory(groupId: number): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}/group/${groupId}/history`);
+    }
+
+    deleteGroup(groupId: number): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}/group/${groupId}`);
+    }
+
+    // Reporting & Admin Methods
+    reportChat(report: { reporterId: string, reportedUserId?: string, groupId?: number, messageId?: number, reason: string }): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/report`, report);
+    }
+
+    getReports(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/admin/reports`);
+    }
+
+    resolveReport(reportId: number): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/admin/reports/${reportId}/resolve`, {});
+    }
+
+    getUserRestriction(userId: string): Observable<any> {
+        return this.http.get<any>(`${this.apiUrl}/restriction/${userId}`);
+    }
+
+    restrictUser(restriction: { userId: string, type: string, durationInHours?: number, reason: string }): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/admin/restrict`, restriction);
+    }
+
+    getConversationContext(params: { user1?: string, user2?: string, groupId?: number, messageId?: number }): Observable<Message[]> {
+        const cleanedParams: any = {};
+        Object.keys(params).forEach(key => {
+            const val = (params as any)[key];
+            if (val !== null && val !== undefined) {
+                cleanedParams[key] = val;
+            }
+        });
+        return this.http.get<Message[]>(`${this.apiUrl}/admin/conversation-context`, { params: cleanedParams });
+    }
+
+    // Activity & Typing methods
+    sendTypingStatus(convId: string, userId: string): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/activity/typing/${convId}`, {}, {
+            params: { userId }
+        });
+    }
+
+    getTypingStatus(convId: string): Observable<UserInfo[]> {
+        return this.http.get<UserInfo[]>(`${this.apiUrl}/activity/status/${convId}`);
+    }
+
+    getAIChatSummary(convId: string): Observable<string> {
+        return this.http.get(`${this.apiUrl}/ai/summary/${convId}`, { responseType: 'text' });
     }
 }

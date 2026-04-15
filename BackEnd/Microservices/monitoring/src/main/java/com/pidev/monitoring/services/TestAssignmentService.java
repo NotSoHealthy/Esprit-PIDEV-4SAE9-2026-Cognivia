@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.pidev.monitoring.events.GenericEvent;
+import com.pidev.monitoring.rabbitMQ.EventPublisher;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
@@ -27,14 +29,17 @@ public class TestAssignmentService {
 
     private final TestAssignmentRepository testAssignmentRepository;
     private final CognitiveTestRepository cognitiveTestRepository;
+    private final EventPublisher eventPublisher;
 
     // URL of the care service (same pattern as TestResultService)
     private static final String CARE_SERVICE_URL = "http://localhost:8081";
 
     public TestAssignmentService(TestAssignmentRepository testAssignmentRepository,
-            CognitiveTestRepository cognitiveTestRepository) {
+            CognitiveTestRepository cognitiveTestRepository,
+            EventPublisher eventPublisher) {
         this.testAssignmentRepository = testAssignmentRepository;
         this.cognitiveTestRepository = cognitiveTestRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -67,6 +72,24 @@ public class TestAssignmentService {
 
         test.getAssignments().add(assignment);
         cognitiveTestRepository.save(test);
+        log.info("Saved test assignment for testId: {}. AssignmentType: {}", testId, assignment.getAssignmentType());
+
+        // Publish notification event if it's a targeted assignment
+        if (assignment.getAssignmentType() == AssignmentType.TARGETED && assignment.getPatientId() != null) {
+            log.info("Publishing TEST_ASSIGNED event for patientId: {}", assignment.getPatientId());
+            GenericEvent event = new GenericEvent();
+            event.setEventType("TEST_ASSIGNED");
+            event.setPayload(Map.of(
+                    "testId", test.getId(),
+                    "testName", test.getTitle(),
+                    "patientId", assignment.getPatientId()));
+            eventPublisher.sendGenericEvent(event, "test.assigned");
+            log.info("Successfully sent TEST_ASSIGNED event to exchange");
+        } else {
+            log.warn("Skipping notification event: AssignmentType={}, PatientId={}", 
+                assignment.getAssignmentType(), assignment.getPatientId());
+        }
+
         return assignment;
     }
 
