@@ -13,13 +13,15 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class UserLookupService {
 
-    private final NamedParameterJdbcTemplate jdbc;
+    private final NamedParameterJdbcTemplate careJdbc;
+    private final NamedParameterJdbcTemplate pharmacyJdbc;
     private final Map<String, UserProfile> userCache = new ConcurrentHashMap<>();
 
-    // @Qualifier cannot be used with @AllArgsConstructor, so we keep the explicit
-    // constructor
-    public UserLookupService(@Qualifier("careJdbcTemplate") NamedParameterJdbcTemplate jdbc) {
-        this.jdbc = jdbc;
+    public UserLookupService(
+            @Qualifier("careJdbcTemplate") NamedParameterJdbcTemplate careJdbc,
+            @Qualifier("pharmacyJdbcTemplate") NamedParameterJdbcTemplate pharmacyJdbc) {
+        this.careJdbc = careJdbc;
+        this.pharmacyJdbc = pharmacyJdbc;
     }
 
     @Getter
@@ -41,7 +43,7 @@ public class UserLookupService {
         Map<String, UserProfile> userMap = new LinkedHashMap<>();
         userCache.clear();
         try {
-            List<Map<String, Object>> doctors = jdbc.queryForList(
+            List<Map<String, Object>> doctors = careJdbc.queryForList(
                     "SELECT user_id::text AS user_id, COALESCE(first_name,'') AS first_name, COALESCE(last_name,'') AS last_name FROM doctor WHERE user_id IS NOT NULL",
                     Collections.emptyMap());
             for (Map<String, Object> row : doctors) {
@@ -53,7 +55,7 @@ public class UserLookupService {
                 userCache.put(id, userMap.get(id));
             }
 
-            List<Map<String, Object>> caregivers = jdbc.queryForList(
+            List<Map<String, Object>> caregivers = careJdbc.queryForList(
                     "SELECT user_id::text AS user_id, COALESCE(first_name,'') AS first_name, COALESCE(last_name,'') AS last_name FROM caregiver WHERE user_id IS NOT NULL",
                     Collections.emptyMap());
             for (Map<String, Object> row : caregivers) {
@@ -63,6 +65,36 @@ public class UserLookupService {
                     name = "Unknown Caregiver";
                 if (!userMap.containsKey(id)) {
                     userMap.put(id, new UserProfile(id, name, "Caregiver"));
+                    userCache.put(id, userMap.get(id));
+                }
+            }
+
+            // Fetch Pharmacists from pharmacy database
+            List<Map<String, Object>> pharmacists = pharmacyJdbc.queryForList(
+                    "SELECT user_id::text AS user_id, COALESCE(first_name,'') AS first_name, COALESCE(last_name,'') AS last_name FROM pharmacist WHERE user_id IS NOT NULL",
+                    Collections.emptyMap());
+            for (Map<String, Object> row : pharmacists) {
+                String id = String.valueOf(row.get("user_id")).trim().toLowerCase();
+                String name = (row.get("first_name") + " " + row.get("last_name")).trim();
+                if (name.isEmpty())
+                    name = "Unknown Pharmacist";
+                if (!userMap.containsKey(id)) {
+                    userMap.put(id, new UserProfile(id, name, "Pharmacist"));
+                    userCache.put(id, userMap.get(id));
+                }
+            }
+
+            // Fetch Patients from care database
+            List<Map<String, Object>> patients = careJdbc.queryForList(
+                    "SELECT user_id::text AS user_id, COALESCE(first_name,'') AS first_name, COALESCE(last_name,'') AS last_name FROM patient WHERE user_id IS NOT NULL",
+                    Collections.emptyMap());
+            for (Map<String, Object> row : patients) {
+                String id = String.valueOf(row.get("user_id")).trim().toLowerCase();
+                String name = (row.get("first_name") + " " + row.get("last_name")).trim();
+                if (name.isEmpty())
+                    name = "Unknown Patient";
+                if (!userMap.containsKey(id)) {
+                    userMap.put(id, new UserProfile(id, name, "Patient"));
                     userCache.put(id, userMap.get(id));
                 }
             }
@@ -86,7 +118,7 @@ public class UserLookupService {
             MapSqlParameterSource params = new MapSqlParameterSource("userId", uuid);
 
             // Check Doctor table
-            List<Map<String, Object>> doctors = jdbc.queryForList(
+            List<Map<String, Object>> doctors = careJdbc.queryForList(
                     "SELECT first_name, last_name FROM doctor WHERE user_id = :userId", params);
 
             if (!doctors.isEmpty()) {
@@ -98,13 +130,37 @@ public class UserLookupService {
             }
 
             // Check Caregiver table
-            List<Map<String, Object>> caregivers = jdbc.queryForList(
+            List<Map<String, Object>> caregivers = careJdbc.queryForList(
                     "SELECT first_name, last_name FROM caregiver WHERE user_id = :userId", params);
 
             if (!caregivers.isEmpty()) {
                 Map<String, Object> cg = caregivers.get(0);
                 String name = (cg.get("first_name") + " " + cg.get("last_name")).trim();
                 UserProfile profile = new UserProfile(normalizedId, name, "Caregiver");
+                userCache.put(normalizedId, profile);
+                return Optional.of(profile);
+            }
+
+            // Check Pharmacist table
+            List<Map<String, Object>> pharmacists = pharmacyJdbc.queryForList(
+                    "SELECT first_name, last_name FROM pharmacist WHERE user_id = :userId", params);
+
+            if (!pharmacists.isEmpty()) {
+                Map<String, Object> ph = pharmacists.get(0);
+                String name = (ph.get("first_name") + " " + ph.get("last_name")).trim();
+                UserProfile profile = new UserProfile(normalizedId, name, "Pharmacist");
+                userCache.put(normalizedId, profile);
+                return Optional.of(profile);
+            }
+
+            // Check Patient table
+            List<Map<String, Object>> patients = careJdbc.queryForList(
+                    "SELECT first_name, last_name FROM patient WHERE user_id = :userId", params);
+
+            if (!patients.isEmpty()) {
+                Map<String, Object> pt = patients.get(0);
+                String name = (pt.get("first_name") + " " + pt.get("last_name")).trim();
+                UserProfile profile = new UserProfile(normalizedId, name, "Patient");
                 userCache.put(normalizedId, profile);
                 return Optional.of(profile);
             }

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, NgZone, OnInit, inject } from '@angular/core';
 import {
   ActivatedRoute,
   NavigationEnd,
@@ -9,16 +9,24 @@ import {
   RouterOutlet,
 } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { filter, switchMap } from 'rxjs/operators';
-import { interval } from 'rxjs';
+import { catchError, filter, finalize, switchMap } from 'rxjs/operators';
+import { forkJoin, interval, Observable, of } from 'rxjs';
 import { KeycloakService } from '../auth/keycloak.service';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { CurrentUserService } from '../user/current-user.service';
 import { StreakService } from '../../features/games/streak.service';
 import { StreakFlameComponent } from '../../shared/components/streak-flame/streak-flame.component';
+import {
+  Notification,
+  NotificationPriority,
+  RecipientType,
+} from '../models/notifications/notification.model';
+import { NotificationsService } from '../services/notifications/notifications.service';
+import { NotificationsStompService } from '../services/notifications/notifications-stomp.service';
 
 @Component({
   selector: 'app-layout',
@@ -28,6 +36,7 @@ import { StreakFlameComponent } from '../../shared/components/streak-flame/strea
     RouterLink,
     RouterLinkActive,
     NzIconModule,
+    NzBadgeModule,
     NzDropdownModule,
     NzMenuModule,
     NzTooltipModule,
@@ -38,11 +47,15 @@ import { StreakFlameComponent } from '../../shared/components/streak-flame/strea
 })
 export class AppLayout implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly zone = inject(NgZone);
   private readonly router = inject(Router);
   private readonly activeRoute = inject(ActivatedRoute);
   private readonly keycloak = inject(KeycloakService);
   private readonly currentUser = inject(CurrentUserService);
   private readonly streakService = inject(StreakService);
+  private readonly notificationsService = inject(NotificationsService);
+  private readonly notificationsStomp = inject(NotificationsStompService);
   public readonly routes = [
     {
       link: '/dashboard',
@@ -85,7 +98,8 @@ export class AppLayout implements OnInit {
       label: 'Prescriptions',
       icon: 'file-text',
       roles: ['ROLE_DOCTOR', 'ROLE_PHARMACY', 'ROLE_ADMIN', 'ROLE_CAREGIVER'],
-    }, {
+    },
+    {
       link: '/calendar',
       label: 'Calendar',
       icon: 'calendar',
@@ -128,6 +142,12 @@ export class AppLayout implements OnInit {
       roles: ['ROLE_ADMIN'],
     },
     {
+      link: '/admin/reported-chats',
+      label: 'Reported Chats',
+      icon: 'alert',
+      roles: ['ROLE_ADMIN'],
+    },
+    {
       link: '/equipment',
       label: 'Equipment',
       icon: 'shop',
@@ -143,8 +163,55 @@ export class AppLayout implements OnInit {
 
   currentRouteLabel = '';
   streakCount = 0;
+  notifications: Notification[] = [];
+  notificationsLoading = false;
+  notificationsDropdownOpen = false;
+  private readonly hiddenNotificationIds = new Set<string>();
   ngOnInit(): void {
     this.updateCurrentRouteLabel();
+
+    void this.currentUser.loadFromApi(this.userRole, this.keycloak.getUserId()).then(() => {
+      // Initial unread load (HTTP once)
+      this.notificationsLoading = true;
+      this.fetchNotifications$()
+        .pipe(
+          takeUntilDestroyed(this.destroyRef),
+          finalize(() => {
+            this.notificationsLoading = false;
+          }),
+        )
+        .subscribe((items) => {
+          this.zone.run(() => {
+            this.notifications = (items ?? []).filter((n) => !this.hiddenNotificationIds.has(n.id));
+            if (this.notificationsDropdownOpen) {
+              this.markVisibleNotificationsAsSeen();
+            }
+            this.cdr.detectChanges();
+          });
+        });
+
+      // Real-time push (WebSocket/STOMP)
+      this.notificationsStomp
+        .connect()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((notification) => {
+          this.zone.run(() => {
+            if (!notification?.id) return;
+            if (this.hiddenNotificationIds.has(notification.id)) return;
+            if (this.notifications.some((n) => n.id === notification.id)) return;
+
+            this.notifications = [notification, ...this.notifications];
+            if (this.notificationsDropdownOpen) {
+              this.markVisibleNotificationsAsSeen();
+            }
+            this.cdr.detectChanges();
+          });
+        });
+
+      this.destroyRef.onDestroy(() => {
+        this.notificationsStomp.disconnect();
+      });
+    });
 
     this.router.events
       .pipe(
@@ -173,6 +240,101 @@ export class AppLayout implements OnInit {
         )
         .subscribe((s) => (this.streakCount = s.currentStreak));
     }
+  }
+
+  onNotificationsDropdownVisible(visible: boolean): void {
+    this.notificationsDropdownOpen = visible;
+    if (visible) this.markVisibleNotificationsAsSeen();
+  }
+
+  openNotification(notification: Notification): void {
+    this.notificationsService
+      .markAsRead(notification.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => of(notification)),
+      )
+      .subscribe((updated) => {
+        this.zone.run(() => {
+          this.hiddenNotificationIds.add(updated.id);
+          this.notifications = this.notifications
+            .map((n) => (n.id === updated.id ? updated : n))
+            .filter((n) => !this.hiddenNotificationIds.has(n.id));
+          this.navigateFromNotification(updated);
+          this.cdr.detectChanges();
+        });
+      });
+  }
+
+  private navigateFromNotification(notification: Notification): void {
+    const commands =
+      notification.referenceId === null
+        ? ['/notifications', notification.eventType]
+        : ['/notifications', notification.eventType, notification.referenceId];
+
+    void this.router.navigate(commands);
+  }
+
+  private fetchNotifications$(): Observable<Notification[]> {
+    const recipientType = this.getRecipientTypeForRole(this.userRole);
+    const recipientId = this.getRecipientId();
+
+    if (!recipientType || recipientId === null) return of([]);
+
+    return this.notificationsService
+      .getNotificationsForRecipient(recipientId, recipientType)
+      .pipe(catchError(() => of([])));
+  }
+
+  private markVisibleNotificationsAsSeen(): void {
+    const unseen = this.notifications.filter((n) => !n.seen);
+    if (unseen.length === 0) return;
+
+    forkJoin(unseen.map((n) => this.notificationsService.markAsSeen(n.id)))
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (updatedItems) => {
+          this.zone.run(() => {
+            const updatedById = new Map(updatedItems.map((n) => [n.id, n] as const));
+            this.notifications = this.notifications.map((n) => updatedById.get(n.id) ?? n);
+            this.cdr.detectChanges();
+          });
+        },
+        error: () => {
+          this.zone.run(() => {
+            this.notifications = this.notifications.map((n) => (n.seen ? n : { ...n, seen: true }));
+            this.cdr.detectChanges();
+          });
+        },
+      });
+  }
+
+  private getRecipientTypeForRole(role: string | undefined): RecipientType | null {
+    if (role === 'ROLE_PATIENT') return 'PATIENT';
+    if (role === 'ROLE_DOCTOR') return 'DOCTOR';
+    if (role === 'ROLE_CAREGIVER') return 'CAREGIVER';
+    if (role === 'ROLE_PHARMACY') return 'PHARMACY';
+    if (role === 'ROLE_ADMIN') return 'ADMIN';
+    return null;
+  }
+
+  private getRecipientId(): number | string | null {
+    const state = this.currentUser.user();
+    const candidate = (state as any)?.data?.id;
+    if (typeof candidate === 'number') return candidate;
+    if (typeof candidate === 'string' && candidate.trim().length > 0) {
+      const trimmed = candidate.trim();
+      if (/^\d+$/.test(trimmed)) return Number(trimmed);
+    }
+
+    const keycloakId = this.keycloak.getUserId();
+    if (typeof keycloakId === 'string' && keycloakId.trim().length > 0) {
+      const trimmed = keycloakId.trim();
+      if (/^\d+$/.test(trimmed)) return Number(trimmed);
+      return trimmed;
+    }
+
+    return null;
   }
 
   private fetchStreak(): void {
@@ -238,5 +400,15 @@ export class AppLayout implements OnInit {
 
   get userRole(): string | undefined {
     return this.keycloak.getUserRole();
+  }
+
+  get hasUnseenNotifications(): boolean {
+    return this.notifications.some((n) => !n.seen);
+  }
+
+  priorityPillClass(priority: NotificationPriority): string {
+    if (priority === 'CRITICAL') return 'bg-red-100 text-red-700';
+    if (priority === 'HIGH') return 'bg-amber-100 text-amber-700';
+    return 'bg-[#F2F6FE]! text-[#4D5CAB]';
   }
 }

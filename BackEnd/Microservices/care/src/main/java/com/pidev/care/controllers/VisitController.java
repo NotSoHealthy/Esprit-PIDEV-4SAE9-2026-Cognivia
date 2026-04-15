@@ -1,5 +1,6 @@
 package com.pidev.care.controllers;
 
+import com.pidev.care.dto.VisitDto;
 import com.pidev.care.entities.Visit;
 import com.pidev.care.services.VisitService;
 import lombok.AllArgsConstructor;
@@ -21,6 +22,11 @@ public class VisitController {
     @GetMapping("/{id}")
     public Visit getVisitById(@PathVariable Long id) {
         return visitService.getById(id);
+    }
+
+    @GetMapping("/dto/{id}")
+    public VisitDto getVisitDtoById(@PathVariable Long id) {
+        return VisitDto.fromVisit(visitService.getById(id));
     }
 
     @GetMapping("/patient/{patientId}")

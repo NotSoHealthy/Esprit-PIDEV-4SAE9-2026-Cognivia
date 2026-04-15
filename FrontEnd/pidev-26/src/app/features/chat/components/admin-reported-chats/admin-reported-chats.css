@@ -1,0 +1,33 @@
+.admin-reported-chats-container {
+    padding: 24px;
+    background: #fff;
+    border-radius: 8px;
+    min-height: 600px;
+}
+
+.header {
+    margin-bottom: 24px;
+}
+
+.header h2 {
+    margin: 0;
+    color: #1a1a1a;
+    font-size: 24px;
+}
+
+.header p {
+    margin: 8px 0 0;
+    color: #666;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.content-preview {
+    font-size: 12px;
+    color: #888;
+    margin-top: 4px;
+}

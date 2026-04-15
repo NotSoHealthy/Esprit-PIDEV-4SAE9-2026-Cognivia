@@ -89,6 +89,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'admin/reported-chats',
+        canMatch: [roleGuard(['ROLE_ADMIN'])],
+        loadComponent: () =>
+          import('./features/chat/components/admin-reported-chats/admin-reported-chats').then(
+            (m) => m.AdminReportedChats,
+          ),
+      },
+      {
         path: 'careteam',
         title: 'Care Team',
         canMatch: [roleGuard(['ROLE_PATIENT'])],
@@ -231,6 +239,22 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/games/memory-game-view/memory-game-view.component').then(
             (m) => m.MemoryGameViewComponent,
+          ),
+      },
+      {
+        path: 'notifications/:eventType/:referenceId',
+        title: 'Notification',
+        loadComponent: () =>
+          import('./features/notifications/notification-redirect.page').then(
+            (m) => m.NotificationRedirectPage,
+          ),
+      },
+      {
+        path: 'notifications/:eventType',
+        title: 'Notification',
+        loadComponent: () =>
+          import('./features/notifications/notification-redirect.page').then(
+            (m) => m.NotificationRedirectPage,
           ),
       },
     ],

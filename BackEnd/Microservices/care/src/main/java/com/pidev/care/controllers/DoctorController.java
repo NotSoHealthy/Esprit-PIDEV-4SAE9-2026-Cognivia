@@ -1,5 +1,6 @@
 package com.pidev.care.controllers;
 
+import com.pidev.care.dto.DoctorDto;
 import com.pidev.care.entities.Doctor;
 import com.pidev.care.services.DoctorService;
 import lombok.AllArgsConstructor;
@@ -22,6 +23,11 @@ public class DoctorController {
     @GetMapping("/{id}")
     public Doctor getDoctorById(@PathVariable Long id) {
         return doctorService.getById(id);
+    }
+
+    @GetMapping("/dto/{id}")
+    public DoctorDto getDoctorDtoById(@PathVariable Long id) {
+        return DoctorDto.fromDoctor(doctorService.getById(id));
     }
 
     @GetMapping("/user/{userId}")

@@ -4,7 +4,19 @@
         <!-- Sidebar: Active Conversations -->
         <nz-sider [nzWidth]="320" class="chat-sider">
             <div class="sider-header">
-                <h3 nz-typography>Conversations</h3>
+                <div class="flex justify-between items-center w-full">
+                    <h3 nz-typography class="m-0">Conversations</h3>
+                    <div class="flex gap-2">
+                        <button nz-button nzType="default" nzShape="circle" (click)="showCreateGroupModal()" nz-tooltip
+                            nzTooltipTitle="Create Group">
+                            <span nz-icon nzType="team"></span>
+                        </button>
+                        <button nz-button nzType="primary" nzShape="circle" (click)="showNewConversationModal()"
+                            nz-tooltip nzTooltipTitle="Start a New Conversation">
+                            <span nz-icon nzType="plus"></span>
+                        </button>
+                    </div>
+                </div>
                 <small>{{ allUsers.length }} active contacts</small>
             </div>
 
@@ -51,6 +63,25 @@
 
         <!-- Main Workspace -->
         <nz-content class="chat-main">
+            <!-- Restriction Warning Alert -->
+            <div *ngIf="activeRestriction" class="px-4 pt-4">
+                <nz-alert
+                    [nzType]="activeRestriction.type === 'BAN' ? 'error' : 'warning'"
+                    [nzMessage]="activeRestriction.type === 'BAN' ? 'Account Permanently Restricted' : 'Account Temporarily Restricted'"
+                    [nzDescription]="restrictionDesc"
+                    nzShowIcon>
+                    <ng-template #restrictionDesc>
+                        <div class="restriction-details">
+                            <p class="mb-1"><strong>Reason:</strong> {{ activeRestriction.reason }}</p>
+                            <p *ngIf="activeRestriction.type === 'TIMEOUT' && restrictionTimeRemaining" class="mb-0 font-medium">
+                                <span nz-icon nzType="clock-circle" class="mr-1"></span>
+                                Access will be restored in: {{ restrictionTimeRemaining }}
+                            </p>
+                        </div>
+                    </ng-template>
+                </nz-alert>
+            </div>
+
             <div *ngIf="selectedUser; else noSelection" class="chat-window">
 
                 <!-- Dynamic Chat Header -->
@@ -63,12 +94,48 @@
                             {{ selectedUser.role }}
                         </nz-tag>
                     </div>
+                    <div class="header-actions">
+                        <ng-container *ngIf="selectedUser.role === 'GROUP'">
+                            <button nz-button nzType="default" nzShape="round" (click)="showManageGroupModal()">
+                                <span nz-icon nzType="team"></span> Manage Members
+                            </button>
+                        </ng-container>
+                        <button nz-button nzType="primary" nzShape="circle" (click)="startCall('video')" nz-tooltip
+                            nzTooltipTitle="Video Call" class="call-btn video">
+                            <span nz-icon nzType="video-camera"></span>
+                        </button>
+                        <button nz-button nzType="default" nzShape="circle" (click)="startCall('audio')" nz-tooltip
+                            nzTooltipTitle="Voice Call" class="call-btn audio">
+                            <span nz-icon nzType="phone"></span>
+                        </button>
+                        <button nz-button nzType="default" nzDanger nzShape="circle" (click)="openReportDialog()" nz-tooltip
+                            nzTooltipTitle="Report" class="ml-2">
+                            <span nz-icon nzType="alert"></span>
+                        </button>
+                    </div>
                 </header>
+                
+                <!-- Floating AI Catch Up Pill -->
+                <div *ngIf="showSummaryOption" class="ai-pill-wrapper">
+                    <div class="ai-pill" (click)="generateAISummary()">
+                        <div class="pill-glow"></div>
+                        <span nz-icon nzType="robot" class="pill-icon" [class.spinning]="isSummarizing"></span>
+                        <div class="pill-text">
+                            <span class="main-text">Catch up with AI</span>
+                            <span class="sub-text">10+ messages unread</span>
+                        </div>
+                        <button nz-button nzType="text" nzSize="small" class="pill-close" (click)="$event.stopPropagation(); showSummaryOption = false">
+                            <span nz-icon nzType="close"></span>
+                        </button>
+                    </div>
+                </div>
 
                 <!-- Discussion Stream -->
                 <div #scrollContainer class="message-area">
-                    <div *ngFor="let msg of messages" class="message-wrapper"
+
+                    <div *ngFor="let msg of messages; let i = index" class="message-wrapper"
                         [class.sent]="msg.senderId === currentUserId"
+                        [class.optimistic]="msg.status === 'sending'"
                         [attr.aria-label]="msg.senderId === currentUserId ? 'Sent message' : 'Received message'">
 
                         <div class="message-bubble">
@@ -88,6 +155,10 @@
                                         <span nz-icon nzType="delete"></span>
                                     </button>
                                 </ng-container>
+                                <button *ngIf="msg.senderId !== currentUserId" nz-button nzType="text" nzSize="small" nzDanger
+                                    (click)="openReportDialog(msg)" nz-tooltip nzTooltipTitle="Report">
+                                    <span nz-icon nzType="alert"></span>
+                                </button>
                             </div>
 
                             <!-- Floating Reaction Picker -->
@@ -98,8 +169,22 @@
                                 </span>
                             </div>
 
+                            <!-- Call Invitation Content -->
+                            <div class="call-invitation" *ngIf="msg.type === 'call' && !msg.isDeleted">
+                                <div class="call-icon-box">
+                                    <span nz-icon [nzType]="msg.content.includes('video') ? 'video-camera' : 'phone'" nzTheme="outline"></span>
+                                </div>
+                                <div class="call-details">
+                                    <span class="call-title">{{ msg.content.includes('video') ? 'Video Call' : 'Voice Call' }}</span>
+                                    <span class="call-status">Active Session</span>
+                                </div>
+                                <button nz-button nzType="primary" nzSize="small" (click)="joinCall(msg.content.split(':')[1])" class="join-btn">
+                                    Join
+                                </button>
+                            </div>
+
                             <!-- Body Content -->
-                            <div class="content" *ngIf="editingMessageId !== msg.id">
+                            <div class="content" *ngIf="editingMessageId !== msg.id && msg.type !== 'call'">
                                 <span *ngIf="msg.isDeleted" class="deleted-text">
                                     <span nz-icon nzType="stop" class="mr-1"></span>
                                     <i>This message was deleted</i>
@@ -130,6 +215,25 @@
 
                             <div class="meta">{{ msg.timestamp | timeAgo }}</div>
                         </div>
+
+                        <!-- Status Indicators (Messenger Style) -->
+                        <div class="status-indicator" *ngIf="msg.senderId === currentUserId">
+                            <ng-container *ngIf="getLastSeenBy(msg, i) as seenList">
+                                <div class="seen-avatars" *ngIf="seenList.length > 0">
+                                    <nz-avatar *ngFor="let uid of seenList" 
+                                               [nzSrc]="getAvatar(uid)" 
+                                               nzSize="small" 
+                                               class="tiny-seen-avatar">
+                                    </nz-avatar>
+                                </div>
+                                <span *ngIf="seenList.length === 0 && isLastSentMessage(msg, i)" 
+                                      nz-icon 
+                                      nzType="check-circle" 
+                                      nzTheme="fill" 
+                                      class="sent-icon">
+                                </span>
+                            </ng-container>
+                        </div>
                     </div>
 
                     <div *ngIf="messages.length === 0"
@@ -137,14 +241,35 @@
                         <span nz-icon nzType="coffee" class="text-6xl mb-4"></span>
                         <p class="text-lg font-medium">No messages yet. Break the ice!</p>
                     </div>
+
+                    <!-- Typing Indicator Bubble -->
+                    <div class="typing-indicator-wrapper" *ngIf="typingUsers.length > 0">
+                        <div class="typing-bubble">
+                            <div class="typing-dots">
+                                <span></span><span></span><span></span>
+                            </div>
+                            <span class="typing-text">
+                                <ng-container *ngIf="selectedUser.role === 'GROUP'; else privateTyping">
+                                    {{ typingUsers.length === 1 ? typingUsers[0].name + ' is typing...' : typingUsers.length + ' people are typing...' }}
+                                </ng-container>
+                                <ng-template #privateTyping>
+                                    Typing...
+                                </ng-template>
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Smart Composer -->
                 <footer class="chat-footer">
-                    <div class="input-wrapper">
-                        <input nz-input placeholder="Write a message…" [(ngModel)]="newMessage"
-                            (keyup.enter)="sendMessage()" class="chat-input-field" />
-                        <button nz-button (click)="sendMessage()" [disabled]="!newMessage.trim()">
+                    <div class="input-wrapper" [class.disabled]="activeRestriction">
+                        <input nz-input [placeholder]="activeRestriction ? 'Sending messages is restricted' : 'Write a message…'" 
+                            [(ngModel)]="newMessage"
+                            (ngModelChange)="onTyping()"
+                            (keyup.enter)="sendMessage()" 
+                            [disabled]="activeRestriction"
+                            class="chat-input-field" />
+                        <button nz-button (click)="sendMessage()" [disabled]="!newMessage.trim() || activeRestriction">
                             <span nz-icon nzType="send"></span>
                         </button>
                     </div>
@@ -162,3 +287,267 @@
         </nz-content>
     </nz-layout>
 </div>
+
+<!-- Start Conversation Modal -->
+<nz-modal [(nzVisible)]="isModalVisible" nzTitle="Start a New Conversation" (nzOnCancel)="handleModalCancel()"
+    [nzFooter]="null" [nzWidth]="540" nzClassName="user-lookup-modal">
+    <ng-container *nzModalContent>
+        <div class="user-lookup-header">
+            <div class="search-section">
+                <nz-input-group [nzPrefix]="prefixIconSearch" class="premium-search">
+                    <input type="text" nz-input placeholder="Search colleagues..." [(ngModel)]="searchText" />
+                </nz-input-group>
+                <ng-template #prefixIconSearch>
+                    <span nz-icon nzType="search" style="color: #3b429f"></span>
+                </ng-template>
+            </div>
+            <div class="filter-section">
+                <nz-segmented [nzOptions]="['All', 'Doctor', 'Caregiver', 'Pharmacist']"
+                    (nzValueChange)="setRoleFilter($any($event))" class="role-segmented">
+                </nz-segmented>
+            </div>
+        </div>
+        <div class="modal-user-list custom-scrollbar">
+            <div *ngIf="filteredUsers.length === 0" class="no-results py-12 text-center opacity-60">
+                <span nz-icon nzType="inbox" class="text-5xl mb-4" style="color: #cbd5e1"></span>
+                <p class="text-lg font-semibold">No matches found</p>
+                <small>Try adjusting your search or role filter</small>
+            </div>
+            <div *ngFor="let user of filteredUsers; let i = index" class="modal-user-item animate-in"
+                [style.animation-delay]="(i * 0.04) + 's'" (click)="startNewConversation(user)">
+
+                <div class="user-avatar-container">
+                    <nz-avatar [nzSrc]="getAvatar(user.id)" [nzText]="getInitials(user)" nzSize="large"
+                        style="background: #e2e8f0; color: #3b429f; font-weight: 700;">
+                    </nz-avatar>
+                    <div class="online-status"></div>
+                </div>
+                <div class="user-details">
+                    <span class="user-name">{{ user.name }}</span>
+                    <nz-tag [nzColor]="getRoleColor(user.role)" class="role-tag">
+                        {{ user.role }}
+                    </nz-tag>
+                </div>
+                <div class="action-hint">
+                    <span nz-icon nzType="message" nzTheme="outline" class="chat-hint-icon"></span>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+</nz-modal>
+
+<!-- Jitsi Call Modal -->
+<nz-modal [(nzVisible)]="isCallModalVisible" [nzTitle]="undefined" (nzOnCancel)="endCall()"
+    [nzFooter]="null" [nzWidth]="'90%'" nzClassName="call-modal" [nzCentered]="true" [nzClosable]="false">
+    <ng-container *nzModalContent>
+        <div class="call-modal-container">
+            <div id="jitsi-container"></div>
+            <div class="call-overlay-actions">
+                <button nz-button nzType="primary" nzDanger nzShape="circle" (click)="endCall()" nzSize="large" class="hangup-btn">
+                    <span nz-icon nzType="phone" [nzRotate]="135"></span>
+                </button>
+            </div>
+        </div>
+    </ng-container>
+</nz-modal>
+
+<!-- Create Group Modal -->
+<nz-modal [(nzVisible)]="isGroupModalVisible" nzTitle="Create New Group" (nzOnCancel)="handleGroupModalCancel()"
+    [nzFooter]="groupModalFooter" [nzWidth]="540" nzClassName="user-lookup-modal group-modal">
+    <ng-container *nzModalContent>
+        <div class="user-lookup-header">
+            <div class="group-name-section mb-0">
+                <input nz-input placeholder="Enter Group Name..." [(ngModel)]="groupName" class="premium-group-input" />
+            </div>
+            <div class="search-section mt-4">
+                <nz-input-group [nzPrefix]="prefixIconSearchGroup" class="premium-search">
+                    <input type="text" nz-input placeholder="Add participants..." [(ngModel)]="groupSearchText" />
+                </nz-input-group>
+                <ng-template #prefixIconSearchGroup>
+                    <span nz-icon nzType="search"></span>
+                </ng-template>
+            </div>
+        </div>
+
+        <div class="modal-user-list custom-scrollbar">
+            <div *ngFor="let user of filteredGroupUsers" class="modal-user-item animate-in"
+                (click)="toggleUserSelection(user.id)" [class.selected]="selectedUserIds.has(user.id)">
+                <div class="user-avatar-container">
+                    <nz-avatar [nzSrc]="getAvatar(user.id)" [nzSize]="48"></nz-avatar>
+                    <div class="selection-check" *ngIf="selectedUserIds.has(user.id)">
+                        <span nz-icon nzType="check"></span>
+                    </div>
+                </div>
+                <div class="user-details">
+                    <span class="user-name">{{ user.name }}</span>
+                    <nz-tag [nzColor]="getRoleColor(user.role)" class="role-tag">{{ user.role }}</nz-tag>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+    <ng-template #groupModalFooter>
+        <div class="flex justify-between items-center p-4 border-t">
+            <span class="text-gray-500">{{ selectedUserIds.size }} members selected</span>
+            <div class="flex gap-2">
+                <button nz-button (click)="handleGroupModalCancel()">Cancel</button>
+                <button nz-button nzType="primary" [nzLoading]="isCreatingGroup"
+                    [disabled]="!groupName || selectedUserIds.size < 1" (click)="createGroup()">
+                    Create Group
+                </button>
+            </div>
+        </div>
+    </ng-template>
+</nz-modal>
+
+<!-- Manage Group Members Modal -->
+<nz-modal [(nzVisible)]="isManageGroupModalVisible" nzTitle="Manage Group Members"
+    (nzOnCancel)="handleManageGroupModalCancel()" [nzFooter]="null" [nzWidth]="600"
+    nzClassName="user-lookup-modal manage-group-modal">
+    <ng-container *nzModalContent>
+        <nz-segmented [nzOptions]="isCurrentUserAdmin ? ['Current Members', 'Add Members', 'Settings'] : ['Current Members', 'Add Members']" 
+            [(ngModel)]="manageGroupView" (ngModelChange)="onManageGroupViewChange($event)" class="w-full mb-4 group-segmented"></nz-segmented>
+
+        <!-- Current Members View -->
+        <div *ngIf="manageGroupView === 'Current Members'" class="modal-user-list custom-scrollbar">
+            <h4 nz-typography class="mb-3 px-2 text-gray-500 text-sm font-semibold">Active Participants ({{ currentGroupMembers.length }})</h4>
+            <div *ngIf="loadingMembers" class="flex justify-center p-8"><nz-spin></nz-spin></div>
+            <div *ngFor="let user of currentGroupMembers" class="modal-user-item animate-in flex justify-between items-center bg-white">
+                <div class="flex items-center gap-3">
+                    <div class="user-avatar-container">
+                        <nz-avatar [nzSrc]="getAvatar(user.id)" [nzSize]="40"></nz-avatar>
+                        <span *ngIf="user.isAdmin" class="admin-crown-badge">
+                            <span nz-icon nzType="crown" nzTheme="fill"></span>
+                        </span>
+                    </div>
+                    <div>
+                        <div class="user-name text-[15px] font-semibold text-[#1e293b]">
+                            {{ user.name }}
+                        </div>
+                        <nz-tag [nzColor]="getRoleColor(user.role)" class="role-tag scale-90 ml-0 mt-1">{{ user.role }}</nz-tag>
+                    </div>
+                </div>
+                
+                <!-- Member Actions Dropdown -->
+                <button *ngIf="isCurrentUserAdmin && user.id !== currentUserId" nz-button nzType="text" nz-dropdown [nzDropdownMenu]="memberMenu" nzPlacement="bottomRight" class="action-menu-btn">
+                    <span nz-icon nzType="more" class="text-lg"></span>
+                </button>
+                <nz-dropdown-menu #memberMenu="nzDropdownMenu">
+                    <ul nz-menu>
+                        <li nz-menu-item *ngIf="!user.isAdmin" (click)="promoteToAdmin(user.id)">
+                            <span nz-icon nzType="up-circle" nzTheme="outline" class="mr-2"></span> Promote to Admin
+                        </li>
+                        <li nz-menu-divider *ngIf="!user.isAdmin"></li>
+                        <li nz-menu-item nzDanger (click)="removeGroupMember(user.id)">
+                            <span nz-icon nzType="user-delete" nzTheme="outline" class="mr-2"></span> Remove from Group
+                        </li>
+                    </ul>
+                </nz-dropdown-menu>
+            </div>
+            <nz-empty *ngIf="!loadingMembers && currentGroupMembers.length === 0" nzNotFoundContent="No other members"></nz-empty>
+        </div>
+
+        <!-- Add Members View -->
+        <div *ngIf="manageGroupView === 'Add Members'">
+            <div class="search-section mb-4">
+                <nz-input-group [nzPrefix]="prefixIconAddMember" class="premium-search">
+                    <input type="text" nz-input placeholder="Search contacts to add..." [(ngModel)]="addMemberSearchText" />
+                </nz-input-group>
+                <ng-template #prefixIconAddMember>
+                    <span nz-icon nzType="search"></span>
+                </ng-template>
+            </div>
+            <div class="modal-user-list custom-scrollbar" style="max-height: 300px;">
+                <div *ngFor="let user of filteredEligibleNewMembers" class="modal-user-item animate-in flex justify-between items-center" 
+                    (click)="toggleAddMemberSelection(user.id)" [class.selected]="selectedNewMemberIds.has(user.id)">
+                    <div class="flex items-center gap-3">
+                        <div class="user-avatar-container">
+                            <nz-avatar [nzSrc]="getAvatar(user.id)" [nzSize]="40"></nz-avatar>
+                            <div class="selection-check !w-5 !h-5 !top-[-4px] !right-[-4px]" *ngIf="selectedNewMemberIds.has(user.id)">
+                                <span nz-icon nzType="check"></span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="user-name text-[15px] font-medium">{{ user.name }}</div>
+                            <nz-tag [nzColor]="getRoleColor(user.role)" class="role-tag scale-90 ml-0 mt-1">{{ user.role }}</nz-tag>
+                        </div>
+                    </div>
+                </div>
+                <nz-empty *ngIf="filteredEligibleNewMembers.length === 0" nzNotFoundContent="No eligible contacts found"></nz-empty>
+            </div>
+            <div class="flex justify-end mt-4 pt-4 border-t gap-2">
+                <span class="text-gray-500 self-center mr-auto text-sm">{{ selectedNewMemberIds.size }} members selected</span>
+                <button nz-button (click)="handleManageGroupModalCancel()">Cancel</button>
+                <button nz-button nzType="primary" [nzLoading]="isAddingMembers" 
+                    [disabled]="selectedNewMemberIds.size < 1" (click)="addSelectedMembers()">
+                    Add to Group
+                </button>
+            </div>
+        </div>
+
+        <!-- Group Settings View (Admin Only) -->
+        <div *ngIf="manageGroupView === 'Settings'" class="animate-in">
+            <div class="settings-list">
+                <div class="settings-item" (click)="clearGroupHistory()">
+                    <div class="settings-icon-wrapper clear">
+                        <span nz-icon nzType="clear" nzTheme="outline"></span>
+                    </div>
+                    <div class="settings-content">
+                        <div class="settings-title">Clear Chat History</div>
+                        <div class="settings-desc">Wipe all messages. This cannot be undone.</div>
+                    </div>
+                    <span nz-icon nzType="right" class="settings-arrow"></span>
+                </div>
+
+                <div class="settings-item delete" (click)="deleteGroup()">
+                    <div class="settings-icon-wrapper delete">
+                        <span nz-icon nzType="delete" nzTheme="outline"></span>
+                    </div>
+                    <div class="settings-content">
+                        <div class="settings-title">Delete Group</div>
+                        <div class="settings-desc">Permanently remove this group for everyone.</div>
+                    </div>
+                    <span nz-icon nzType="right" class="settings-arrow"></span>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+</nz-modal>
+
+<!-- AI Summary Template -->
+<ng-template #aiSummaryTpl let-data>
+    <div class="premium-ai-summary">
+        <div class="summary-glow"></div>
+        <div class="summary-header">
+            <div class="ai-icon-wrapper">
+                <span nz-icon nzType="robot" class="ai-header-icon"></span>
+                <div class="icon-pulse"></div>
+            </div>
+            <div class="header-text-group">
+                <h2>AI Insights</h2>
+                <span class="ai-subtitle">Powered by Cognivia Intelligence</span>
+            </div>
+            <div class="ai-badge">GEN AI</div>
+        </div>
+        <div class="summary-body">
+            <div class="quote-mark left-quote">“</div>
+            <div class="summary-text-container">
+                <p class="summary-text ai-shimmer">{{ data.summary }}</p>
+            </div>
+            <div class="quote-mark right-quote">”</div>
+        </div>
+        <div class="summary-footer">
+            <div class="footer-left">
+                <span class="source-pill">
+                    <span class="status-dot"></span>
+                    Generated from recent messages
+                </span>
+            </div>
+            <div class="footer-actions">
+                <button class="action-btn copy-btn" (click)="copyToClipboard(data.summary)">
+                    <span nz-icon nzType="copy"></span>
+                    Copy
+                </button>
+            </div>
+        </div>
+    </div>
+</ng-template>
