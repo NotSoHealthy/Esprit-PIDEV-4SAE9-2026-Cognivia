@@ -31,7 +31,10 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health", "/actuator/info", "/actuator/prometheus").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
-                        .requestMatchers("/doctor/user/**", "/caregiver/user/**", "/patient/user/**").permitAll()                       
+                        // Public read-only DTO endpoints used for service-to-service lookups
+                        .requestMatchers("/visit/dto/**", "/patient/dto/**", "/doctor/dto/**", "/caregiver/dto/**")
+                        .permitAll()
+                        .requestMatchers("/doctor/user/**", "/caregiver/user/**", "/patient/user/**").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(
                         oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
