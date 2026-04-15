@@ -33,6 +33,10 @@ public class SecurityConfig {
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/doctor/user/**", "/caregiver/user/**", "/patient/user/**").permitAll()
                         .requestMatchers("/patient/dto/**", "/doctor/dto/**", "/caregiver/dto/**", "/visit/dto/**").permitAll()                       
+                        // Public read-only DTO endpoints used for service-to-service lookups
+                        .requestMatchers("/visit/dto/**", "/patient/dto/**", "/doctor/dto/**", "/caregiver/dto/**")
+                        .permitAll()
+                        .requestMatchers("/doctor/user/**", "/caregiver/user/**", "/patient/user/**").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(
                         oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
