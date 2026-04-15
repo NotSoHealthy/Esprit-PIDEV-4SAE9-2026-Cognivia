@@ -34,8 +34,9 @@ public class PatientService implements IService<Patient> {
     @Override
     public Patient create(Patient entity) {
         if (entity.getUserId() != null) {
-            Optional<Patient> existingPatient = patientRepository.findByUserId(entity.getUserId());
-            if (existingPatient.isPresent()) {
+            // CORRECTION : On utilise List car le repository renvoie une List
+            List<Patient> existingPatients = patientRepository.findByUserId(entity.getUserId());
+            if (!existingPatients.isEmpty()) {
                 throw new IllegalStateException("Patient with userId " + entity.getUserId() + " already exists");
             }
         }
@@ -69,7 +70,6 @@ public class PatientService implements IService<Patient> {
             return null;
         }
         if (patients.size() > 1) {
-            // Log a warning or take action as per the implementation plan
             System.err.println("WARNING: Multiple patients found for userId: " + userId + ". Returning the first one.");
         }
         return patients.get(0);
@@ -82,9 +82,9 @@ public class PatientService implements IService<Patient> {
     public List<Patient> getByDoctorId(Long doctorId) {
         List<PatientDoctorAssignment> doctorAssignments = assignmentService.getByDoctorId(doctorId);
         return doctorAssignments.stream()
-            .filter(PatientDoctorAssignment::getActive)
-            .map(PatientDoctorAssignment::getPatient)
-            .toList();
+                .filter(PatientDoctorAssignment::getActive)
+                .map(PatientDoctorAssignment::getPatient)
+                .toList();
     }
 
     public Patient updateSeverity(Long id, String severity) {
