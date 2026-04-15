@@ -259,6 +259,9 @@ export const appConfig: ApplicationConfig = {
       CrownFill,
       ClearOutline,
       VideoCameraOutline,
+      UnorderedListOutline,
+      IdcardOutline,
+      SelectOutline,
     ]),
 
     // ✅ IMPORTANT: make NzModalService available

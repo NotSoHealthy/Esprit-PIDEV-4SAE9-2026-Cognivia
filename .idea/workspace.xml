@@ -4,15 +4,193 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bbce8225-ee6a-4c74-b04e-5b672e20d428" name="Changes" comment="" />
+    <list default="true" id="bbce8225-ee6a-4c74-b04e-5b672e20d428" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/Games/src/test/java/com/pidev/games/services/MemoryGameServiceTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/Games/src/test/java/com/pidev/games/services/StreakServiceTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/care/src/main/java/com/pidev/care/dto/CaregiverDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/care/src/main/java/com/pidev/care/dto/DoctorDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/care/src/main/java/com/pidev/care/dto/VisitDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/care/src/main/java/com/pidev/care/events/GenericEvent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/care/src/main/java/com/pidev/care/events/GenericEventGenerator.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/care/src/main/java/com/pidev/care/rabbitMQ/EventPublisher.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/care/src/main/java/com/pidev/care/rabbitMQ/RabbitConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/config/MessageEncryptionConverter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/controllers/ActivityController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/controllers/AdminChatController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/dto/ChatReportDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/dto/GroupMemberInfoDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/dto/UserRestrictionDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/entities/ChatReport.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/entities/GroupConversation.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/entities/GroupMember.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/entities/UserRestriction.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/repositories/ChatReportRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/repositories/GroupConversationRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/repositories/GroupMemberRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/repositories/UserRestrictionRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/services/AIService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/services/AIServiceImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/services/ActivityService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/test/java/org/example/dpchat/controllers/ChatControllerTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/test/java/org/example/dpchat/services/MessageServiceImplTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/src/test/java/org/example/forumservice/controllers/CommentControllerTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/src/test/java/org/example/forumservice/controllers/PostControllerTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/src/test/java/org/example/forumservice/services/BadWordFilterServiceTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/src/test/java/org/example/forumservice/services/CommentServiceImplTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/src/test/java/org/example/forumservice/services/PostServiceImplTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/src/test/java/org/example/forumservice/services/ReactionServiceImplTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/monitoring/src/main/java/com/pidev/monitoring/events/GenericEvent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/monitoring/src/main/java/com/pidev/monitoring/events/GenericEventGenerator.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/monitoring/src/main/java/com/pidev/monitoring/rabbitMQ/EventPublisher.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/monitoring/src/main/java/com/pidev/monitoring/rabbitMQ/RabbitConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/monitoring/src/test/java/com/pidev/monitoring/services/JournalEntryServiceTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/monitoring/src/test/java/com/pidev/monitoring/services/RiskScoreServiceTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/monitoring/src/test/java/com/pidev/monitoring/services/TestAssignmentServiceTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/monitoring/src/test/java/com/pidev/monitoring/services/TestResultServiceTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/.gitattributes" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/.mvn/wrapper/maven-wrapper.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/mvnw" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/mvnw.cmd" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/main/java/com/pidev/notifications/NotificationsApplication.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/main/java/com/pidev/notifications/config/SecurityConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/main/java/com/pidev/notifications/config/StompAuthChannelInterceptor.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/main/java/com/pidev/notifications/config/WebSocketConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/main/java/com/pidev/notifications/controllers/NotificationController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/main/java/com/pidev/notifications/dto/CaregiverDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/main/java/com/pidev/notifications/dto/DoctorDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/main/java/com/pidev/notifications/dto/PatientDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/main/java/com/pidev/notifications/dto/VisitDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/main/java/com/pidev/notifications/entities/Notification.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/main/java/com/pidev/notifications/entities/NotificationPriority.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/main/java/com/pidev/notifications/entities/NotificationStatus.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/main/java/com/pidev/notifications/entities/RecipientType.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/main/java/com/pidev/notifications/events/GenericEvent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/main/java/com/pidev/notifications/openFeign/CareClient.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/main/java/com/pidev/notifications/rabbitMQ/NotificationListener.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/main/java/com/pidev/notifications/rabbitMQ/NotificationMapper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/main/java/com/pidev/notifications/rabbitMQ/RabbitConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/main/java/com/pidev/notifications/repositories/NotificationRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/main/java/com/pidev/notifications/services/NotificationService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/main/java/com/pidev/notifications/services/NotificationWebSocketPublisher.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/main/resources/application.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/test/java/com/pidev/notifications/NotificationsApplicationTests.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/test/java/com/pidev/notifications/config/StompAuthChannelInterceptorTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/test/java/com/pidev/notifications/controllers/NotificationControllerTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/test/java/com/pidev/notifications/entities/NotificationTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/test/java/com/pidev/notifications/rabbitMQ/NotificationListenerTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/test/java/com/pidev/notifications/rabbitMQ/NotificationMapperTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/test/java/com/pidev/notifications/services/NotificationServiceTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/Microservices/notifications/src/test/java/com/pidev/notifications/services/NotificationWebSocketPublisherTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BackEnd/docker/rabbitmq/docker-compose.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/karma.conf.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/core/models/notifications/notification.model.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/core/services/notifications/notifications-stomp.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/core/services/notifications/notifications.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/chat/chat.component.spec.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/chat/components/admin-reported-chats/admin-reported-chats.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/chat/components/admin-reported-chats/admin-reported-chats.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/chat/components/admin-reported-chats/admin-reported-chats.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/chat/components/chat-history-viewer/chat-history-viewer.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/chat/components/chat-report-dialog/chat-report-dialog.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/chat/services/chat.service.spec.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/forum/components/post-list/post-list.component.spec.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/forum/services/forum.service.spec.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/notifications/notification-redirect.page.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/notifications/notification-redirect.page.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/notifications/notification-redirect.page.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/test-log.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/test-output.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.vscode/settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/.vscode/settings.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/care/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/care/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/care/src/main/java/com/pidev/care/controllers/CaregiverController.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/care/src/main/java/com/pidev/care/controllers/CaregiverController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/care/src/main/java/com/pidev/care/controllers/DoctorController.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/care/src/main/java/com/pidev/care/controllers/DoctorController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/care/src/main/java/com/pidev/care/controllers/PatientController.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/care/src/main/java/com/pidev/care/controllers/PatientController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/care/src/main/java/com/pidev/care/controllers/VisitController.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/care/src/main/java/com/pidev/care/controllers/VisitController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/care/src/main/java/com/pidev/care/dto/PatientDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/care/src/main/java/com/pidev/care/dto/PatientDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/care/src/main/java/com/pidev/care/services/PatientService.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/care/src/main/java/com/pidev/care/services/PatientService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/care/src/main/java/com/pidev/care/services/VisitService.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/care/src/main/java/com/pidev/care/services/VisitService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/care/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/care/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/config/DataSourceConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/config/DataSourceConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/controllers/ChatController.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/controllers/ChatController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/entities/Message.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/entities/Message.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/repositories/MessageRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/repositories/MessageRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/services/MessageService.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/services/MessageService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/services/MessageServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/services/MessageServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/services/UserLookupService.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/java/org/example/dpchat/services/UserLookupService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/dpchat/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/src/main/java/org/example/forumservice/services/AIServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/src/main/java/org/example/forumservice/services/AIServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/forum-service/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/games/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/games/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/monitoring/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/monitoring/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/monitoring/src/main/java/com/pidev/monitoring/services/HousePerimeterService.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/monitoring/src/main/java/com/pidev/monitoring/services/HousePerimeterService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/monitoring/src/main/java/com/pidev/monitoring/services/VisitReportService.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/monitoring/src/main/java/com/pidev/monitoring/services/VisitReportService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/Microservices/monitoring/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/Microservices/monitoring/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/gateway/src/main/java/com/pidev/gateway/GatewayApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/gateway/src/main/java/com/pidev/gateway/GatewayApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/gateway/src/main/java/com/pidev/gateway/config/SecurityConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/package-lock.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/angular.json" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/angular.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/app.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/app.config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/app.routes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/app.routes.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/app.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/app.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/core/auth/keycloak.service.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/core/auth/keycloak.service.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/core/layout/app-layout.html" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/core/layout/app-layout.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/core/layout/app-layout.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/core/layout/app-layout.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/core/services/language.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/core/services/language.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/appointments/appointments.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/appointments/appointments.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/caregiver/report-editor/report-editor.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/caregiver/report-editor/report-editor.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/chat/chat.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/chat/chat.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/chat/chat.component.scss" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/chat/chat.component.scss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/chat/chat.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/chat/chat.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/chat/models/chat.model.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/chat/models/chat.model.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/chat/services/chat.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/chat/services/chat.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/complaint/careteam/careteam.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/complaint/careteam/careteam.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/complaint/complaint.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/complaint/complaint.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/dashboard/doctor/doctor.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/dashboard/doctor/doctor.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/dashboard/patient/patient.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/dashboard/patient/patient.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/equipment/equipment.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/equipment/equipment.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/equipment/maintenance/maintenance.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/equipment/maintenance/maintenance.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/equipment/reservation/reservation.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/equipment/reservation/reservation.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/equipment/services/equipment-service.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/equipment/services/equipment-service.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/forum/components/admin-reported-posts/admin-reported-posts.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/forum/components/admin-reported-posts/admin-reported-posts.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/profile/caregiver/caregiver.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/profile/caregiver/caregiver.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/profile/profile.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/features/profile/profile.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/shared/components/visit-list/visit-list.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/app/shared/components/visit-list/visit-list.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/src/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/src/styles.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FrontEnd/pidev-26/tsconfig.spec.json" beforeDir="false" afterPath="$PROJECT_DIR$/FrontEnd/pidev-26/tsconfig.spec.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/start-all.bat" beforeDir="false" afterPath="$PROJECT_DIR$/start-all.bat" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="CopilotPersistence">
+    <persistenceIdMap>
+      <entry key="_C:/Users/elite/Desktop/Work/PIDEV-26" value="39r2yKDhm0xos5xL5SOdQXfy1aR" />
+    </persistenceIdMap>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "yssfmlha"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/NotSoHealthy/Esprit-PIDEV-4SAE9-2026-Cognivia.git",
+    "accountId": "f40cdfad-d098-4a59-86d4-c33278b0229a"
+  }
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 7
@@ -25,7 +203,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "forum",
+    "git-widget-placeholder": "Merging Equipment",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/yahya/Desktop/PIDEV-26",
     "node.js.detected.package.eslint": "true",
@@ -74,8 +252,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-b114ca120d71-intellij.indexing.shared.core-IU-242.21829.142" />
-        <option value="bundled-js-predefined-d6986cc7102b-7c0b70fcd90d-JavaScript-IU-242.21829.142" />
+        <option value="bundled-jdk-9823dce3aa75-28b599e66164-intellij.indexing.shared.core-IU-242.23339.11" />
+        <option value="bundled-js-predefined-d6986cc7102b-5c90d61e3bab-JavaScript-IU-242.23339.11" />
       </set>
     </attachedChunks>
   </component>
@@ -89,10 +267,19 @@
       <updated>1771440121761</updated>
       <workItem from="1771440122859" duration="714000" />
       <workItem from="1771486819355" duration="510000" />
+      <workItem from="1776267883987" duration="11000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
   </component>
 </project>
