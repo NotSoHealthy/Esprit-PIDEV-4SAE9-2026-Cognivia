@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="82081fe6-4443-4532-84f1-9450777081fb" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/encodings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservices/appointment-service/src/main/java/com/esprit/microservice/appointmentservice/controller/AppointmentController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/appointment-service/src/main/java/com/esprit/microservice/appointmentservice/controller/AppointmentController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservices/appointment-service/src/main/java/com/esprit/microservice/appointmentservice/entity/Appointment.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/appointment-service/src/main/java/com/esprit/microservice/appointmentservice/entity/Appointment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservices/appointment-service/src/main/java/com/esprit/microservice/appointmentservice/mail/MailService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/appointment-service/src/main/java/com/esprit/microservice/appointmentservice/mail/MailService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservices/appointment-service/src/main/java/com/esprit/microservice/appointmentservice/service/AppointmentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/appointment-service/src/main/java/com/esprit/microservice/appointmentservice/service/AppointmentService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservices/appointment-service/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/appointment-service/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservices/care/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/care/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/controllers/CaregiverController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/controllers/CaregiverController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/controllers/DoctorController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/controllers/DoctorController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/controllers/PatientController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/controllers/PatientController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/controllers/TaskController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/controllers/TaskController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/entities/Task.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/entities/Task.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/entities/TaskType.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/entities/TaskType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/repositories/TaskRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/repositories/TaskRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/services/TaskService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/services/TaskService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/services/TaskServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/care/src/main/java/com/pidev/care/services/TaskServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservices/care/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/Microservices/care/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/angular.json" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/angular.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/proxy.conf.json" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/proxy.conf.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/public/i18n/en.json" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/public/i18n/en.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/public/i18n/fr.json" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/public/i18n/fr.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/app.routes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/app.routes.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/core/api/appointment.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/core/api/appointment.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/core/api/models/appointment.model.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/core/api/models/appointment.model.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/core/api/task.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/core/api/task.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/appointments/appointments.css" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/appointments/appointments.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/appointments/appointments.html" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/appointments/appointments.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/appointments/appointments.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/appointments/appointments.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/home/home.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/home/home.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/tasks/list/tasks-list.page.css" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/tasks/list/tasks-list.page.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/tasks/list/tasks-list.page.html" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/tasks/list/tasks-list.page.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/tasks/list/tasks-list.page.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/tasks/list/tasks-list.page.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/tasks/tasks.page.css" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/tasks/tasks.page.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/tasks/tasks.page.html" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/tasks/tasks.page.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/tasks/tasks.page.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/app/features/tasks/tasks.page.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/../FrontEnd/pidev-26/src/styles.css" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;isMigrated&quot;: true
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 1
+}</component>
+  <component name="ProjectId" id="3AUh1TTTc6C5nnWfZrCwq6l1sGv" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;Spring Boot.AppointmentServiceApplication.executor&quot;: &quot;Debug&quot;,
+    &quot;Spring Boot.ForumServiceApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.Gateway.executor&quot;: &quot;Debug&quot;,
+    &quot;Spring Boot.MonitoringApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.SurveillanceAndEquipmentApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.Unnamed.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.appointments.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.care.executor&quot;: &quot;Debug&quot;,
+    &quot;Spring Boot.chat.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.eureka.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.games.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.getway.executor&quot;: &quot;Run&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/user/floreantpos&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.projectsettings.compiler.annotationProcessors&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="ReactorSettings">
+    <option name="notificationShown" value="true" />
+  </component>
+  <component name="RunDashboard">
+    <option name="configurationTypes">
+      <set>
+        <option value="KtorApplicationConfigurationType" />
+        <option value="MicronautRunConfigurationType" />
+        <option value="QuarkusRunConfigurationType" />
+        <option value="SpringBootApplicationConfigurationType" />
+      </set>
+    </option>
+  </component>
+  <component name="RunManager" selected="Spring Boot.AppointmentServiceApplication">
+    <configuration name="AppointmentServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="appointment-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.esprit.microservice.appointmentservice.AppointmentServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ForumServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="tests-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="org.example.forumservice.ForumServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Gateway" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+      <module name="gateway" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.pidev.gateway.GatewayApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="MonitoringApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="monitoring" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.pidev.monitoring.MonitoringApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="SurveillanceAndEquipmentApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="SurveillanceAndEquipment" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.esprit.microservice.surveillanceandequipment.SurveillanceAndEquipmentApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="care" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+      <module name="care" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.pidev.care.CareApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="chat" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+      <module name="dpchat" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="org.example.dpchat.DPchatApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="eureka" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+      <module name="eureka" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.pidev.eureka.EurekaApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="games" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+      <module name="Games" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.pidev.games.GamesApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="Spring Boot.AppointmentServiceApplication" />
+      <item itemvalue="Spring Boot.Gateway" />
+      <item itemvalue="Spring Boot.ForumServiceApplication" />
+      <item itemvalue="Spring Boot.chat" />
+      <item itemvalue="Spring Boot.MonitoringApplication" />
+      <item itemvalue="Spring Boot.eureka" />
+      <item itemvalue="Spring Boot.care" />
+      <item itemvalue="Spring Boot.games" />
+      <item itemvalue="Spring Boot.SurveillanceAndEquipmentApplication" />
+    </list>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-b114ca120d71-intellij.indexing.shared.core-IU-242.21829.142" />
+        <option value="bundled-js-predefined-d6986cc7102b-7c0b70fcd90d-JavaScript-IU-242.21829.142" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="82081fe6-4443-4532-84f1-9450777081fb" name="Changes" comment="" />
+      <created>1772652841226</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1772652841226</updated>
+      <workItem from="1772652842412" duration="1766000" />
+      <workItem from="1772660759591" duration="831000" />
+      <workItem from="1772708966036" duration="839000" />
+      <workItem from="1772832990010" duration="839000" />
+      <workItem from="1773939185525" duration="3266000" />
+      <workItem from="1773964049922" duration="2563000" />
+      <workItem from="1774715499662" duration="3860000" />
+      <workItem from="1774908891769" duration="781000" />
+      <workItem from="1775052198040" duration="2643000" />
+      <workItem from="1775146318722" duration="3097000" />
+      <workItem from="1775391543940" duration="166000" />
+      <workItem from="1775943478610" duration="2134000" />
+      <workItem from="1775994273640" duration="4751000" />
+      <workItem from="1776091832736" duration="11000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
