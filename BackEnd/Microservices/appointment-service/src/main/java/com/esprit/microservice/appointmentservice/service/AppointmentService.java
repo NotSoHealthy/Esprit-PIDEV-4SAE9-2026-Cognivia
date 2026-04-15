@@ -6,6 +6,7 @@ import com.esprit.microservice.appointmentservice.exception.ConflictException;
 import com.esprit.microservice.appointmentservice.repository.AppointmentRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
 import java.time.OffsetDateTime;
 import java.util.List;
 
@@ -31,11 +32,23 @@ public class AppointmentService {
 
         checkConflict(a, null);
 
+        a.setMeetLink(generateMeetLink(a));
+
         return repo.save(a);
     }
 
     public List<Appointment> findAll() {
         return repo.findAll();
+    }
+
+    public List<Appointment> findByDoctorId(Long doctorId) {
+        return repo.findByDoctorId(doctorId);
+    }
+
+    public Appointment updateStatus(Long id, AppointmentStatus newStatus) {
+        Appointment a = findById(id);
+        a.setStatus(newStatus);
+        return repo.save(a);
     }
 
     public Appointment findById(Long id) {
@@ -105,5 +118,21 @@ public class AppointmentService {
         if (conflict) {
             throw new ConflictException("Ce créneau est déjà réservé pour ce médecin.");
         }
+    }
+
+    private String generateMeetLink(Appointment appointment) {
+        String token = UUID.randomUUID()
+                .toString()
+                .substring(0, 6);
+        String roomName = "Consultation"
+                + "-Dr" + appointment.getDoctorId()
+                + "-Patient" + appointment.getPatientId()
+                + "-" + appointment.getAppointmentDate()
+                .toString()
+                .replace(":", "-")
+                .replace(" ", "-")
+                .replace("+", "-")
+                + "-" + token;
+        return "https://meet.jit.si/" + roomName;
     }
 }

@@ -1,96 +1,156 @@
-<div class="tasks-page">
-  <!-- Header -->
-  <div class="page-header">
-    <div class="page-header-left">
-      <h1 class="page-title">Tasks</h1>
-      <p class="page-subtitle">Manage patient care tasks</p>
+<div class="tasks-container">
+  <!-- Patient Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">
+        <span class="sidebar-icon">👥</span>
+        Patients
+      </div>
+      <div class="sidebar-badge">{{ tasks.length }} active</div>
     </div>
 
-    <div class="page-actions">
-      <button class="btn-secondary" type="button" (click)="loadAll()">
+    <nav class="sidebar-nav">
+      <div class="sidebar-item" [class.active]="selectedPatientId === null" (click)="filterByPatient(null)">
+        <span class="item-icon">🏥</span>
+        <span class="item-label">All Patients</span>
+      </div>
+      <div class="sidebar-item" *ngFor="let p of uniquePatients" [class.active]="selectedPatientId === p"
+        (click)="filterByPatient(p)">
+        <span class="item-icon">👤</span>
+        <span class="item-label">Patient {{ p }}</span>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="btn-refresh" (click)="loadAll()">
         <span class="btn-icon">⟳</span>
-        Reload
+        Refresh View
       </button>
     </div>
-  </div>
+  </aside>
 
-  <!-- Message -->
-  <div class="alert" *ngIf="message">
-    {{ message }}
-  </div>
+  <!-- Main Content Area -->
+  <main class="main-content">
+    <!-- Header -->
+    <header class="page-header">
+      <div class="header-left">
+        <h1 class="page-title">Tasks Management</h1>
+        <p class="page-subtitle">Care plan monitoring and medical task tracking</p>
+      </div>
+      <div class="header-right">
+        <div class="search-container">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" 
+                 class="search-input" 
+                 [(ngModel)]="searchQuery" 
+                 placeholder="Search tasks by description or type..." />
+        </div>
+        <button class="btn-primary">
+          <span class="btn-icon">+</span>
+          Create New Task
+        </button>
+      </div>
+    </header>
 
-  <!-- Table Card -->
-  <div class="card" *ngIf="tasks.length > 0">
-    <div class="card-header">
-      <div class="card-title">Tasks List</div>
-      <div class="card-hint">{{ tasks.length }} item(s)</div>
+    <!-- Stats Grid -->
+    <section class="stats-grid">
+      <div class="stat-card total">
+        <div class="stat-icon">📋</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ totalTasks }}</div>
+          <div class="stat-label">Total Tasks</div>
+        </div>
+      </div>
+      <div class="stat-card pending">
+        <div class="stat-icon pulse">⏳</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ pendingTasks }}</div>
+          <div class="stat-label">Pending Review</div>
+        </div>
+      </div>
+      <div class="stat-card completed">
+        <div class="stat-icon">✅</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ completedTasks }}</div>
+          <div class="stat-label">Tasks Completed</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Alert / Messages -->
+    <div class="alert-premium" *ngIf="message">
+      <span class="alert-icon">⚠️</span>
+      <span class="alert-text">{{ message }}</span>
     </div>
 
-    <div class="table-wrap">
-      <table class="tasks-table">
-        <thead>
-          <tr>
-            <th class="col-id">ID</th>
-            <th>Patient</th>
-            <th>User</th>
-            <th>Task</th>
-            <th class="col-due">Due</th>
-            <th class="col-done">Done</th>
-            <th class="col-actions">Actions</th>
-          </tr>
-        </thead>
+    <!-- Task List -->
+    <div class="task-list-section" [class.loading-state]="loading">
+      <!-- Loading Overlay -->
+      <div class="loading-overlay" *ngIf="loading">
+        <div class="spinner"></div>
+        <p>Updating records...</p>
+      </div>
 
-        <tbody>
-          <tr *ngFor="let t of tasks">
-            <td class="cell-muted">
-              <span class="id-pill">#{{ t.id }}</span>
-            </td>
+      <div class="section-header">
+        <h2 class="section-title">Priority Tasks</h2>
+        <span class="section-count">{{ filteredTasks.length }} found</span>
+      </div>
 
-            <td>
-              <span class="meta-pill">
-                <span class="meta-icon">👤</span>
-                Patient {{ t.patientId }}
-              </span>
-            </td>
+      <div class="task-grid" *ngIf="filteredTasks.length > 0">
+        <div class="task-card" *ngFor="let t of filteredTasks">
+          <div class="task-card-header">
+            <span class="id-tag">#{{ t.id }}</span>
+            <span class="status-badge" [class.done]="t.isDone" [class.todo]="!t.isDone">
+              <span class="status-dot"></span>
+              {{ t.isDone ? 'Completed' : 'Pending' }}
+            </span>
+          </div>
 
-            <td>
-              <span class="meta-pill">
-                <span class="meta-icon">🧑‍⚕️</span>
-                User {{ t.userId }}
-              </span>
-            </td>
-
-            <td class="task-cell">
-              <div class="task-title">{{ t.task }}</div>
-            </td>
-
-            <td class="cell-muted">
-              <div class="due">
-                {{ t.dueAt | date:'MMM d, y · h:mm a' }}
+          <div class="task-card-body">
+            <h3 class="task-name">{{ t.task }}</h3>
+            <div class="task-meta">
+              <div class="meta-item">
+                <span class="meta-i">👤</span>
+                Patient ID: {{ t.patientId }}
               </div>
-            </td>
+              <div class="meta-item">
+                <span class="meta-i">🧑‍⚕️</span>
+                Assigned: User {{ t.userId }}
+              </div>
+            </div>
+          </div>
 
-            <td>
-              <span class="status-pill" [class.done]="t.isDone" [class.todo]="!t.isDone">
-                {{ t.isDone ? 'Completed' : 'Pending' }}
-              </span>
-            </td>
-
-            <td class="actions">
-              <button class="icon-btn danger" type="button" (click)="remove(t.id)" title="Delete">
+          <div class="task-card-footer">
+            <div class="due-date">
+              <span class="due-label">Due at:</span>
+              <span class="due-value">{{ t.dueAt | date:'MMM d, y · h:mm a' }}</span>
+            </div>
+            <div class="task-actions">
+              <button class="action-btn delete" (click)="remove(t.id)" title="Remove Task">
                 🗑
               </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-  <!-- Empty State -->
-  <div class="empty-state" *ngIf="tasks.length === 0">
-    <div class="empty-icon">📋</div>
-    <div class="empty-title">No tasks</div>
-    <div class="empty-sub">Click “Reload” or create tasks from the tasks dashboard.</div>
-  </div>
+      <!-- Empty State (No results at all) -->
+      <div class="empty-state-modern" *ngIf="!loading && tasks.length === 0">
+        <div class="empty-art">📂</div>
+        <h3 class="empty-title">Queue is clear</h3>
+        <p class="empty-text">No medical tasks are currently assigned to this view.</p>
+        <button class="btn-outline" (click)="loadAll()">Reload Data</button>
+      </div>
+
+      <!-- No results from Search/Filter -->
+      <div class="empty-state-modern" *ngIf="!loading && tasks.length > 0 && filteredTasks.length === 0">
+        <div class="empty-art">🔍</div>
+        <h3 class="empty-title">No search matches</h3>
+        <p class="empty-text">Try adjusting your keywords or filters.</p>
+      </div>
+    </div>
+  </main>
 </div>

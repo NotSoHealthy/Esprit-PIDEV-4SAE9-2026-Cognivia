@@ -1,135 +1,711 @@
+:host {
+  --primary-color: #2563EB;
+  --bg-app: #F8FAFC;
+  --bg-white: #FFFFFF;
+  --border-color: #E2E8F0;
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --text-light: #9CA3AF;
+}
+
 .page-container {
     padding: 32px;
-    background-color: #f0f2f5;
+    background-color: var(--bg-app);
     min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .premium-card {
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    background: var(--bg-white);
+    border: none !important;
+    padding: 0 !important;
+}
+
+.premium-card ::ng-deep .ant-card-body {
+    padding: 24px !important;
 }
 
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
+    margin-bottom: 32px;
+    gap: 24px;
+}
+
+.title-group {
+    flex: 1;
 }
 
 .title-group h1 {
     margin: 0;
     font-size: 28px;
     font-weight: 700;
-    color: #1a1a1a;
+    color: var(--text-primary);
+    letter-spacing: -0.5px;
 }
 
 .subtitle {
-    color: #8c8c8c;
-    margin: 4px 0 0 0;
+    color: var(--text-secondary);
+    margin: 8px 0 0 0;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.header button[nz-button][nzType="primary"] {
+    background: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    border-radius: 8px !important;
+    padding: 8px 20px !important;
+    height: auto !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25) !important;
+    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1) !important;
+}
+
+.header button[nz-button][nzType="primary"]:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.35) !important;
 }
 
 .search-filters {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr auto;
     align-items: center;
     gap: 16px;
     margin-bottom: 24px;
-    padding: 16px;
-    background: #fafafa;
-    border-radius: 8px;
+    padding: 0;
+    background: transparent;
 }
 
 .search-box {
-    width: 400px;
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.search-box:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.search-box ::ng-deep .ant-input-group {
+    background: var(--bg-white);
+}
+
+.search-box ::ng-deep input {
+    border: none !important;
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+    color: var(--text-primary) !important;
+}
+
+.search-box ::ng-deep input::placeholder {
+    color: var(--text-light) !important;
+}
+
+.search-box ::ng-deep .ant-input-prefix {
+    color: var(--text-light) !important;
+    padding: 0 12px !important;
 }
 
 .other-filters {
     display: flex;
     gap: 12px;
+    align-items: center;
 }
 
-/* Table Design */
-.premium-table ::ng-deep .ant-table-thead>tr>th {
-    background: #f0f5ff !important;
-    font-weight: 600;
+.other-filters nz-select ::ng-deep .ant-select {
+    border-radius: 8px !important;
+}
+
+.other-filters nz-select ::ng-deep .ant-select-selector {
+    border: 1px solid var(--border-color) !important;
+    background: var(--bg-white) !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+}
+
+.other-filters nz-select:hover ::ng-deep .ant-select-selector {
+    border-color: var(--primary-color) !important;
+}
+
+.other-filters button[nz-button] {
+    background: transparent !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 8px !important;
+    color: var(--text-secondary) !important;
+    padding: 8px 16px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+}
+
+.other-filters button[nz-button]:hover {
+    border-color: var(--primary-color) !important;
+    color: var(--primary-color) !important;
+    background: rgba(37, 99, 235, 0.05) !important;
+}
+
+/* TABLE STYLES */
+.premium-table {
+    background: var(--bg-white) !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+}
+
+.premium-table ::ng-deep {
+    .ant-table {
+        background: transparent !important;
+    }
+
+    .ant-table-wrapper {
+        background: transparent !important;
+    }
+
+    .ant-table-bordered .ant-table-thead > tr > th {
+        background: #F9FAFB !important;
+        border-bottom: 2px solid var(--border-color) !important;
+        border-right: 1px solid var(--border-color) !important;
+        color: var(--text-secondary) !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px;
+        padding: 16px !important;
+        white-space: nowrap !important;
+        vertical-align: middle !important;
+    }
+
+    .ant-table-bordered .ant-table-thead > tr > th:last-child {
+        border-right: none !important;
+    }
+
+    .ant-table-cell {
+        padding: 12px 16px !important;
+        font-size: 14px !important;
+        color: var(--text-primary) !important;
+        border: none !important;
+        vertical-align: middle !important;
+    }
+
+    .ant-table tbody > tr {
+        border-bottom: 1px solid var(--border-color) !important;
+        transition: background-color 0.2s ease !important;
+        height: auto !important;
+    }
+
+    .ant-table tbody > tr:hover {
+        background-color: rgba(37, 99, 235, 0.02) !important;
+    }
+
+    .ant-table tbody > tr:last-child {
+        border-bottom: none !important;
+    }
+
+    .ant-table-row:nth-child(even) {
+        background: transparent !important;
+    }
+
+    .ant-table-row:nth-child(odd) {
+        background: transparent !important;
+    }
 }
 
 .id-cell {
     font-weight: 600;
-    color: #1890ff;
+    color: var(--text-secondary);
+    font-size: 13px;
 }
 
 .date-cell .main-date {
-    font-weight: 500;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 14px;
 }
 
 .date-cell .sub-date {
     font-size: 12px;
-    color: #8c8c8c;
+    color: var(--text-secondary);
+    margin-top: 4px;
 }
 
 .status-badge {
-    padding: 4px 12px;
-    border-radius: 4px;
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
     font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: none;
+    white-space: nowrap;
 }
 
 .status-pending {
-    background: #fff7e6;
-    color: #fa8c16;
-    border: 1px solid #ffd591;
+    background: #FFF7ED;
+    color: #C2410C;
 }
 
 .status-approved {
-    background: #f6ffed;
-    color: #52c41a;
-    border: 1px solid #b7eb8f;
+    background: #ECFDF5;
+    color: #065F46;
 }
 
 .status-cancelled {
-    background: #fff1f0;
-    color: #f5222d;
-    border: 1px solid #ffa39e;
+    background: #FEE2E2;
+    color: #DC2626;
 }
 
 .status-completed {
-    background: #e6f7ff;
-    color: #1890ff;
-    border: 1px solid #91d5ff;
+    background: #DBEAFE;
+    color: #1E40AF;
 }
 
-.notes-cell {
-    max-width: 250px;
+/* ============ TABLE STRUCTURE - FORCE NATURAL TABLE BEHAVIOR ============ */
+.premium-table ::ng-deep {
+    table {
+        display: table !important;
+        width: 100% !important;
+        border-collapse: collapse !important;
+        table-layout: auto !important;
+    }
+
+    thead {
+        display: table-header-group !important;
+    }
+
+    tbody {
+        display: table-row-group !important;
+    }
+
+    tr {
+        display: table-row !important;
+    }
+
+    td, th {
+        display: table-cell !important;
+        vertical-align: middle !important;
+        padding: 16px !important;
+        text-align: left !important;
+        border-bottom: 1px solid #E2E8F0 !important;
+    }
+}
+
+/* ============ CELL CONTENT - Avatar + Name (Inline Layout) ============ */
+.cell-person {
+    display: table-cell !important;
+    padding: 16px 12px !important;
+    vertical-align: middle !important;
+    box-sizing: border-box !important;
+}
+
+.person-content {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+
+.person-avatar {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--bg-app);
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+}
+
+.person-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #4B5563;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    color: #595959;
+    min-width: 150px;
 }
 
-.actions {
-    display: flex;
-    gap: 4px;
+.person-name.patient-name {
+    font-weight: 600;
+    color: #111827;
+    font-size: 14px;
 }
 
-.edit-btn:hover {
-    color: #1890ff !important;
-    background: #e6f7ff;
+/* ============ DATE & TIME CELL ============ */
+.cell-date {
+    display: table-cell !important;
+    padding: 16px 12px !important;
+    vertical-align: middle !important;
 }
 
-.delete-btn:hover {
-    color: #f5222d !important;
-    background: #fff1f0;
+.main-date {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 14px;
+    display: block;
+}
+
+.sub-date {
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: block;
+    margin-top: 2px;
+}
+
+/* ============ CENTER ALIGNED CELLS - Duration, Status ============ */
+.cell-center {
+    display: table-cell !important;
+    padding: 16px 12px !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+/* ============ NOTES CELL ============ */
+.cell-notes {
+    display: table-cell !important;
+    padding: 16px 12px !important;
+    vertical-align: middle !important;
+    max-width: 250px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    color: var(--text-secondary) !important;
+    font-size: 14px !important;
+}
+
+/* ============ ACTIONS CELL ============ */
+.cell-actions {
+    display: table-cell !important;
+    padding: 16px 12px !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+.actions-content {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+}
+
+.cell-actions button[nz-button] {
+    background: transparent !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-secondary) !important;
+    border-radius: 6px !important;
+    padding: 6px 8px !important;
+    width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.3s ease !important;
+}
+
+.cell-actions .edit-btn:hover {
+    background: rgba(37, 99, 235, 0.1) !important;
+    border-color: var(--primary-color) !important;
+    color: var(--primary-color) !important;
+}
+
+.cell-actions .delete-btn {
+    color: var(--text-secondary) !important;
+}
+
+.cell-actions .delete-btn:hover {
+    background: #FEE2E2 !important;
+    border-color: #DC2626 !important;
+    color: #DC2626 !important;
+}
+
+/* COLUMN WIDTH ENFORCEMENT */
+.col-caregiver {
+    width: 140px !important;
+    min-width: 140px !important;
+}
+
+.col-patient {
+    width: 160px !important;
+    min-width: 160px !important;
+}
+
+.col-doctor {
+    width: 140px !important;
+    min-width: 140px !important;
+}
+
+.col-datetime {
+    width: 140px !important;
+    min-width: 140px !important;
+}
+
+.col-duration {
+    width: 80px !important;
+    min-width: 80px !important;
+    text-align: center !important;
+}
+
+.col-status {
+    width: 90px !important;
+    min-width: 90px !important;
+    text-align: center !important;
+}
+
+.col-notes {
+    flex: 1;
+    min-width: 150px !important;
+}
+
+.col-actions {
+    width: 100px !important;
+    min-width: 100px !important;
+    text-align: center !important;
+}
+
+/* ACTIONS CELL BUTTONS */
+.cell-actions button[nz-button] {
+    background: transparent !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-secondary) !important;
+    border-radius: 6px !important;
+    padding: 6px 8px !important;
+    width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.3s ease !important;
+}
+
+.cell-actions .edit-btn:hover {
+    background: rgba(37, 99, 235, 0.1) !important;
+    border-color: var(--primary-color) !important;
+    color: var(--primary-color) !important;
+}
+
+.cell-actions .delete-btn {
+    color: var(--text-secondary) !important;
+}
+
+.cell-actions .delete-btn:hover {
+    background: #FEE2E2 !important;
+    border-color: #DC2626 !important;
+    color: #DC2626 !important;
 }
 
 /* Transitions */
 button {
-    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1) !important;
 }
 
-tr.ant-table-row:hover>td {
-    background-color: #f9f9f9 !important;
+/* Modal Form */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.form-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.form-item label {
+    font-weight: 600;
+    color: #434343;
+}
+
+.person-name.patient-name {
+    font-weight: 600;
+    color: #111827;
+    font-size: 14px;
+}
+
+/* ============ DATE & TIME CELL ============ */
+.cell-date {
+    display: table-cell !important;
+    padding: 16px 12px !important;
+    vertical-align: middle !important;
+}
+
+.main-date {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 14px;
+    display: block;
+}
+
+.sub-date {
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: block;
+    margin-top: 2px;
+}
+
+/* ============ CENTER ALIGNED CELLS - Duration, Status ============ */
+.cell-center {
+    display: table-cell !important;
+    padding: 16px 12px !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+/* ============ NOTES CELL ============ */
+.cell-notes {
+    display: table-cell !important;
+    padding: 16px 12px !important;
+    vertical-align: middle !important;
+    max-width: 250px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    color: var(--text-secondary) !important;
+    font-size: 14px !important;
+}
+
+/* ============ ACTIONS CELL ============ */
+.cell-actions {
+    display: table-cell !important;
+    padding: 16px 12px !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+.actions-content {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+}
+
+.cell-actions button[nz-button] {
+    background: transparent !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-secondary) !important;
+    border-radius: 6px !important;
+    padding: 6px 8px !important;
+    width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.3s ease !important;
+}
+
+.cell-actions .edit-btn:hover {
+    background: rgba(37, 99, 235, 0.1) !important;
+    border-color: var(--primary-color) !important;
+    color: var(--primary-color) !important;
+}
+
+.cell-actions .delete-btn {
+    color: var(--text-secondary) !important;
+}
+
+.cell-actions .delete-btn:hover {
+    background: #FEE2E2 !important;
+    border-color: #DC2626 !important;
+    color: #DC2626 !important;
+}
+
+/* COLUMN WIDTH ENFORCEMENT */
+.col-caregiver {
+    width: 140px !important;
+    min-width: 140px !important;
+}
+
+.col-patient {
+    width: 160px !important;
+    min-width: 160px !important;
+}
+
+.col-doctor {
+    width: 140px !important;
+    min-width: 140px !important;
+}
+
+.col-datetime {
+    width: 140px !important;
+    min-width: 140px !important;
+}
+
+.col-duration {
+    width: 80px !important;
+    min-width: 80px !important;
+    text-align: center !important;
+}
+
+.col-status {
+    width: 90px !important;
+    min-width: 90px !important;
+    text-align: center !important;
+}
+
+.col-notes {
+    flex: 1;
+    min-width: 150px !important;
+}
+
+.col-actions {
+    width: 100px !important;
+    min-width: 100px !important;
+    text-align: center !important;
+}
+
+/* ACTIONS CELL BUTTONS */
+.cell-actions button[nz-button] {
+    background: transparent !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-secondary) !important;
+    border-radius: 6px !important;
+    padding: 6px 8px !important;
+    width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.3s ease !important;
+}
+
+.cell-actions .edit-btn:hover {
+    background: rgba(37, 99, 235, 0.1) !important;
+    border-color: var(--primary-color) !important;
+    color: var(--primary-color) !important;
+}
+
+.cell-actions .delete-btn {
+    color: var(--text-secondary) !important;
+}
+
+.cell-actions .delete-btn:hover {
+    background: #FEE2E2 !important;
+    border-color: #DC2626 !important;
+    color: #DC2626 !important;
+}
+
+/* Transitions */
+button {
+    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1) !important;
 }
 
 /* Modal Form */
@@ -163,4 +739,16 @@ tr.ant-table-row:hover>td {
     .search-box {
         width: 100%;
     }
+}
+
+/* Map toggle (additive) */
+.header button.active {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.map-panel {
+    width: 100%;
+    min-height: 0;
 }

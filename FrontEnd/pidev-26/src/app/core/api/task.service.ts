@@ -4,6 +4,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { API_BASE_URL } from './api.tokens';
 import { Task, TaskSubmission } from './models/task.model';
+import { TaskHistoryEvent } from './models/task-history.model';
 
 @Injectable({ providedIn: 'root' })
 export class TaskService {
@@ -82,5 +83,9 @@ export class TaskService {
 
   deleteSubmission(taskId: number, submissionId: number): Observable<void> {
     return this.http.delete<void>(this.url(`/${taskId}/submissions/${submissionId}`)).pipe(catchError((err) => throwError(() => err)));
+  }
+
+  getTaskHistory(taskId: number): Observable<TaskHistoryEvent[]> {
+    return this.http.get<TaskHistoryEvent[]>(this.url(`/${taskId}/history`)).pipe(catchError((err) => throwError(() => err)));
   }
 }

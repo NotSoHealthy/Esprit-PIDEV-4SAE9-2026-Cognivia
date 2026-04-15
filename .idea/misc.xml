@@ -8,6 +8,7 @@
         <option value="$PROJECT_DIR$/BackEnd/Microservices/task-service/pom.xml" />
         <option value="$PROJECT_DIR$/BackEnd/gateway/pom.xml" />
         <option value="$PROJECT_DIR$/BackEnd/Microservices/care/pom.xml" />
+        <option value="$PROJECT_DIR$/BackEnd/Microservices/appointment-service/pom.xml" />
       </list>
     </option>
   </component>

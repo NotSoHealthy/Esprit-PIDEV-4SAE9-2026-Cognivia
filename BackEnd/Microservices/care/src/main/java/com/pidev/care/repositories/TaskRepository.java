@@ -8,7 +8,10 @@ import java.util.List;
 
 public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findByPatientId(Long patientId);
+
     List<Task> findByUserId(Long userId);
+
     List<Task> findByPatientIdAndIsDoneFalse(Long patientId);
+
     List<Task> findByDueAtBeforeAndIsDoneFalse(LocalDateTime time);
 }

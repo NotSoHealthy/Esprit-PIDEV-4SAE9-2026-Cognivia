@@ -42,6 +42,13 @@ export class TasksPage implements OnInit {
   submissionLoading = false;
   validationComments: { [key: number]: string } = {};
 
+  searchQuery = '';
+  isSidebarVisible = true;
+
+  isHandoverVisible = false;
+  isGeneratingHandover = false;
+  handoverSummary: any = null;
+
   userRole?: string;
   isPatient = false;
   isCaregiverOrDoctor = false;
@@ -117,6 +124,9 @@ export class TasksPage implements OnInit {
             if (staff && staff.id) {
               this.currentUserId = staff.id;
             }
+          },
+          error: (err) => {
+            console.error('Error fetching staff info:', err);
           }
         });
       }
@@ -162,6 +172,153 @@ export class TasksPage implements OnInit {
     this.cdr.detectChanges();
   }
 
+  toggleSidebar(): void {
+    this.isSidebarVisible = !this.isSidebarVisible;
+    this.cdr.detectChanges();
+  }
+
+  getPatientAvatarUrl(patientId: number): string {
+    // Using Gravatar anonymous silhouette for all patients (uniform, professional look)
+    return 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+  }
+
+  generateHandover(): void {
+    if (this.selectedPatientId === null) return;
+
+    this.isGeneratingHandover = true;
+    this.isHandoverVisible = true;
+    this.handoverSummary = null;
+
+    const patientName = this.getPatientName(this.selectedPatientId);
+    const patientTasks = this.tasks.filter(t => t.patientId === this.selectedPatientId);
+
+    const doneTasks = patientTasks.filter(t => t.isDone).map(t => t.task);
+    const todoTasks = patientTasks.filter(t => !t.isDone).map(t => t.task);
+
+    // Simulate AI Call
+    setTimeout(() => {
+      this.handoverSummary = {
+        patient: patientName,
+        global: `Patient stable but requires close monitoring for ${doneTasks.length > 0 ? 'completed' : 'pending'} activities.`,
+        done: doneTasks.length > 0 ? doneTasks : ['No tasks completed yet today.'],
+        todo: todoTasks.length > 0 ? todoTasks : ['All scheduled tasks are completed.'],
+        critical: [
+          'Monitor blood pressure after next medication.',
+          'Verify patient took evening dosage of prescribed meds.',
+          'Assistance needed for tomorrow morning exercise session.'
+        ]
+      };
+      this.isGeneratingHandover = false;
+      this.cdr.detectChanges();
+    }, 1000);
+  }
+
+  closeHandover(): void {
+    this.isHandoverVisible = false;
+  }
+
+  downloadPDF(): void {
+    if (!this.handoverSummary) return;
+
+    const patientName = this.handoverSummary.patient;
+    const now = new Date();
+    const dateStr = now.toLocaleDateString();
+    const timeStr = now.toLocaleTimeString();
+
+    // Escape HTML entities
+    const escapeHtml = (text: string) => {
+      const map: any = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return text.replace(/[&<>"']/g, (m) => map[m]);
+    };
+
+    // Build list items HTML
+    const buildListHtml = (items: string[]) => {
+      return items.map(item => '<li>' + escapeHtml(item) + '</li>').join('');
+    };
+
+    const htmlContent =
+      '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Medical Handover Report</title><style>' +
+      '* { margin: 0; padding: 0; box-sizing: border-box; } ' +
+      'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; color: #2c3e50; line-height: 1.6; } ' +
+      '.container { max-width: 850px; margin: 0 auto; padding: 40px; } ' +
+      '.header { border-bottom: 3px solid #6366f1; padding-bottom: 20px; margin-bottom: 30px; } ' +
+      '.report-title { font-size: 24px; font-weight: 700; color: #1f2937; margin-bottom: 10px; letter-spacing: 1px; } ' +
+      '.report-meta { display: flex; gap: 30px; font-size: 13px; color: #6366f1; font-weight: 600; } ' +
+      '.meta-item { display: flex; flex-direction: column; } ' +
+      '.meta-label { color: #6b7280; font-size: 11px; text-transform: uppercase; margin-bottom: 4px; } ' +
+      '.section { margin-bottom: 30px; page-break-inside: avoid; } ' +
+      '.section-title { font-size: 16px; font-weight: 700; color: #1f2937; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb; } ' +
+      '.section-subtitle { font-size: 12px; color: #6b7280; font-weight: 500; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; } ' +
+      '.condition-card { background: #f8fafc; border-left: 4px solid #6366f1; padding: 16px; border-radius: 4px; margin-bottom: 20px; } ' +
+      '.condition-text { font-size: 14px; color: #374151; line-height: 1.7; } ' +
+      '.task-list { list-style: none; margin-left: 0; } ' +
+      '.task-list li { padding: 10px 0; padding-left: 24px; position: relative; font-size: 13px; color: #374151; } ' +
+      '.task-list li:before { content: "✓"; position: absolute; left: 0; color: #10b981; font-weight: 700; } ' +
+      '.critical-list li:before { content: "⚠"; color: #f59e0b; } ' +
+      '.pending-list li:before { content: "○"; color: #6b7280; } ' +
+      '.footer { border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 40px; text-align: center; font-size: 12px; color: #6b7280; } ' +
+      '.footer-text { margin: 4px 0; } ' +
+      '@media print { body { background: white; } .container { padding: 20mm; } } ' +
+      '</style></head><body>' +
+      '<div class="container">' +
+      '<div class="header">' +
+      '<h1 class="report-title">MEDICAL HANDOVER REPORT</h1>' +
+      '<div class="report-meta">' +
+      '<div class="meta-item"><span class="meta-label">Patient</span><span>' + escapeHtml(patientName) + '</span></div>' +
+      '<div class="meta-item"><span class="meta-label">Generated</span><span>' + dateStr + ' ' + timeStr + '</span></div>' +
+      '</div></div>' +
+      '<div class="section"><h2 class="section-title">CONDITION</h2>' +
+      '<div class="condition-card"><p class="condition-text">' + escapeHtml(this.handoverSummary.global) + '</p></div></div>' +
+      '<div class="section"><h2 class="section-title">ACHIEVEMENTS</h2>' +
+      '<p class="section-subtitle">Tasks completed today</p>' +
+      '<ul class="task-list">' + buildListHtml(this.handoverSummary.done) + '</ul></div>' +
+      '<div class="section"><h2 class="section-title">NEXT STEPS</h2>' +
+      '<p class="section-subtitle">Critical actions required</p>' +
+      '<ul class="task-list critical-list">' + buildListHtml(this.handoverSummary.critical) + '</ul></div>' +
+      '<div class="section"><h2 class="section-title">PENDING TASKS</h2>' +
+      '<p class="section-subtitle">To be completed</p>' +
+      '<ul class="task-list pending-list">' + buildListHtml(this.handoverSummary.todo) + '</ul></div>' +
+      '<div class="footer"><p class="footer-text">Generated by AI Handover Assistant</p>' +
+      '<p class="footer-text">Medical Care Management System</p>' +
+      '<p class="footer-text" style="margin-top: 12px; font-size: 11px; color: #9ca3af;">This document is confidential and for authorized medical staff only.</p>' +
+      '</div></div></body></html>';
+
+    // Create and trigger download
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const fileName = 'handover_' + patientName.replace(/\s+/g, '_') + '_' + now.toISOString().split('T')[0] + '.html';
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }
+
+  copyHandoverToClipboard(): void {
+    if (!this.handoverSummary) return;
+
+    const text = `
+HANDOVER SUMMARY - ${this.handoverSummary.patient}
+--------------------------------------------------
+GLOBAL STATE: ${this.handoverSummary.global}
+
+COMPLETED TODAY:
+${this.handoverSummary.done.map((t: string) => `- ${t}`).join('\n')}
+
+HANDOVER POINTS (CRITICAL):
+${this.handoverSummary.critical.map((t: string) => `- ${t}`).join('\n')}
+
+TO BE DONE:
+${this.handoverSummary.todo.map((t: string) => `- ${t}`).join('\n')}
+    `.trim();
+
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Handover summary copied to clipboard!');
+    });
+  }
+
   selectTask(t: Task | null): void {
     if (t) {
       this.selectTaskDetail(t);
@@ -173,8 +330,20 @@ export class TasksPage implements OnInit {
   }
 
   get filteredTasks(): Task[] {
-    if (this.selectedPatientId === null) return this.tasks;
-    return this.tasks.filter(t => t.patientId === this.selectedPatientId);
+    let result = this.tasks;
+    if (this.selectedPatientId !== null) {
+      result = result.filter(t => t.patientId === this.selectedPatientId);
+    }
+
+    if (this.searchQuery && this.searchQuery.trim().length > 0) {
+      const q = this.searchQuery.toLowerCase().trim();
+      result = result.filter(t =>
+        (t.task && t.task.toLowerCase().includes(q)) ||
+        (t.taskType && t.taskType.toLowerCase().includes(q))
+      );
+    }
+
+    return result;
   }
 
   getPatientName(id: number): string {
@@ -259,6 +428,13 @@ export class TasksPage implements OnInit {
   toggleDone(t: Task): void {
     if (!this.canMarkDone(t)) return;
     this.taskService.markDone(t.id!, !t.isDone).subscribe({ next: () => this.load() });
+  }
+
+  viewHistory(t: Task): void {
+    if (!t.id) return;
+    this.router.navigate(['/tasks', t.id, 'history'], {
+      queryParams: { taskLabel: t.task }
+    });
   }
 
   badgeClass(type: string): string {
