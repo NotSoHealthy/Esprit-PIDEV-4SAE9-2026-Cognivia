@@ -17,6 +17,8 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     List<Message> findByRecipientIdOrderByTimestampDesc(String recipientId);
 
+    List<Message> findByGroupIdOrderByTimestampAsc(Long groupId);
+
     @EntityGraph(attributePaths = { "reactions" })
     @Query("SELECT m FROM Message m WHERE (m.senderId = :user1 AND m.recipientId = :user2) OR (m.senderId = :user2 AND m.recipientId = :user1) ORDER BY m.timestamp ASC")
     List<Message> findConversation(String user1, String user2);
@@ -36,4 +38,46 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     @Transactional
     @Query("UPDATE Message m SET m.read = true WHERE m.recipientId = :recipientId AND m.senderId = :senderId AND m.read = false")
     void markConversationAsRead(@Param("recipientId") String recipientId, @Param("senderId") String senderId);
+
+    int countByGroupIdAndTimestampAfter(Long groupId, java.time.LocalDateTime timestamp);
+
+    java.util.Optional<Message> findTopByGroupIdOrderByTimestampDesc(Long groupId);
+
+    @Modifying
+    @Transactional
+    void deleteByGroupId(Long groupId);
+
+    // Surrounding context queries for reports
+    @Query(value = "SELECT * FROM message WHERE ((sender_id = :u1 AND recipient_id = :u2) OR (sender_id = :u2 AND recipient_id = :u1)) AND timestamp < :timestamp ORDER BY timestamp DESC LIMIT :limit", nativeQuery = true)
+    List<Message> findPrivateBefore(@Param("u1") String u1, @Param("u2") String u2, @Param("timestamp") java.time.LocalDateTime timestamp, @Param("limit") int limit);
+
+    @Query(value = "SELECT * FROM message WHERE ((sender_id = :u1 AND recipient_id = :u2) OR (sender_id = :u2 AND recipient_id = :u1)) AND timestamp > :timestamp ORDER BY timestamp ASC LIMIT :limit", nativeQuery = true)
+    List<Message> findPrivateAfter(@Param("u1") String u1, @Param("u2") String u2, @Param("timestamp") java.time.LocalDateTime timestamp, @Param("limit") int limit);
+
+    @Query(value = "SELECT * FROM message WHERE group_id = :groupId AND timestamp < :timestamp ORDER BY timestamp DESC LIMIT :limit", nativeQuery = true)
+    List<Message> findGroupBefore(@Param("groupId") Long groupId, @Param("timestamp") java.time.LocalDateTime timestamp, @Param("limit") int limit);
+
+    @Query(value = "SELECT * FROM message WHERE group_id = :groupId AND timestamp > :timestamp ORDER BY timestamp ASC LIMIT :limit", nativeQuery = true)
+    List<Message> findGroupAfter(@Param("groupId") Long groupId, @Param("timestamp") java.time.LocalDateTime timestamp, @Param("limit") int limit);
+
+    @Query(value = "SELECT * FROM message WHERE ((sender_id = :u1 AND recipient_id = :u2) OR (sender_id = :u2 AND recipient_id = :u1)) ORDER BY timestamp DESC LIMIT :limit", nativeQuery = true)
+    List<Message> findLastPrivateMessages(@Param("u1") String u1, @Param("u2") String u2, @Param("limit") int limit);
+
+    @Query(value = "SELECT * FROM message WHERE group_id = :groupId ORDER BY timestamp DESC LIMIT :limit", nativeQuery = true)
+    List<Message> findLastGroupMessages(@Param("groupId") Long groupId, @Param("limit") int limit);
+    @Query(value = "SELECT DISTINCT ON (contact_id) * FROM (" +
+            "  SELECT m.*, CASE WHEN m.sender_id = :userId THEN m.recipient_id ELSE m.sender_id END as contact_id " +
+            "  FROM message m " +
+            "  WHERE (m.sender_id = :userId OR m.recipient_id = :userId) AND m.group_id IS NULL" +
+            ") sub " +
+            "ORDER BY contact_id, id DESC", nativeQuery = true)
+    List<Message> findLastMessagesForAllContacts(@Param("userId") String userId);
+
+    @Query(value = "SELECT DISTINCT ON (group_id) * FROM (" +
+            "  SELECT m2.* FROM message m2 " +
+            "  INNER JOIN group_member gm ON m2.group_id = gm.group_id " +
+            "  WHERE gm.user_id = :userId" +
+            ") sub2 " +
+            "ORDER BY group_id, id DESC", nativeQuery = true)
+    List<Message> findLastMessagesForUserGroups(@Param("userId") String userId);
 }
