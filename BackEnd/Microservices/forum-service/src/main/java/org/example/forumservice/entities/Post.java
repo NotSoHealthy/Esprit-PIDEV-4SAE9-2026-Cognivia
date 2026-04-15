@@ -93,12 +93,15 @@ public class Post {
     private Long commentCount;
 
     @Transient
+    @com.fasterxml.jackson.annotation.JsonProperty("authorFullName")
     private String authorFullName;
 
     @Transient
+    @com.fasterxml.jackson.annotation.JsonProperty("authorRole")
     private String authorRole;
 
     @Transient
+    @com.fasterxml.jackson.annotation.JsonProperty("userReaction")
     private ReactionType userReaction;
 
     @PrePersist
