@@ -9,7 +9,7 @@ import {
   RouterOutlet,
 } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, filter, finalize, startWith, switchMap } from 'rxjs/operators';
+import { catchError, filter, finalize, switchMap } from 'rxjs/operators';
 import { forkJoin, interval, Observable, of } from 'rxjs';
 import { KeycloakService } from '../auth/keycloak.service';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -26,6 +26,7 @@ import {
   RecipientType,
 } from '../models/notifications/notification.model';
 import { NotificationsService } from '../services/notifications/notifications.service';
+import { NotificationsStompService } from '../services/notifications/notifications-stomp.service';
 
 @Component({
   selector: 'app-layout',
@@ -54,6 +55,7 @@ export class AppLayout implements OnInit {
   private readonly currentUser = inject(CurrentUserService);
   private readonly streakService = inject(StreakService);
   private readonly notificationsService = inject(NotificationsService);
+  private readonly notificationsStomp = inject(NotificationsStompService);
   public readonly routes = [
     {
       link: '/dashboard',
@@ -169,17 +171,13 @@ export class AppLayout implements OnInit {
     this.updateCurrentRouteLabel();
 
     void this.currentUser.loadFromApi(this.userRole, this.keycloak.getUserId()).then(() => {
-      interval(10_000)
+      // Initial unread load (HTTP once)
+      this.notificationsLoading = true;
+      this.fetchNotifications$()
         .pipe(
-          startWith(0),
           takeUntilDestroyed(this.destroyRef),
-          switchMap(() => {
-            this.notificationsLoading = true;
-            return this.fetchNotifications$().pipe(
-              finalize(() => {
-                this.notificationsLoading = false;
-              }),
-            );
+          finalize(() => {
+            this.notificationsLoading = false;
           }),
         )
         .subscribe((items) => {
@@ -191,6 +189,28 @@ export class AppLayout implements OnInit {
             this.cdr.detectChanges();
           });
         });
+
+      // Real-time push (WebSocket/STOMP)
+      this.notificationsStomp
+        .connect()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((notification) => {
+          this.zone.run(() => {
+            if (!notification?.id) return;
+            if (this.hiddenNotificationIds.has(notification.id)) return;
+            if (this.notifications.some((n) => n.id === notification.id)) return;
+
+            this.notifications = [notification, ...this.notifications];
+            if (this.notificationsDropdownOpen) {
+              this.markVisibleNotificationsAsSeen();
+            }
+            this.cdr.detectChanges();
+          });
+        });
+
+      this.destroyRef.onDestroy(() => {
+        this.notificationsStomp.disconnect();
+      });
     });
 
     this.router.events

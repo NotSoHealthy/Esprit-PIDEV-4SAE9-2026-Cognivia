@@ -25,6 +25,9 @@ export class NotificationRedirectPage implements OnInit {
       if (this.eventType === 'VISIT_REPORT_SUBMITTED' && this.referenceId) {
         void this.router.navigate(['/visit', this.referenceId, 'report'], { replaceUrl: true });
         return;
+      } else if (this.eventType === 'VISIT_SCHEDULED' && this.referenceId) {
+        void this.router.navigate(['/visit', this.referenceId, 'report'], { replaceUrl: true });
+        return;
       }
     });
   }
