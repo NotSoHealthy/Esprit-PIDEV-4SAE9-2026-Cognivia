@@ -2,21 +2,18 @@ package com.pidev.monitoring.services;
 
 import com.pidev.monitoring.entities.CognitiveTest;
 import com.pidev.monitoring.entities.TestResult;
+import com.pidev.monitoring.openfeign.CareClient;
 import com.pidev.monitoring.repositories.TestResultRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,7 +23,7 @@ class DataExportServiceTest {
     private TestResultRepository testResultRepository;
 
     @Mock
-    private RestTemplate restTemplate;
+    private CareClient careClient;
 
     @Test
     void exportMLDataAsCsv_includesPatientDataAndEscapesCommas() {
@@ -43,14 +40,18 @@ class DataExportServiceTest {
         when(testResultRepository.findAll()).thenReturn(List.of(result));
 
         LocalDate dob = LocalDate.now().minusYears(20);
-        when(restTemplate.getForObject(anyString(), eq(Map.class))).thenReturn(Map.of(
-                "firstName", "John",
-                "lastName", "Doe",
-                "dateOfBirth", dob.toString(),
-                "gender", "MALE",
-                "severity", "LOW"));
+        String patientJson = """
+                {
+                  "firstName": "John",
+                  "lastName":  "Doe",
+                  "dateOfBirth": "%s",
+                  "gender": "MALE",
+                  "severity": "LOW"
+                }
+                """.formatted(dob);
+        when(careClient.getPatientById(1L)).thenReturn(patientJson);
 
-        DataExportService service = new DataExportService(testResultRepository, restTemplate);
+        DataExportService service = new DataExportService(testResultRepository, careClient);
 
         String csv = service.exportMLDataAsCsv();
 
@@ -73,12 +74,13 @@ class DataExportServiceTest {
         result.setTakenAt(LocalDateTime.of(2026, 1, 1, 12, 0));
 
         when(testResultRepository.findAll()).thenReturn(List.of(result));
-        when(restTemplate.getForObject(anyString(), eq(Map.class))).thenThrow(new RuntimeException("down"));
+        when(careClient.getPatientById(2L)).thenThrow(new RuntimeException("care-service down"));
 
-        DataExportService service = new DataExportService(testResultRepository, restTemplate);
+        DataExportService service = new DataExportService(testResultRepository, careClient);
 
         String csv = service.exportMLDataAsCsv();
 
         assertTrue(csv.contains("2,unknown,unknown,unknown,unknown,Simple Test,10.0,5,"));
     }
 }
+

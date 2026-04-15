@@ -2,6 +2,7 @@ package org.example.dpchat.services;
 
 import org.example.dpchat.entities.*;
 import org.example.dpchat.repositories.*;
+import org.example.dpchat.services.EventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,6 +46,9 @@ public class MessageServiceImplTest {
 
     @Mock
     private AIService aiService;
+
+    @Mock
+    private EventPublisher eventPublisher;
 
     @InjectMocks
     private MessageServiceImpl messageService;

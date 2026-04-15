@@ -1,35 +1,26 @@
 package com.pidev.monitoring.services;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pidev.monitoring.entities.TestResult;
+import com.pidev.monitoring.openfeign.CareClient;
 import com.pidev.monitoring.repositories.TestResultRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class DataExportService {
 
     private final TestResultRepository testResultRepository;
-    private final RestTemplate restTemplate;
-
-    private static final String CARE_SERVICE_URL = "http://localhost:8081";
-
-    public DataExportService(TestResultRepository testResultRepository, RestTemplate restTemplate) {
-        this.testResultRepository = testResultRepository;
-        this.restTemplate = restTemplate;
-    }
-
-    @Autowired
-    public DataExportService(TestResultRepository testResultRepository) {
-        this(testResultRepository, new RestTemplate());
-    }
+    private final CareClient careClient;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public String exportMLDataAsCsv() {
         List<TestResult> results = testResultRepository.findAll();
@@ -39,30 +30,39 @@ public class DataExportService {
         csv.append("patient_id,patient_name,age,gender,initial_severity,test_title,score,response_time_ms,taken_at\n");
 
         for (TestResult result : results) {
-            Map<String, Object> patient = fetchPatientData(result.getPatientId());
-
             String patientName = "unknown";
-            String age = "unknown";
-            String gender = "unknown";
-            String severity = "unknown";
+            String age         = "unknown";
+            String gender      = "unknown";
+            String severity    = "unknown";
 
-            if (patient != null) {
-                String first = patient.get("firstName") != null ? patient.get("firstName").toString() : "";
-                String last = patient.get("lastName") != null ? patient.get("lastName").toString() : "";
-                patientName = (first + " " + last).trim();
-                if (patientName.isEmpty())
-                    patientName = "unknown";
+            try {
+                String raw = careClient.getPatientById(result.getPatientId());
+                if (raw != null && !raw.isBlank()) {
+                    JsonNode node = objectMapper.readTree(raw);
 
-                if (patient.get("dateOfBirth") != null) {
-                    try {
-                        LocalDate dob = LocalDate.parse(patient.get("dateOfBirth").toString());
-                        age = String.valueOf(Period.between(dob, LocalDate.now()).getYears());
-                    } catch (Exception e) {
-                        age = "unknown";
+                    String firstName = extractSafe(node, "firstName");
+                    String lastName  = extractSafe(node, "lastName");
+                    String fullName  = (firstName + " " + (lastName != null ? lastName : "")).trim();
+                    if (!fullName.isBlank()) patientName = fullName;
+
+                    String dob = extractSafe(node, "dateOfBirth");
+                    if (dob != null) {
+                        try {
+                            age = String.valueOf(Period.between(LocalDate.parse(dob), LocalDate.now()).getYears());
+                        } catch (Exception ex) {
+                            log.warn("Could not parse dateOfBirth '{}' for patient {}", dob, result.getPatientId());
+                        }
                     }
+
+                    String g = extractSafe(node, "gender");
+                    if (g != null) gender = g;
+
+                    String s = extractSafe(node, "severity");
+                    if (s != null) severity = s;
                 }
-                gender = patient.get("gender") != null ? patient.get("gender").toString() : "unknown";
-                severity = patient.get("severity") != null ? patient.get("severity").toString() : "unknown";
+            } catch (Exception e) {
+                log.warn("Failed to fetch patient data for ML export (patientId={}): {}",
+                        result.getPatientId(), e.getMessage());
             }
 
             csv.append(result.getPatientId()).append(",")
@@ -79,18 +79,20 @@ public class DataExportService {
         return csv.toString();
     }
 
-    private Map<String, Object> fetchPatientData(Long patientId) {
-        try {
-            return restTemplate.getForObject(CARE_SERVICE_URL + "/patient/" + patientId, Map.class);
-        } catch (Exception e) {
-            System.err.println("Failed to fetch patient data for ML export: " + e.getMessage());
-            return null;
-        }
+    /**
+     * Safely extracts a text value from a JsonNode by key.
+     * Returns null if the key is absent, null, or blank.
+     */
+    private String extractSafe(JsonNode node, String key) {
+        if (node == null || node.isMissingNode()) return null;
+        JsonNode v = node.get(key);
+        if (v == null || v.isNull()) return null;
+        String text = v.asText().trim();
+        return text.isEmpty() ? null : text;
     }
 
     private String escapeCsvField(String field) {
-        if (field == null)
-            return "";
+        if (field == null) return "";
         if (field.contains(",") || field.contains("\"") || field.contains("\n")) {
             return "\"" + field.replace("\"", "\"\"") + "\"";
         }

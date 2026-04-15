@@ -6,6 +6,7 @@ import org.example.forumservice.services.PostService;
 import org.example.forumservice.services.AIService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.example.forumservice.services.UserLookupService;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.data.domain.PageImpl;
@@ -31,6 +32,9 @@ public class PostControllerTest {
 
     @MockitoBean
     private AIService aiService;
+
+    @MockitoBean
+    private UserLookupService userLookupService;
 
     @Autowired
     private ObjectMapper objectMapper;
