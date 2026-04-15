@@ -35,6 +35,7 @@ public class MessageServiceImpl implements MessageService {
     private final ChatReportRepository reportRepository;
     private final UserRestrictionRepository restrictionRepository;
     private final AIService aiService;
+    private final EventPublisher eventPublisher;
 
     @Override
     public Message sendMessage(Message message) {
@@ -51,6 +52,7 @@ public class MessageServiceImpl implements MessageService {
         message.setRead(false);
         Message saved = messageRepository.save(message);
         populateUserInfo(saved);
+        eventPublisher.publishChatEvent(saved);
         return saved;
     }
 

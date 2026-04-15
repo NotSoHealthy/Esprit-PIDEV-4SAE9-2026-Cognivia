@@ -27,6 +27,7 @@ public class NotificationMapper {
         return switch (event.getEventType()) {
             case "VISIT_REPORT_SUBMITTED" -> visitReportSubmittedNotificationMapper(event);
             case "VISIT_SCHEDULED" -> visitScheduledNotificationMapper(event);
+            case "NEW_CHAT_MESSAGE" -> chatMessageNotificationMapper(event);
             default -> throw new IllegalArgumentException("Unsupported event type: " + event.getEventType());
         };
     }
@@ -35,6 +36,7 @@ public class NotificationMapper {
         return switch (event.getEventType()) {
             case "VISIT_REPORT_SUBMITTED" -> visitReportSubmittedDeliveries(event);
             case "VISIT_SCHEDULED" -> visitScheduledDeliveries(event);
+            case "NEW_CHAT_MESSAGE" -> chatMessageDeliveries(event);
             default -> throw new IllegalArgumentException("Unsupported event type: " + event.getEventType());
         };
     }
@@ -135,6 +137,44 @@ public class NotificationMapper {
         return List.of(
                 new NotificationDelivery(caregiverNotification, caregiverDto.getUserId()),
                 new NotificationDelivery(patientNotification, patientDto.getUserId()));
+    }
+
+    public List<Notification> chatMessageNotificationMapper(GenericEvent event) {
+        Notification notification = new Notification();
+        Map<String, Object> payload = event.getPayload();
+        
+        String senderFullName = (String) payload.getOrDefault("senderFullName", "Someone");
+        String content = (String) payload.getOrDefault("content", "sent you a message.");
+        Object messageIdObj = payload.get("messageId");
+        if (messageIdObj instanceof Number) {
+            notification.setReferenceId(((Number) messageIdObj).longValue());
+        }
+        
+        notification.setTitle("New Message from " + senderFullName);
+        notification.setMessage(content);
+        notification.setEventType(event.getEventType());
+        // Leave recipientType and recipientId as neutral/null since dpchat uses UUID strings
+        return List.of(notification);
+    }
+
+    private List<NotificationDelivery> chatMessageDeliveries(GenericEvent event) {
+        List<Notification> notifications = chatMessageNotificationMapper(event);
+        if (notifications.isEmpty()) return List.of();
+        
+        Notification notification = notifications.get(0);
+        String recipientIdStr = (String) event.getPayload().get("recipientId");
+        UUID recipientUuid = null;
+        if (recipientIdStr != null && !recipientIdStr.isEmpty()) {
+            try {
+                recipientUuid = UUID.fromString(recipientIdStr);
+            } catch (Exception ignored) {}
+        }
+        
+        if (recipientUuid == null) {
+            return List.of(); // Cannot deliver without a valid recipient ID
+        }
+        
+        return List.of(new NotificationDelivery(notification, recipientUuid));
     }
 
     private long extractRequiredLong(Map<String, Object> payload, String key) {
