@@ -59,9 +59,19 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
             throw new MessagingException("Missing Authorization header in STOMP CONNECT");
         }
         String trimmed = authorizationHeader.trim();
-        if (!trimmed.regionMatches(true, 0, "Bearer ", 0, 7)) {
+
+        if (!trimmed.regionMatches(true, 0, "Bearer", 0, 6)) {
             throw new MessagingException("Authorization header must be 'Bearer <token>'");
         }
+
+        if (trimmed.length() == 6) {
+            throw new MessagingException("Bearer token is empty");
+        }
+
+        if (!Character.isWhitespace(trimmed.charAt(6))) {
+            throw new MessagingException("Authorization header must be 'Bearer <token>'");
+        }
+
         String token = trimmed.substring(7).trim();
         if (token.isEmpty()) {
             throw new MessagingException("Bearer token is empty");
