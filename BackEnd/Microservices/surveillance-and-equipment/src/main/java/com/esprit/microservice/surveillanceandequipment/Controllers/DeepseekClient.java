@@ -4,7 +4,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = "pharmacy", url = "http://localhost:8091") // replace port
+@FeignClient(name = "pharmacy") // replace port
 public interface DeepseekClient {
 
     @GetMapping("/ai/medications/askDeepSeek")

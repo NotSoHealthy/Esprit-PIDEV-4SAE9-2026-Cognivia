@@ -1018,6 +1018,12 @@
   color: #3d4a8c;
 }
 
+.edit-part-button {
+  background: linear-gradient(135deg, #3b9f8a 0%, #2f7f6f 100%);
+  color: #ffffff;
+  box-shadow: 0 10px 18px rgba(47, 127, 111, 0.24);
+}
+
 .danger-button {
   background: linear-gradient(135deg, #d66c8f 0%, #b85777 100%);
   color: #ffffff;
@@ -1050,6 +1056,108 @@
   justify-content: center;
 }
 
+.annotation-container {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 680px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #f8faff;
+  border: 1px solid #e3ebfb;
+}
+
+.annotation-container .annotation-image {
+  display: block;
+  width: 100%;
+  max-width: 680px;
+  max-height: 72vh;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.annotation-overlay {
+  z-index: 1150;
+}
+
+.modal-annotation {
+  width: min(1260px, 96vw);
+  max-height: 92vh;
+  overflow: auto;
+}
+
+.annotation-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+  gap: 1.5rem;
+  align-items: start;
+  justify-content: stretch;
+  width: 100%;
+  min-width: 0;
+}
+
+.annotation-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  min-width: 0;
+  overflow: visible;
+}
+
+.annotation-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 14px;
+  background: #f8faff;
+  border: 1px solid #e3ebfb;
+  min-width: 0;
+}
+
+.annotation-placeholder {
+  min-height: 380px;
+}
+
+.annotation-button {
+  background: linear-gradient(135deg, #2c5aa0 0%, #3d6fb8 100%);
+  color: #ffffff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(44, 90, 160, 0.25);
+}
+
+.annotation-button nz-icon {
+  font-size: 1.1rem;
+  color: #ffffff;
+}
+
+.annotation-button:hover {
+  background: linear-gradient(135deg, #3d6fb8 0%, #4d7fc8 100%);
+  transform: scale(1.04);
+  box-shadow: 0 6px 16px rgba(44, 90, 160, 0.3);
+}
+
+.annotation-button:active {
+  transform: scale(0.98);
+}
+
+.annotation-image {
+  max-width: 100%;
+}
+
 .detail-image {
   width: 100%;
   max-width: 400px;
@@ -1058,6 +1166,117 @@
   border-radius: 16px;
   border: 1px solid rgba(77, 92, 171, 0.15);
   box-shadow: 0 10px 30px rgba(77, 92, 171, 0.15);
+}
+
+.annotation-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 4;
+  pointer-events: auto;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.annotation-part {
+  position: absolute;
+  border: 2px solid;
+  box-sizing: border-box;
+  display: block;
+  min-width: 2px;
+  min-height: 2px;
+  z-index: 5;
+  cursor: pointer;
+}
+
+.annotation-part-selected {
+  border-width: 4px;
+}
+
+.annotation-part-label {
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #ffffffcc;
+  padding: 1px 5px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.annotation-draft {
+  position: absolute;
+  border: 2px solid #4d5cab;
+  background: rgba(77, 92, 171, 0.12);
+  box-sizing: border-box;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.part-popup {
+  position: absolute;
+  z-index: 10;
+  width: min(300px, calc(100vw - 3rem));
+  background: #ffffff;
+  border: 1px solid #d8e0fb;
+  border-radius: 12px;
+  box-shadow: 0 12px 26px rgba(20, 28, 64, 0.22);
+  padding: 0.75rem;
+}
+
+.part-popup-title {
+  margin: 0 0 0.55rem;
+  color: #344788;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.part-popup label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 0.5rem;
+}
+
+.part-popup label span {
+  color: #5467a0;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.part-popup input {
+  border: 1px solid #d5dced;
+  border-radius: 10px;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.85rem;
+}
+
+.part-popup input:focus {
+  outline: none;
+  border-color: #4d5cab;
+  box-shadow: 0 0 0 2px rgba(77, 92, 171, 0.12);
+}
+
+.part-popup-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+}
+
+.part-popup-actions .primary-button,
+.part-popup-actions .secondary-button {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.78rem;
+}
+
+.part-popup-error {
+  margin: 0.2rem 0 0;
+  color: #b14a6a;
+  font-size: 0.78rem;
 }
 
 .detail-image-placeholder {
@@ -1101,6 +1320,31 @@
   color: #333;
   font-size: 1rem;
   font-weight: 500;
+}
+
+.selected-part-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.selected-part-details strong {
+  color: #32427e;
+}
+
+.selected-part-details span {
+  color: #5f678f;
+  font-size: 0.92rem;
+}
+
+@media (max-width: 900px) {
+  .annotation-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .annotation-sidebar {
+    order: -1;
+  }
 }
 
 .detail-menu-button {

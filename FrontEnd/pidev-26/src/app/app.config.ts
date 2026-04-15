@@ -107,6 +107,7 @@ import {
   ShopOutline,
   UnorderedListOutline,
   IdcardOutline,
+  SelectOutline,
 } from '@ant-design/icons-angular/icons';
 
 // ✅ ADD THESE
@@ -251,6 +252,7 @@ export const appConfig: ApplicationConfig = {
       ShopOutline,
       UnorderedListOutline,
       IdcardOutline,
+      SelectOutline,
     ]),
 
     // ✅ IMPORTANT: make NzModalService available

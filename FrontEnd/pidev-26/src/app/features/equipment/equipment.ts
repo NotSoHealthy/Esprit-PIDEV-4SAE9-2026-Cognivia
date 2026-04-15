@@ -1,4 +1,11 @@
-import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ChangeDetectorRef,
+  HostListener,
+  ElementRef,
+  ViewChild,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { EquipmentService } from './services/equipment-service';
 import { MaintenanceService } from './maintenance/services/maintenance.service';
@@ -12,6 +19,11 @@ import { switchMap, forkJoin } from 'rxjs';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist';
+import {
+  CreateEquipmentPartRequest,
+  EquipmentPart,
+  UpdateEquipmentPartRequest,
+} from './services/equipment-service';
 
 type EquipmentFormModel = Omit<EquipmentModel, 'id' | 'conditionScore'> & {
   conditionScore: number | null;
@@ -26,6 +38,24 @@ type EquipmentFormModel = Omit<EquipmentModel, 'id' | 'conditionScore'> & {
 export class Equipment implements OnInit {
   private static readonly MAX_EXTRACTED_TEXT_LENGTH = 15000;
 
+  @ViewChild('annotationImage') annotationImageRef?: ElementRef<HTMLImageElement>;
+  @ViewChild('annotationContainer') annotationContainerRef?: ElementRef<HTMLDivElement>;
+
+  annotationParts: EquipmentPart[] = [];
+  selectedAnnotationPart: EquipmentPart | null = null;
+  isPartPopupVisible = false;
+  partPopupX = 0;
+  partPopupY = 0;
+  partName = '';
+  partConditionScore: number | null = null;
+  annotationError = '';
+  editingPartId: number | null = null;
+
+  private drawingStart: { x: number; y: number } | null = null;
+  draftRectPx: { left: number; top: number; width: number; height: number } | null = null;
+  private pendingPercentRect: Pick<EquipmentPart, 'x' | 'y' | 'width' | 'height'> | null = null;
+  private activePointerId: number | null = null;
+
   equipments: EquipmentModel[] = [];
   closestMaintenanceMap: Map<number, Maintenance | null> = new Map();
   closestReservationMap: Map<number, ReservationModel | null> = new Map();
@@ -35,6 +65,7 @@ export class Equipment implements OnInit {
   isDeleteModalOpen = false;
   isBulkDeleteModalOpen = false;
   isDetailModalOpen = false;
+  isAnnotationModalOpen = false;
   isEditMode = false;
   editingEquipmentId: number | null = null;
   equipmentToDelete: EquipmentModel | null = null;
@@ -610,6 +641,358 @@ export class Equipment implements OnInit {
     return new File([blob], 'pdf-page-preview.png', { type: 'image/png' });
   }
 
+  onDetailImageLoad(): void {
+    this.cdr.detectChanges();
+  }
+
+  onPartPointerDown(part: EquipmentPart, event: PointerEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.selectedAnnotationPart = part;
+    this.annotationError = '';
+    this.resetPartPopup();
+    this.cdr.detectChanges();
+  }
+
+  onAnnotationPointerDown(event: PointerEvent): void {
+    if (!this.isAnnotationModalOpen) return;
+
+    const point = this.getPointInAnnotation(event);
+    if (!point) return;
+
+    this.activePointerId = event.pointerId;
+    const currentTarget = event.currentTarget as HTMLElement | null;
+    currentTarget?.setPointerCapture(event.pointerId);
+
+    this.resetPartPopup();
+    this.selectedAnnotationPart = null;
+    this.annotationError = '';
+    this.drawingStart = point;
+    this.draftRectPx = { left: point.x, top: point.y, width: 0, height: 0 };
+    event.preventDefault();
+  }
+
+  onAnnotationPointerMove(event: PointerEvent): void {
+    if (this.activePointerId === null || event.pointerId !== this.activePointerId) return;
+    if (!this.drawingStart) return;
+
+    const point = this.getPointInAnnotation(event);
+    if (!point) return;
+
+    const left = Math.min(point.x, this.drawingStart.x);
+    const top = Math.min(point.y, this.drawingStart.y);
+    const width = Math.abs(point.x - this.drawingStart.x);
+    const height = Math.abs(point.y - this.drawingStart.y);
+    this.draftRectPx = { left, top, width, height };
+  }
+
+  onAnnotationPointerUp(event: PointerEvent): void {
+    if (this.activePointerId === null || event.pointerId !== this.activePointerId) return;
+
+    const currentTarget = event.currentTarget as HTMLElement | null;
+    currentTarget?.releasePointerCapture(event.pointerId);
+    this.finishDraftRect();
+  }
+
+  onAnnotationPointerCancel(): void {
+    this.clearDraftRect();
+  }
+
+  getPartBoxStyle(part: EquipmentPart): Record<string, string> {
+    return {
+      left: `${part.x * 100}%`,
+      top: `${part.y * 100}%`,
+      width: `${part.width * 100}%`,
+      height: `${part.height * 100}%`,
+      borderColor: this.getColorByCondition(part.conditionScore),
+      backgroundColor: `${this.getColorByCondition(part.conditionScore)}20`,
+    };
+  }
+
+  getPartLabelStyle(part: EquipmentPart): Record<string, string> {
+    return {
+      color: this.getColorByCondition(part.conditionScore),
+    };
+  }
+
+  getDraftBoxStyle(): Record<string, string> {
+    if (!this.draftRectPx) return {};
+
+    return {
+      left: `${this.draftRectPx.left}px`,
+      top: `${this.draftRectPx.top}px`,
+      width: `${this.draftRectPx.width}px`,
+      height: `${this.draftRectPx.height}px`,
+    };
+  }
+
+  get partPopupTitle(): string {
+    if (this.editingPartId !== null) return 'Edit Equipment Part';
+    return 'New Equipment Part';
+  }
+
+  get partPopupSaveLabel(): string {
+    return this.editingPartId !== null ? 'Update' : 'Save';
+  }
+
+  beginEditSelectedPart(): void {
+    const part = this.selectedAnnotationPart;
+    const image = this.annotationImageRef?.nativeElement;
+    if (!part || !part.id || !image?.clientWidth || !image.clientHeight) return;
+
+    this.editingPartId = part.id;
+    this.pendingPercentRect = {
+      x: part.x,
+      y: part.y,
+      width: part.width,
+      height: part.height,
+    };
+
+    const pxLeft = part.x * image.clientWidth;
+    const pxTop = part.y * image.clientHeight;
+    const pxWidth = part.width * image.clientWidth;
+    const pxHeight = part.height * image.clientHeight;
+    this.positionPartPopupNearRect(pxLeft, pxTop, pxWidth, pxHeight, image.clientWidth, image.clientHeight);
+
+    this.partName = part.name;
+    this.partConditionScore = part.conditionScore;
+    this.annotationError = '';
+    this.isPartPopupVisible = true;
+    this.cdr.detectChanges();
+  }
+
+  savePartAnnotation(): void {
+    if (!this.equipmentToDetail?.id || !this.pendingPercentRect) {
+      this.annotationError = 'No selected area to save.';
+      return;
+    }
+
+    const name = this.partName.trim();
+    const score = Number(this.partConditionScore);
+
+    if (!name) {
+      this.annotationError = 'Part name is required.';
+      return;
+    }
+
+    if (Number.isNaN(score) || score < 0 || score > 100) {
+      this.annotationError = 'Condition score must be between 0 and 100.';
+      return;
+    }
+
+    const payload: CreateEquipmentPartRequest = {
+      equipmentId: this.equipmentToDetail.id,
+      name,
+      conditionScore: score,
+      x: this.pendingPercentRect.x,
+      y: this.pendingPercentRect.y,
+      width: this.pendingPercentRect.width,
+      height: this.pendingPercentRect.height,
+    };
+
+    const editingPartId = this.editingPartId;
+
+    if (editingPartId !== null) {
+      const updatePayload: UpdateEquipmentPartRequest = {
+        id: editingPartId,
+        ...payload,
+      };
+
+      this.equipmentService.updateEquipmentPart(updatePayload).subscribe({
+        next: (updatedPart) => {
+          this.annotationParts = this.annotationParts.map((part) =>
+            part.id === editingPartId ? updatedPart : part
+          );
+          this.selectedAnnotationPart = updatedPart;
+          this.resetPartPopup();
+          this.annotationError = '';
+          this.syncEquipmentConditionFromParts();
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.annotationError = 'Failed to update part annotation. Please try again.';
+          this.cdr.detectChanges();
+        },
+      });
+      return;
+    }
+
+    this.equipmentService.createEquipmentPart(payload).subscribe({
+      next: (createdPart) => {
+        this.annotationParts = [...this.annotationParts, createdPart];
+        this.selectedAnnotationPart = createdPart;
+        this.resetPartPopup();
+        this.annotationError = '';
+        this.syncEquipmentConditionFromParts();
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.annotationError = 'Failed to save part annotation. Please try again.';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  cancelPartAnnotation(): void {
+    this.resetPartPopup();
+    this.annotationError = '';
+  }
+
+  deleteSelectedPart(): void {
+    const part = this.selectedAnnotationPart;
+    if (!part?.id) return;
+
+    this.equipmentService.deleteEquipmentPart(part.id).subscribe({
+      next: () => {
+        this.annotationParts = this.annotationParts.filter((p) => p.id !== part.id);
+        this.selectedAnnotationPart = null;
+        this.syncEquipmentConditionFromParts();
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.annotationError = 'Failed to delete part annotation.';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  private loadAnnotationParts(equipmentId: number): void {
+    this.equipmentService.getEquipmentParts(equipmentId).subscribe({
+      next: (parts) => {
+        this.annotationParts = Array.isArray(parts) ? parts : [];
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.annotationParts = [];
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  private syncEquipmentConditionFromParts(): void {
+    const equipment = this.equipmentToDetail;
+    if (!equipment) return;
+    if (!this.annotationParts.length) return;
+
+    const total = this.annotationParts.reduce((sum, part) => sum + part.conditionScore, 0);
+    const average = Math.round(total / this.annotationParts.length);
+
+    if (equipment.conditionScore === average) return;
+
+    const updatedEquipment: EquipmentModel = {
+      ...equipment,
+      conditionScore: average,
+    };
+
+    this.equipmentService.update(updatedEquipment).subscribe({
+      next: (savedEquipment) => {
+        this.equipmentToDetail = savedEquipment;
+        this.equipments = this.equipments.map((item) =>
+          item.id === savedEquipment.id ? savedEquipment : item
+        );
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.annotationError = 'Part saved, but failed to refresh equipment condition score.';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  private getColorByCondition(score: number): string {
+    if (score > 80) return '#2f9e44';
+    if (score >= 50) return '#e0a800';
+    return '#d64545';
+  }
+
+  private resetPartPopup(): void {
+    this.isPartPopupVisible = false;
+    this.pendingPercentRect = null;
+    this.partName = '';
+    this.partConditionScore = null;
+    this.editingPartId = null;
+  }
+
+  private getPointInAnnotation(event: PointerEvent): { x: number; y: number } | null {
+    const container = this.annotationContainerRef?.nativeElement;
+    if (!container) return null;
+
+    const bounds = container.getBoundingClientRect();
+    if (!bounds.width || !bounds.height) return null;
+
+    const x = Math.min(Math.max(event.clientX - bounds.left, 0), bounds.width);
+    const y = Math.min(Math.max(event.clientY - bounds.top, 0), bounds.height);
+    return { x, y };
+  }
+
+  private finishDraftRect(): void {
+    const draft = this.draftRectPx;
+    const image = this.annotationImageRef?.nativeElement;
+    const width = image?.clientWidth ?? 0;
+    const height = image?.clientHeight ?? 0;
+
+    if (!draft || !image || !width || !height) {
+      this.clearDraftRect();
+      return;
+    }
+
+    if (draft.width < 12 || draft.height < 12) {
+      this.clearDraftRect();
+      return;
+    }
+
+    this.pendingPercentRect = {
+      x: draft.left / width,
+      y: draft.top / height,
+      width: draft.width / width,
+      height: draft.height / height,
+    };
+
+    this.positionPartPopupNearRect(draft.left, draft.top, draft.width, draft.height, width, height);
+    if (this.editingPartId === null) {
+      this.partName = '';
+      this.partConditionScore = null;
+    }
+    this.isPartPopupVisible = true;
+    this.annotationError = '';
+    this.clearDraftRect(false);
+    this.cdr.detectChanges();
+  }
+
+  private clearDraftRect(clearPopup = true): void {
+    this.activePointerId = null;
+    this.drawingStart = null;
+    this.draftRectPx = null;
+    if (clearPopup) {
+      this.pendingPercentRect = null;
+    }
+  }
+
+  private positionPartPopupNearRect(
+    left: number,
+    top: number,
+    width: number,
+    height: number,
+    imageWidth: number,
+    imageHeight: number
+  ): void {
+    const popupWidth = Math.min(300, Math.max(220, imageWidth * 0.42));
+    const popupHeight = 210;
+    const gap = 10;
+
+    const preferredRightX = left + width + gap;
+    const maxX = Math.max(8, imageWidth - popupWidth - 8);
+    const minX = 8;
+    const x = preferredRightX <= maxX ? preferredRightX : Math.max(minX, left - popupWidth - gap);
+
+    const preferredY = top;
+    const maxY = Math.max(8, imageHeight - popupHeight - 8);
+    const y = Math.min(Math.max(8, preferredY), maxY);
+
+    this.partPopupX = x;
+    this.partPopupY = y;
+  }
+
   openDeleteModal(equipment: EquipmentModel): void {
     this.deleteError = '';
     this.equipmentToDelete = equipment;
@@ -707,16 +1090,42 @@ export class Equipment implements OnInit {
     }
   }
 
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    if (!this.isAnnotationModalOpen) return;
+    this.cdr.detectChanges();
+  }
+
   openDetailModal(equipment: EquipmentModel): void {
     this.equipmentToDetail = equipment;
     this.hoveredDetailEquipmentId = null;
     this.isDetailModalOpen = true;
   }
 
+  openAnnotationModal(): void {
+    if (!this.equipmentToDetail?.id) return;
+
+    this.annotationError = '';
+    this.selectedAnnotationPart = null;
+    this.resetPartPopup();
+    this.clearDraftRect();
+    this.isAnnotationModalOpen = true;
+    this.loadAnnotationParts(this.equipmentToDetail.id);
+  }
+
+  closeAnnotationModal(): void {
+    this.isAnnotationModalOpen = false;
+    this.resetPartPopup();
+    this.clearDraftRect();
+    this.selectedAnnotationPart = null;
+    this.annotationError = '';
+  }
+
   closeDetailModal(): void {
     this.isDetailModalOpen = false;
     this.equipmentToDetail = null;
     this.hoveredDetailEquipmentId = null;
+    this.closeAnnotationModal();
   }
 
   viewMaintenance(equipment: EquipmentModel): void {

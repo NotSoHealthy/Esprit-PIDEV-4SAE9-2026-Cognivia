@@ -446,15 +446,19 @@
 
       <div class="detail-content">
         <div class="detail-image-section">
-          <img 
-            *ngIf="equipmentToDetail?.imageUrl"
-            class="detail-image" 
-            [src]="equipmentToDetail?.imageUrl" 
-            [alt]="equipmentToDetail?.name + ' image'"
-          />
-          <div *ngIf="!equipmentToDetail?.imageUrl" class="detail-image-placeholder">
-            No image available
+          <div *ngIf="equipmentToDetail?.imageUrl; else noDetailImage">
+            <img
+              class="detail-image"
+              [src]="equipmentToDetail?.imageUrl"
+              [alt]="equipmentToDetail?.name + ' image'"
+            />
           </div>
+
+          <ng-template #noDetailImage>
+            <div class="detail-image-placeholder">
+              No image available
+            </div>
+          </ng-template>
         </div>
 
         <div class="detail-info-section">
@@ -522,6 +526,15 @@
 
       <div class="modal-actions">
         <div class="action-buttons-group">
+          <button
+            class="action-icon-button annotation-button"
+            type="button"
+            (click)="openAnnotationModal()"
+            aria-label="Annotate Image"
+          >
+            <nz-icon nzType="select" nzTheme="outline" />
+            <span>Annotate Condition</span>
+          </button>
           <button 
             class="action-icon-button maintenance-button" 
             type="button" 
@@ -569,6 +582,120 @@
               </button>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay annotation-overlay" *ngIf="isAnnotationModalOpen" (click)="closeAnnotationModal()" role="dialog" aria-modal="true">
+    <div class="modal modal-annotation" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Annotate Equipment Condition</h2>
+        <button class="icon-button" type="button" (click)="closeAnnotationModal()" aria-label="Close">
+          ×
+        </button>
+      </div>
+
+      <div class="annotation-workspace">
+        <div class="annotation-stage">
+          <div class="annotation-container" #annotationContainer *ngIf="equipmentToDetail?.imageUrl; else noAnnotationImage">
+            <img
+              #annotationImage
+              class="detail-image annotation-image"
+              [src]="equipmentToDetail?.imageUrl"
+              [alt]="equipmentToDetail?.name + ' image'"
+              draggable="false"
+              style="user-select: none; -webkit-user-drag: none; pointer-events: none;"
+              (load)="onDetailImageLoad()"
+            />
+            <div
+              class="annotation-layer"
+              (pointerdown)="onAnnotationPointerDown($event)"
+              (pointermove)="onAnnotationPointerMove($event)"
+              (pointerup)="onAnnotationPointerUp($event)"
+              (pointercancel)="onAnnotationPointerCancel()"
+            >
+              <div
+                *ngFor="let part of annotationParts"
+                class="annotation-part"
+                [class.annotation-part-selected]="selectedAnnotationPart?.id === part.id"
+                [ngStyle]="getPartBoxStyle(part)"
+                (pointerdown)="onPartPointerDown(part, $event)"
+              >
+                <span class="annotation-part-label" [ngStyle]="getPartLabelStyle(part)">
+                  {{ part.name }}
+                </span>
+              </div>
+
+              <div
+                *ngIf="draftRectPx"
+                class="annotation-draft"
+                [ngStyle]="getDraftBoxStyle()"
+              ></div>
+            </div>
+
+          </div>
+
+          <ng-template #noAnnotationImage>
+            <div class="detail-image-placeholder annotation-placeholder">
+              No image available
+            </div>
+          </ng-template>
+
+          <div
+            class="part-popup"
+            *ngIf="isPartPopupVisible"
+            [style.left.px]="partPopupX"
+            [style.top.px]="partPopupY"
+          >
+            <p class="part-popup-title">{{ partPopupTitle }}</p>
+            <label>
+              <span>Part Name</span>
+              <input type="text" [(ngModel)]="partName" maxlength="120" />
+            </label>
+            <label>
+              <span>Condition Score (0-100)</span>
+              <input type="number" min="0" max="100" [(ngModel)]="partConditionScore" />
+            </label>
+            <p class="part-popup-error" *ngIf="annotationError">{{ annotationError }}</p>
+            <div class="part-popup-actions">
+              <button class="secondary-button" type="button" (click)="cancelPartAnnotation()">Cancel</button>
+              <button class="primary-button" type="button" (click)="savePartAnnotation()">{{ partPopupSaveLabel }}</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="annotation-sidebar">
+          <div class="detail-field">
+            <label>Instructions</label>
+            <p>Click and drag on the image to create a part area.</p>
+          </div>
+
+          <div class="detail-field" *ngIf="selectedAnnotationPart as part">
+            <label>Selected Part</label>
+            <p class="selected-part-details">
+              <strong>{{ part.name }}</strong>
+              <span>Score: {{ part.conditionScore }}</span>
+            </p>
+            <button
+              type="button"
+              class="secondary-button edit-part-button"
+              *ngIf="part.id"
+              (click)="beginEditSelectedPart()"
+            >
+              Edit Part
+            </button>
+            <button
+              type="button"
+              class="danger-button"
+              *ngIf="part.id"
+              (click)="deleteSelectedPart()"
+            >
+              Delete Part
+            </button>
+          </div>
+
+          <p class="form-error" *ngIf="annotationError && !isPartPopupVisible">{{ annotationError }}</p>
         </div>
       </div>
     </div>
