@@ -1,69 +1,142 @@
 <div class="clinic-viewport">
 
-  <!-- ═══ BACKGROUND LAYERS ═══ -->
+  <!-- ═══ BACKGROUND ═══ -->
   <div class="bg-base"></div>
   <div class="bg-grid"></div>
-  <div class="bg-pulse pulse-1"></div>
-  <div class="bg-pulse pulse-2"></div>
-  <div class="bg-pulse pulse-3"></div>
+  <div class="bg-vignette"></div>
   <div class="bg-scanlines"></div>
 
+  <!-- Animated corner decorations -->
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+
   <!-- Floating particles -->
-  <svg class="particles-svg" viewBox="0 0 940 500" xmlns="http://www.w3.org/2000/svg">
+  <svg class="particles-svg" viewBox="0 0 940 540" xmlns="http://www.w3.org/2000/svg">
     <circle *ngFor="let p of particles"
       [attr.cx]="p.x" [attr.cy]="p.y" [attr.r]="p.size"
-      [attr.opacity]="p.opacity" fill="#38bdf8"/>
+      [attr.opacity]="p.opacity" [attr.fill]="p.color"/>
   </svg>
 
-  <!-- Floor plan SVG -->
-  <svg class="floor-svg" viewBox="0 0 940 500" xmlns="http://www.w3.org/2000/svg">
-    <rect x="10" y="10" width="920" height="480" rx="20"
-          fill="none" stroke="#1e3a5f" stroke-width="1.5" opacity="0.6"/>
-    <!-- Corridor H -->
-    <rect x="0" y="220" width="940" height="60" fill="rgba(15,30,60,0.45)"/>
-    <!-- Corridor V -->
-    <rect x="440" y="0" width="60" height="500" fill="rgba(15,30,60,0.45)"/>
-    <!-- Corridor borders -->
-    <line x1="0"   y1="220" x2="940" y2="220" stroke="#1e3a5f" stroke-width="0.8" opacity="0.7"/>
-    <line x1="0"   y1="280" x2="940" y2="280" stroke="#1e3a5f" stroke-width="0.8" opacity="0.7"/>
-    <line x1="440" y1="0"   x2="440" y2="500" stroke="#1e3a5f" stroke-width="0.8" opacity="0.7"/>
-    <line x1="500" y1="0"   x2="500" y2="500" stroke="#1e3a5f" stroke-width="0.8" opacity="0.7"/>
-    <!-- Rooms -->
-    <rect x="15" y="15"  width="415" height="195" rx="12" fill="rgba(6,12,30,0.65)" stroke="#1e3a5f" stroke-width="1"/>
-    <rect x="505" y="15" width="420" height="195" rx="12" fill="rgba(6,12,30,0.65)" stroke="#1e3a5f" stroke-width="1"/>
-    <rect x="15" y="290" width="415" height="195" rx="12" fill="rgba(6,12,30,0.65)" stroke="#1e3a5f" stroke-width="1"/>
-    <rect x="505" y="290" width="420" height="195" rx="12" fill="rgba(6,12,30,0.65)" stroke="#1e3a5f" stroke-width="1"/>
-    <!-- Desk TL -->
-    <rect x="35" y="55"  width="55" height="28" rx="4" fill="rgba(56,189,248,0.05)"  stroke="rgba(56,189,248,0.18)"  stroke-width="0.8"/>
-    <circle cx="98" cy="69" r="7" fill="rgba(56,189,248,0.05)"  stroke="rgba(56,189,248,0.18)"  stroke-width="0.8"/>
-    <!-- Desk TR -->
-    <rect x="796" y="55" width="55" height="28" rx="4" fill="rgba(52,211,153,0.05)"  stroke="rgba(52,211,153,0.18)"  stroke-width="0.8"/>
-    <circle cx="793" cy="69" r="7" fill="rgba(52,211,153,0.05)"  stroke="rgba(52,211,153,0.18)"  stroke-width="0.8"/>
-    <!-- Desk BL -->
-    <rect x="35" y="360" width="55" height="28" rx="4" fill="rgba(244,114,182,0.05)" stroke="rgba(244,114,182,0.18)" stroke-width="0.8"/>
-    <circle cx="98" cy="374" r="7" fill="rgba(244,114,182,0.05)" stroke="rgba(244,114,182,0.18)" stroke-width="0.8"/>
-    <!-- Desk BR -->
-    <rect x="796" y="360" width="55" height="28" rx="4" fill="rgba(251,146,60,0.05)"  stroke="rgba(251,146,60,0.18)"  stroke-width="0.8"/>
-    <circle cx="793" cy="374" r="7" fill="rgba(251,146,60,0.05)"  stroke="rgba(251,146,60,0.18)"  stroke-width="0.8"/>
-    <!-- Center cross -->
-    <text x="470" y="245" text-anchor="middle" font-size="11" fill="rgba(248,113,113,0.45)" font-weight="bold">+</text>
-    <text x="470" y="260" text-anchor="middle" font-size="7" fill="rgba(100,116,139,0.5)" letter-spacing="1">CLINIC CENTER</text>
-    <!-- Room labels -->
-    <text x="30"  y="30"  font-size="8" fill="rgba(100,116,139,0.45)" font-family="monospace">OFFICE A</text>
-    <text x="520" y="30"  font-size="8" fill="rgba(100,116,139,0.45)" font-family="monospace">OFFICE B</text>
-    <text x="30"  y="305" font-size="8" fill="rgba(100,116,139,0.45)" font-family="monospace">OFFICE C</text>
-    <text x="520" y="305" font-size="8" fill="rgba(100,116,139,0.45)" font-family="monospace">OFFICE D</text>
-    <!-- Walking paths -->
-    <path d="M230 250 L440 250" stroke="rgba(56,189,248,0.12)" stroke-width="1.5" stroke-dasharray="8 5" fill="none"/>
-    <path d="M500 250 L720 250" stroke="rgba(52,211,153,0.12)" stroke-width="1.5" stroke-dasharray="8 5" fill="none"/>
-    <path d="M470 112 L470 220" stroke="rgba(56,189,248,0.12)" stroke-width="1.5" stroke-dasharray="8 5" fill="none"/>
-    <path d="M470 280 L470 370" stroke="rgba(244,114,182,0.12)" stroke-width="1.5" stroke-dasharray="8 5" fill="none"/>
-    <!-- Footer hint -->
-    <text x="470" y="490" text-anchor="middle" font-size="8" fill="rgba(71,85,105,0.7)"
-          font-family="monospace" letter-spacing="2">WASD / ARROWS · MOVE — ENTER · INTERACT</text>
+  <!-- ═══ CLINIC FLOOR PLAN ═══ -->
+  <svg class="floor-svg" viewBox="0 0 940 540" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="glow-blue">
+        <feGaussianBlur stdDeviation="3" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+
+    <!-- Outer clinic border with glow -->
+    <rect x="8" y="8" width="924" height="524" rx="16"
+          fill="none" stroke="#1e3a5f" stroke-width="1" opacity="0.5"/>
+    <rect x="12" y="12" width="916" height="516" rx="14"
+          fill="none" stroke="#0ea5e9" stroke-width="0.4" opacity="0.3"/>
+
+    <!-- ═══ MAIN CORRIDORS ═══ -->
+    <!-- Horizontal corridor -->
+    <rect x="0" y="236" width="940" height="68" fill="rgba(10,20,50,0.6)"/>
+    <!-- Vertical corridor -->
+    <rect x="436" y="0" width="68" height="540" fill="rgba(10,20,50,0.6)"/>
+
+    <!-- Corridor border lines with glow -->
+    <line x1="0"   y1="236" x2="940" y2="236" stroke="#0ea5e9" stroke-width="0.8" opacity="0.4"/>
+    <line x1="0"   y1="304" x2="940" y2="304" stroke="#0ea5e9" stroke-width="0.8" opacity="0.4"/>
+    <line x1="436" y1="0"   x2="436" y2="540" stroke="#0ea5e9" stroke-width="0.8" opacity="0.4"/>
+    <line x1="504" y1="0"   x2="504" y2="540" stroke="#0ea5e9" stroke-width="0.8" opacity="0.4"/>
+
+    <!-- Corridor floor tiles -->
+    <line x1="0" y1="270" x2="940" y2="270" stroke="#1e3a5f" stroke-width="0.4" opacity="0.6" stroke-dasharray="4 8"/>
+    <line x1="470" y1="0" x2="470" y2="540" stroke="#1e3a5f" stroke-width="0.4" opacity="0.6" stroke-dasharray="4 8"/>
+
+    <!-- ═══ OFFICE ROOMS ═══ -->
+    <!-- Office A — Top Left -->
+    <rect x="14" y="14" width="412" height="212" rx="10"
+          fill="rgba(4,10,28,0.8)" stroke="#1e3a5f" stroke-width="1.2"/>
+    <!-- Door gap -->
+    <rect x="14" y="218" width="412" height="18" fill="rgba(4,10,28,0.8)"/>
+    <rect x="185" y="224" width="60" height="12" fill="rgba(10,20,50,0.6)"/>
+    <path d="M185 224 Q215 218 245 224" stroke="#38bdf8" stroke-width="0.6" fill="none" opacity="0.5"/>
+
+    <!-- Office A interior details -->
+    <!-- Window -->
+    <rect x="30" y="30" width="80" height="50" rx="4" fill="rgba(56,189,248,0.04)" stroke="rgba(56,189,248,0.15)" stroke-width="0.8"/>
+    <line x1="70" y1="30" x2="70" y2="80" stroke="rgba(56,189,248,0.1)" stroke-width="0.5"/>
+    <line x1="30" y1="55" x2="110" y2="55" stroke="rgba(56,189,248,0.1)" stroke-width="0.5"/>
+    <!-- Desk -->
+    <rect x="290" y="160" width="110" height="50" rx="6" fill="rgba(56,189,248,0.04)" stroke="rgba(56,189,248,0.15)" stroke-width="0.8"/>
+    <circle cx="395" cy="185" r="12" fill="rgba(56,189,248,0.05)" stroke="rgba(56,189,248,0.12)" stroke-width="0.8"/>
+    <!-- Medical cross -->
+    <text x="34" y="28" font-size="7" fill="rgba(56,189,248,0.4)" font-family="monospace" font-weight="bold">OFFICE A</text>
+    <text x="34" y="38" font-size="6" fill="rgba(56,189,248,0.2)" font-family="monospace">General Medicine</text>
+
+    <!-- Office B — Top Right -->
+    <rect x="514" y="14" width="412" height="212" rx="10"
+          fill="rgba(4,10,28,0.8)" stroke="#1e3a5f" stroke-width="1.2"/>
+    <rect x="514" y="218" width="412" height="18" fill="rgba(4,10,28,0.8)"/>
+    <rect x="685" y="224" width="60" height="12" fill="rgba(10,20,50,0.6)"/>
+    <path d="M685 224 Q715 218 745 224" stroke="#34d399" stroke-width="0.6" fill="none" opacity="0.5"/>
+
+    <!-- Office B interior details -->
+    <rect x="820" y="30" width="80" height="50" rx="4" fill="rgba(52,211,153,0.04)" stroke="rgba(52,211,153,0.15)" stroke-width="0.8"/>
+    <line x1="860" y1="30" x2="860" y2="80" stroke="rgba(52,211,153,0.1)" stroke-width="0.5"/>
+    <line x1="820" y1="55" x2="900" y2="55" stroke="rgba(52,211,153,0.1)" stroke-width="0.5"/>
+    <rect x="530" y="160" width="110" height="50" rx="6" fill="rgba(52,211,153,0.04)" stroke="rgba(52,211,153,0.15)" stroke-width="0.8"/>
+    <circle cx="635" cy="185" r="12" fill="rgba(52,211,153,0.05)" stroke="rgba(52,211,153,0.12)" stroke-width="0.8"/>
+    <text x="534" y="28" font-size="7" fill="rgba(52,211,153,0.4)" font-family="monospace" font-weight="bold">OFFICE B</text>
+    <text x="534" y="38" font-size="6" fill="rgba(52,211,153,0.2)" font-family="monospace">Cardiology</text>
+
+    <!-- Office C — Bottom Left -->
+    <rect x="14" y="314" width="412" height="212" rx="10"
+          fill="rgba(4,10,28,0.8)" stroke="#1e3a5f" stroke-width="1.2"/>
+    <rect x="14" y="307" width="412" height="10" fill="rgba(4,10,28,0.8)"/>
+    <rect x="185" y="305" width="60" height="12" fill="rgba(10,20,50,0.6)"/>
+    <path d="M185 317 Q215 311 245 317" stroke="#f472b6" stroke-width="0.6" fill="none" opacity="0.5"/>
+
+    <rect x="30" y="450" width="80" height="50" rx="4" fill="rgba(244,114,182,0.04)" stroke="rgba(244,114,182,0.15)" stroke-width="0.8"/>
+    <line x1="70" y1="450" x2="70" y2="500" stroke="rgba(244,114,182,0.1)" stroke-width="0.5"/>
+    <line x1="30" y1="475" x2="110" y2="475" stroke="rgba(244,114,182,0.1)" stroke-width="0.5"/>
+    <rect x="290" y="325" width="110" height="50" rx="6" fill="rgba(244,114,182,0.04)" stroke="rgba(244,114,182,0.15)" stroke-width="0.8"/>
+    <circle cx="395" cy="350" r="12" fill="rgba(244,114,182,0.05)" stroke="rgba(244,114,182,0.12)" stroke-width="0.8"/>
+    <text x="34" y="330" font-size="7" fill="rgba(244,114,182,0.4)" font-family="monospace" font-weight="bold">OFFICE C</text>
+    <text x="34" y="340" font-size="6" fill="rgba(244,114,182,0.2)" font-family="monospace">Neurology</text>
+
+    <!-- Office D — Bottom Right -->
+    <rect x="514" y="314" width="412" height="212" rx="10"
+          fill="rgba(4,10,28,0.8)" stroke="#1e3a5f" stroke-width="1.2"/>
+    <rect x="514" y="307" width="412" height="10" fill="rgba(4,10,28,0.8)"/>
+    <rect x="685" y="305" width="60" height="12" fill="rgba(10,20,50,0.6)"/>
+    <path d="M685 317 Q715 311 745 317" stroke="#fb923c" stroke-width="0.6" fill="none" opacity="0.5"/>
+
+    <rect x="820" y="450" width="80" height="50" rx="4" fill="rgba(251,146,60,0.04)" stroke="rgba(251,146,60,0.15)" stroke-width="0.8"/>
+    <line x1="860" y1="450" x2="860" y2="500" stroke="rgba(251,146,60,0.1)" stroke-width="0.5"/>
+    <line x1="820" y1="475" x2="900" y2="475" stroke="rgba(251,146,60,0.1)" stroke-width="0.5"/>
+    <rect x="530" y="325" width="110" height="50" rx="6" fill="rgba(251,146,60,0.04)" stroke="rgba(251,146,60,0.15)" stroke-width="0.8"/>
+    <circle cx="635" cy="350" r="12" fill="rgba(251,146,60,0.05)" stroke="rgba(251,146,60,0.12)" stroke-width="0.8"/>
+    <text x="534" y="330" font-size="7" fill="rgba(251,146,60,0.4)" font-family="monospace" font-weight="bold">OFFICE D</text>
+    <text x="534" y="340" font-size="6" fill="rgba(251,146,60,0.2)" font-family="monospace">Pediatrics</text>
+
+    <!-- ═══ CLINIC CENTER (corridor intersection) ═══ -->
+    <circle cx="470" cy="270" r="28" fill="rgba(8,16,40,0.9)" stroke="rgba(56,189,248,0.2)" stroke-width="1"/>
+    <circle cx="470" cy="270" r="22" fill="none" stroke="rgba(56,189,248,0.12)" stroke-width="0.8" stroke-dasharray="3 3"/>
+    <text x="470" y="267" text-anchor="middle" font-size="8" fill="rgba(248,113,113,0.7)" font-weight="bold">+</text>
+    <text x="470" y="277" text-anchor="middle" font-size="5.5" fill="rgba(100,116,139,0.6)" font-family="monospace" letter-spacing="0.5">RECEPTION</text>
+
+    <!-- ═══ WALKING PATH ARROWS ═══ -->
+    <!-- Top corridor paths -->
+    <path d="M 280 270 L 436 270" stroke="rgba(56,189,248,0.15)" stroke-width="1.5" stroke-dasharray="6 5" fill="none"/>
+    <path d="M 504 270 L 660 270" stroke="rgba(52,211,153,0.15)" stroke-width="1.5" stroke-dasharray="6 5" fill="none"/>
+    <!-- Vertical paths -->
+    <path d="M 470 130 L 470 236" stroke="rgba(56,189,248,0.12)" stroke-width="1.5" stroke-dasharray="6 5" fill="none"/>
+    <path d="M 470 304 L 470 410" stroke="rgba(244,114,182,0.12)" stroke-width="1.5" stroke-dasharray="6 5" fill="none"/>
+
+    <!-- ═══ FLOOR HINT ═══ -->
+    <text x="470" y="532" text-anchor="middle" font-size="7.5" fill="rgba(71,85,105,0.65)"
+          font-family="monospace" letter-spacing="2.5">WASD / ARROWS  ·  MOVE  —  ENTER  ·  INTERACT</text>
   </svg>
 
-  <!-- ═══ DOCTOR NODES ═══ -->
+  <!-- ═══ DOCTOR OFFICE NODES ═══ -->
   <div class="office-unit"
        *ngFor="let doc of doctors; let i = index"
        [style.left.px]="officePositions[i % 4].x"
@@ -71,9 +144,12 @@
        [class.nearby]="checkProximity(i)"
        [style.--accent]="getDocColor(i).accent"
        [style.--glow]="getDocColor(i).glow"
-       [style.--dkbg]="getDocColor(i).bg">
+       [style.--dkbg]="getDocColor(i).bg"
+       [style.--border]="getDocColor(i).border">
+
     <div class="office-box">
       <div class="ring-anim"></div>
+      <div class="ring-anim-2"></div>
       <div class="doc-avatar"
            [style.border-color]="getDocColor(i).accent"
            [style.color]="getDocColor(i).accent"
@@ -82,12 +158,17 @@
       </div>
       <div class="doc-name">DR. {{ doc.lastName | uppercase }}</div>
       <div class="doc-spec">{{ doc.speciality }}</div>
+      <div class="doc-appt-count">
+        <span class="appt-dot"></span>
+        {{ (doctorApptsStore.get(doc.id) || []).length }} appts
+      </div>
       <div class="badge" *ngIf="getPendingCount(doc.id) > 0">
         {{ getPendingCount(doc.id) }}
       </div>
     </div>
+
     <div class="nearby-prompt" *ngIf="checkProximity(i)">
-      <span class="key-chip">ENTER</span> to interact
+      <span class="key-chip">ENTER</span> to open records
     </div>
   </div>
 
@@ -99,29 +180,42 @@
     <div class="char-shadow"></div>
     <div [style.transform]="isLeft ? 'scaleX(-1)' : 'scaleX(1)'"
          style="display:flex;justify-content:center;">
-      <svg #charSvg width="54" height="68" viewBox="0 0 44 58" class="char-svg">
-        <circle cx="22" cy="12" r="11" fill="rgba(56,189,248,0.1)"/>
+      <svg #charSvg width="56" height="70" viewBox="0 0 44 58" class="char-svg">
+        <!-- Head glow -->
+        <circle cx="22" cy="12" r="13" fill="rgba(56,189,248,0.08)"/>
+        <!-- Head -->
         <circle cx="22" cy="12" r="9" fill="#fde68a"/>
-        <circle cx="18" cy="11" r="1.8" fill="#1e293b"/>
-        <circle cx="26" cy="11" r="1.8" fill="#1e293b"/>
-        <circle cx="18.6" cy="10.4" r="0.7" fill="white"/>
-        <circle cx="26.6" cy="10.4" r="0.7" fill="white"/>
-        <path d="M18.5 15 Q22 17.5 25.5 15" stroke="#b45309" stroke-width="1" fill="none" stroke-linecap="round"/>
-        <path d="M13 12 Q14 4 22 3 Q30 4 31 12" fill="#92400e"/>
-        <rect x="11" y="21" width="22" height="20" rx="5" fill="#ffffff"/>
-        <rect x="20" y="22" width="4" height="1.5" rx="0.5" fill="#ef4444"/>
-        <rect x="21.5" y="20.5" width="1.5" height="4" rx="0.5" fill="#ef4444"/>
-        <rect x="13" y="33" width="6" height="4" rx="1.5" fill="rgba(148,163,184,0.2)" stroke="rgba(148,163,184,0.3)" stroke-width="0.5"/>
-        <rect x="25" y="33" width="6" height="4" rx="1.5" fill="rgba(148,163,184,0.2)" stroke="rgba(148,163,184,0.3)" stroke-width="0.5"/>
-        <g id="L-Arm"><rect x="4"  y="21" width="7" height="14" rx="3.5" fill="#fde68a"/></g>
-        <g id="R-Arm"><rect x="33" y="21" width="7" height="14" rx="3.5" fill="#fde68a"/></g>
+        <!-- Eyes -->
+        <circle cx="18" cy="10.5" r="2" fill="#1e293b"/>
+        <circle cx="26" cy="10.5" r="2" fill="#1e293b"/>
+        <circle cx="18.7" cy="9.8" r="0.8" fill="white"/>
+        <circle cx="26.7" cy="9.8" r="0.8" fill="white"/>
+        <!-- Smile -->
+        <path d="M18.5 15.5 Q22 18 25.5 15.5" stroke="#b45309" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+        <!-- Hair -->
+        <path d="M13 12 Q13 3 22 2.5 Q31 3 31 12" fill="#78350f"/>
+        <path d="M13 10 Q13 5 22 4.5 Q31 5 31 10" fill="#92400e"/>
+        <!-- White coat -->
+        <rect x="10" y="21" width="24" height="20" rx="5" fill="#ffffff"/>
+        <!-- Medical cross -->
+        <rect x="20" y="23" width="4" height="1.5" rx="0.5" fill="#ef4444"/>
+        <rect x="21.5" y="21.5" width="1.5" height="4.5" rx="0.5" fill="#ef4444"/>
+        <!-- Coat collar -->
+        <path d="M17 21 L22 27 L27 21" stroke="#e2e8f0" stroke-width="0.8" fill="none"/>
+        <!-- Pockets -->
+        <rect x="12" y="33" width="7" height="5" rx="1.5" fill="rgba(148,163,184,0.25)" stroke="rgba(148,163,184,0.3)" stroke-width="0.5"/>
+        <rect x="25" y="33" width="7" height="5" rx="1.5" fill="rgba(148,163,184,0.25)" stroke="rgba(148,163,184,0.3)" stroke-width="0.5"/>
+        <!-- Arms -->
+        <g id="L-Arm"><rect x="3" y="21" width="7.5" height="15" rx="3.5" fill="#fde68a"/></g>
+        <g id="R-Arm"><rect x="33.5" y="21" width="7.5" height="15" rx="3.5" fill="#fde68a"/></g>
+        <!-- Legs -->
         <g id="L-Leg">
-          <rect x="13" y="40" width="8" height="16" rx="3" fill="#334155"/>
-          <rect x="12" y="53" width="9" height="5"  rx="2" fill="#1e293b"/>
+          <rect x="12" y="40" width="8.5" height="16" rx="3" fill="#1e40af"/>
+          <rect x="11" y="53" width="10" height="5" rx="2" fill="#1e3a8a"/>
         </g>
         <g id="R-Leg">
-          <rect x="23" y="40" width="8" height="16" rx="3" fill="#334155"/>
-          <rect x="23" y="53" width="9" height="5"  rx="2" fill="#1e293b"/>
+          <rect x="23.5" y="40" width="8.5" height="16" rx="3" fill="#1e40af"/>
+          <rect x="23" y="53" width="10" height="5" rx="2" fill="#1e3a8a"/>
         </g>
       </svg>
     </div>
@@ -132,7 +226,12 @@
     <button class="dpad-btn" (mousedown)="startMove('up')"    (mouseup)="stopMove('up')"    (mouseleave)="stopMove('up')"    (touchstart)="$event.preventDefault();startMove('up')"    (touchend)="stopMove('up')">▲</button>
     <div class="dpad-row">
       <button class="dpad-btn" (mousedown)="startMove('left')"  (mouseup)="stopMove('left')"  (mouseleave)="stopMove('left')"  (touchstart)="$event.preventDefault();startMove('left')"  (touchend)="stopMove('left')">◀</button>
-      <div class="dpad-center"></div>
+      <div class="dpad-center">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <circle cx="7" cy="7" r="6" stroke="rgba(56,189,248,0.3)" stroke-width="1"/>
+          <circle cx="7" cy="7" r="2.5" fill="rgba(56,189,248,0.2)"/>
+        </svg>
+      </div>
       <button class="dpad-btn" (mousedown)="startMove('right')" (mouseup)="stopMove('right')" (mouseleave)="stopMove('right')" (touchstart)="$event.preventDefault();startMove('right')" (touchend)="stopMove('right')">▶</button>
     </div>
     <button class="dpad-btn" (mousedown)="startMove('down')"   (mouseup)="stopMove('down')"   (mouseleave)="stopMove('down')"  (touchstart)="$event.preventDefault();startMove('down')"  (touchend)="stopMove('down')">▼</button>
@@ -143,21 +242,18 @@
     <div class="glass-panel menu-panel">
       <div class="panel-glow"></div>
       <div class="menu-header">
-        <div class="menu-doc-av">
-          {{ activeDoctor?.firstName?.[0] }}{{ activeDoctor?.lastName?.[0] }}
-        </div>
+        <div class="menu-doc-av">{{ activeDoctor?.firstName?.[0] }}{{ activeDoctor?.lastName?.[0] }}</div>
         <div>
           <div class="menu-doc-name">Dr. {{ activeDoctor?.firstName }} {{ activeDoctor?.lastName }}</div>
           <div class="menu-doc-spec">{{ activeDoctor?.speciality }}</div>
         </div>
       </div>
       <div class="menu-items">
-        <div class="menu-item" [class.active]="menuIndex === 0"
-             (click)="menuIndex=0; executeMenuSelection()">
+        <div class="menu-item" [class.active]="menuIndex === 0" (click)="menuIndex=0; executeMenuSelection()">
           <div class="menu-icon">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <rect x="1" y="3"  width="14" height="2" rx="1" fill="currentColor"/>
-              <rect x="1" y="7"  width="10" height="2" rx="1" fill="currentColor"/>
+              <rect x="1" y="3" width="14" height="2" rx="1" fill="currentColor"/>
+              <rect x="1" y="7" width="10" height="2" rx="1" fill="currentColor"/>
               <rect x="1" y="11" width="12" height="2" rx="1" fill="currentColor"/>
             </svg>
           </div>
@@ -178,77 +274,51 @@
 
   <!-- ═══ OVERLAY: LIST ═══ -->
   <div class="overlay" *ngIf="uiState === 'list'">
-    <!-- FIX: wrapper with side panel OUTSIDE the glass-panel -->
     <div class="list-layout">
-
-      <!-- Main list panel -->
       <div class="glass-panel list-panel">
         <div class="panel-glow"></div>
-
         <div class="list-header">
           <button class="back-btn" (click)="goBackToMenu()">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
             </svg>
           </button>
-          <div class="list-doc-av">
-            {{ activeDoctor?.firstName?.[0] }}{{ activeDoctor?.lastName?.[0] }}
-          </div>
+          <div class="list-doc-av">{{ activeDoctor?.firstName?.[0] }}{{ activeDoctor?.lastName?.[0] }}</div>
           <div>
             <div class="list-doc-name">Dr. {{ activeDoctor?.firstName }} {{ activeDoctor?.lastName }}</div>
-            <div class="list-doc-spec">
-              {{ activeDoctor?.speciality }} —
-              <span class="appt-count">{{ detailedAppts.length }} appointments</span>
-            </div>
+            <div class="list-doc-spec">{{ activeDoctor?.speciality }} — <span class="appt-count">{{ detailedAppts.length }} appointments</span></div>
           </div>
         </div>
-
-        <!-- FIX: column header matches grid -->
         <div class="list-col-head">
-          <span>Patient</span>
-          <span>Date &amp; Time</span>
-          <span>Status</span>
-          <span>Actions</span>
+          <span>Patient</span><span>Date &amp; Time</span><span>Status</span><span>Actions</span>
         </div>
-
         <div class="appt-scroll">
-          <!-- FIX: appt rows always visible -->
-          <div class="appt-row" *ngFor="let appt of detailedAppts"
-               (click)="selectApptDetail(appt)">
-
+          <div class="appt-row" *ngFor="let appt of detailedAppts" (click)="selectApptDetail(appt)">
             <div class="appt-patient">{{ appt.patientName }}</div>
-
             <div class="appt-date">{{ appt.dateTime | date:'dd MMM · HH:mm' }}</div>
-
             <div (click)="$event.stopPropagation()">
-              <select class="status-sel"
-                      [ngClass]="getStatusClass(appt.status)"
-                      [(ngModel)]="appt.status"
-                      (ngModelChange)="changeStatusInline(appt, $event)">
+              <select class="status-sel" [ngClass]="getStatusClass(appt.status)"
+                      [(ngModel)]="appt.status" (ngModelChange)="changeStatusInline(appt, $event)">
                 <option value="PENDING">PENDING</option>
                 <option value="CONFIRMED">CONFIRMED</option>
                 <option value="COMPLETED">COMPLETED</option>
                 <option value="CANCELLED">CANCELLED</option>
               </select>
             </div>
-
             <div class="appt-actions" (click)="$event.stopPropagation()">
-              <button class="act-btn edit-btn" title="Edit" (click)="openEdit(appt)">
+              <button class="act-btn edit-btn" (click)="openEdit(appt)">
                 <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
                   <path d="M1.5 11.5l2.5-.5 7-7-2-2-7 7-.5 2.5z" stroke="currentColor" stroke-width="1.1" fill="none"/>
                   <path d="M8.5 2.5l2 2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
                 </svg>
               </button>
-              <button class="act-btn del-btn" title="Delete" (click)="openDeleteConfirm(appt)">
+              <button class="act-btn del-btn" (click)="openDeleteConfirm(appt)">
                 <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                  <path d="M2 4h9M5 4V2.5h3V4M3.5 4l.5 7h5l.5-7"
-                        stroke="currentColor" stroke-width="1.1"
-                        stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  <path d="M2 4h9M5 4V2.5h3V4M3.5 4l.5 7h5l.5-7" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
                 </svg>
               </button>
             </div>
           </div>
-
           <div class="empty-state" *ngIf="detailedAppts.length === 0">
             <svg width="32" height="32" viewBox="0 0 32 32" fill="none" style="margin-bottom:8px;">
               <circle cx="16" cy="16" r="14" stroke="#334155" stroke-width="1.5"/>
@@ -259,11 +329,8 @@
         </div>
       </div>
 
-      <!-- FIX: Side panel is a sibling, NOT inside list-panel -->
       <div class="glass-panel side-panel" *ngIf="sideMode !== null">
         <div class="panel-glow"></div>
-
-        <!-- EDIT FORM -->
         <ng-container *ngIf="sideMode === 'edit'">
           <div class="side-title">
             <svg width="14" height="14" viewBox="0 0 13 13" fill="none">
@@ -271,10 +338,7 @@
             </svg>
             Edit Appointment
           </div>
-          <div class="form-field">
-            <label>Patient</label>
-            <div class="locked-val">{{ editingAppt?.patientName }}</div>
-          </div>
+          <div class="form-field"><label>Patient</label><div class="locked-val">{{ editingAppt?.patientName }}</div></div>
           <div class="form-field">
             <label>Status</label>
             <select class="form-select" [(ngModel)]="editForm.status">
@@ -286,40 +350,29 @@
           </div>
           <div class="form-field">
             <label>Notes</label>
-            <textarea class="form-textarea" [(ngModel)]="editForm.notes"
-                      placeholder="Doctor notes..."></textarea>
+            <textarea class="form-textarea" [(ngModel)]="editForm.notes" placeholder="Doctor notes..."></textarea>
           </div>
           <div class="side-actions">
             <button class="side-cancel" (click)="cancelSide()">Cancel</button>
-            <button class="side-save"   (click)="saveEdit()">Save</button>
+            <button class="side-save" (click)="saveEdit()">Save</button>
           </div>
         </ng-container>
-
-        <!-- DELETE CONFIRM -->
         <ng-container *ngIf="sideMode === 'delete'">
           <div class="del-icon-wrap">
             <svg width="26" height="26" viewBox="0 0 22 22" fill="none">
-              <path d="M3 6h16M8 6V4.5a2.5 2.5 0 015 0V6M5 6l1 13h10l1-13"
-                    stroke="#f87171" stroke-width="1.4"
-                    stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M3 6h16M8 6V4.5a2.5 2.5 0 015 0V6M5 6l1 13h10l1-13" stroke="#f87171" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
           <div class="side-title del-title-text">Delete appointment?</div>
-          <div class="del-confirm-info">
-            <strong>{{ pendingDeleteAppt?.patientName }}</strong><br>
-            {{ pendingDeleteAppt?.dateTime | date:'dd MMM yyyy · HH:mm' }}
-          </div>
+          <div class="del-confirm-info"><strong>{{ pendingDeleteAppt?.patientName }}</strong><br>{{ pendingDeleteAppt?.dateTime | date:'dd MMM yyyy · HH:mm' }}</div>
           <p class="del-warn">This action cannot be undone.</p>
           <div class="side-actions">
-            <button class="side-cancel"  (click)="cancelSide()">Cancel</button>
-            <button class="side-delete"  (click)="confirmDelete()">Delete</button>
+            <button class="side-cancel" (click)="cancelSide()">Cancel</button>
+            <button class="side-delete" (click)="confirmDelete()">Delete</button>
           </div>
         </ng-container>
       </div>
-
-    </div><!-- /list-layout -->
-
-    <!-- Toast inside overlay -->
+    </div>
     <div class="toast" [class.show]="toastVisible">{{ toastMessage }}</div>
   </div>
 
@@ -332,29 +385,13 @@
         <div class="detail-patient">{{ selectedAppt?.patientName }}</div>
       </div>
       <div class="detail-grid">
-        <div class="detail-cell">
-          <div class="detail-cell-label">DATE &amp; TIME</div>
-          <div class="detail-cell-val">{{ selectedAppt?.dateTime | date:'dd MMM yyyy · HH:mm' }}</div>
-        </div>
-        <div class="detail-cell">
-          <div class="detail-cell-label">STATUS</div>
-          <div class="detail-status" [ngClass]="getStatusClass(selectedAppt?.status)">
-            {{ selectedAppt?.status }}
-          </div>
-        </div>
-        <div class="detail-cell">
-          <div class="detail-cell-label">DOCTOR</div>
-          <div class="detail-cell-val">Dr. {{ activeDoctor?.firstName }} {{ activeDoctor?.lastName }}</div>
-        </div>
-        <div class="detail-cell">
-          <div class="detail-cell-label">SPECIALITY</div>
-          <div class="detail-cell-val">{{ activeDoctor?.speciality }}</div>
-        </div>
+        <div class="detail-cell"><div class="detail-cell-label">DATE &amp; TIME</div><div class="detail-cell-val">{{ selectedAppt?.dateTime | date:'dd MMM yyyy · HH:mm' }}</div></div>
+        <div class="detail-cell"><div class="detail-cell-label">STATUS</div><div class="detail-status" [ngClass]="getStatusClass(selectedAppt?.status)">{{ selectedAppt?.status }}</div></div>
+        <div class="detail-cell"><div class="detail-cell-label">DOCTOR</div><div class="detail-cell-val">Dr. {{ activeDoctor?.firstName }} {{ activeDoctor?.lastName }}</div></div>
+        <div class="detail-cell"><div class="detail-cell-label">SPECIALITY</div><div class="detail-cell-val">{{ activeDoctor?.speciality }}</div></div>
       </div>
       <div class="detail-notes-label">NOTES</div>
-      <div class="detail-notes">
-        {{ selectedAppt?.notes || 'No notes attached to this appointment.' }}
-      </div>
+      <div class="detail-notes">{{ selectedAppt?.notes || 'No notes attached to this appointment.' }}</div>
       <button class="detail-back" (click)="goBackToList()">← Back to appointments</button>
     </div>
   </div>

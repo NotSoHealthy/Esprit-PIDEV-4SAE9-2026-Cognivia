@@ -129,7 +129,7 @@ export const routes: Routes = [
         canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN', 'ROLE_PATIENT'])],
         loadComponent: () =>
           import('./features/appointments/appointments').then(m => m.Appointments),
-}
+},
       {
         path: 'calendar',
         title: 'Calendar',
