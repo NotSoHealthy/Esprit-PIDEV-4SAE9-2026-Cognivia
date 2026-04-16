@@ -56,13 +56,13 @@ public class PatientController {
     }
 
     @PostMapping
-    public Patient createPatient(@RequestBody Patient patient) {
-        return patientService.create(patient);
+    public Patient createPatient(@RequestBody Patient patient) {return patientService.create(patient);
     }
 
     @PostMapping("/register/{userId}")
     public Patient registerPatient(@PathVariable("userId") UUID userId, @RequestBody Patient patient) {
         patient.setUserId(userId);
+        patient.setCheckInFrequency(0);
         return patientService.create(patient);
     }
 
