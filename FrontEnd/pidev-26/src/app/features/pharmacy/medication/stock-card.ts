@@ -47,6 +47,8 @@ export class StockCard implements OnInit {
   loading = false;
   errorMsg: string | null = null;
   stocks: MedicationStock[] = [];
+  subscribingStockIds = new Set<number>();
+  subscribedStockIds = new Set<number>();
 
   pageIndex = 1;
   pageSize = 12;
@@ -162,6 +164,62 @@ export class StockCard implements OnInit {
   openTransactionModal(stock: MedicationStock, event: Event): void {
     event.stopPropagation();
     this.openTransaction.emit(stock);
+  }
+
+  notifyOnRestock(stock: MedicationStock, event: Event): void {
+    event.stopPropagation();
+    if (!stock.id) {
+      return;
+    }
+
+    const userId = this.keycloakService.getUserId();
+    const username = this.keycloakService.getUsername();
+    if (!userId || !username) {
+      this.msg.warning('Please log in to subscribe for restock notifications.');
+      return;
+    }
+
+    if (this.subscribedStockIds.has(stock.id)) {
+      this.modal.info({
+        nzTitle: 'Already subscribed',
+        nzContent: 'You are already subscribed for this stock. We will notify you once it is restocked.',
+      });
+      return;
+    }
+
+    this.subscribingStockIds.add(stock.id);
+    this.stockService.subscribeToRestock(stock.id, userId, username).subscribe({
+      next: () => {
+        this.subscribedStockIds.add(stock.id!);
+        this.modal.success({
+          nzTitle: 'Subscription confirmed',
+          nzContent: 'You will be notified when this medication is restocked.',
+        });
+        this.subscribingStockIds.delete(stock.id!);
+      },
+      error: (err) => {
+        if (err?.status === 409) {
+          this.subscribedStockIds.add(stock.id!);
+          this.modal.info({
+            nzTitle: 'Already subscribed',
+            nzContent: 'You already asked to be notified for this medication restock.',
+          });
+        } else if (err?.status === 400 && err?.error?.message) {
+          this.msg.warning(err.error.message);
+        } else {
+          this.msg.error('Failed to subscribe for restock notifications.');
+        }
+        this.subscribingStockIds.delete(stock.id!);
+      },
+    });
+  }
+
+  isSubscribing(stockId: number | undefined): boolean {
+    if (!stockId) {
+      return false;
+    }
+
+    return this.subscribingStockIds.has(stockId);
   }
 
   openStockHistoryModal(stock: MedicationStock): void {

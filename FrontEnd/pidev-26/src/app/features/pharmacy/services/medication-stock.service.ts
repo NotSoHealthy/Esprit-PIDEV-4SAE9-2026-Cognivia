@@ -82,4 +82,16 @@ export class MedicationStockService {
       { params }
     );
   }
+
+  subscribeToRestock(stockId: number, userId: string, username: string): Observable<{ message: string }> {
+    const params = new HttpParams()
+      .set('userId', userId)
+      .set('username', username);
+
+    return this.http.post<{ message: string }>(
+      `${this.baseUrl}/${stockId}/restock-subscriptions`,
+      null,
+      { params }
+    );
+  }
 }

@@ -31,6 +31,7 @@ public class NotificationMapper {
             case "VISIT_SCHEDULED" -> visitScheduledNotificationMapper(event);
             case "NEW_CHAT_MESSAGE" -> chatMessageNotificationMapper(event);
             case "TEST_ASSIGNED" -> testAssignedNotificationMapper(event);
+            case "MEDICATION_RESTOCKED" -> medicationRestockedNotificationMapper(event);
             default -> throw new IllegalArgumentException("Unsupported event type: " + event.getEventType());
         };
     }
@@ -41,8 +42,55 @@ public class NotificationMapper {
             case "VISIT_SCHEDULED" -> visitScheduledDeliveries(event);
             case "NEW_CHAT_MESSAGE" -> chatMessageDeliveries(event);
             case "TEST_ASSIGNED" -> testAssignedDeliveries(event);
+            case "MEDICATION_RESTOCKED" -> medicationRestockedDeliveries(event);
             default -> throw new IllegalArgumentException("Unsupported event type: " + event.getEventType());
         };
+    }
+
+    public List<Notification> medicationRestockedNotificationMapper(GenericEvent event) {
+        Map<String, Object> payload = event.getPayload();
+        String medicationName = stringPayload(payload, "medicationName", "Medication");
+        String pharmacyName = stringPayload(payload, "pharmacyName", "Pharmacy");
+        long stockId = extractOptionalLong(payload, "medicationStockId");
+        long availableQuantity = extractOptionalLong(payload, "availableQuantity");
+
+        Notification notification = new Notification();
+        notification.setRecipientType(RecipientType.PATIENT);
+        notification.setTitle("Medication Restocked");
+        notification.setMessage(medicationName + " is back in stock at " + pharmacyName
+                + " (" + availableQuantity + " available).");
+        notification.setEventType(event.getEventType());
+        notification.setReferenceId(stockId);
+        return List.of(notification);
+    }
+
+    private List<NotificationDelivery> medicationRestockedDeliveries(GenericEvent event) {
+        List<Notification> notifications = medicationRestockedNotificationMapper(event);
+        if (notifications.isEmpty()) {
+            return List.of();
+        }
+
+        Notification base = notifications.get(0);
+        Map<String, Object> payload = event.getPayload();
+        Object recipientIdsObj = payload.get("recipientUserIds");
+        if (!(recipientIdsObj instanceof List<?> ids)) {
+            return List.of();
+        }
+
+        return ids.stream()
+                .map(Object::toString)
+                .map(this::safeUuid)
+                .filter(uuid -> uuid != null)
+                .map(uuid -> {
+                    Notification copy = new Notification();
+                    copy.setRecipientType(base.getRecipientType());
+                    copy.setTitle(base.getTitle());
+                    copy.setMessage(base.getMessage());
+                    copy.setEventType(base.getEventType());
+                    copy.setReferenceId(base.getReferenceId());
+                    return new NotificationDelivery(copy, uuid);
+                })
+                .toList();
     }
 
     public List<Notification> visitReportSubmittedNotificationMapper(GenericEvent event) {
@@ -247,5 +295,45 @@ public class NotificationMapper {
             }
         }
         throw new IllegalArgumentException("Unsupported payload type for " + key + ": " + value.getClass().getName());
+    }
+
+    private long extractOptionalLong(Map<String, Object> payload, String key) {
+        Object value = payload.get(key);
+        if (value == null) {
+            return 0L;
+        }
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        if (value instanceof String stringValue) {
+            try {
+                return Long.parseLong(stringValue);
+            } catch (NumberFormatException ignored) {
+                return 0L;
+            }
+        }
+        return 0L;
+    }
+
+    private String stringPayload(Map<String, Object> payload, String key, String fallback) {
+        Object value = payload.get(key);
+        if (value == null) {
+            return fallback;
+        }
+
+        String asString = value.toString().trim();
+        return asString.isEmpty() ? fallback : asString;
+    }
+
+    private UUID safeUuid(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+
+        try {
+            return UUID.fromString(raw.trim());
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 }

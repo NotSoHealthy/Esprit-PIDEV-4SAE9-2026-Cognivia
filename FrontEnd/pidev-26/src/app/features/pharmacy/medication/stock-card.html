@@ -53,6 +53,18 @@
       </div>
 
       <div class="stock-card-actions" (click)="$event.stopPropagation()">
+        <button
+          *ngIf="stock.quantity === 0"
+          nz-button
+          nzShape="round"
+          nzSize="small"
+          class="notify-restock-btn"
+          [nzLoading]="isSubscribing(stock.id)"
+          (click)="notifyOnRestock(stock, $event)"
+        >
+          <nz-icon nzType="bell" nzTheme="outline"></nz-icon>
+          Notify me
+        </button>
         <button 
           *ngIf="userRole === 'ROLE_ADMIN' || userRole === 'ROLE_PHARMACY'"
           nz-button 
