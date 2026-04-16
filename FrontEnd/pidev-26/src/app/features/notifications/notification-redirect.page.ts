@@ -28,6 +28,8 @@ export class NotificationRedirectPage implements OnInit {
       } else if (this.eventType === 'VISIT_SCHEDULED' && this.referenceId) {
         void this.router.navigate(['/visit', this.referenceId, 'report'], { replaceUrl: true });
         return;
+      } else {
+        window.history.back();
       }
     });
   }
