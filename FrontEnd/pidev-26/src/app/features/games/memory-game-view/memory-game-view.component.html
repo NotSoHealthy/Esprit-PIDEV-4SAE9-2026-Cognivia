@@ -34,10 +34,19 @@
             </button>
         </div>
 
-        <!-- Unity WebGL Iframe (Loads only after click) -->
-        <iframe *ngIf="isGameStarted" [src]="gameUrl" style="width: 100%; height: 100%; border: none; display: block;"
-            allow="autoplay; fullscreen" title="Unity Memory Game">
-        </iframe>
+        <!-- Unity WebGL Native Loader -->
+        <div *ngIf="isGameStarted" class="w-full h-full flex flex-col items-center justify-center bg-black">
+            <!-- Loading Indicator -->
+            <div *ngIf="loadingProgress < 100" class="absolute inset-0 flex flex-col items-center justify-center bg-white z-20">
+                <div class="w-64 h-2 bg-gray-200 rounded-full overflow-hidden mb-4">
+                    <div class="h-full bg-[#4D5CAB] transition-all duration-300" [style.width.%]="loadingProgress"></div>
+                </div>
+                <p class="text-[#4D5CAB] font-semibold">Loading Assets: {{loadingProgress}}%</p>
+            </div>
+
+            <!-- Unity Canvas -->
+            <canvas id="unity-canvas" style="width: 100%; height: 100%; display: block;"></canvas>
+        </div>
 
     </div>
 </div>
