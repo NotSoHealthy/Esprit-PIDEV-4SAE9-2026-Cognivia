@@ -21,7 +21,7 @@ public class CaregiverController {
     }
 
     @GetMapping("/{id}")
-    public Caregiver getCaregiverById(@PathVariable Long id) {
+    public Caregiver getCaregiverById(@PathVariable("id") Long id) {
         return careGiverService.getById(id);
     }
 
@@ -31,24 +31,28 @@ public class CaregiverController {
     }
 
     @GetMapping("/user/{userId}")
-    public Caregiver getCaregiverByUserId(@PathVariable UUID userId) {
+    public Caregiver getCaregiverByUserId(@PathVariable("userId") UUID userId) {
         return careGiverService.getByUserId(userId);
     }
 
     @PostMapping
-    public Caregiver createCaregiver(@RequestBody Caregiver careGiver) {return careGiverService.create(careGiver);}
+    public Caregiver createCaregiver(@RequestBody Caregiver careGiver) {
+        return careGiverService.create(careGiver);
+    }
 
     @PostMapping("/register/{userId}")
-    public Caregiver registerCaregiver(@PathVariable UUID userId, @RequestBody Caregiver careGiver) {
+    public Caregiver registerCaregiver(@PathVariable("userId") UUID userId, @RequestBody Caregiver careGiver) {
         careGiver.setUserId(userId);
         return careGiverService.create(careGiver);
     }
 
     @PutMapping("/{id}")
-    public Caregiver updateCaregiver(@PathVariable Long id, @RequestBody Caregiver careGiver) {
+    public Caregiver updateCaregiver(@PathVariable("id") Long id, @RequestBody Caregiver careGiver) {
         return careGiverService.update(id, careGiver);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteCaregiver(@PathVariable Long id) {careGiverService.delete(id);}
+    public void deleteCaregiver(@PathVariable("id") Long id) {
+        careGiverService.delete(id);
+    }
 }

@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/medication-stocks")
@@ -122,6 +123,30 @@ public class MedicationStockController {
         } catch (Exception e) {
             log.error("Error increasing quantity", e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @PostMapping("/{stockId}/restock-subscriptions")
+    public ResponseEntity<Map<String, String>> subscribeToRestock(
+            @PathVariable Long stockId,
+            @RequestParam String userId,
+            @RequestParam String username) {
+        try {
+            boolean created = medicationStockService.subscribeToRestock(stockId, userId, username);
+            if (created) {
+                return ResponseEntity.status(HttpStatus.CREATED)
+                        .body(Map.of("message", "Subscription created"));
+            }
+
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("message", "Already subscribed"));
+        } catch (IllegalStateException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", ex.getMessage()));
+        } catch (Exception e) {
+            log.error("Error subscribing to restock notification", e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Failed to subscribe"));
         }
     }
 }

@@ -143,6 +143,18 @@
   flex: 1;
 }
 
+.notify-restock-btn {
+  border-color: #4D5CAB !important;
+  color: #4D5CAB !important;
+  font-weight: 600;
+}
+
+.notify-restock-btn:hover,
+.notify-restock-btn:focus {
+  border-color: #3f4ea3 !important;
+  color: #3f4ea3 !important;
+}
+
 .pagination-wrapper {
   display: flex;
   justify-content: flex-end;

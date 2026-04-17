@@ -8,7 +8,7 @@ import { Notification, RecipientType } from '../../models/notifications/notifica
   providedIn: 'root',
 })
 export class NotificationsService {
-  private readonly apiUrl = inject(API_BASE_URL) + '/notifications/notifications';
+  private readonly apiUrl = inject(API_BASE_URL) + '/notifications';
 
   constructor(private http: HttpClient) {}
 

@@ -6,8 +6,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
+
+    List<Appointment> findByDoctorId(Long doctorId);
 
     // Conflict if:
     // existing.start < new.end AND existing.end > new.start

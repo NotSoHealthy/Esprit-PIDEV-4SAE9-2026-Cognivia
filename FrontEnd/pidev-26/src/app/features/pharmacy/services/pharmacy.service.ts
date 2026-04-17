@@ -71,22 +71,6 @@ getAll(): Observable<Pharmacy[]> {
     );
   }
 
-  uploadImagesWithProgress(id: number, opts: { banner?: File; logo?: File }): Observable<HttpEvent<Pharmacy>> {
-    const formData = new FormData();
-
-    if (opts.banner) formData.append('banner', opts.banner);
-    if (opts.logo) formData.append('logo', opts.logo);
-
-    return this.http.post<Pharmacy>(
-      `${this.apiBaseUrl}/pharmacy/pharmacies/${id}/upload-images`,
-      formData,
-      {
-        reportProgress: true,
-        observe: 'events'
-      }
-    );
-  }
-
   getAgentMode(): Observable<{ agentModeEnabled: boolean }> {
     return this.http.get<{ agentModeEnabled: boolean }>(
       `${this.apiBaseUrl}/pharmacy/config/agent-mode`

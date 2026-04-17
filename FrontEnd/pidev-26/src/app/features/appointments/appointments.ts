@@ -8,6 +8,7 @@ import {
   ChangeDetectionStrategy,
   NgZone,
 } from '@angular/core';
+import { animate, style, transition, trigger } from '@angular/animations';
 import { FormsModule } from '@angular/forms';
 
 import { NzTableModule } from 'ng-zorro-antd/table';
@@ -20,6 +21,7 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
+import { NzMessageService } from 'ng-zorro-antd/message';
 
 import { AppointmentApiService } from '../../core/api/appointment.service';
 import { Appointment, AppointmentStatus } from '../../core/api/models/appointment.model';
@@ -27,6 +29,8 @@ import { PatientApiService } from '../../core/api/patient.service';
 import { DoctorApiService } from '../../core/api/doctor.service';
 import { CaregiverApiService } from '../../core/api/caregiver.service';
 import { PersonLite } from '../../core/api/models/person-lite.model';
+import { KeycloakService } from '../../core/auth/keycloak.service';
+import { DocMapComponent } from './doc-map/doc-map.component';
 
 import { forkJoin, Observable, of } from 'rxjs';
 import { finalize, shareReplay, tap } from 'rxjs/operators';
@@ -52,10 +56,28 @@ type RefsPayload = {
     NzIconModule,
     NzCardModule,
     NzTooltipModule,
+    DocMapComponent,
   ],
   templateUrl: './appointments.html',
   styleUrls: ['./appointments.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [
+    trigger('mapPanel', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(18px)' }),
+        animate(
+          '0.4s cubic-bezier(0.22, 1, 0.36, 1)',
+          style({ opacity: 1, transform: 'translateY(0)' }),
+        ),
+      ]),
+      transition(':leave', [
+        animate(
+          '0.28s ease',
+          style({ opacity: 0, transform: 'translateY(-12px)' }),
+        ),
+      ]),
+    ]),
+  ],
 })
 export class Appointments implements OnInit, AfterViewInit {
   private readonly api = inject(AppointmentApiService);
@@ -66,6 +88,8 @@ export class Appointments implements OnInit, AfterViewInit {
   private readonly notif = inject(NzNotificationService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly zone = inject(NgZone);
+  private readonly message = inject(NzMessageService);
+  private readonly keycloak = inject(KeycloakService);
 
   loading = false;
   loadingRefs = false;
@@ -165,6 +189,11 @@ export class Appointments implements OnInit, AfterViewInit {
 
   /** ✅ FETCH stable (pas de NG0100) */
   fetch(): void {
+    const role = this.keycloak.getUserRole();
+    if (role === 'ROLE_PATIENT') {
+      this.filterPatientId = this.keycloak.getNumericUserId() || undefined;
+    }
+
     this.setLoading(true);
 
     this.api
@@ -270,14 +299,28 @@ export class Appointments implements OnInit, AfterViewInit {
     return full || `#${p.id ?? ''}`;
   }
 
-  private patientNameById(id: any): string {
+  patientNameById(id: any): string {
     const p = this.patients.find((x) => x.id === id);
     return this.displayNameOf(p);
   }
 
-  private doctorNameById(id: any): string {
+  doctorNameById(id: any): string {
     const d = this.doctors.find((x) => x.id === id);
     return this.displayNameOf(d);
+  }
+
+  caregiverNameById(id: any): string {
+    const c = this.caregivers.find((x) => x.id === id);
+    return this.displayNameOf(c);
+  }
+
+  getAvatarUrl(): string {
+    // Gravatar anonymous API - generic avatar
+    return 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+  }
+
+  isPatient(): boolean {
+    return this.keycloak.getUserRole() === 'ROLE_PATIENT';
   }
 
   // ✅ tu gardes ton HTML complet ici (je l’ai laissé inchangé dans ta version)
@@ -287,7 +330,7 @@ export class Appointments implements OnInit, AfterViewInit {
     const doctorName = this.doctorNameById(data.doctorId) || '-';
 
     return `.<!doctype html>
-<html lang="fr" xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -301,10 +344,12 @@ export class Appointments implements OnInit, AfterViewInit {
     </o:OfficeDocumentSettings></xml>
   </noscript>
   <![endif]-->
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     * { box-sizing: border-box; }
     body { margin: 0; padding: 0; background: #f0f4f8; }
+
     @media only screen and (max-width: 640px) {
       .email-wrapper { padding: 12px 8px !important; }
       .email-card { border-radius: 10px !important; }
@@ -318,49 +363,49 @@ export class Appointments implements OnInit, AfterViewInit {
 
 <body style="margin:0;padding:0;background:#f0f4f8;font-family:'Inter',Arial,Helvetica,sans-serif;-webkit-font-smoothing:antialiased;">
 
-  <!-- Preheader text (invisible) -->
+  <!-- Preheader -->
   <div style="display:none;max-height:0;overflow:hidden;opacity:0;font-size:1px;line-height:1px;color:transparent;">
     ✅ Votre rendez-vous chez cognivia est confirmé — Consultez les détails ci-dessous.
   </div>
 
-  <!-- Wrapper table -->
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="email-wrapper"
          style="background:#f0f4f8;padding:32px 16px;">
     <tr>
       <td align="center">
 
-        <!-- Main card -->
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" class="email-card"
                style="width:100%;max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden;
                       box-shadow:0 4px 32px rgba(16,24,40,0.10);border:1px solid #e4e7ec;">
 
-          <!-- ───── HEADER ───── -->
+          <!-- HEADER -->
           <tr>
             <td class="header-cell"
                 style="background:linear-gradient(135deg,#1677ff 0%,#0958d9 100%);padding:24px 28px 20px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <table role="presentation" width="100%">
                 <tr>
                   <td valign="middle">
-                    <!-- Logo + name -->
-                    <table role="presentation" cellpadding="0" cellspacing="0">
+                    <table role="presentation">
                       <tr>
                         <td style="background:rgba(255,255,255,0.18);border-radius:8px;padding:6px 10px;display:inline-block;">
                           <span style="font-size:13px;font-weight:700;color:#ffffff;letter-spacing:.3px;">🩺 cognivia</span>
                         </td>
                       </tr>
                     </table>
-                    <div style="font-size:22px;font-weight:700;color:#ffffff;margin-top:10px;letter-spacing:-.2px;">
-                      Confirmation de rendez-vous
+
+                    <div style="font-size:22px;font-weight:700;color:#ffffff;margin-top:10px;">
+                      Appointment Confirmation
                     </div>
+
                     <div style="font-size:13px;color:rgba(255,255,255,0.78);margin-top:4px;">
-                      Votre rendez-vous a été enregistré avec succès
+                      Your appointment has been successfully registered
                     </div>
                   </td>
+
                   <td align="right" valign="top">
-                    <!-- Date badge -->
-                    <div style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);
-                                border-radius:8px;padding:6px 12px;display:inline-block;
-                                font-size:12px;color:#ffffff;white-space:nowrap;">
+                    <div style="background:rgba(255,255,255,0.15);
+                                border:1px solid rgba(255,255,255,0.25);
+                                border-radius:8px;padding:6px 12px;
+                                font-size:12px;color:#ffffff;">
                       📅 ${date || ''}
                     </div>
                   </td>
@@ -369,108 +414,99 @@ export class Appointments implements OnInit, AfterViewInit {
             </td>
           </tr>
 
-          <!-- ───── SUCCESS BANNER ───── -->
+          <!-- SUCCESS -->
           <tr>
             <td style="background:#ecfdf5;border-bottom:1px solid #d1fae5;padding:12px 28px;">
-              <table role="presentation" cellpadding="0" cellspacing="0">
+              <table role="presentation">
                 <tr>
-                  <td style="font-size:20px;padding-right:10px;line-height:1;">✅</td>
+                  <td style="font-size:20px;padding-right:10px;">✅</td>
                   <td style="font-size:14px;color:#065f46;font-weight:600;">
-                    Bonjour <span style="color:#027a48;">${patientName}</span>, votre rendez-vous est confirmé !
+                    Hello <span style="color:#027a48;">${patientName}</span>, your appointment is confirmed!
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
 
-          <!-- ───── BODY ───── -->
+          <!-- BODY -->
           <tr>
             <td class="body-cell" style="padding:28px 28px 20px;">
 
-              <!-- Details card -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
-                     style="background:#f8fafc;border:1px solid #e4e7ec;border-radius:12px;overflow:hidden;">
+              <table role="presentation" width="100%"
+                     style="background:#f8fafc;border:1px solid #e4e7ec;border-radius:12px;">
 
-                <!-- Card header -->
                 <tr>
                   <td style="background:#f1f5f9;padding:12px 18px;border-bottom:1px solid #e4e7ec;">
-                    <span style="font-size:11px;font-weight:700;color:#475467;text-transform:uppercase;letter-spacing:.8px;">
-                      📋 Détails du rendez-vous
+                    <span style="font-size:11px;font-weight:700;color:#475467;text-transform:uppercase;">
+                      📋 Appointment Details
                     </span>
                   </td>
                 </tr>
 
-                <!-- Card rows -->
                 <tr>
                   <td style="padding:0 18px 4px;">
-                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
-                           style="font-size:14px;color:#101828;">
 
-                      <!-- Patient -->
+                    <table role="presentation" width="100%" style="font-size:14px;color:#101828;">
+
                       <tr>
                         <td class="detail-label"
-                            style="padding:13px 0;border-bottom:1px solid #eaecf0;width:32%;color:#667085;font-size:13px;font-weight:500;">
+                            style="padding:13px 0;border-bottom:1px solid #eaecf0;color:#667085;">
                           👤 Patient
                         </td>
                         <td style="padding:13px 0;border-bottom:1px solid #eaecf0;">
-                          <span style="font-weight:600;color:#101828;">${patientName}</span>
+                          <span style="font-weight:600;">${patientName}</span>
                         </td>
                       </tr>
 
-                      <!-- Médecin -->
                       <tr>
                         <td class="detail-label"
-                            style="padding:13px 0;border-bottom:1px solid #eaecf0;width:32%;color:#667085;font-size:13px;font-weight:500;">
-                          🩺 Médecin
+                            style="padding:13px 0;border-bottom:1px solid #eaecf0;color:#667085;">
+                          🩺 Doctor
                         </td>
                         <td style="padding:13px 0;border-bottom:1px solid #eaecf0;">
-                          <span style="font-weight:600;color:#101828;">Dr. ${doctorName}</span>
+                          <span style="font-weight:600;">Dr. ${doctorName}</span>
                         </td>
                       </tr>
 
-                      <!-- Date -->
                       <tr>
                         <td class="detail-label"
-                            style="padding:13px 0;border-bottom:1px solid #eaecf0;width:32%;color:#667085;font-size:13px;font-weight:500;">
-                          🗓️ Date & heure
+                            style="padding:13px 0;border-bottom:1px solid #eaecf0;color:#667085;">
+                          🗓️ Date & Time
                         </td>
                         <td style="padding:13px 0;border-bottom:1px solid #eaecf0;">
-                          <span style="font-weight:600;color:#101828;">${date || '—'}</span>
+                          <span style="font-weight:600;">${date || '—'}</span>
                         </td>
                       </tr>
 
-                      <!-- Statut -->
                       <tr>
                         <td class="detail-label"
-                            style="padding:13px 0;border-bottom:1px solid #eaecf0;width:32%;color:#667085;font-size:13px;font-weight:500;">
-                          📌 Statut
+                            style="padding:13px 0;border-bottom:1px solid #eaecf0;color:#667085;">
+                          📌 Status
                         </td>
                         <td style="padding:13px 0;border-bottom:1px solid #eaecf0;">
-                          ${(data.status === 'CONFIRMED' || data.status === 'CONFIRMÉ')
-        ? `<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;
-                                border-radius:999px;font-size:12px;font-weight:700;
+                          ${(data.status === 'CONFIRMED')
+        ? `<span style="padding:4px 12px;border-radius:999px;font-size:12px;font-weight:700;
                                 background:#ecfdf3;color:#027a48;border:1px solid #a7f3d0;">
-                                ✓ CONFIRMÉ</span>`
-        : `<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;
-                                border-radius:999px;font-size:12px;font-weight:700;
+                                ✓ CONFIRMED</span>`
+        : `<span style="padding:4px 12px;border-radius:999px;font-size:12px;font-weight:700;
                                 background:#fffbeb;color:#b45309;border:1px solid #fcd34d;">
-                                ⏳ ${data.status || 'EN ATTENTE'}</span>`
+                                ⏳ ${data.status || 'PENDING'}</span>`
       }
                         </td>
                       </tr>
 
-                      <!-- Notes -->
                       <tr>
                         <td class="detail-label"
-                            style="padding:13px 0;width:32%;color:#667085;font-size:13px;font-weight:500;vertical-align:top;">
+                            style="padding:13px 0;color:#667085;">
                           📝 Notes
                         </td>
-                        <td style="padding:13px 0;color:#344054;font-size:14px;line-height:1.6;">
+                        <td style="padding:13px 0;color:#344054;">
                           ${data.notes
         ? `<span style="background:#f8fafc;border-left:3px solid #1677ff;
-                                           padding:6px 10px;border-radius:0 6px 6px 0;display:block;
-                                           font-style:italic;color:#475467;">${data.notes}</span>`
-        : `<span style="color:#98a2b3;font-style:italic;">Aucune note</span>`
+                                           padding:6px 10px;border-radius:0 6px 6px 0;
+                                           display:block;font-style:italic;color:#475467;">
+                                           ${data.notes}</span>`
+        : `<span style="color:#98a2b3;font-style:italic;">No notes</span>`
       }
                         </td>
                       </tr>
@@ -480,18 +516,19 @@ export class Appointments implements OnInit, AfterViewInit {
                 </tr>
               </table>
 
-              <!-- Info box -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
-                     style="margin-top:18px;background:#eff6ff;border:1px solid #bfdbfe;
-                            border-radius:10px;padding:0;">
+              <!-- BLOC VIDEO - Jitsi Meet -->
+              \${meetLink}
+
+              <table role="presentation" width="100%"
+                     style="margin-top:18px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;">
                 <tr>
                   <td style="padding:14px 16px;">
-                    <table role="presentation" cellpadding="0" cellspacing="0">
+                    <table role="presentation">
                       <tr>
-                        <td style="font-size:18px;padding-right:10px;vertical-align:top;line-height:1.4;">ℹ️</td>
-                        <td style="font-size:13px;color:#1e40af;line-height:1.6;">
-                          Pour toute <strong>modification ou annulation</strong>, veuillez contacter notre équipe
-                          au moins <strong>24h à l'avance</strong> en répondant à cet email ou en appelant notre secrétariat.
+                        <td style="font-size:18px;padding-right:10px;">ℹ️</td>
+                        <td style="font-size:13px;color:#1e40af;">
+                          For any <strong>modification or cancellation</strong>, please contact our team
+                          at least <strong>24 hours in advance</strong> by replying to this email or calling our reception.
                         </td>
                       </tr>
                     </table>
@@ -502,14 +539,7 @@ export class Appointments implements OnInit, AfterViewInit {
             </td>
           </tr>
 
-          <!-- ───── DIVIDER ───── -->
-          <tr>
-            <td style="padding:0 28px;">
-              <div style="height:1px;background:linear-gradient(to right,transparent,#e4e7ec,transparent);"></div>
-            </td>
-          </tr>
-
-          <!-- ───── FOOTER ───── -->
+          <!-- FOOTER -->
           <tr>
             <td class="footer-cell" style="padding:18px 28px 22px;background:#f8fafc;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
@@ -554,7 +584,7 @@ export class Appointments implements OnInit, AfterViewInit {
 
   save(): void {
     if (this.loadingRefs) {
-      this.notif.info('Chargement', 'Veuillez patienter, chargement des listes…');
+      this.notif.info('Loading', 'Please wait, loading the lists…');
       return;
     }
 
@@ -584,7 +614,7 @@ export class Appointments implements OnInit, AfterViewInit {
 
       const email = String(this.form.patientEmail || '').trim();
       if (!email || !email.includes('@')) {
-        this.notif.warning('Validation', 'Email patient manquant ou invalide.');
+        this.notif.warning('Validation', 'Patient email missing or invalid.');
         this.microtask(() => (this.isModalOpen = true));
         return;
       }
@@ -619,7 +649,7 @@ export class Appointments implements OnInit, AfterViewInit {
 
     req$.pipe(finalize(() => this.setLoading(false))).subscribe({
       next: () => {
-        this.notif.success('Succès', this.editingId ? 'Mis à jour' : 'Créé + Email envoyé');
+        this.notif.success('Success', this.editingId ? 'Updated' : 'Created + Email sent');
         this.fetch();
       },
       error: (err) => {
@@ -634,7 +664,7 @@ export class Appointments implements OnInit, AfterViewInit {
           const joke = jokes[Math.floor(Math.random() * jokes.length)];
           this.notif.warning('Conflict', joke);
         } else {
-          this.notif.error('Erreur', 'Vérifie les champs envoyés (duration/date/status).');
+          this.notif.error('Error', 'Check the fields sent (duration/date/status).');
         }
         // ré-ouvrir modal si tu veux corriger
         this.microtask(() => (this.isModalOpen = true));
@@ -646,7 +676,7 @@ export class Appointments implements OnInit, AfterViewInit {
     if (!item.id) return;
 
     this.modal.confirm({
-      nzTitle: 'Supprimer ce rendez-vous ?',
+      nzTitle: 'Delete this appointment?',
       nzOnOk: () => {
         this.setLoading(true);
         this.api
@@ -654,12 +684,17 @@ export class Appointments implements OnInit, AfterViewInit {
           .pipe(finalize(() => this.setLoading(false)))
           .subscribe({
             next: () => {
-              this.notif.success('Supprimé', 'Rendez-vous supprimé');
+              this.notif.success('Deleted', 'Appointment deleted');
               this.fetch();
             },
-            error: () => this.notif.error('Erreur', 'Suppression impossible'),
+            error: () => this.notif.error('Error', 'Deletion  impossible'),
           });
       },
     });
+  }
+
+  showMap = false;
+  toggleMap(): void {
+    this.showMap = !this.showMap;
   }
 }

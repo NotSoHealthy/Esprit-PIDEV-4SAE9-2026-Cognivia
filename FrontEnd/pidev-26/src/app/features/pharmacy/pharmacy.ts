@@ -129,6 +129,7 @@ import { catchError } from 'rxjs/operators';
 })
 export class Pharmacy implements OnInit, AfterViewInit {
   @ViewChild('mapContainer', { static: false }) mapContainer?: ElementRef;
+  @ViewChild(Medication) inventoryMedication?: Medication;
 
   private readonly service = inject(PharmacyService);
   private readonly workingHoursService = inject(WorkingHoursService);
@@ -508,6 +509,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
     this.requestedMainView = view;
     if (view === 'agent-logs') {
       this.loadAgentLogs();
+      this.loadRequestedMedications();
     }
   }
 
@@ -639,8 +641,9 @@ export class Pharmacy implements OnInit, AfterViewInit {
   }
 
   private loadInventoryMedications(): void {
-    // Trigger change detection to refresh embedded inventory view.
-    // (Requested: always run when switching to Inventory tab.)
+    if (this.inventoryMedication) {
+      this.inventoryMedication.loadPharmacyAndMedications();
+    }
     this.cdr.detectChanges();
   }
 
@@ -695,20 +698,35 @@ export class Pharmacy implements OnInit, AfterViewInit {
   }
 
   loadAgentMessages(): void {
-    this.requestedMedications.forEach((med) => {
-      if (med.id) {
-        this.agentMessageService.getMessageForMedication(med.id).subscribe({
-          next: (message) => {
-            if (med.id) {
-              this.agentMessages.set(med.id, message);
-            }
-          },
-          error: (err) => {
-            // Silently ignore if no message found
-            console.debug('No agent message for medication', med.id, err);
-          },
-        });
-      }
+    const ids = this.requestedMedications
+      .map((m) => m.id)
+      .filter((id): id is number => !!id);
+
+    if (ids.length === 0) return;
+
+    const requests = ids.map((id) =>
+      this.agentMessageService.getMessageForMedication(id).pipe(
+        catchError(() => of(null as AgentMessage | null)),
+      ),
+    );
+
+    forkJoin(requests).subscribe((messages) => {
+      messages.forEach((message, i) => {
+        if (message) {
+          this.agentMessages.set(ids[i], message);
+        }
+      });
+      this.cdr.detectChanges();
+
+      // Re-fetch the pending list so any medications the AI auto-processed
+      // (DELETE / ACCEPT) are removed from the requests view without a page refresh.
+      this.medicationService.getPendingMedications().subscribe({
+        next: (medications) => {
+          this.requestedMedications = medications ?? [];
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.error(err),
+      });
     });
   }
 
@@ -740,10 +758,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
         this.msg.success(`"${medication.name}" accepted`);
         this.loadRequestedMedications();
         this.loadAgentLogs();
-        // Refresh inventory if in that tab
-        if (this.activeTabIndex === 1) {
-          this.loadInventoryMedications();
-        }
+        this.loadInventoryMedications();
       },
       error: (err) => {
         console.error(err);
@@ -761,10 +776,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
         this.msg.success(`"${medication.name}" patched and accepted`);
         this.loadRequestedMedications();
         this.loadAgentLogs();
-        // Refresh inventory if in that tab
-        if (this.activeTabIndex === 1) {
-          this.loadInventoryMedications();
-        }
+        this.loadInventoryMedications();
       },
       error: (err) => {
         console.error(err);
@@ -780,6 +792,7 @@ export class Pharmacy implements OnInit, AfterViewInit {
         this.msg.success(`"${medication.name}" rejected`);
         this.loadRequestedMedications();
         this.loadAgentLogs();
+        this.loadInventoryMedications();
       },
       error: (err) => {
         console.error(err);

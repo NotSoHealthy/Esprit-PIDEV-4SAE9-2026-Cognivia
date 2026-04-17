@@ -21,7 +21,7 @@ public class DoctorController {
     }
 
     @GetMapping("/{id}")
-    public Doctor getDoctorById(@PathVariable Long id) {
+    public Doctor getDoctorById(@PathVariable("id") Long id) {
         return doctorService.getById(id);
     }
 
@@ -31,7 +31,7 @@ public class DoctorController {
     }
 
     @GetMapping("/user/{userId}")
-    public Doctor getDoctorByUserId(@PathVariable UUID userId) {
+    public Doctor getDoctorByUserId(@PathVariable("userId") UUID userId) {
         return doctorService.getByUserId(userId);
     }
 
@@ -41,18 +41,18 @@ public class DoctorController {
     }
 
     @PostMapping("/register/{userId}")
-    public Doctor registerDoctor(@PathVariable UUID userId, @RequestBody Doctor doctor) {
+    public Doctor registerDoctor(@PathVariable("userId") UUID userId, @RequestBody Doctor doctor) {
         doctor.setUserId(userId);
         return doctorService.create(doctor);
     }
 
     @PutMapping("/{id}")
-    public Doctor updateDoctor(@PathVariable Long id, @RequestBody Doctor doctor) {
+    public Doctor updateDoctor(@PathVariable("id") Long id, @RequestBody Doctor doctor) {
         return doctorService.update(id, doctor);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteDoctor(@PathVariable Long id) {
+    public void deleteDoctor(@PathVariable("id") Long id) {
         doctorService.delete(id);
     }
 }

@@ -21,6 +21,8 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { finalize, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { PrescriptionService } from './services/prescription.service';
+import { PrescriptionPdfService } from './services/prescription-pdf.service';
+import { GoogleDriveUploadService } from './services/google-drive-upload.service';
 import { MedicationService } from '../pharmacy/services/medication.service';
 import { PatientService } from '../../core/services/care/patient.service';
 import { PharmacyRecommendation, Prescription, PrescriptionItem, Medication } from './models/prescription.model';
@@ -54,6 +56,8 @@ import { KeycloakService } from '../../core/auth/keycloak.service';
 })
 export class PrescriptionComponent implements OnInit {
   private readonly prescriptionService = inject(PrescriptionService);
+  private readonly prescriptionPdfService = inject(PrescriptionPdfService);
+  private readonly googleDriveUploadService = inject(GoogleDriveUploadService);
   private readonly medicationService = inject(MedicationService);
   private readonly patientService = inject(PatientService);
   private readonly keycloakService = inject(KeycloakService);
@@ -81,6 +85,7 @@ export class PrescriptionComponent implements OnInit {
   recommendationIndex = 0;
   prescriptionPageIndex = 1;
   prescriptionPageSize = 8;
+  pdfProcessingPrescriptionId: number | null = null;
 
   // Form for adding prescription
   addPrescriptionForm = this.fb.group({
@@ -262,7 +267,7 @@ export class PrescriptionComponent implements OnInit {
 
     this.recommendationLoading = true;
     this.prescriptionService.getRecommendationsByCode(code)
-      .pipe(finalize(() => { this.recommendationLoading = false; }))
+      .pipe(finalize(() => { this.recommendationLoading = false; this.cdr.detectChanges(); }))
       .subscribe({
         next: (recommendations) => {
           this.recommendedPharmacies = (recommendations ?? []).slice(0, 5);
@@ -601,5 +606,67 @@ export class PrescriptionComponent implements OnInit {
 
   compareMedications(a: any, b: any): boolean {
     return a?.id === b?.id;
+  }
+
+  isPdfProcessing(prescriptionId: number | undefined): boolean {
+    if (!prescriptionId) {
+      return false;
+    }
+
+    return this.pdfProcessingPrescriptionId === prescriptionId;
+  }
+
+  async onGeneratePdf(prescription: Prescription, event?: MouseEvent): Promise<void> {
+    event?.stopPropagation();
+
+    if (!prescription.id) {
+      this.msg.warning('Unable to generate PDF for this prescription');
+      return;
+    }
+
+    this.pdfProcessingPrescriptionId = prescription.id;
+
+    try {
+      const pdfBlob = await this.prescriptionPdfService.generatePrescriptionPdfBlob(prescription);
+      const fileName = this.buildPrescriptionFileName(prescription);
+
+      this.modal.confirm({
+        nzTitle: 'Upload this PDF to Google Drive?',
+        nzContent: 'If you choose No, the PDF will only be downloaded. If Yes, it will be downloaded and uploaded to your Google Drive.',
+        nzOkText: 'Yes, upload to Drive',
+        nzCancelText: 'No, download only',
+        nzClassName: 'prescription-modal-rounded',
+        nzOnCancel: () => {
+          this.downloadPdf(pdfBlob, fileName);
+          this.msg.success('Prescription PDF downloaded');
+        },
+        nzOnOk: async () => {
+          this.downloadPdf(pdfBlob, fileName);
+          const uploaded = await this.googleDriveUploadService.uploadPdfToDrive(pdfBlob, fileName);
+          this.msg.success(uploaded.webViewLink ? 'PDF downloaded and uploaded to Google Drive' : 'PDF downloaded and uploaded');
+        },
+      });
+    } catch (error) {
+      console.error('Error generating or uploading prescription PDF:', error);
+      this.msg.error('Failed to generate or upload prescription PDF');
+    } finally {
+      this.pdfProcessingPrescriptionId = null;
+      this.cdr.detectChanges();
+    }
+  }
+
+  private buildPrescriptionFileName(prescription: Prescription): string {
+    const codeOrId = `${prescription.code ?? prescription.id ?? 'unknown'}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const patient = `${prescription.patientName ?? 'patient'}`.trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
+    return `prescription_${codeOrId}_${patient || 'patient'}.pdf`;
+  }
+
+  private downloadPdf(blob: Blob, fileName: string): void {
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = fileName;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
   }
 }

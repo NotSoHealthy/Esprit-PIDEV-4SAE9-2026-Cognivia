@@ -89,6 +89,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'admin/reported-chats',
+        canMatch: [roleGuard(['ROLE_ADMIN'])],
+        loadComponent: () =>
+          import('./features/chat/components/admin-reported-chats/admin-reported-chats').then(
+            (m) => m.AdminReportedChats,
+          ),
+      },
+      {
         path: 'careteam',
         title: 'Care Team',
         canMatch: [roleGuard(['ROLE_PATIENT'])],
@@ -131,6 +139,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/tasks/tasks.page').then((m) => m.TasksPage),
       },
       {
+        path: 'tasks/:taskId/history',
+        loadComponent: () => import('./features/tasks/history/task-history.page').then((m) => m.TaskHistoryPage),
+      },
+      {
         path: 'tasks/create',
         loadComponent: () => import('./features/tasks/create/tasks-create.page').then((m) => m.TasksCreatePage),
       },
@@ -145,7 +157,7 @@ export const routes: Routes = [
       {
         path: 'appointments',
         title: 'Appointments',
-        canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN'])],
+        canMatch: [roleGuard(['ROLE_DOCTOR', 'ROLE_CAREGIVER', 'ROLE_ADMIN', 'ROLE_PATIENT'])],
         loadComponent: () =>
           import('./features/appointments/appointments').then(m => m.Appointments),
       },

@@ -26,7 +26,7 @@ public class PatientController {
     }
 
     @GetMapping("/{id}")
-    public Patient getPatientById(@PathVariable Long id) {
+    public Patient getPatientById(@PathVariable("id") Long id) {
         return patientService.getById(id);
     }
 
@@ -36,12 +36,12 @@ public class PatientController {
     }
 
     @GetMapping("/user/{userId}")
-    public Patient getPatientByUserId(@PathVariable UUID userId) {
+    public Patient getPatientByUserId(@PathVariable("userId") UUID userId) {
         return patientService.getByUserId(userId);
     }
 
     @GetMapping("/doctor/{doctorId}")
-    public List<Patient> getPatientsByDoctorId(@PathVariable Long doctorId) {
+    public List<Patient> getPatientsByDoctorId(@PathVariable("doctorId") Long doctorId) {
         return patientService.getByDoctorId(doctorId);
     }
 
@@ -51,33 +51,33 @@ public class PatientController {
     }
 
     @GetMapping("{patientId}/contact")
-    public PatientDto.PatientContactInfoDto getPatientContactInfo(@PathVariable Long patientId) {
+    public PatientDto.PatientContactInfoDto getPatientContactInfo(@PathVariable("patientId") Long patientId) {
         return patientService.getContactInfo(patientId);
     }
 
     @PostMapping
-    public Patient createPatient(@RequestBody Patient patient) {
-        return patientService.create(patient);
+    public Patient createPatient(@RequestBody Patient patient) {return patientService.create(patient);
     }
 
     @PostMapping("/register/{userId}")
-    public Patient registerPatient(@PathVariable UUID userId, @RequestBody Patient patient) {
+    public Patient registerPatient(@PathVariable("userId") UUID userId, @RequestBody Patient patient) {
         patient.setUserId(userId);
+        patient.setCheckInFrequency(0);
         return patientService.create(patient);
     }
 
     @PutMapping("/{id}")
-    public Patient updatePatient(@PathVariable Long id, @RequestBody Patient patient) {
+    public Patient updatePatient(@PathVariable("id") Long id, @RequestBody Patient patient) {
         return patientService.update(id, patient);
     }
 
     @PutMapping("/severity/{id}")
-    public Patient updatePatientSeverity(@PathVariable Long id, @RequestParam String severity) {
+    public Patient updatePatientSeverity(@PathVariable("id") Long id, @RequestParam("severity") String severity) {
         return patientService.updateSeverity(id, severity);
     }
 
     @DeleteMapping("/{id}")
-    public void deletePatient(@PathVariable Long id) {
+    public void deletePatient(@PathVariable("id") Long id) {
         patientService.delete(id);
     }
 }

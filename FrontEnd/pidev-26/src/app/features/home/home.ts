@@ -21,8 +21,8 @@ export class Home implements OnInit {
 
   languages = [
     { code: 'en', name: 'English' },
-    { code: 'fr', name: 'Français' },
-    { code: 'ar', name: 'العربية' },
+    { code: 'fr', name: 'French' },
+    { code: 'ar', name: 'Arabic' },
   ];
 
   alertMessage: string | null = null;

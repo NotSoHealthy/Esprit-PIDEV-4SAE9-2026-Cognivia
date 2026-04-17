@@ -97,4 +97,22 @@ public class PostController {
     public ResponseEntity<String> summarizePost(@PathVariable Long id) {
         return ResponseEntity.ok(aiService.summarizePost(id));
     }
+
+    private final org.example.forumservice.services.UserLookupService userLookupService;
+
+    @GetMapping("/lookup-test/{userId}")
+    public ResponseEntity<String> testLookup(@PathVariable String userId) {
+        try {
+            var profile = userLookupService.lookupUser(userId);
+            if (profile.isPresent()) {
+                return ResponseEntity.ok("SUCCESS: " + profile.get().fullName + " (" + profile.get().role + ")");
+            } else {
+                return ResponseEntity.ok("EMPTY: User lookup returned empty Optional");
+            }
+        } catch (Exception e) {
+            java.io.StringWriter sw = new java.io.StringWriter();
+            e.printStackTrace(new java.io.PrintWriter(sw));
+            return ResponseEntity.status(500).body("EXCEPTION: " + e.getMessage() + "\n" + sw.toString());
+        }
+    }
 }

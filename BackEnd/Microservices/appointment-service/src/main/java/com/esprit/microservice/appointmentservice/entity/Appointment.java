@@ -27,6 +27,9 @@ public class Appointment {
 
     private String notes;
 
+    @Column(name = "meet_link")
+    private String meetLink;
+
     // ===== GETTERS =====
 
     public Long getId() {
@@ -62,6 +65,10 @@ public class Appointment {
         return notes;
     }
 
+    public String getMeetLink() {
+        return meetLink;
+    }
+
     // ===== SETTERS =====
 
     public void setId(Long id) {
@@ -95,5 +102,9 @@ public class Appointment {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public void setMeetLink(String meetLink) {
+        this.meetLink = meetLink;
     }
 }

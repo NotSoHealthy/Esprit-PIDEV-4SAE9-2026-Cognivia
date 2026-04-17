@@ -19,3 +19,4 @@ WORKDIR /app
 COPY --from=build /workspace/app.jar /app/app.jar
 EXPOSE 8081
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+# hello world

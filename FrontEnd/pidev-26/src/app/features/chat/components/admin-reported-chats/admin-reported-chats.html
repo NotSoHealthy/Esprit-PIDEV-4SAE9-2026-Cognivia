@@ -1,0 +1,66 @@
+<div class="admin-reported-chats-container">
+    <div class="header">
+        <h2>Admin Dashboard: Reported Chats</h2>
+        <p>Review and manage reported conversations and participants.</p>
+    </div>
+
+    <nz-table #basicTable [nzData]="reports" [nzLoading]="loading" [nzBordered]="true">
+        <thead>
+            <tr>
+                <th>Reporter</th>
+                <th>Reported User/Group</th>
+                <th>Reason</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let report of basicTable.data">
+                <td>
+                    <span [nz-tooltip]="report.reporterId">
+                        {{ report.reporterName || 'Unknown User' }}
+                    </span>
+                </td>
+                <td>
+                    <div *ngIf="report.groupId">
+                        <span [nz-tooltip]="'Group ID: ' + report.groupId">
+                            <strong>Group:</strong> {{ report.groupName || 'Unknown Group' }}
+                        </span>
+                    </div>
+                    <div *ngIf="!report.groupId">
+                        <span [nz-tooltip]="'User ID: ' + report.reportedUserId">
+                            <strong>User:</strong> {{ report.reportedUserName || 'Unknown User' }}
+                        </span>
+                    </div>
+                </td>
+                <td>{{ report.reason }}</td>
+                <td>{{ report.timestamp | date:'short' }}</td>
+                <td>
+                    <nz-tag [nzColor]="report.status === 'RESOLVED' ? 'green' : 'orange'">
+                        {{ report.status }}
+                    </nz-tag>
+                </td>
+                <td class="action-buttons">
+                    <button nz-button nzType="default" (click)="viewConversation(report)">
+                        <i nz-icon nzType="eye"></i> View Convo
+                    </button>
+
+                    <button *ngIf="!report.groupId" nz-button nzType="primary" nzWarning (click)="timeoutUser(report.reportedUserId)">
+                        <i nz-icon nzType="clock-circle"></i> Timeout
+                    </button>
+
+                    <button *ngIf="!report.groupId" nz-button nzType="primary" nzDanger nz-popconfirm
+                        nzPopconfirmTitle="Are you sure you want to ban this user?"
+                        (nzOnConfirm)="banUser(report.reportedUserId)">
+                        <i nz-icon nzType="stop"></i> Ban
+                    </button>
+
+                    <button *ngIf="report.status === 'PENDING'" nz-button nzType="primary" (click)="resolveReport(report.id)">
+                        <i nz-icon nzType="check"></i> Resolve
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </nz-table>
+</div>

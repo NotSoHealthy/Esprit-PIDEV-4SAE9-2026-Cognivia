@@ -19,15 +19,4 @@ public class DataSourceConfig {
     public DataSource dataSource() {
         return DataSourceBuilder.create().build();
     }
-
-    @Bean(name = "careDataSource")
-    @ConfigurationProperties(prefix = "care.datasource")
-    public DataSource careDataSource() {
-        return DataSourceBuilder.create().build();
-    }
-
-    @Bean(name = "careJdbcTemplate")
-    public NamedParameterJdbcTemplate careJdbcTemplate(@Qualifier("careDataSource") DataSource careDataSource) {
-        return new NamedParameterJdbcTemplate(careDataSource);
-    }
 }

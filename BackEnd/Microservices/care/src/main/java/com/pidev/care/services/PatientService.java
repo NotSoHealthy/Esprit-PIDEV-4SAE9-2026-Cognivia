@@ -35,8 +35,6 @@ public class PatientService implements IService<Patient> {
     public Patient create(Patient entity) {
         if (entity.getUserId() != null) {
             List<Patient> existingPatients = patientRepository.findByUserId(entity.getUserId());
-
-            // ✅ List check (NO Optional)
             if (!existingPatients.isEmpty()) {
                 throw new IllegalStateException(
                         "Patient with userId " + entity.getUserId() + " already exists"

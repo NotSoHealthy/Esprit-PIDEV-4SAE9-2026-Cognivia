@@ -39,37 +39,80 @@ public class Task {
     @Column(nullable = false)
     private LocalDateTime dueAt;
 
-    public Task() {}
+    public Task() {
+    }
 
     @PrePersist
     public void prePersist() {
-        if (createdAt == null) createdAt = LocalDateTime.now();
-        if (isDone == null) isDone = false;
+        if (createdAt == null)
+            createdAt = LocalDateTime.now();
+        if (isDone == null)
+            isDone = false;
     }
 
     // ---------- GETTERS / SETTERS (IMPORTANT : getId existe) ----------
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public Long getPatientId() { return patientId; }
-    public void setPatientId(Long patientId) { this.patientId = patientId; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
+    public Long getPatientId() {
+        return patientId;
+    }
 
-    public String getTask() { return task; }
-    public void setTask(String task) { this.task = task; }
+    public void setPatientId(Long patientId) {
+        this.patientId = patientId;
+    }
 
-    public TaskType getTaskType() { return taskType; }
-    public void setTaskType(TaskType taskType) { this.taskType = taskType; }
+    public Long getUserId() {
+        return userId;
+    }
 
-    public Boolean getIsDone() { return isDone; }
-    public void setIsDone(Boolean done) { isDone = done; }
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public String getTask() {
+        return task;
+    }
 
-    public LocalDateTime getDueAt() { return dueAt; }
-    public void setDueAt(LocalDateTime dueAt) { this.dueAt = dueAt; }
+    public void setTask(String task) {
+        this.task = task;
+    }
+
+    public TaskType getTaskType() {
+        return taskType;
+    }
+
+    public void setTaskType(TaskType taskType) {
+        this.taskType = taskType;
+    }
+
+    public Boolean getIsDone() {
+        return isDone;
+    }
+
+    public void setIsDone(Boolean done) {
+        isDone = done;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getDueAt() {
+        return dueAt;
+    }
+
+    public void setDueAt(LocalDateTime dueAt) {
+        this.dueAt = dueAt;
+    }
 }
