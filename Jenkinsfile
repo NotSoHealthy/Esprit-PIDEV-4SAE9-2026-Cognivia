@@ -20,11 +20,7 @@ pipeline {
     stages {
         stage("Code Checkout") {
             steps {
-                script {
-                    def branchToBuild = env.BRANCH_NAME ?: 'main'
-                    git branch: branchToBuild,
-                        url: 'https://github.com/NotSoHealthy/Esprit-PIDEV-4SAE9-2026-Cognivia.git'
-                }
+                checkout scm
             }
         }
         stage('Gateway and Eureka Build and Push') {
