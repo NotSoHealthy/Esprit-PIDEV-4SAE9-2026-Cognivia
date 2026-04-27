@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        maven "M2_HOME"
-    }
-
     environment {
         DOCKER_CREDENTIALS= credentials('docker_hub')
         DOCKER_BUILDKIT = '1'
@@ -18,11 +14,72 @@ pipeline {
     }
 
     stages {
+        stage('Preflight') {
+            steps {
+                script {
+                    if (!isUnix()) {
+                        error('This pipeline uses sh/docker/kubectl and must run on a Linux agent.')
+                    }
+                }
+                sh 'docker version'
+                sh 'kubectl version --client=true'
+            }
+        }
         stage("Code Checkout") {
             steps {
                 checkout scm
             }
         }
+
+        stage('Backend Tests') {
+            steps {
+                script {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                        def rootServices = ["gateway", "eureka"]
+                        for (s in rootServices) {
+                            dir("BackEnd/${s}") {
+                                sh 'chmod +x mvnw'
+                                sh './mvnw -B test'
+                            }
+                        }
+
+                        def microservices = ["appointment-service", "care", "dpchat", "forum-service","games","monitoring","notifications","pharmacy","surveillance-and-equipment"]
+                        for (s in microservices) {
+                            dir("BackEnd/Microservices/${s}") {
+                                sh 'chmod +x mvnw'
+                                sh './mvnw -B test'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Frontend Tests') {
+            steps {
+                script {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                        dir('FrontEnd/pidev-26') {
+                            sh 'npm ci'
+                            sh 'npm test -- --browsers=ChromeHeadless'
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Frontend Build and Push') {
+            steps {
+                script {
+                    sh 'echo $DOCKER_CREDENTIALS_PSW | docker login -u $DOCKER_CREDENTIALS_USR --password-stdin'
+                    sh '''
+                        docker build -f FrontEnd/pidev-26/Dockerfile -t notsohealthy/pidev-frontend:dev FrontEnd/pidev-26/
+                        docker push notsohealthy/pidev-frontend:dev
+                    '''
+                }
+            }
+        }
+
         stage('Gateway and Eureka Build and Push') {
             steps {
                 script {
@@ -85,6 +142,12 @@ pipeline {
                     '''
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
         }
     }
 }
