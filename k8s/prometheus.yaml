@@ -65,6 +65,11 @@ data:
             action: keep
             regex: true
 
+          # Default Spring Boot actuator Prometheus endpoint.
+          # If a Service sets prometheus.io/path, it will override this below.
+          - target_label: __metrics_path__
+            replacement: /actuator/prometheus
+
           - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scheme]
             action: replace
             target_label: __scheme__

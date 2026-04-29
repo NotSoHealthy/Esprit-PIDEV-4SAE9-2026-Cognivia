@@ -12,3 +12,31 @@ data:
       geminiApiKey: "",
       geminiModel: "gemini-2.5-flash"
     };
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-nginx-conf
+  namespace: pidev-deployment
+data:
+  default.conf: |
+    server {
+      listen 80;
+      server_name _;
+
+      root /usr/share/nginx/html;
+      index index.html;
+
+      location / {
+        try_files $uri $uri/ /index.html;
+      }
+
+      # Exposed only inside the cluster; Prometheus scrapes the exporter sidecar.
+      location = /stub_status {
+        stub_status;
+        access_log off;
+        allow 127.0.0.1;
+        deny all;
+      }
+    }
