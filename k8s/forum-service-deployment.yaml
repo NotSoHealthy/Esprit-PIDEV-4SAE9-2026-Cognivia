@@ -24,7 +24,7 @@ spec:
       containers:
         - name: forum-service
           image: notsohealthy/pidev-forum-service:dev
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8089
           env:

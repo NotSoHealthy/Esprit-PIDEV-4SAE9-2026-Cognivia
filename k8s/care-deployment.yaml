@@ -24,7 +24,7 @@ spec:
       containers:
         - name: care
           image: notsohealthy/pidev-care:dev
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8081
           env:

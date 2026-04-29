@@ -24,7 +24,7 @@ spec:
       containers:
         - name: games
           image: notsohealthy/pidev-games:dev
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8087
           env:

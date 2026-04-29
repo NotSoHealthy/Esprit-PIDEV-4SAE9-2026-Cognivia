@@ -24,7 +24,7 @@ spec:
       containers:
         - name: appointment-service
           image: notsohealthy/pidev-appointment-service:dev
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8085
           env:

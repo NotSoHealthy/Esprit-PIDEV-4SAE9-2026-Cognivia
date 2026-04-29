@@ -24,7 +24,7 @@ spec:
       containers:
         - name: monitoring
           image: notsohealthy/pidev-monitoring:dev
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8082
           env:

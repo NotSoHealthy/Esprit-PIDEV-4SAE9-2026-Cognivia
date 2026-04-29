@@ -24,7 +24,7 @@ spec:
       containers:
         - name: pharmacy
           image: notsohealthy/pidev-pharmacy:dev
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8091
           env:

@@ -24,7 +24,7 @@ spec:
       containers:
         - name: surveillance-and-equipment
           image: notsohealthy/pidev-surveillance-and-equipment:dev
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8083
           env:

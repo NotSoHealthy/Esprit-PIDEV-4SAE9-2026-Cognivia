@@ -24,7 +24,7 @@ spec:
       containers:
         - name: gateway
           image: notsohealthy/pidev-gateway:dev
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:

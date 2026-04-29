@@ -24,7 +24,7 @@ spec:
       containers:
         - name: dpchat
           image: notsohealthy/pidev-dpchat:dev
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8086
           env:

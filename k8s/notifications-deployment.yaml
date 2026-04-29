@@ -28,7 +28,7 @@ spec:
       containers:
         - name: notifications
           image: notsohealthy/pidev-notifications:dev
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8090
           env:

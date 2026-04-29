@@ -24,7 +24,7 @@ spec:
       containers:
         - name: eureka
           image: notsohealthy/pidev-eureka:dev
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8761
           env:
