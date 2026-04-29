@@ -31,7 +31,7 @@ pipeline {
                         def rootServices = ["gateway", "eureka"]
                         for (s in rootServices) {
                             dir("BackEnd/${s}") {
-                                // sh 'chmod +x mvnw'
+                                sh 'chmod +x mvnw'
                                 sh './mvnw -B test'
                             }
                         }
@@ -39,7 +39,7 @@ pipeline {
                         def microservices = ["appointment-service", "care", "dpchat", "forum-service","games","monitoring","notifications","pharmacy","surveillance-and-equipment"]
                         for (s in microservices) {
                             dir("BackEnd/Microservices/${s}") {
-                                // sh 'chmod +x mvnw'
+                                sh 'chmod +x mvnw'
                                 sh './mvnw -B test'
                             }
                         }
