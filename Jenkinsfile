@@ -60,7 +60,7 @@ pipeline {
                 script {
                     catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                         dir('FrontEnd/pidev-26') {
-                            sh 'npm ci'
+                            sh 'if [ -f package-lock.json ]; then npm ci; else npm install; fi'
                             sh 'npm test -- --browsers=ChromeHeadless'
                         }
                     }
