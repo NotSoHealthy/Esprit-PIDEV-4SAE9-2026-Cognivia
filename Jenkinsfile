@@ -13,6 +13,10 @@ pipeline {
         GOOGLE_AI_API_KEY = credentials('GOOGLE_AI_API_KEY')
     }
 
+    tools { 
+        nodejs 'NodeJS 24.15.0 LTS' 
+    }
+
     stages {
         stage('Preflight') {
             steps {
