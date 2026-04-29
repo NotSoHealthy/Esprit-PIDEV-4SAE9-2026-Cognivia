@@ -2,7 +2,7 @@ FROM node:24-alpine AS build
 WORKDIR /app
 
 COPY package*.json ./
-RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+RUN npm install --no-package-lock --legacy-peer-deps
 COPY . .
 
 RUN npm run build -- --configuration production \
