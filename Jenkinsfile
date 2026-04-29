@@ -53,6 +53,12 @@ pipeline {
                 script {
                     catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                         dir('FrontEnd/pidev-26') {
+                            sh 'node --version'
+
+                            // Pin npm to the version declared in package.json (packageManager)
+                            sh 'corepack enable'
+                            sh 'corepack prepare npm@11.12.1 --activate'
+                            sh 'npm --version'
                             sh 'npm config get registry'
 
                             sh 'npm config set fund false'
