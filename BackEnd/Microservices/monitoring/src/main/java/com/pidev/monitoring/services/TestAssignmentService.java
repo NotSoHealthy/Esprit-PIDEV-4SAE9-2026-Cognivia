@@ -77,11 +77,13 @@ public class TestAssignmentService {
         // Publish notification event if it's a targeted assignment
         if (assignment.getAssignmentType() == AssignmentType.TARGETED && assignment.getPatientId() != null) {
             log.info("Publishing TEST_ASSIGNED event for patientId: {}", assignment.getPatientId());
+            String testName = Objects.requireNonNullElse(test.getTitle(), "Untitled test");
+            Long resolvedTestId = Objects.requireNonNullElse(test.getId(), testId);
             GenericEvent event = new GenericEvent();
             event.setEventType("TEST_ASSIGNED");
             event.setPayload(Map.of(
-                    "testId", test.getId(),
-                    "testName", test.getTitle(),
+                    "testId", resolvedTestId,
+                    "testName", testName,
                     "patientId", assignment.getPatientId()));
             eventPublisher.sendGenericEvent(event, "test.assigned");
             log.info("Successfully sent TEST_ASSIGNED event to exchange");

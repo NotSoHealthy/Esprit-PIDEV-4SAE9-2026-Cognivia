@@ -1,6 +1,7 @@
 package com.pidev.monitoring.services;
 
 import com.pidev.monitoring.entities.*;
+import com.pidev.monitoring.rabbitMQ.EventPublisher;
 import com.pidev.monitoring.repositories.CognitiveTestRepository;
 import com.pidev.monitoring.repositories.TestAssignmentRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +27,9 @@ public class TestAssignmentServiceTest {
     @Mock
     private CognitiveTestRepository cognitiveTestRepository;
 
+    @Mock
+    private EventPublisher eventPublisher;
+
     @InjectMocks
     private TestAssignmentService testAssignmentService;
 
@@ -36,6 +40,7 @@ public class TestAssignmentServiceTest {
     void setUp() {
         testEntity = new CognitiveTest();
         testEntity.setId(10L);
+        testEntity.setTitle("Memory test");
         testEntity.setAssignments(new ArrayList<>());
 
         assignment = new TestAssignment();
