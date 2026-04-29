@@ -52,26 +52,27 @@ pipeline {
             steps {
                 script {
                     catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                        dir('FrontEnd/pidev-26') {
-                            sh 'node --version'
+                        // Jenkins agents often lack a Chrome binary; run tests in a container and install Chromium.
+                        docker.image('node:20-bullseye').inside('-u root:root') {
+                            dir('FrontEnd/pidev-26') {
+                                sh '''
+                                    set -e
+                                    node -v
+                                    npm -v
 
-                            // Pin npm to the version declared in package.json (packageManager)
-                            sh 'corepack enable'
-                            sh 'corepack prepare npm@11.12.1 --activate'
-                            sh 'npm --version'
-                            sh 'npm config get registry'
+                                    apt-get update
+                                    apt-get install -y --no-install-recommends chromium
+                                    rm -rf /var/lib/apt/lists/*
 
-                            sh 'npm config set fund false'
-                            sh 'npm config set audit false'
-                            sh 'npm config set progress true'
-                            sh 'npm config set loglevel info'
+                                    export CI=true
+                                    export CHROME_BIN=/usr/bin/chromium
 
-                            timeout(time: 10, unit: 'MINUTES') {
-                                retry(2) {
-                                    sh 'npm ci --legacy-peer-deps --no-audit --no-fund --prefer-offline --loglevel=info'
-                                }
+                                    npm config set fund false
+                                    npm config set audit false
+                                    npm ci --legacy-peer-deps --no-audit --no-fund
+                                    npm test
+                                '''
                             }
-                            sh 'npm test -- --browsers=ChromeHeadless'
                         }
                     }
                 }
