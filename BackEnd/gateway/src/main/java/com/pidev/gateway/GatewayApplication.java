@@ -26,6 +26,9 @@ public class GatewayApplication {
                                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                                 .authorizeExchange(exchanges -> exchanges
                                                 .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                                .pathMatchers("/actuator/health", "/actuator/info",
+                                                                "/actuator/prometheus")
+                                                .permitAll()
                                                 .pathMatchers("/notifications/ws/**", "/notifications/ws").permitAll()
                                                 .pathMatchers("/auth/**").permitAll()
                                                 .pathMatchers("/admin/**").hasRole("ADMIN")

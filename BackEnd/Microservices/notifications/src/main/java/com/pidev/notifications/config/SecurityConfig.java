@@ -18,6 +18,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // WebSocket handshake (auth enforced at STOMP CONNECT via ChannelInterceptor)
                         .requestMatchers("/ws/**").permitAll()
+                        // Actuator (Prometheus scraping)
+                        .requestMatchers("/actuator/health", "/actuator/info", "/actuator/prometheus").permitAll()
                         // Swagger (optional)
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated())

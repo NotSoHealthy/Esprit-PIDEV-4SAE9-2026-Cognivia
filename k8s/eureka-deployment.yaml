@@ -27,6 +27,13 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8761
+          env:
+            - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
+              value: "health,info,prometheus"
+            - name: MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED
+              value: "true"
+            - name: MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED
+              value: "true"
           envFrom:
             - configMapRef:
                 name: eureka-config
@@ -42,6 +49,10 @@ metadata:
   namespace: pidev-deployment
   labels:
     app: eureka
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "8761"
 spec:
   selector:
     app: eureka
