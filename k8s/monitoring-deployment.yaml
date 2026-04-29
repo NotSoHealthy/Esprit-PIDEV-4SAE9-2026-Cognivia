@@ -5,6 +5,10 @@ metadata:
   namespace: pidev-deployment
 data:
   PORT: "8082"
+  RABBITMQ_HOST: "rabbitmq"
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_USERNAME: "guest"
+  RABBITMQ_PASSWORD: "guest"
 ---
 apiVersion: apps/v1
 kind: Deployment
