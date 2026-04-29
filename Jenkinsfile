@@ -18,17 +18,6 @@ pipeline {
     }
 
     stages {
-        stage('Preflight') {
-            steps {
-                script {
-                    if (!isUnix()) {
-                        error('This pipeline uses sh/docker/kubectl and must run on a Linux agent.')
-                    }
-                }
-                sh 'docker version'
-                sh 'kubectl version --client=true'
-            }
-        }
         stage("Code Checkout") {
             steps {
                 checkout scm
