@@ -13,10 +13,6 @@ pipeline {
         GOOGLE_AI_API_KEY = credentials('GOOGLE_AI_API_KEY')
     }
 
-    tools { 
-        nodejs 'NodeJS 24.15.0 LTS' 
-    }
-
     stages {
         stage("Code Checkout") {
             steps {
@@ -53,7 +49,9 @@ pipeline {
                 script {
                     catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                         // Jenkins agents often lack a Chrome binary; run tests in a container and install Chromium.
-                        docker.image('node:20-bullseye').inside('-u root:root') {
+                        // NOTE: Requires Docker Pipeline plugin + a Jenkins agent that can run Docker.
+                        sh 'docker version'
+                        docker.image('node:24-bullseye').inside('-u root:root --shm-size=1g') {
                             dir('FrontEnd/pidev-26') {
                                 sh '''
                                     set -e
