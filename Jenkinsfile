@@ -53,7 +53,18 @@ pipeline {
                 script {
                     catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                         dir('FrontEnd/pidev-26') {
-                            sh 'npm install --no-package-lock --legacy-peer-deps'
+                            sh 'npm config get registry'
+
+                            sh 'npm config set fund false'
+                            sh 'npm config set audit false'
+                            sh 'npm config set progress true'
+                            sh 'npm config set loglevel info'
+
+                            timeout(time: 10, unit: 'MINUTES') {
+                                retry(2) {
+                                    sh 'npm ci --legacy-peer-deps --no-audit --no-fund --prefer-offline --loglevel=info'
+                                }
+                            }
                             sh 'npm test -- --browsers=ChromeHeadless'
                         }
                     }
