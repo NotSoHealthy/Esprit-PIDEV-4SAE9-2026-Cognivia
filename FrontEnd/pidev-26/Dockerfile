@@ -1,8 +1,8 @@
-FROM node:24-alpine AS build
+FROM node:24-bullseye AS build
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --legacy-peer-deps
+RUN npm ci --legacy-peer-deps --no-audit --no-fund
 COPY . .
 
 RUN npm run build -- --configuration production \
