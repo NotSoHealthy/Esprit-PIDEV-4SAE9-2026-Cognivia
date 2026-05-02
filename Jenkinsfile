@@ -26,14 +26,18 @@ pipeline {
                     catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                         def rootServices = ["gateway", "eureka"]
                         for (s in rootServices) {
-                            sh "chmod +x BackEnd/${s}/mvnw"
-                            sh "BackEnd/${s}/mvnw -B test"
+                            dir("BackEnd/${s}") {
+                                sh 'chmod +x mvnw'
+                                sh './mvnw -B test'
+                            }
                         }
 
                         def microservices = ["appointment-service", "care", "dpchat", "forum-service","games","monitoring","notifications","pharmacy","surveillance-and-equipment"]
                         for (s in microservices) {
-                            sh "chmod +x BackEnd/Microservices/${s}/mvnw"
-                            sh "BackEnd/Microservices/${s}/mvnw -B test"
+                            dir("BackEnd/Microservices/${s}") {
+                                sh 'chmod +x mvnw'
+                                sh './mvnw -B test'
+                            }
                         }
                     }
                 }
