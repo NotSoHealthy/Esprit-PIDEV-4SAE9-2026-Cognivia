@@ -1,9 +1,7 @@
 import {
   ApplicationConfig,
   importProvidersFrom,
-  provideAppInitializer,
   provideBrowserGlobalErrorListeners,
-  inject,
 } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
@@ -108,7 +106,6 @@ import {
   StopOutline,
   LikeOutline,
   SaveOutline,
-
   ContainerOutline,
   ShopOutline,
   UnorderedListOutline,
@@ -122,16 +119,11 @@ import {
 
 // ✅ ADD THESE
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { KeycloakService } from './core/auth/keycloak.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideAnimations(),
-    provideAppInitializer(() => {
-      const keycloak = inject(KeycloakService);
-      return keycloak.init();
-    }),
     provideRouter(routes),
 
     {

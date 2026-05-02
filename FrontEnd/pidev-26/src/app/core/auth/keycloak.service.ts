@@ -1,4 +1,4 @@
-import { Injectable, inject,NgZone } from '@angular/core';
+import { Injectable, inject, NgZone } from '@angular/core';
 import Keycloak from 'keycloak-js';
 import { LanguageService } from '../services/language.service';
 import { KEYCLOAK_BASE_URL } from '../api/api.tokens';
@@ -8,6 +8,7 @@ export class KeycloakService {
   private readonly languageService = inject(LanguageService);
   private readonly keycloakBaseUrl = inject(KEYCLOAK_BASE_URL);
   private keycloak: Keycloak;
+  private initPromise: Promise<boolean> | null = null;
   private readonly unverifiedAlertKey = 'pidev.auth.alert.unverified';
   private readonly unverifiedLogoutAttemptAtKey = 'pidev.auth.unverified.logout.at';
 
@@ -20,42 +21,56 @@ export class KeycloakService {
   }
 
   async init(): Promise<boolean> {
-    const authenticated = await this.ngZone.run(async () => {
-      return await this.keycloak.init({
-        onLoad: 'check-sso', // or 'login-required'
-        pkceMethod: 'S256',
-        checkLoginIframe: false, // simpler for dev
+    if (this.initPromise) return this.initPromise;
+
+    this.initPromise = (async () => {
+      const authenticated = await this.ngZone.run(async () => {
+        return await this.keycloak.init({
+          onLoad: 'check-sso', // or 'login-required'
+          pkceMethod: 'S256',
+          checkLoginIframe: false, // simpler for dev
+        });
       });
-    });
 
-    if (authenticated && this.hasRealmRole('ROLE_UNVERIFIED')) {
-      // Persist message across the Keycloak logout redirect, then send user back to home.
-      sessionStorage.setItem(
-        this.unverifiedAlertKey,
-        'Your account is not verified yet. Please verify your account before logging in.',
-      );
+      if (authenticated && this.hasRealmRole('ROLE_UNVERIFIED')) {
+        // Persist message across the Keycloak logout redirect, then send user back to home.
+        sessionStorage.setItem(
+          this.unverifiedAlertKey,
+          'Your account is not verified yet. Please verify your account before logging in.',
+        );
 
-      // Prevent rapid logout redirect loops if Keycloak SSO re-authenticates immediately.
-      const lastAttempt = Number(sessionStorage.getItem(this.unverifiedLogoutAttemptAtKey) ?? '0');
-      const now = Date.now();
-      if (!Number.isFinite(lastAttempt) || now - lastAttempt > 10_000) {
-        sessionStorage.setItem(this.unverifiedLogoutAttemptAtKey, String(now));
-        // Important: do NOT clearToken before logout, otherwise Keycloak won't get `id_token_hint`
-        // and can show a logout confirmation screen.
-        try {
-          await this.logout(`${window.location.origin}/`);
-        } finally {
-          // Best-effort local cleanup (may not run if the browser navigates away immediately).
+        // Prevent rapid logout redirect loops if Keycloak SSO re-authenticates immediately.
+        const lastAttempt = Number(
+          sessionStorage.getItem(this.unverifiedLogoutAttemptAtKey) ?? '0',
+        );
+        const now = Date.now();
+        if (!Number.isFinite(lastAttempt) || now - lastAttempt > 10_000) {
+          sessionStorage.setItem(this.unverifiedLogoutAttemptAtKey, String(now));
+          // Important: do NOT clearToken before logout, otherwise Keycloak won't get `id_token_hint`
+          // and can show a logout confirmation screen.
+          try {
+            await this.logout(`${window.location.origin}/`);
+          } finally {
+            // Best-effort local cleanup (may not run if the browser navigates away immediately).
+            this.keycloak.clearToken();
+          }
+        } else {
+          // If we're throttling logout, at least drop local auth state so the app treats the user as logged out.
           this.keycloak.clearToken();
         }
-      } else {
-        // If we're throttling logout, at least drop local auth state so the app treats the user as logged out.
-        this.keycloak.clearToken();
+        return false;
       }
-      return false;
-    }
 
-    return authenticated;
+      return authenticated;
+    })();
+
+    try {
+      return await this.initPromise;
+    } catch (e) {
+      // Allow retry if initialization failed.
+      this.initPromise = null;
+      throw e;
+    }
   }
 
   async login(redirectUri = window.location.origin): Promise<void> {
