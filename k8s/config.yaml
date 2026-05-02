@@ -5,4 +5,4 @@ metadata:
   namespace: pidev-deployment
 data:
   EUREKA_LINK: "http://eureka:8761/eureka/"
-  KEYCLOAK_LINK: "http://keycloak:8180/realms/pidev"
+  KEYCLOAK_LINK: "http://auth.local:8180/realms/pidev"
