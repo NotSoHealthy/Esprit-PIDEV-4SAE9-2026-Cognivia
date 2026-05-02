@@ -5,4 +5,5 @@ metadata:
   namespace: pidev-deployment
 data:
   EUREKA_LINK: "http://eureka:8761/eureka/"
-  KEYCLOAK_LINK: "http://auth.local:8180/realms/pidev"
+  # Must be reachable from inside the cluster; Ingress for auth.local listens on port 80
+  KEYCLOAK_LINK: "http://auth.local/realms/pidev"
