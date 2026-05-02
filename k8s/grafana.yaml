@@ -9,6 +9,18 @@ stringData:
   admin-password: admin
 ---
 apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-storage
+  namespace: pidev-deployment
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-provisioning
@@ -39,6 +51,8 @@ spec:
       labels:
         app: grafana
     spec:
+      securityContext:
+        fsGroup: 472
       containers:
         - name: grafana
           image: grafana/grafana:10.4.3
@@ -59,6 +73,8 @@ spec:
           volumeMounts:
             - name: provisioning
               mountPath: /etc/grafana/provisioning/datasources
+            - name: storage
+              mountPath: /var/lib/grafana
       volumes:
         - name: provisioning
           configMap:
@@ -66,6 +82,9 @@ spec:
             items:
               - key: datasource.yml
                 path: datasource.yml
+        - name: storage
+          persistentVolumeClaim:
+            claimName: grafana-storage
 ---
 apiVersion: v1
 kind: Service
