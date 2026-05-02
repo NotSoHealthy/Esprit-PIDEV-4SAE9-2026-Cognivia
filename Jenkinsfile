@@ -133,10 +133,7 @@ pipeline {
                             --from-literal=GOOGLE_AI_API_KEY="$GOOGLE_AI_API_KEY" \
                             --dry-run=client -o yaml | kubectl apply -f -
 
-                        for f in k8s/*.yaml; do
-                            [ "$f" = "k8s/secret.yaml" ] && continue
-                            kubectl apply -f "$f"
-                        done
+                        kubectl apply -f k8s/ -n pidev-deployment
                     '''
                 }
             }
@@ -144,11 +141,7 @@ pipeline {
         stage('Restart Deployments') {
             steps {
                 script {
-                    sh '''
-                        kubectl get deployments -n pidev-deployment -o name | while read -r deploy; do
-                            kubectl rollout restart -n pidev-deployment "$deploy"
-                        done
-                    '''
+                    sh 'kubectl rollout restart deployment -n pidev-deployment'
                 }
             }
         }
