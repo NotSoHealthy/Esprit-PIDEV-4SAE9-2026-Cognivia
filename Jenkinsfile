@@ -13,6 +13,10 @@ pipeline {
         GOOGLE_AI_API_KEY = credentials('GOOGLE_AI_API_KEY')
     }
 
+    tools {
+        scannerHome = tool 'sonar-scanner'
+    }
+
     stages {
         stage("Code Checkout") {
             steps {
@@ -40,6 +44,22 @@ pipeline {
                             }
                         }
                     }
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('jenkins-sonar') {
+                    sh "${scannerHome}/bin/sonar-scanner"
+                }
+            }
+        }
+
+        stage("Quality Gate") {
+            steps {
+                timeout(time: 1, unit: 'HOURS') {
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }
