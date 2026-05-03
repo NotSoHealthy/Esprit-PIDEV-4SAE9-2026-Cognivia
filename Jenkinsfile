@@ -21,7 +21,7 @@ pipeline {
             }
         }
 
-        stage('Backend Tests and code analysis') {
+        stage('Backend Tests and SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('jenkins-sonar') {
                     script {
@@ -73,10 +73,31 @@ pipeline {
                                     npm config set fund false
                                     npm config set audit false
                                     npm ci --legacy-peer-deps --no-audit --no-fund
-                                    npm test
+                                    npm test -- --code-coverage
                                 '''
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        stage('Frontend SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('jenkins-sonar') {
+                    dir('FrontEnd/pidev-26') {
+                        sh '''
+                            set -e
+                            "${SCANNER_HOME}/bin/sonar-scanner" \
+                              -Dsonar.projectKey=pidev-26-frontend \
+                              -Dsonar.projectName="PIDEV-26 Frontend" \
+                              -Dsonar.sources=src \
+                              -Dsonar.tests=src \
+                              -Dsonar.test.inclusions="src/**/*.spec.ts" \
+                              -Dsonar.exclusions="**/node_modules/**,**/dist/**,**/coverage/**" \
+                              -Dsonar.javascript.lcov.reportPaths="coverage/**/lcov.info" \
+                              -Dsonar.sourceEncoding=UTF-8
+                        '''
                     }
                 }
             }
