@@ -1,11 +1,9 @@
 pipeline {
     agent any
 
-    tools {
-        scannerHome = tool 'sonar-scanner'
-    }
 
     environment {
+        SCANNER_HOME = tool 'sonar-scanner'
         DOCKER_CREDENTIALS= credentials('docker_hub')
         DOCKER_BUILDKIT = '1'
         PIDEV26_DB_URL = credentials('PIDEV26_DB_URL')
@@ -51,7 +49,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('jenkins-sonar') {
-                    sh "${scannerHome}/bin/sonar-scanner"
+                    sh "${SCANNER_HOME}/bin/sonar-scanner"
                 }
             }
         }
