@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        scannerHome = tool 'sonar-scanner'
+    }
+
     environment {
         DOCKER_CREDENTIALS= credentials('docker_hub')
         DOCKER_BUILDKIT = '1'
@@ -11,10 +15,6 @@ pipeline {
         IMGBB_API_KEY = credentials('IMGBB_API_KEY')
         DEEPSEEK_API_KEY = credentials('DEEPSEEK_API_KEY')
         GOOGLE_AI_API_KEY = credentials('GOOGLE_AI_API_KEY')
-    }
-
-    tools {
-        scannerHome = tool 'sonar-scanner'
     }
 
     stages {
