@@ -21,38 +21,33 @@ pipeline {
             }
         }
 
-        stage('Backend Tests') {
+        stage('Backend Tests and code analysis') {
             steps {
-                script {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                        def rootServices = ["gateway", "eureka"]
-                        for (s in rootServices) {
-                            dir("BackEnd/${s}") {
-                                sh 'chmod +x mvnw'
-                                sh './mvnw -B test'
+                withSonarQubeEnv('jenkins-sonar') {
+                    script {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                            def rootServices = ["gateway", "eureka"]
+                            for (s in rootServices) {
+                                dir("BackEnd/${s}") {
+                                    sh 'chmod +x mvnw'
+                                    // sh './mvnw -B test'
+                                    sh './mvnw -B verify sonar:sonar'
+                                }
                             }
-                        }
 
-                        def microservices = ["appointment-service", "care", "dpchat", "forum-service","games","monitoring","notifications","pharmacy","surveillance-and-equipment"]
-                        for (s in microservices) {
-                            dir("BackEnd/Microservices/${s}") {
-                                sh 'chmod +x mvnw'
-                                sh './mvnw -B test'
+                            def microservices = ["appointment-service", "care", "dpchat", "forum-service","games","monitoring","notifications","pharmacy","surveillance-and-equipment"]
+                            for (s in microservices) {
+                                dir("BackEnd/Microservices/${s}") {
+                                    sh 'chmod +x mvnw'
+                                    // sh './mvnw -B test'
+                                    sh './mvnw -B verify sonar:sonar'
+                                }
                             }
                         }
                     }
                 }
             }
         }
-
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('jenkins-sonar') {
-                    sh "mvn sonar:sonar"
-                }
-            }
-        }
-
 
         stage('Frontend Tests') {
             steps {
