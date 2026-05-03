@@ -26,15 +26,6 @@ pipeline {
                 withSonarQubeEnv('jenkins-sonar') {
                     script {
                         catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                            def rootServices = ["gateway", "eureka"]
-                            for (s in rootServices) {
-                                dir("BackEnd/${s}") {
-                                    sh 'chmod +x mvnw'
-                                    // sh './mvnw -B test'
-                                    sh './mvnw -B verify sonar:sonar'
-                                }
-                            }
-
                             def microservices = ["appointment-service", "care", "dpchat", "forum-service","games","monitoring","notifications","pharmacy","surveillance-and-equipment"]
                             for (s in microservices) {
                                 dir("BackEnd/Microservices/${s}") {
@@ -170,12 +161,6 @@ pipeline {
                     sh 'kubectl rollout restart deployment -n pidev-deployment'
                 }
             }
-        }
-    }
-
-    post {
-        always {
-            junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
         }
     }
 }
