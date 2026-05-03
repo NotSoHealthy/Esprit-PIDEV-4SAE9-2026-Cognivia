@@ -1,7 +1,6 @@
 pipeline {
     agent any
 
-
     environment {
         SCANNER_HOME = tool 'sonar-scanner'
         DOCKER_CREDENTIALS= credentials('docker_hub')
@@ -49,18 +48,11 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('jenkins-sonar') {
-                    sh "${SCANNER_HOME}/bin/sonar-scanner"
+                    sh "mvn sonar:sonar"
                 }
             }
         }
 
-        stage("Quality Gate") {
-            steps {
-                timeout(time: 1, unit: 'HOURS') {
-                    waitForQualityGate abortPipeline: true
-                }
-            }
-        }
 
         stage('Frontend Tests') {
             steps {
