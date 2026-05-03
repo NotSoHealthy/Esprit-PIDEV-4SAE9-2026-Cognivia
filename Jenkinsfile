@@ -30,7 +30,6 @@ pipeline {
                             for (s in microservices) {
                                 dir("BackEnd/Microservices/${s}") {
                                     sh 'chmod +x mvnw'
-                                    // sh './mvnw -B test'
                                     sh './mvnw -B verify sonar:sonar'
                                 }
                             }
@@ -44,9 +43,6 @@ pipeline {
             steps {
                 script {
                     catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                        // Jenkins agents often lack a Chrome binary; run tests in a container and install Chromium.
-                        // NOTE: Requires Docker Pipeline plugin + a Jenkins agent that can run Docker.
-                        sh 'docker version'
                         docker.image('node:24-bullseye').inside('-u root:root --shm-size=1g') {
                             dir('FrontEnd/pidev-26') {
                                 sh '''
