@@ -43,7 +43,7 @@ pipeline {
             steps {
                 script {
                     catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                        docker.image('node:24-bullseye').inside('-u root:root --shm-size=1g') {
+                        docker.image('node:24-bullseye').inside('--dns 8.8.8.8 --dns 1.1.1.1 -u root:root --shm-size=1g') {
                             dir('FrontEnd/pidev-26') {
                                 sh '''
                                     set -e
