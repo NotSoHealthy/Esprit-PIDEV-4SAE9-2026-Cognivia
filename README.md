@@ -2,7 +2,7 @@
 
 ## Overview
 
-Cognivia is a university microservices project focused on supporting Alzheimer’s patients and the people around them (caregivers, doctors, pharmacy). It provides authentication via Keycloak, service discovery via Eureka, and an API Gateway that fronts multiple Spring Boot services. The user interface is an Angular web app with i18n supportt.
+Cognivia is a university microservices project focused on supporting Alzheimer’s patients and the people around them (caregivers, doctors, pharmacy). It provides authentication via Keycloak, service discovery via Eureka, and an API Gateway that fronts multiple Spring Boot services. The user interface is an Angular web app with i18n support.
 
 ## Features
 
