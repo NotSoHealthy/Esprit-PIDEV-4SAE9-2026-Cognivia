@@ -102,7 +102,7 @@ export class Appointments implements OnInit, AfterViewInit {
   doctors: PersonLite[] = [];
   caregivers: PersonLite[] = [];
 
-  statuses: AppointmentStatus[] = ['PENDING', 'APPROVED', 'CANCELLED', 'COMPLETED'];
+  statuses: AppointmentStatus[] = ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED'];
 
   filterPatientId?: number;
   filterDoctorId?: number;
@@ -632,10 +632,11 @@ export class Appointments implements OnInit, AfterViewInit {
       caregiverId: Number(this.form.caregiverId),
       patientId: Number(this.form.patientId),
       doctorId: Number(this.form.doctorId),
-      appointmentDate:
+      appointmentDate: this.toLocalISOString(
         this.form.appointmentDate instanceof Date
-          ? this.form.appointmentDate.toISOString()
-          : new Date(this.form.appointmentDate).toISOString(),
+          ? this.form.appointmentDate
+          : new Date(this.form.appointmentDate)
+      ),
       durationMinutes: dur,
       status: this.form.status,
       notes: this.form.notes ?? null,
@@ -696,5 +697,60 @@ export class Appointments implements OnInit, AfterViewInit {
   showMap = false;
   toggleMap(): void {
     this.showMap = !this.showMap;
+  }
+
+  // ── AI free-slots ──────────────────────────────────────────────
+  isAiModalOpen = false;
+  aiLoading = false;
+  aiResult: any = null;
+
+  openAiSlots(): void {
+    this.loadRefs$().subscribe({
+      next: () => {
+        const doctorPayload = this.doctors.map((d) => ({
+          id: d.id,
+          name: this.displayNameOf(d),
+          specialty: (d as any).speciality ?? (d as any).specialty ?? '',
+        }));
+
+        this.aiResult = null;
+        this.aiLoading = true;
+        this.microtask(() => (this.isAiModalOpen = true));
+
+        this.api.getAiFreeSlots(doctorPayload).subscribe({
+          next: (res) => {
+            this.microtask(() => {
+              this.aiResult = res;
+              this.aiLoading = false;
+            });
+          },
+          error: () => {
+            this.microtask(() => (this.aiLoading = false));
+            this.notif.error('AI Error', 'Failed to get available slots from AI');
+          },
+        });
+      },
+      error: () => this.notif.error('Error', 'Failed to load doctors'),
+    });
+  }
+
+  closeAiModal(): void {
+    this.microtask(() => (this.isAiModalOpen = false));
+  }
+
+  private toLocalISOString(date: Date): string {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const offset = -date.getTimezoneOffset();
+    const sign = offset >= 0 ? '+' : '-';
+    const absOff = Math.abs(offset);
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
+           `T${pad(date.getHours())}:${pad(date.getMinutes())}:00` +
+           `${sign}${pad(Math.floor(absOff / 60))}:${pad(absOff % 60)}`;
+  }
+
+  formatTime(t: string): string {
+    if (!t || t.length < 3) return t;
+    const padded = t.padStart(4, '0');
+    return `${padded.slice(0, 2)}:${padded.slice(2)}`;
   }
 }

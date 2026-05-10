@@ -2,9 +2,12 @@ package com.esprit.microservice.appointmentservice.controller;
 
 import com.esprit.microservice.appointmentservice.dto.AppointmentCreateRequest;
 import com.esprit.microservice.appointmentservice.dto.AppointmentDTO;
+import com.esprit.microservice.appointmentservice.dto.ai.FreeSlotsRequest;
+import com.esprit.microservice.appointmentservice.dto.ai.MonthlyFreeSlotsResponse;
 import com.esprit.microservice.appointmentservice.entity.Appointment;
 import com.esprit.microservice.appointmentservice.entity.AppointmentStatus;
 import com.esprit.microservice.appointmentservice.mail.MailService;
+import com.esprit.microservice.appointmentservice.service.AppointmentAvailabilityService;
 import com.esprit.microservice.appointmentservice.service.AppointmentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,11 +24,13 @@ public class AppointmentController {
 
     private final AppointmentService service;
     private final MailService mailService;
+    private final AppointmentAvailabilityService availabilityService;
 
-    // Constructor Injection (بدون Lombok)
-    public AppointmentController(AppointmentService service, MailService mailService) {
+    public AppointmentController(AppointmentService service, MailService mailService,
+                                 AppointmentAvailabilityService availabilityService) {
         this.service = service;
         this.mailService = mailService;
+        this.availabilityService = availabilityService;
     }
 
     @PostMapping
@@ -115,6 +120,11 @@ public class AppointmentController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         service.delete(id);
+    }
+
+    @PostMapping("/ai/free-slots")
+    public MonthlyFreeSlotsResponse getAiFreeSlots(@RequestBody FreeSlotsRequest req) {
+        return availabilityService.getMonthlyFreeSlots(req.getDoctors());
     }
 
     private AppointmentDTO mapToDTO(Appointment a) {

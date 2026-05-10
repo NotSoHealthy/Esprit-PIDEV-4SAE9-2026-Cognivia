@@ -93,4 +93,8 @@ export class AppointmentApiService {
             ),
         );
     }
+
+    getAiFreeSlots(doctors: { id: number; name: string; specialty: string }[]): Observable<any> {
+        return this.http.post<any>(`${this.baseUrl}/ai/free-slots`, { doctors });
+    }
 }
